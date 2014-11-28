@@ -1,0 +1,43 @@
+#ifndef PARAMSPARSER_H
+#define PARAMSPARSER_H
+#include "emilibase.h"
+#include "permutationflowshop.h"
+
+namespace prs
+{
+
+class ParamsParser
+{
+protected:
+    emili::pfsp::PermutationFlowShop istance;
+    char** tokens;
+    int numberOfTokens;
+    int currentToken;
+    char* nextToken();
+    emili::LocalSearch* eparams();
+    emili::LocalSearch* search();
+    emili::LocalSearch* ils();
+    int ilstime();
+    emili::TabuSearch* tparams();
+    emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n);
+    std::pair<int,int> tsettings();
+    int ttsize();
+    int ttiter();
+    void params();
+    emili::LocalSearch* vparams();
+    emili::InitialSolution* init();
+    emili::Termination* term();
+    emili::pfsp::PfspNeighborhood* neigh();
+
+    emili::pfsp::PfspNeighborhood* neighV();
+    void neighs();
+    void neighs1();
+    int number();
+public:
+    int ils_time;
+    ParamsParser(char** tokens,int numberOfTokens,emili::pfsp::PermutationFlowShop is):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),istance(is),ils_time(-123) { }
+    emili::LocalSearch* parseParams();
+
+};
+}
+#endif // PARAMSPARSER_H
