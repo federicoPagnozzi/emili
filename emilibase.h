@@ -3,6 +3,9 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <random>
+#include <functional>
+
 /*
 ********************************* E M I L I ***********************************************************
 E M I L I stands for Easily Modifiable (or Moddable) Iterated Local search Implementation.
@@ -273,11 +276,25 @@ public:
     TabuMemory(int tenureSize):tabutenure(tenureSize) { }
     TabuMemory():tabutenure(1) { }
     /*
+     * tabu_check determines if the input it's a forbidden solution.
      * this method should return true if the solution is not tabu and false in the other case,
      */
     virtual bool tabu_check(emili::Solution* solution) = 0;
+    /*
+     * this method should mark the input as a forbidden solution.
+     */
     virtual void forbid(emili::Solution* solution) = 0;
+    /*
+     * TabuSearch calls this method to let the tabumemory elaborate and store
+     * a step (or move).
+     * It should be overwritten only if the kind of memory
+     * to be implemented needs to know this information.
+     */
     virtual void registerMove(emili::Solution* base,emili::Solution* solution) {}
+    /*
+     * resets the state of the memory.
+     * To be used to restore the object state between two distinct search.
+     */
     virtual void reset()=0;
     virtual void setTabuTenure(int tt) { this->tabutenure = tt; }
 };
@@ -301,6 +318,12 @@ public:
     virtual emili::Solution* search();
     virtual Solution* timedSearch(int seconds, Solution* initial);
 };
+
+/*
+ * Variable Neighborhood Descent implementation
+ * accept as template parameters a LocalSearch and uses it with the various kinds of neighborhoods
+ */
+
 template <class T>
 class VNDSearch: public T
 {
@@ -358,6 +381,42 @@ public:
     virtual Solution* search(Solution* initial);
 };
 
+/*
+   a consistent and centralized implementation of the random function
+   that uses the marsenne twister.
+ */
+
+static std::mt19937 generator;
+static std::uniform_int_distribution<int> distribution;
+static std::uniform_real_distribution<float> realdistr;
+
+
+static void initializeRandom(int seed)
+{
+    generator = std::mt19937(seed);
+    //rand = std::bind(distribution,generator);
+}
+
+static inline int generateRandomNumber(){
+   // auto rand = std::bind(distribution,generator);
+    return distribution(generator);
+}
+
+static inline float generateRealRandomNumber()
+{
+    return realdistr(generator);
+}
+
+class MetropolisAcceptance: public emili::AcceptanceCriteria
+{
+protected:
+    float temperature;
+public:
+    MetropolisAcceptance(float startTemp):temperature(startTemp) { }
+    void setTemp(float temp);
+    float getTemp();
+    virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution);
+};
 
 
 

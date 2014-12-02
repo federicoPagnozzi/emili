@@ -27,6 +27,10 @@
 #define INSERT "insert"
 #define TRANSPOSE "transpose"
 #define EXCHANGE "exchange"
+#define RNDSEED "rnds"
+#define PRT_RND "randpert"
+#define ACC_PROB "prob"
+#define ACC_METRO "metropolis"
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT -10
@@ -68,8 +72,20 @@ emili::LocalSearch* prs::ParamsParser::eparams()
     ils_time = ilstime();
     ls->setSearchTime(ils_time);
     }
-
+    int seed = getSeed();
+    emili::initializeRandom(seed);
     return ls;
+}
+
+int prs::ParamsParser::getSeed()
+{
+    char* t = nextToken();
+    if(t != nullptr && strcmp(t,RNDSEED)==0)
+    {
+        //currentToken--;
+        return number();
+    }
+    return 0;
 }
 
 emili::LocalSearch* prs::ParamsParser::search()
@@ -121,7 +137,8 @@ emili::LocalSearch* prs::ParamsParser::ils()
     //ils_time = ilstime();
     emili::WhileTrueTermination* pft = new emili::WhileTrueTermination;
     emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
-    emili::pfsp::PfspTestAcceptance* tac = new emili::pfsp::PfspTestAcceptance(istance);
+    //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
+    emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1);
     emili::LocalSearch* iils = new emili::IteratedLocalSearch(*ls,*pft,*prsp,*tac);
     iils->setSearchTime(ils_time);
     return iils;

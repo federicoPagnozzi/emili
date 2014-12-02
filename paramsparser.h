@@ -24,6 +24,7 @@ protected:
     int ttsize();
     int ttiter();
     void params();
+    int getSeed();
     emili::LocalSearch* vparams();
     emili::InitialSolution* init();
     emili::Termination* term();

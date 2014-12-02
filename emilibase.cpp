@@ -27,7 +27,6 @@ clock_t endTime;
 clock_t beginTime;
 emili::Solution* s_cap;
 struct itimerval timer;
-
 static void finalise (int _)
 {
 
@@ -468,7 +467,7 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
         if(bestSoFar->operator >(*incumbent)){
             s_cap = incumbent;
             delete bestSoFar;
-            bestSoFar = incumbent;
+            bestSoFar = incumbent;            
         }
         neighbh->reset();
         Solution* bestOfTheIteration = nullptr;//= incumbent;
@@ -480,7 +479,7 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
             if(bestOfTheIteration==nullptr || bestOfTheIteration->operator >( *ithSolution)){
                 tabuMemory.registerMove(incumbent,ithSolution);
                 if(tabuMemory.tabu_check(ithSolution))//<- Aspiration goes here.
-                {
+                {                    
                     bestOfTheIteration = ithSolution;
                 }
 
@@ -489,7 +488,7 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
         }
 
             incumbent = bestOfTheIteration;
-        tabuMemory.forbid(incumbent);
+         tabuMemory.forbid(incumbent);
     }while(!termcriteria.terminate(bestSoFar,incumbent)&&keep_going&& isTimerUp());
     stopTimer();
     return bestSoFar;
@@ -657,5 +656,30 @@ emili::Solution* emili::PipeSearch::search(Solution *initial)
         }
     }
     return bestSoFar;
+}
+
+float emili::MetropolisAcceptance::getTemp()
+{
+    return temperature;
+}
+
+void emili::MetropolisAcceptance::setTemp(float temp)
+{
+    this->temperature = temp;
+}
+
+emili::Solution* emili::MetropolisAcceptance::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+    float intens = intensification_solution->getSolutionValue();
+    float divers = diversification_solution->getSolutionValue();
+    if(diversification_solution->operator >(*intensification_solution))
+    {
+        float prob = std::exp((intens-divers)/temperature);
+        if(prob < 1.0 && generateRealRandomNumber()>prob)
+        {
+            return intensification_solution;
+        }
+    }
+    return diversification_solution;
 }
 
