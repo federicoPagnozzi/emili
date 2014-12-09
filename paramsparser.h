@@ -17,6 +17,7 @@ protected:
     emili::LocalSearch* eparams();
     emili::LocalSearch* search();
     emili::LocalSearch* ils();
+    emili::LocalSearch* ig();
     int ilstime();
     emili::TabuSearch* tparams();
     emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n);

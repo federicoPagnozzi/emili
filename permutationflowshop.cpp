@@ -40,6 +40,11 @@ int emili::pfsp::PermutationFlowShop::computeMS(std::vector< int > & partial_sol
     return instance.computeMS(partial_solution);
 }
 
+int emili::pfsp::PermutationFlowShop::computeWT(std::vector< int > & partial_solution)
+{
+    return instance.computeWT(partial_solution);
+}
+
 const void* emili::pfsp::PermutationFlowShopSolution::getRawData()const
 {
     return &solution;
@@ -132,6 +137,122 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
     pis.evaluateSolution(*s);
     return s;
+}
+
+emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
+{
+    int nbJobs = pis.getNjobs();
+    std::vector< int >  sol(nbJobs+1, 0);
+    std::vector< int > * p = (std::vector<int >*) partial->getRawData();
+    int Ci = pis.computeMS(*p);
+    vector<bool> assigned(nbJobs+1, false);
+    for(std::vector< int >::const_iterator iter = p->begin();iter !=  p->end();++iter)
+    {
+        assigned[*iter] = true;
+    }
+//    assigned[0] = false;
+    for (int var = 0; var < nbJobs; ++var) {
+        int kish = p->operator [](var+1);
+        if(kish==0)
+        {
+            int minJ = 0 ;
+            int minE = 4*10e9;
+            for (int jb = 1; jb <= nbJobs; ++jb) {
+                if(!assigned[jb]){
+                    int dd = pis.getDueDate(jb);
+                    int pr = pis.getPriority(jb);
+                    int wej = pr * (dd-Ci);
+                    if(minE > wej){
+                        minJ = jb;
+                        minE = wej;
+                    }
+                }
+            }
+            p->operator [](var+1) = minJ;
+            assigned[minJ] = true;
+            Ci = pis.computeMS(*p);
+        }
+        //cout << "partial makespan: " << Ci << std::endl;
+    }
+    sol = *p;
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
+    pis.evaluateSolution(*s);
+    return s;
+
+}
+
+
+
+emili::Solution* emili::pfsp::SlackConstructor::constructFull()
+{
+    int nbJobs = pis.getNjobs();
+    std::vector< int >  sol(nbJobs+1, 0);
+    int Ci  = 0;
+    vector<bool> assigned(nbJobs+1, false);
+    vector<int> partial(nbJobs+1,0);
+    for (int var = 0; var < nbJobs; ++var) {
+        int minJ = 0 ;
+        int minE = 4*10e9;
+        for (int jb = 1; jb <= nbJobs; ++jb) {
+            if(!assigned[jb]){
+                int dd = pis.getDueDate(jb);
+                int pr = pis.getPriority(jb);
+                int wej = pr * (dd-Ci);
+                if(minE > wej){
+                    minJ = jb;
+                    minE = wej;
+                }
+            }
+        }
+        partial[var+1] = minJ;
+        assigned[minJ] = true;
+        Ci = pis.computeMS(partial);
+        //cout << "partial makespan: " << Ci << std::endl;
+    }
+    sol = partial;
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::PfspDestructor::destruct(Solution *solutioon)
+{
+     std::vector< int > * p = (std::vector< int > *) solutioon->getRawData();
+    std::vector< int > des(*p);
+    int size = des.size();
+    int start_position = emili::generateRandomNumber()%(size-1);
+    int num_postion = emili::generateRandomNumber()%(size-start_position-1);
+    des.erase(des.begin()+start_position,des.begin()+start_position+num_postion);
+    des.insert(des.begin()+start_position,num_postion,0);
+    return new emili::pfsp::PermutationFlowShopSolution(des);
+}
+
+emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
+{
+     std::vector< int > * p = (std::vector< int > *) solutioon->getRawData();
+    std::vector< int > des(*p);
+    int size = des.size();
+    int makespan = this->istance.computeWT(des);
+    int pos = 0;
+    for(int j=1; j<size ; j++)
+    {
+        int prev = des[j];
+        des[j] = 0;
+        int ms0 = this->istance.computeWT(des);
+        if(ms0<makespan)
+        {
+            makespan = ms0;
+            pos = j;
+        }
+        des[j] = prev;
+    }
+    int start_position = pos-3;
+    start_position = start_position<0?start_position:0;
+    int num_postion = 6;
+    num_postion = (start_position+num_postion)<size?num_postion:size;
+    des.erase(des.begin()+start_position,des.begin()+start_position+num_postion);
+    des.insert(des.begin()+start_position,num_postion,0);
+    return new emili::pfsp::PermutationFlowShopSolution(des);
 }
 
 /*

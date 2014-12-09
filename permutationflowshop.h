@@ -35,6 +35,7 @@ public:
     int getDueDate(int job);
     int getPriority(int job);
     int computeMS(std::vector< int > & partial_solution);
+    int computeWT(std::vector< int > & partial_solution);
     PfspInstance& getInstance();
 };
 
@@ -85,6 +86,32 @@ protected:
 public:
     PfspSlackInitialSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance){}    
 };
+
+class SlackConstructor: public emili::Constructor
+{
+protected:
+   PermutationFlowShop& pis;
+public:
+   SlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
+   virtual emili::Solution* construct(Solution *partial);
+   virtual emili::Solution* constructFull();
+};
+
+class PfspDestructor: public emili::Destructor
+{
+public:
+    virtual emili::Solution* destruct(Solution* solutioon);
+};
+
+class PfspDestructorTest: public emili::Destructor
+{
+protected:
+    PermutationFlowShop& istance;
+public:
+    PfspDestructorTest(PermutationFlowShop& instance):istance(instance) { }
+    virtual emili::Solution* destruct(Solution* solutioon);
+};
+
 
 class PfspNeighborhood: public emili::Neighborhood
 {

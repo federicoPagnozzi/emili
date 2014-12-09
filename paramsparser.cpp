@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstring>
 
+#define IG "ig"
 #define ILS "ils"
 #define TABU "tabu"
 #define FIRST "first"
@@ -23,6 +24,7 @@
 #define SLACK "slack"
 #define LOCMIN "locmin"
 #define ITERA "iteration"
+#define TIME "time"
 #define WTRUE "true"
 #define INSERT "insert"
 #define TRANSPOSE "transpose"
@@ -54,6 +56,7 @@ std::vector< emili::Neighborhood*> nes;
 
 emili::LocalSearch* prs::ParamsParser::eparams()
 {
+
     char* t = nextToken();
     check(t,"SEARCH TYPE AND PARAMETERS MISSING!!!");
     emili::LocalSearch* ls;
@@ -61,6 +64,12 @@ emili::LocalSearch* prs::ParamsParser::eparams()
     {
         std::cout << "ILS \n\t";
         ls = ils();
+
+    }
+    else if(strcmp(t,IG)==0)
+    {
+        std::cout << "Iterated Greedy \n\t";
+        ls = ig();
 
     }
     else
@@ -143,6 +152,27 @@ emili::LocalSearch* prs::ParamsParser::ils()
     iils->setSearchTime(ils_time);
     return iils;
 }
+
+emili::LocalSearch* prs::ParamsParser::ig()
+{
+
+    emili::Constructor* ls = new emili::pfsp::SlackConstructor(istance);//search();
+    ils_time = ilstime();
+    if(ils_time<=0)
+    {
+        std::cerr <<"ERROR for ils a time has to be provided"<< std::endl;
+        exit(-1);
+    }
+    //ils_time = ilstime();
+    emili::WhileTrueTermination* pft = new emili::WhileTrueTermination;
+    emili::Destructor* prsp = new emili::pfsp::PfspDestructorTest(istance);
+    //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
+    emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1000);
+    emili::LocalSearch* iils = new emili::IteratedGreedy(*ls,*pft,*prsp,*tac);
+    iils->setSearchTime(ils_time);
+    return iils;
+}
+
 
 int prs::ParamsParser::ilstime()
 {
@@ -312,6 +342,7 @@ emili::Termination* prs::ParamsParser::term()
     else if(strcmp(t,WTRUE)==0)
     {
         std::cout << "While true termination\n\t";
+
         return new emili::WhileTrueTermination();
     }
     else if(strcmp(t,ITERA)==0)
@@ -319,6 +350,12 @@ emili::Termination* prs::ParamsParser::term()
         std::cout << "Relaxed local minima termination\n\t";
         int ti = ttiter();
         return new emili::pfsp::PfspTerminationIterations(ti);
+    }
+    else if(strcmp(t,TIME)==0)
+    {
+        std::cout << "Timed termination\n\t";
+        int time = number();
+        return new emili::TimedTermination(time);
     }
     else
     {

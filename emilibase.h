@@ -156,16 +156,17 @@ public:
 class LocalSearch
 {
 protected:
-InitialSolution& init;
-Termination& termcriteria;
+InitialSolution* init;
+Termination* termcriteria;
 Neighborhood* neighbh;
 int seconds;
+    LocalSearch() { }
 public:
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh):
-    init(initialSolutionGenerator),termcriteria(terminationCriteria),neighbh(&neighborh),seconds(0)    {    }
+    init(&initialSolutionGenerator),termcriteria(&terminationCriteria),neighbh(&neighborh),seconds(0)    {    }
 
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh, int time):
-    init(initialSolutionGenerator),termcriteria(terminationCriteria),neighbh(&neighborh),seconds(time)    {    }
+    init(&initialSolutionGenerator),termcriteria(&terminationCriteria),neighbh(&neighborh),seconds(time)    {    }
     /*
      * search use the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -268,6 +269,17 @@ public:
     virtual void reset() { }
 };
 
+class TimedTermination: public Termination
+{
+protected:
+    int secs;
+public:
+    TimedTermination(int seconds):secs(seconds) { }
+    TimedTermination():secs(1) { }
+    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
+    virtual void reset();
+};
+
 class TabuMemory
 {
 protected:
@@ -335,8 +347,8 @@ public:
     virtual emili::Solution* search(emili::Solution *initial)
     {
         int i = 0;
-        Solution* bestSoFar = this->init.generateEmptySolution();
-        Solution* incumbent = this->init.generateEmptySolution();
+        Solution* bestSoFar = this->init->generateEmptySolution();
+        Solution* incumbent = this->init->generateEmptySolution();
         *incumbent  = *initial;
         do{
             this->neighbh = neigh[i];
@@ -418,7 +430,34 @@ public:
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution);
 };
 
+class Destructor: public emili::Perturbation
+{
+public:
+    virtual emili::Solution* destruct(Solution* solutioon)=0;
+    virtual emili::Solution* perturb(Solution *solution) { return destruct(solution); }
+};
 
+class Constructor: public emili::LocalSearch
+{
+public:
+  Constructor():emili::LocalSearch()
+  {
+      this->neighbh = nullptr;//new emili::EmptyNeighBorHood();
+      this->init = nullptr;
+      this->termcriteria = nullptr;
+  }
+ virtual emili::Solution* construct(emili::Solution* partial) = 0;
+ virtual emili::Solution* constructFull() = 0;
+ virtual emili::Solution* search() {return constructFull();}
+ virtual emili::Solution* search(emili::Solution* initial) { return construct(initial);}
+ virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial);}
+};
+
+class IteratedGreedy : public emili::IteratedLocalSearch
+{
+public:
+    IteratedGreedy(Constructor& c,Termination& t,Destructor& d,AcceptanceCriteria& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
+};
 
 }
 #endif // EMILIBASE_H
