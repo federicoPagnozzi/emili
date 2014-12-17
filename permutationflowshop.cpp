@@ -1,5 +1,6 @@
 #include "permutationflowshop.h"
 #include <cstdlib>
+#include <climits>
 #include <string>
 #include <sstream>
 
