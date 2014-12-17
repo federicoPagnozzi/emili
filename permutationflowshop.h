@@ -87,6 +87,14 @@ public:
     PfspSlackInitialSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance){}    
 };
 
+class PfspNEHwslackInitialSolution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    PfspNEHwslackInitialSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance){}
+};
+
 class SlackConstructor: public emili::Constructor
 {
 protected:
@@ -97,10 +105,33 @@ public:
    virtual emili::Solution* constructFull();
 };
 
+class NEHSlackConstructor: public emili::Constructor
+{
+protected:
+   PermutationFlowShop& pis;
+public:
+   NEHSlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
+   virtual emili::Solution* construct(Solution *partial);
+   virtual emili::Solution* constructFull();
+};
+
 class PfspDestructor: public emili::Destructor
 {
+protected:
+    emili::pfsp::PermutationFlowShop instance;
 public:
+    PfspDestructor(emili::pfsp::PermutationFlowShop ist):instance(ist) { }
     virtual emili::Solution* destruct(Solution* solutioon);
+};
+
+class SOADestructor: public emili::Destructor
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop instance;
+public:
+    SOADestructor(int d_parameter, emili::pfsp::PermutationFlowShop inst):d(d_parameter),instance(inst) {}
+    virtual emili::Solution* destruct(Solution *solutioon);
 };
 
 class PfspDestructorTest: public emili::Destructor
@@ -285,9 +316,29 @@ class PfspTestAcceptance: public emili::AcceptanceCriteria
 {
 protected:
     PermutationFlowShop pfs;
+    int percentage;
 public:
-    PfspTestAcceptance(PermutationFlowShop problem_instance):pfs(problem_instance) { }
+    PfspTestAcceptance(PermutationFlowShop problem_instance):pfs(problem_instance),percentage(70) { }
+    PfspTestAcceptance(PermutationFlowShop problem_instance,int perc):pfs(problem_instance),percentage(perc) { }
     virtual Solution* accept(Solution* candidate1, Solution* candidate2);
+};
+
+class SOAacceptance: public emili::MetropolisAcceptance
+{
+public:
+    SOAacceptance(float start_temp):emili::MetropolisAcceptance(start_temp) { }
+    virtual Solution* accept(Solution* candidate1, Solution* candidate2);
+};
+
+class SOAtermination: public emili::Termination
+{
+protected:
+    int numberOfSteps;
+    int currentStep;
+public:
+    SOAtermination(int number_of_steps):numberOfSteps(number_of_steps),currentStep(0) { }
+    virtual bool terminate(Solution* currentSolution, Solution* newSolution);
+    void reset();
 };
 
 class PfspTerminationIterations: public emili::Termination

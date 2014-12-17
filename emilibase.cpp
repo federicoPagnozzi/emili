@@ -573,7 +573,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         //initialization done
         do{
             //Pertubation step
-            emili::Solution* s_p = pert.perturb(s);
+            emili::Solution* s_p = pert.perturb(s);            
             //local search on s_p
             s_s = ls.search(s_p);
             delete s_p;
@@ -582,7 +582,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             {
                 s_cap = s_s;
             }
-            //acceptance step
+            //acceptance step            
             s = acc.accept(s,s_s);
             //end loop
         }while(!termcriteria->terminate(s,s_s) && keep_going && isTimerUp());

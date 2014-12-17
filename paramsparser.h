@@ -29,12 +29,15 @@ protected:
     emili::LocalSearch* vparams();
     emili::InitialSolution* init();
     emili::Termination* term();
+    emili::AcceptanceCriteria* acc();
+    emili::Perturbation* per();
     emili::pfsp::PfspNeighborhood* neigh();
 
     emili::pfsp::PfspNeighborhood* neighV();
     void neighs();
     void neighs1();
     int number();
+    float decimal();
 public:
     int ils_time;
     ParamsParser(char** tokens,int numberOfTokens,emili::pfsp::PermutationFlowShop is):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),istance(is),ils_time(-123) { }

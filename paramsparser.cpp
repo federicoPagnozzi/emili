@@ -25,6 +25,7 @@
 #define LOCMIN "locmin"
 #define ITERA "iteration"
 #define TIME "time"
+#define WNSLACK "nwslack"
 #define WTRUE "true"
 #define INSERT "insert"
 #define TRANSPOSE "transpose"
@@ -33,11 +34,16 @@
 #define PRT_RND "randpert"
 #define ACC_PROB "prob"
 #define ACC_METRO "metropolis"
+#define SOA_PER "soaper"
+#define TEST_PER "testper"
+#define TEST_ACC "testacc"
+#define SOA_ACC "soaacc"
+#define SOA_TER "soater"
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT -10
 
-void check(char* t,char* message)
+void check(char* t,const char* message)
 {
     if(t==nullptr)
     {
@@ -82,6 +88,7 @@ emili::LocalSearch* prs::ParamsParser::eparams()
     ls->setSearchTime(ils_time);
     }
     int seed = getSeed();
+    std::cout << "RANDOM SEED " << seed<< "\n\t" ;
     emili::initializeRandom(seed);
     return ls;
 }
@@ -92,6 +99,7 @@ int prs::ParamsParser::getSeed()
     if(t != nullptr && strcmp(t,RNDSEED)==0)
     {
         //currentToken--;
+
         return number();
     }
     return 0;
@@ -137,26 +145,86 @@ emili::LocalSearch* prs::ParamsParser::ils()
 {
 
     emili::LocalSearch* ls = search();
+
+    //ils_time = ilstime();
+    emili::Termination* pft = term();
+    //emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
+    int rpc = 5;
+    emili::Perturbation* prsp = per();
+    //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
+    //emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1);
+    emili::AcceptanceCriteria* tac = acc();//new emili::pfsp::SOAacceptance(1.2f);
+    emili::LocalSearch* iils = new emili::IteratedLocalSearch(*ls,*pft,*prsp,*tac);
     ils_time = ilstime();
     if(ils_time<=0)
     {
         std::cerr <<"ERROR for ils a time has to be provided"<< std::endl;
         exit(-1);
     }
-    //ils_time = ilstime();
-    emili::WhileTrueTermination* pft = new emili::WhileTrueTermination;
-    emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
-    //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
-    emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1);
-    emili::LocalSearch* iils = new emili::IteratedLocalSearch(*ls,*pft,*prsp,*tac);
     iils->setSearchTime(ils_time);
     return iils;
 }
 
+emili::Perturbation* prs::ParamsParser::per()
+{
+    char* t = nextToken();
+    check(t,"PERTUBATION CRITERIA EXPECTED!");
+    if(strcmp(t,SOA_PER)==0)
+    {
+        int n = number();
+        std::cout << "wslack destruct/construct pertubation. number of job erased: "<<n<<"\n\t";
+
+        return new emili::pfsp::SOADestructor(n,istance);
+    }
+    else if(strcmp(t,TEST_PER)==0)
+    {
+        std::cout << "Random swap test pertubation. \n\t";
+        return new emili::pfsp::PfspRandomSwapPertub(istance);
+    }
+    else
+    {
+        std::cerr<< "'" << t << "' -> ERROR a pertubation criteria specification was expected! " << std::endl;
+        exit(-1);
+    }
+}
+
+emili::AcceptanceCriteria* prs::ParamsParser::acc()
+{
+    char* t = nextToken();
+    check(t,"ACCEPTANCE CRITERIA EXPECTED!");
+    if(strcmp(t,SOA_ACC)==0)
+    {
+        float n = decimal();
+        std::cout << "soa metropolis like acceptance. temperature : "<<n<<"\n\t";
+
+        return new emili::pfsp::SOAacceptance(n);
+    }
+    else if(strcmp(t,TEST_ACC)==0)
+    {
+        int n = number();
+        std::cout << "Random swap test pertubation. improving solution accepted"<<n<<"% of the time.\n\t";
+        return new emili::pfsp::PfspTestAcceptance(istance,n);
+    }
+    else  if(strcmp(t,ACC_METRO)==0)
+    {
+        float n = decimal();
+        std::cout << "metropolis acceptance. temperature : "<<n<<"\n\t";
+
+        return new emili::MetropolisAcceptance(n);
+    }
+    else
+    {
+        std::cerr<< "'" << t << "' -> ERROR an acceptance criteria specification was expected! " << std::endl;
+        exit(-1);
+    }
+}
+
+
+
 emili::LocalSearch* prs::ParamsParser::ig()
 {
 
-    emili::Constructor* ls = new emili::pfsp::SlackConstructor(istance);//search();
+    emili::Constructor* ls = new emili::pfsp::NEHSlackConstructor(istance);//search();
     ils_time = ilstime();
     if(ils_time<=0)
     {
@@ -167,7 +235,7 @@ emili::LocalSearch* prs::ParamsParser::ig()
     emili::WhileTrueTermination* pft = new emili::WhileTrueTermination;
     emili::Destructor* prsp = new emili::pfsp::PfspDestructorTest(istance);
     //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
-    emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1000);
+    emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(10000);
     emili::LocalSearch* iils = new emili::IteratedGreedy(*ls,*pft,*prsp,*tac);
     iils->setSearchTime(ils_time);
     return iils;
@@ -321,6 +389,10 @@ emili::InitialSolution* prs::ParamsParser::init()
     {
         std::cout << "SLACK initial solution\n\t";
         return new emili::pfsp::PfspSlackInitialSolution(istance);
+    }else if(strcmp(t,WNSLACK)==0)
+    {
+        std::cout << "NEH WSLACK initial solution\n\t";
+        return new emili::pfsp::PfspNEHwslackInitialSolution(istance);
     }
     else
     {
@@ -350,6 +422,13 @@ emili::Termination* prs::ParamsParser::term()
         std::cout << "Relaxed local minima termination\n\t";
         int ti = ttiter();
         return new emili::pfsp::PfspTerminationIterations(ti);
+    }
+    else if(strcmp(t,SOA_TER)==0)
+    {
+        std::cout << "Max iteration number termination\n\t";
+        int ti = istance.getNjobs();
+         ti = 2*(ti-1);
+        return new emili::pfsp::SOAtermination(ti);
     }
     else if(strcmp(t,TIME)==0)
     {
@@ -443,7 +522,16 @@ int prs::ParamsParser::number()
     char* t = nextToken();
     check(t,"A NUMBER WAS EXPECTED!");
     int k = atoi(t);
-    std::cout << k << "\n\t";
+   // std::cout << k << "\n\t";
+    return k;
+}
+
+float prs::ParamsParser::decimal()
+{
+    char* t = nextToken();
+    check(t,"A DECIMAL NUMBER WAS EXPECTED!");
+    float k = atof(t);
+    //std::cout << k << "\n\t";
     return k;
 }
 
