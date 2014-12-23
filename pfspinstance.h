@@ -59,10 +59,16 @@ class PfspInstance{
 
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
-
+    /*Compute weighted tardiness*/
     long int computeWT (vector< int > & sol);
+    /*Compute partial weighted tardiness*/
+    long int computeWT (vector< int > & sol, int size);
     /* Compute MakeSpan */
     long int computeMS (vector<int> & sol);
+
+    /* Compute partial MakeSpan*/
+    long int computeMS(vector<int> &sol,int size);
+
 };
 
 #endif

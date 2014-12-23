@@ -203,6 +203,59 @@ long int PfspInstance::computeWT(vector< int > & sol)
 	return wt;
 }
 
+/*compute partial weighted tardiness*/
+long int PfspInstance::computeWT(vector<int> &sol, int size)
+{
+    int j, m;
+    int jobNumber;
+    long int wt;
+    // We need end times on previous machine :
+    vector< long int > previousMachineEndTime ( size + 1 );
+    // And the end time of the previous job, on the same machine :
+    long int previousJobEndTime;
+     //1st machine :
+    previousMachineEndTime[0] = 0;
+    for ( j = 1; j <= size; ++j )
+    {
+        jobNumber = sol[j];
+        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
+    }
+
+    // others machines :
+    for ( m = 2; m <= nbMac; ++m )
+    {
+        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
+        previousJobEndTime = previousMachineEndTime[1];
+
+
+        for ( j = 2; j <= size; ++j )
+        {
+            jobNumber = sol[j];
+
+            if ( previousMachineEndTime[j] > previousJobEndTime )
+            {
+                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
+                previousJobEndTime = previousMachineEndTime[j];
+            }
+            else
+            {
+                previousJobEndTime += processingTimesMatrix[jobNumber][m];
+                previousMachineEndTime[j] = previousJobEndTime;
+            }
+        }
+    }
+
+    wt = 0;
+
+    for ( j = 1; j<= size; ++j ){
+
+        wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+    }
+
+    return wt;
+
+}
+
 long int PfspInstance::getDueDate(int job)
 {
     return dueDates[job];
@@ -222,7 +275,7 @@ long int PfspInstance::computeMS(vector<int> &sol)
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
     long int previousJobEndTime;
-    long int makespan;
+
     /* 1st machine : */
     previousMachineEndTime[0] = 0;
     for ( j = 1; j <= nbJob; ++j )
@@ -255,7 +308,52 @@ long int PfspInstance::computeMS(vector<int> &sol)
         }
     }
 
-
-
     return previousMachineEndTime[nbJob];
 }
+
+
+long int PfspInstance::computeMS(vector<int> &sol,int size)
+{
+    int j, m;
+    int jobNumber;
+
+    // We need end times on previous machine :
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    // And the end time of the previous job, on the same machine :
+    long int previousJobEndTime;
+     //1st machine :
+    previousMachineEndTime[0] = 0;
+    for ( j = 1; j <= size; ++j )
+    {
+        jobNumber = sol[j];
+        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
+    }
+
+    // others machines :
+    for ( m = 2; m <= nbMac; ++m )
+    {
+        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
+        previousJobEndTime = previousMachineEndTime[1];
+
+
+        for ( j = 2; j <= size; ++j )
+        {
+            jobNumber = sol[j];
+
+            if ( previousMachineEndTime[j] > previousJobEndTime )
+            {
+                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
+                previousJobEndTime = previousMachineEndTime[j];
+            }
+            else
+            {
+                previousJobEndTime += processingTimesMatrix[jobNumber][m];
+                previousMachineEndTime[j] = previousJobEndTime;
+            }
+        }
+    }
+
+    return previousMachineEndTime[size];
+}
+
+

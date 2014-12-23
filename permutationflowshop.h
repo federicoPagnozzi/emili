@@ -36,6 +36,8 @@ public:
     int getPriority(int job);
     int computeMS(std::vector< int > & partial_solution);
     int computeWT(std::vector< int > & partial_solution);
+    int computeWT(std::vector< int > & partial_solution, int size);
+    int computeMS(std::vector< int >& partial, int size);
     PfspInstance& getInstance();
 };
 
@@ -132,6 +134,16 @@ protected:
 public:
     SOADestructor(int d_parameter, emili::pfsp::PermutationFlowShop inst):d(d_parameter),instance(inst) {}
     virtual emili::Solution* destruct(Solution *solutioon);
+};
+
+class SOAPerturbation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop instance;
+public:
+    SOAPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop problem):d(d_parameter),instance(problem) { }
+    virtual emili::Solution* perturb(Solution *solution);
 };
 
 class PfspDestructorTest: public emili::Destructor

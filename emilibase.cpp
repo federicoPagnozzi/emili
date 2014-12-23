@@ -584,6 +584,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             }
             //acceptance step            
             s = acc.accept(s,s_s);
+            //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
             //end loop
         }while(!termcriteria->terminate(s,s_s) && keep_going && isTimerUp());
         stopTimer();

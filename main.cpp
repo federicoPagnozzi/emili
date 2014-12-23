@@ -80,6 +80,8 @@ void usage(char* progName)
     exit(0);
 }
 
+
+
 int main(int argc, char *argv[])
 {
     /* initialize random seed: */
@@ -104,6 +106,7 @@ int main(int argc, char *argv[])
     }
     else
     {
+
         solution = ls->search();
     }
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
@@ -350,4 +353,10 @@ int mainold(int argc, char *argv[])
      }
     return 0;
 }
+
+void testP()
+{
+
+}
+
 
