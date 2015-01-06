@@ -210,6 +210,7 @@ emili::LocalSearch* prs::ParamsParser::eparams()
 {
 
     char* t = nextToken();
+
     check(t,"SEARCH TYPE AND PARAMETERS MISSING!!!");
     emili::LocalSearch* ls;
     if(strcmp(t,ILS)==0)
@@ -234,7 +235,7 @@ emili::LocalSearch* prs::ParamsParser::eparams()
     ls->setSearchTime(ils_time);
     }
     int seed = getSeed();
-    std::cout << "RANDOM SEED " << seed<< "\n\t" ;
+    std::cout << "\tRANDOM SEED " << seed<< "\n\t" ;
     emili::initializeRandom(seed);
     return ls;
 }
@@ -395,8 +396,9 @@ int prs::ParamsParser::ilstime()
     {
         if(strcmp(t,IT)==0)
         {
-            std::cout << "ILS time secs : ";
-            return number();
+            int n = number();
+            std::cout << "ILS time secs : " << n << std::endl;
+            return n;
         }
         else
         {

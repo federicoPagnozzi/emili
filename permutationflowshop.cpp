@@ -1232,8 +1232,14 @@ emili::Solution* emili::pfsp::SOAacceptance::accept(Solution *intensification_so
 
 bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
+    if(currentSolution->operator >(*newSolution)){
+        improved = true;
+    }
     if(currentStep < numberOfSteps){
         currentStep++;
+        if(currentStep==(numberOfSteps/2) && improved){
+            return true;
+        }
         return false;
     }
     else
@@ -1245,6 +1251,7 @@ bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution 
 void emili::pfsp::SOAtermination::reset()
 {
     currentStep=0;
+    improved = false;
 }
 
 bool emili::pfsp::PfspTerminationIterations::terminate(Solution* currentSolution, Solution* newSolution)

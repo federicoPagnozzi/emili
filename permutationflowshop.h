@@ -349,6 +349,7 @@ class SOAtermination: public emili::Termination
 protected:
     int numberOfSteps;
     int currentStep;
+    bool improved;
 public:
     SOAtermination(int number_of_steps):numberOfSteps(number_of_steps),currentStep(0) { }
     virtual bool terminate(Solution* currentSolution, Solution* newSolution);
