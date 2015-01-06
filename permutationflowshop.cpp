@@ -476,7 +476,7 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     std::vector< int > * p = (std::vector< int > *) solution->getRawData();
     std::vector< int > removed;
     std::vector< int > solPartial(*p);
-    std::cout << "partial size " << solPartial.size() << std::endl;
+    //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = p->size();
     std::vector< int > solTMP(size,0);
     int sizePartial;
@@ -514,11 +514,11 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 
                 }
 
-               std::cout << "insert" << std::endl;
+              // std::cout << "insert "<< ind << std::endl;
                 solPartial.insert(solPartial.begin()+ind,k);
-                std::cout << "end insert " << solPartial.size() << std::endl;
+               //std::cout << "end insert " << solPartial.size() << std::endl;
             }
-            std::cout << "final " << solPartial.size() << std::endl;
+            //std::cout << "final " << solPartial.size() << std::endl;
             emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
             instance.evaluateSolution(*s);
 
