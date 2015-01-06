@@ -3,7 +3,6 @@
 #include <cstdio>
 #include <ctime>
 #include <cstring>
-#include "permutationflowshop.h"
 #include "paramsparser.h"
 #define FIRST_IMPROVEMENT 1
 #define BEST_IMPROVEMENT 2
@@ -112,6 +111,7 @@ int main(int argc, char *argv[])
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     cout << "time : " << time_elapsed << std::endl;
     std::vector < int > *sol = (std::vector < int > *)solution->getRawData();
+    cout << "iteration counter " << emili::iteration_counter()<< std::endl;
     cerr << time_elapsed << " ";
     cout << "Found solution: ";
     for (int i = 1; i <= instance.getNbJob(); ++i)

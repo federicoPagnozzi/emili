@@ -11,6 +11,8 @@ namespace emili
 namespace pfsp
 {
 
+int iteration_counter();
+int iteration_counter_zero();
 
 class PermutationFlowShop: public emili::Problem
 {

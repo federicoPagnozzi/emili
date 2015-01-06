@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <iostream>
 #include <assert.h>
+#include "permutationflowshop.h"
 /*
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
@@ -27,6 +28,7 @@ clock_t endTime;
 clock_t beginTime;
 emili::Solution* s_cap;
 struct itimerval timer;
+
 static void finalise (int _)
 {
 
@@ -35,6 +37,7 @@ static void finalise (int _)
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     if(s_cap)
     {
+        cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << "Solution value: " << s_cap->getSolutionValue() << std::endl;
         std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
@@ -65,7 +68,7 @@ static inline void setTimer(int maxTime)
     timer.it_value.tv_usec = 0;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
-
+    emili::iteration_counter_zero();
     signal(SIGPROF, finalise);
     signal(SIGINT, finalise);
     if (setitimer (ITIMER_PROF, &timer, NULL) != 0) {
@@ -86,6 +89,17 @@ static inline void stopTimer()
 /*
  * Timer HOOK
  */
+
+static int iteration_counter_ ;
+
+int emili::iteration_counter_zero()
+{
+    iteration_counter_ = 0;
+}
+
+int emili::iteration_counter(){
+    return iteration_counter_;
+}
 
 emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 {
@@ -566,12 +580,14 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         /*
             search start
         */
+        iteration_counter_zero();
         beginTime = clock();
         s_cap = ls.search();
         emili::Solution* s = s_cap;
         emili::Solution* s_s;
         //initialization done
         do{
+            iteration_counter_++;
             //Pertubation step
             emili::Solution* s_p = pert.perturb(s);            
             //local search on s_p

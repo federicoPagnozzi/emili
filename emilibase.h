@@ -21,6 +21,9 @@ Neighborhood, Pertubation and AcceptanceCriteria.
 
 namespace emili{
 
+int iteration_counter_zero();
+int iteration_counter();
+
 class Solution;
 /*
  * The istance of the problem to solve.
