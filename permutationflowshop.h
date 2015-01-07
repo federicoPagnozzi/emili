@@ -11,9 +11,6 @@ namespace emili
 namespace pfsp
 {
 
-int iteration_counter();
-int iteration_counter_zero();
-
 class PermutationFlowShop: public emili::Problem
 {
 protected:
@@ -214,7 +211,6 @@ protected:
     std::vector < int > current;
     int current_value;
     PfspInstance& instance;
-    bool start;
     virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution,double value);
 public:
     PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1),ep_iterations(1){}
@@ -349,7 +345,6 @@ class SOAtermination: public emili::Termination
 protected:
     int numberOfSteps;
     int currentStep;
-    bool improved;
 public:
     SOAtermination(int number_of_steps):numberOfSteps(number_of_steps),currentStep(0) { }
     virtual bool terminate(Solution* currentSolution, Solution* newSolution);

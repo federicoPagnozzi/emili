@@ -840,7 +840,7 @@ void emili::pfsp::PfspExchangeNeighborhood::reset()
     start_position = 1;
     end_position = 2;
 }
-static int counter = 0;
+
 emili::pfsp::PermutationFlowShopSolution* emili::pfsp::PfspTransposeNeighborhood::computeStep(std::vector<int> &solution, double value)
 {
     if(sp_iterations >= njobs)
@@ -871,7 +871,7 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
 
 void emili::pfsp::PfspTransposeNeighborhood::reset()
 {
-    //sp_iterations = 1;
+    sp_iterations = 1;
     start_position = 0;
 }
 
@@ -1142,15 +1142,15 @@ emili::Solution* emili::pfsp::PfspFirstImprovTransposeNeighborhood::random(Solut
 void emili::pfsp::PfspInsertNeighborhood::reset()
 {
     start_position = 1;
-    end_position = 1;
-    start = true;
+    end_position = 2;
+
 }
 
 void emili::pfsp::PfspFirstImprovExchangeNeighborhood::reset()
 {
 
     start_position = 1;
-    end_position = 1;
+    end_position = 2;
 }
 
 void emili::pfsp::PfspFirstImprovInsertNeighborhood::reset()
@@ -1237,9 +1237,6 @@ emili::Solution* emili::pfsp::SOAacceptance::accept(Solution *intensification_so
 
 bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
-    if(currentSolution->operator >(*newSolution)){
-        improved = true;
-    }
     if(currentStep < numberOfSteps){
         currentStep++;        
         return false;
@@ -1253,7 +1250,6 @@ bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution 
 void emili::pfsp::SOAtermination::reset()
 {
     currentStep=0;
-    improved = false;
 }
 
 bool emili::pfsp::PfspTerminationIterations::terminate(Solution* currentSolution, Solution* newSolution)
