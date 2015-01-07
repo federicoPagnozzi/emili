@@ -90,17 +90,24 @@ static inline void stopTimer()
  * Timer HOOK
  */
 
+/*
+ * Iteration counter
+ */
 static int iteration_counter_ ;
 
-int emili::iteration_counter_zero()
+void emili::iteration_counter_zero()
 {
     iteration_counter_ = 0;
 }
+
 
 int emili::iteration_counter(){
     return iteration_counter_;
 }
 
+/*
+ * Solution implementation
+ */
 emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 {
     this->solution_value = a.solution_value;
@@ -134,7 +141,9 @@ void emili::Solution::setSolutionValue(double value)
     this->solution_value = value;
 }
 
-
+/*
+ * Base implementation of Neighborhood class
+ */
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator =(const emili::Neighborhood::NeighborhoodIterator& iter)
 {
     line_ = iter.line_;
@@ -173,6 +182,9 @@ emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::end()
     return emili::Neighborhood::NeighborhoodIterator(this,nullptr);
 }
 
+/*
+ * LocalSearch base class ( Old neighborhood concept)
+ */
 
 emili::Solution* emili::LocalSearch::search()
 {
@@ -279,15 +291,12 @@ emili::InitialSolution& emili::LocalSearch::getInitialSolution()
     return *this->init;
 }
 
-emili::Solution* emili::TabuSearch::search()
-{
-    tabuMemory.reset();
-    emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = search(current);
-    delete current;
-    return sol;
-}
 
+
+
+/*
+ * Best improvement local search
+ */
 emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
 {
         termcriteria->reset();
@@ -364,6 +373,10 @@ emili::Solution* emili::BestImprovementSearch::timedSearch(int seconds, Solution
     return bestSoFar;
 }
 
+/*
+ * First improvement local search
+ */
+
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 {
         termcriteria->reset();
@@ -387,8 +400,6 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                     break;
                 }
             }
-
-
 
         }while(!termcriteria->terminate(bestSoFar,incumbent));
 
@@ -427,6 +438,18 @@ emili::Solution* emili::FirstImprovementSearch::timedSearch(int seconds, Solutio
     }while(!termcriteria->terminate(bestSoFar,incumbent)&&keep_going&& isTimerUp());
     stopTimer();
     return bestSoFar;
+}
+
+/*
+ * TABU SEARCH
+ */
+emili::Solution* emili::TabuSearch::search()
+{
+    tabuMemory.reset();
+    emili::Solution* current = init->generateSolution();
+    emili::Solution* sol = search(current);
+    delete current;
+    return sol;
 }
 
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
@@ -549,6 +572,11 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 
 
 */
+
+/*
+ * Iterated Local Search
+ */
+
 emili::Solution* emili::IteratedLocalSearch::search(){
     termcriteria->reset();
     emili::Solution* s_cap = ls.search();    
@@ -607,10 +635,18 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         return s_cap;
 }
 
+/*
+ * Never stopping termination
+ */
+
 bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
     return false;
 }
+
+/*
+ * Timed termination
+ */
 
 bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
@@ -664,7 +700,9 @@ void emili::TimedTermination::reset()
     return bestSoFar;
 }*/
 
-
+/*
+ * LocalMinima terminations
+ */
 bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution* newSolution)
 {
    //std::cout << currentSolution.getSolutionValue() << " <= " << newSolution.getSolutionValue()<<std::endl;
@@ -677,6 +715,10 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
         return currentSolution->operator <=(*newSolution);
     }
 }
+
+/*
+ * Piped Local Search
+*/
 
 emili::Solution* emili::PipeSearch::search(Solution *initial)
 {
@@ -694,6 +736,10 @@ emili::Solution* emili::PipeSearch::search(Solution *initial)
     }
     return bestSoFar;
 }
+
+/*
+ *  METROPOLIS ACCEPTANCE
+ */
 
 float emili::MetropolisAcceptance::getTemp()
 {

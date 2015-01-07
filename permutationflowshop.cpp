@@ -3,6 +3,7 @@
 #include <climits>
 #include <string>
 #include <sstream>
+#include <assert.h>
 
 std::vector< int > inline neh(std::vector< int >& partial,int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
@@ -476,54 +477,58 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     int k,tmp,ind;
     std::vector< int > * p = (std::vector< int > *) solution->getRawData();
     std::vector< int > removed;
-    std::vector< int > solPartial(*p);
+    std::vector< int > solPartial = *p;
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = p->size();
     std::vector< int > solTMP(size,0);
     int sizePartial;
 
-            for(int k = 0; k < d; k++) {
-                index = emili::generateRandomNumber()%(solPartial.size()-1)+1;
-                removed.push_back(solPartial[index]);
-                solPartial.erase(solPartial.begin() + index);
+    for(int k = 0; k < d; k++) {
+        index = emili::generateRandomNumber()%(solPartial.size()-1)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+    }
+
+
+    for(int l=0;l<removed.size();l++){
+
+        sizePartial = solPartial.size();
+
+        k=removed[l];
+        min = std::numeric_limits<int>::max();
+
+        for(int r=1; r<sizePartial; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sizePartial; h++)
+                solTMP[h]=solPartial[h-1];
+
+
+            //tmp=compute_total_wt(solTMP,sizePartial+1);
+            //                  std::cout << "start perturb" << std::endl;
+            //check why plus 1
+            tmp = instance.computeWT(solTMP,sizePartial);
+
+            if(tmp<min){
+                min=tmp;
+                ind=r;
             }
 
+        }
 
-            for(int l=0;l<removed.size();l++){
 
-                sizePartial = solPartial.size();
+        assert(ind<size && ind > 0 && ind<solPartial.capacity());
+        solPartial.insert(solPartial.begin()+ind,k);
+        //std::cout << "end insert " << solPartial.size() << std::endl;
+    }
 
-                k=removed[l];
-                min = std::numeric_limits<int>::max();
 
-                for(int r=1; r<sizePartial; r++){
+    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+    instance.evaluateSolution(*s);
 
-                    for(int h=1; h<r; h++)
-                        solTMP[h]=solPartial[h];
-                    solTMP[r]=k;
-                    for(int h=r+1; h<=sizePartial; h++)
-                        solTMP[h]=solPartial[h-1];
-
-                    //tmp=compute_total_wt(solTMP,sizePartial+1);
-   //                  std::cout << "start perturb" << std::endl;
-                    tmp = instance.computeWT(solTMP,sizePartial+1);
- //std::cout << "end perturb " <<tmp << std::endl;
-                    if(tmp<min){
-                        min=tmp;
-                        ind=r;
-                    }
-
-                }
-
-              // std::cout << "insert "<< ind << std::endl;
-                solPartial.insert(solPartial.begin()+ind,k);
-               //std::cout << "end insert " << solPartial.size() << std::endl;
-            }
-            //std::cout << "final " << solPartial.size() << std::endl;
-            emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-            instance.evaluateSolution(*s);
-
-            return s;
+    return s;
 }
 
 emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
@@ -734,7 +739,7 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspExchangeNeighborhood:
 
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspTransposeNeighborhood::begin(emili::Solution *base)
 {
-    sp_iterations = 1;
+    //sp_iterations = 1;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -1236,10 +1241,7 @@ bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution 
         improved = true;
     }
     if(currentStep < numberOfSteps){
-        currentStep++;
-        if(currentStep==(numberOfSteps/2) && improved){
-            return true;
-        }
+        currentStep++;        
         return false;
     }
     else

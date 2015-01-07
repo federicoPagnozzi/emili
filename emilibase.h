@@ -1,13 +1,16 @@
 #ifndef EMILIBASE_H
 #define EMILIBASE_H
-#include <string>
-#include <iostream>
-#include <vector>
-#include <random>
-#include <functional>
 
 /*
-********************************* E M I L I ***********************************************************
+
+                                 ______ __  __ _____ _      _____
+                                |  ____|  \/  |_   _| |    |_   _|
+                                | |__  | \  / | | | | |      | |
+                                |  __| | |\/| | | | | |      | |
+                                | |____| |  | |_| |_| |____ _| |_
+                                |______|_|  |_|_____|______|_____|
+
+
 E M I L I stands for Easily Modifiable (or Moddable) Iterated Local search Implementation.
 
 P.S.
@@ -19,9 +22,15 @@ Neighborhood, Pertubation and AcceptanceCriteria.
 */
 
 
+#include <string>
+#include <iostream>
+#include <vector>
+#include <random>
+#include <functional>
+
 namespace emili{
 
-int iteration_counter_zero();
+void iteration_counter_zero();
 int iteration_counter();
 
 class Solution;
@@ -272,6 +281,11 @@ public:
     virtual void reset() { }
 };
 
+/*
+ * This starts a system timer whe reset it's called and
+ * checks if the timer is expired every time terminate it's called.
+ * This way there is not need anymore for the timedsearch method.
+ */
 class TimedTermination: public Termination
 {
 protected:
@@ -282,7 +296,9 @@ public:
     virtual bool terminate(Solution *currentSolution, Solution *newSolution);
     virtual void reset();
 };
-
+/*
+    This class models the memory of a tabu search.
+*/
 class TabuMemory
 {
 protected:
