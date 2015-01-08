@@ -49,14 +49,29 @@
 
 void prs::info()
 {
-    std::cout << " syntax for local search -> EMILI instancefile search_type intial_solution termination neighborhood [parameters]" << std::endl;
-    std::cout << " syntax for iterated local search -> EMILI instancefile ils search_type intial_solution termination neighborhood ilstermination perturbation acceptance -it seconds" << std::endl;
-    std::cout << "search_type = first | best | tabu | vnd | ils" << std::endl;
-    std::cout << "intial_solution = random | slack | nwslack " << std::endl;
-    std::cout << "termination = true | time | locmin | soater | iteration [-it number of iterations] | maxsteps number of steps" << std::endl;
-    std::cout << "neighborhood = transpose | exchange | insert | binsert | finsert" << std::endl;
-    std::cout << "pertubaiton = soaper int | testper " << std::endl;
-    std::cout << "acceptance = soaacc float | testacc int | metropolis float" << std::endl;
+    std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
+    std::cout << "\t|  ____|  \/  |_   _| |    |_   _|" << std::endl;
+    std::cout << "\t| |__  | \  / | | | | |      | |  " << std::endl;
+    std::cout << "\t|  __| | |\/| | | | | |      | |  " << std::endl;
+    std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
+    std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Usage:" << std::endl;
+    std::cout << std::endl;
+    std::cout << "EMILI instancefile <local_search | iterated_local_search | tabu_search | vnd_search> " << std::endl;
+    std::cout << std::endl;
+    std::cout << "local_search          = search_type intial_solution termination neighborhood [parameters]" << std::endl;
+    std::cout << "iterated_local_search = ils search_type intial_solution termination neighborhood ilstermination perturbation acceptance -it seconds" << std::endl;
+    std::cout << "tabu_search           = tabu intial_solution termination neighborhood tabu_memory" << std::endl;
+    std::cout << "vnd_search            = vnd vnd_type intial_solution termination neighborhood1 neighborhood2 ... neighborhoodN" << std::endl;
+    std::cout << "search_type           = first | best | tabu | vnd | ils" << std::endl;
+    std::cout << "intial_solution       = random | slack | nwslack " << std::endl;
+    std::cout << "termination           = true | time int | locmin | soater | iteration int | maxsteps int" << std::endl;
+    std::cout << "neighborhood          = transpose | exchange | insert | binsert | finsert" << std::endl;
+    std::cout << "pertubaiton           = soaper int | testper " << std::endl;
+    std::cout << "acceptance            = soaacc float | testacc int | metropolis float" << std::endl;
+    std::cout << "tabu_memory           = move | hash | solution" << std::endl;
+    std::cout << "vnd_type              = first | best" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
 
@@ -440,8 +455,9 @@ emili::Termination* prs::ParamsParser::term()
     }
     else if(strcmp(t,ITERA)==0)
     {
-        std::cout << "Relaxed local minima termination\n\t";
-        int ti = ttiter();
+
+        int ti = number();
+        std::cout << "Relaxed local minima termination. number of max iterations "<< ti <<"\n\t";
         return new emili::pfsp::PfspTerminationIterations(ti);
     }
     else if(strcmp(t,SOA_TER)==0)
