@@ -220,6 +220,23 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
+class PfspBackwardInsertNeighborhood: public PfspInsertNeighborhood
+{
+protected:
+    virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution, double value);
+public:
+    PfspBackwardInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
+};
+
+class PfspForwardInsertNeighborhood: public PfspInsertNeighborhood
+{
+protected:
+    virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution, double value);
+public:
+    PfspForwardInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
+};
+
+
 class PfspExchangeNeighborhood: public emili::pfsp::PfspNeighborhood
 {
 protected:

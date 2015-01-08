@@ -742,6 +742,78 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspTransposeNeighborhood
     //sp_iterations = 1;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
+emili::pfsp::PermutationFlowShopSolution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(std::vector<int> &solution, double value)
+{
+    if(sp_iterations >= njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        if(end_position < (start_position-1)){
+            ep_iterations++;
+            /*if(ep_iterations == sp_iterations){
+                ep_iterations++;
+                end_position++;
+            }*/
+        }
+        else
+        {
+            sp_iterations++;
+            ep_iterations = 1;
+            start_position = ((start_position)%njobs)+1;
+            end_position = 0;
+
+        }
+        end_position = ((end_position)%njobs)+1;
+
+        std::vector < int > newsol;
+        int sol_i = solution[start_position];
+        newsol = solution;
+        newsol.erase(newsol.begin()+start_position);
+        newsol.insert(newsol.begin()+end_position,sol_i);
+        long int new_value = instance.computeWT(newsol);
+
+        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+    }
+}
+
+emili::pfsp::PermutationFlowShopSolution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(std::vector<int> &solution, double value)
+{
+    if(sp_iterations >= njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        if(end_position < njobs){
+            ep_iterations++;
+            if(ep_iterations == sp_iterations){
+                ep_iterations++;
+                end_position++;
+            }
+        }
+        else
+        {
+            sp_iterations++;
+            ep_iterations = sp_iterations;
+            start_position = ((start_position)%njobs)+1;
+            end_position = start_position;
+
+        }
+        end_position = ((end_position)%njobs)+1;
+
+        std::vector < int > newsol;
+        int sol_i = solution[start_position];
+        newsol = solution;
+        newsol.erase(newsol.begin()+start_position);
+        newsol.insert(newsol.begin()+end_position,sol_i);
+        long int new_value = instance.computeWT(newsol);
+
+        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+    }
+
+}
 
 emili::pfsp::PermutationFlowShopSolution* emili::pfsp::PfspInsertNeighborhood::computeStep(std::vector< int > & solution,double value)
 {
@@ -764,6 +836,7 @@ emili::pfsp::PermutationFlowShopSolution* emili::pfsp::PfspInsertNeighborhood::c
             sp_iterations++;
             ep_iterations = 1;
             start_position = ((start_position)%njobs)+1;
+            //end_position = start_position;
 
         }        
         end_position = ((end_position)%njobs)+1;
@@ -1142,7 +1215,7 @@ emili::Solution* emili::pfsp::PfspFirstImprovTransposeNeighborhood::random(Solut
 void emili::pfsp::PfspInsertNeighborhood::reset()
 {
     start_position = 1;
-    end_position = 2;
+    end_position = 1;
 
 }
 

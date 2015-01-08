@@ -24,10 +24,13 @@
 #define SLACK "slack"
 #define LOCMIN "locmin"
 #define ITERA "iteration"
+#define MAXSTEPS "maxstep"
 #define TIME "time"
 #define WNSLACK "nwslack"
 #define WTRUE "true"
 #define INSERT "insert"
+#define BACK_INSERT "binsert"
+#define FORW_INSERT "finsert"
 #define TRANSPOSE "transpose"
 #define EXCHANGE "exchange"
 #define RNDSEED "rnds"
@@ -43,137 +46,6 @@
 #define DEFAULT_TI 10
 #define DEFAULT_IT -10
 
-class testIS: public emili::InitialSolution
-{
-public:
-    testIS(emili::Problem& problem_instance):emili::InitialSolution(problem_instance){}
-    /*
-        The generated solution must be a valid solution for the problem with
-        the appropriate data structures used for the implemented solution.
-    */
-    virtual emili::Solution* generateSolution()
-    {
-        //int arr[] = {0,39,83,45,12,86,4,43,60,31,87,24,53,18,90,37,70,93,41,82,73,38,79,9,6,1,5,15,44,61,2,27,97,77,98,47,59,58,26,63,80,46,65,89,68,78,51,25,55,75,66,17,84,28,36,33,99,48,72,54,16,3,30,96,64,95,20,50,21,92,8,91,34,14,11,42,74,56,29,76,94,22,7,100,23,32,13,62,52,85,67,19,69,35,71,49,10,57,88,40,81};
-        int arr[] = {0,83,39,45,12,86,4,43,60,31,87,24,53,18,90,37,70,93,41,82,73,38,79,9,6,1,5,15,44,61,2,27,97,77,98,47,59,58,26,63,80,46,65,89,68,78,51,25,55,75,66,17,84,28,36,33,99,48,72,54,16,3,30,96,64,95,20,50,21,92,8,91,34,14,11,42,74,56,29,76,94,22,7,100,23,32,13,62,52,85,67,19,69,35,71,49,10,57,88,40,81};
-        std::vector< int > v(arr, arr + sizeof(arr) / sizeof(int) );
-        /*
-        v.push_back(0);
-        v.push_back(82);
-        v.push_back(38);
-        v.push_back(44);
-        v.push_back(11);
-        v.push_back(85);
-        v.push_back(3);
-        v.push_back(42);
-        v.push_back(59);
-        v.push_back(30);
-        v.push_back(86);
-        v.push_back(23);
-        v.push_back(52);
-        v.push_back(17);
-        v.push_back(89);
-        v.push_back(36);
-        v.push_back(69);
-        v.push_back(92);
-        v.push_back(40);
-        v.push_back(81);
-        v.push_back(72);
-        v.push_back(37);
-        v.push_back(78);
-        v.push_back(8 );
-        v.push_back(5);
-        v.push_back(0 );
-        v.push_back(4);
-        v.push_back(14);
-        v.push_back(43);
-        v.push_back(60);
-        v.push_back(1);
-        v.push_back(26);
-        v.push_back(96);
-        v.push_back(76);
-        v.push_back(97);
-        v.push_back(46);
-        v.push_back(58);
-        v.push_back(57);
-        v.push_back(25);
-        v.push_back(62);
-        v.push_back(79);
-        v.push_back(45);
-        v.push_back(64);
-        v.push_back(88);
-        v.push_back(67);
-        v.push_back(77);
-        v.push_back(50);
-        v.push_back(24);
-        v.push_back(54);
-        v.push_back(74);
-        v.push_back(65);
-        v.push_back(16);
-        v.push_back(83);
-        v.push_back(27);
-        v.push_back(35);
-        v.push_back(32);
-        v.push_back(98);
-        v.push_back(47);
-        v.push_back(71);
-        v.push_back(53);
-        v.push_back(15);
-        v.push_back(2);
-        v.push_back(29);
-        v.push_back(95);
-        v.push_back(63);
-        v.push_back(94);
-        v.push_back(19);
-        v.push_back(49);
-        v.push_back(20);
-        v.push_back(91);
-        v.push_back(7);
-        v.push_back(90);
-        v.push_back(33);
-        v.push_back(13);
-        v.push_back(10);
-        v.push_back(41);
-        v.push_back(73);
-        v.push_back(55);
-        v.push_back(28);
-        v.push_back(75);
-        v.push_back(93);
-        v.push_back(21);
-        v.push_back(6);
-        v.push_back(99);
-        v.push_back(22);
-        v.push_back(31);
-        v.push_back(12);
-        v.push_back(61);
-        v.push_back(51);
-        v.push_back(84);
-        v.push_back(66);
-        v.push_back(18);
-        v.push_back(68);
-        v.push_back(34);
-        v.push_back(70);
-        v.push_back(48);
-        v.push_back(9);
-        v.push_back(56);
-        v.push_back(87);
-        v.push_back(39);
-        v.push_back(80);
-        for(std::vector< int > ::const_iterator it = v.begin()+1;it!=v.end();++it)
-        {
-            *it++;
-        }*/
-        emili::Solution* test = new emili::pfsp::PermutationFlowShopSolution(v);
-
-        instance.evaluateSolution(*test);
-        return test;
-    }
-
-    virtual emili::Solution* generateEmptySolution()
-    {
-        return generateSolution();
-    }
-};
-
 
 void info()
 {
@@ -181,8 +53,8 @@ void info()
     std::cout << " syntax for iterated local search -> EMILI instancefile ils search_type intial_solution termination neighborhood ilstermination perturbation acceptance -it seconds" << std::endl;
     std::cout << "search_type = first | best | tabu | vnd | ils" << std::endl;
     std::cout << "intial_solution = random | slack | nwslack " << std::endl;
-    std::cout << "termination = true | time | locmin | soater | iteration [-it number of iterations]" << std::endl;
-    std::cout << "neighborhood = transpose | exchange | insert " << std::endl;
+    std::cout << "termination = true | time | locmin | soater | iteration [-it number of iterations] | maxsteps number of steps" << std::endl;
+    std::cout << "neighborhood = transpose | exchange | insert | binsert | finsert" << std::endl;
     std::cout << "pertubaiton = soaper int | testper " << std::endl;
     std::cout << "acceptance = soaacc float | testacc int | metropolis float" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
@@ -506,14 +378,14 @@ emili::LocalSearch* prs::ParamsParser::vparams()
     neighs();
     emili::LocalSearch* ls;
     if(strcmp(t,FIRST)==0)
-        {
-            std::cout << "FIRST IMPROVEMENT VND \n\t";
-            ls =  new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
-        }
-        else if(strcmp(t,BEST)==0)
-        {
-            std::cout << "BEST IMPROVEMENT VND \n\t";
-            ls =  new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
+    {
+        std::cout << "FIRST IMPROVEMENT VND \n\t";
+        ls =  new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
+    }
+    else if(strcmp(t,BEST)==0)
+    {
+        std::cout << "BEST IMPROVEMENT VND \n\t";
+        ls =  new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
     }
     else
     {
@@ -581,9 +453,16 @@ emili::Termination* prs::ParamsParser::term()
     }
     else if(strcmp(t,TIME)==0)
     {
-        std::cout << "Timed termination\n\t";
+
         int time = number();
+        std::cout << "Timed termination. secs: " << time << "\n\t";
         return new emili::TimedTermination(time);
+    }
+    else if(strcmp(t,MAXSTEPS)==0)
+    {
+        int steps = number();
+        std::cout << "Max Steps termination. # steps: "<< steps << "\n\t";
+        return new emili::MaxStepsTermination(steps);
     }
     else
     {
@@ -600,6 +479,16 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
     {
         std::cout << "Insert Neighborhood\n\t";
         return new emili::pfsp::PfspInsertNeighborhood(istance);
+    }
+    else  if(strcmp(t,FORW_INSERT)==0)
+    {
+        std::cout << "Forward insert Neighborhood\n\t";
+        return new emili::pfsp::PfspForwardInsertNeighborhood(istance);
+    }
+    else  if(strcmp(t,BACK_INSERT)==0)
+    {
+        std::cout << "Backward Insert Neighborhood\n\t";
+        return new emili::pfsp::PfspBackwardInsertNeighborhood(istance);
     }
     else if(strcmp(t,EXCHANGE)==0)
     {

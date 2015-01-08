@@ -717,6 +717,26 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
 }
 
 /*
+ * MaxSteps Termination
+ */
+bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *newSolution)
+{
+    if(current_step > max_steps_){
+        return true;
+    }
+    else
+    {
+        current_step++;
+        return false;
+    }
+}
+
+void emili::MaxStepsTermination::reset()
+{
+    current_step = 0;
+}
+
+/*
  * Piped Local Search
 */
 

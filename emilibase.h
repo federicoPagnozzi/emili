@@ -119,6 +119,42 @@ public:
     virtual bool terminate(Solution* currentSolution, Solution* newSolution);
     virtual void reset() { }
 };
+/*
+ *  The equivalent of a while(true) in the search loop...
+*/
+class WhileTrueTermination: public Termination
+{
+public:
+    virtual bool terminate(Solution* currentSolution, Solution* newSolution);
+    virtual void reset() { }
+};
+
+/*
+ * This starts a system timer whe reset it's called and
+ * checks if the timer is expired every time terminate it's called.
+ * This way there is not need anymore for the timedsearch method.
+ */
+class TimedTermination: public Termination
+{
+protected:
+    int secs;
+public:
+    TimedTermination(int seconds):secs(seconds) { }
+    TimedTermination():secs(1) { }
+    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
+    virtual void reset();
+};
+
+class MaxStepsTermination : public Termination
+{
+protected:
+    int max_steps_;
+    int current_step;
+public:
+    MaxStepsTermination(int max_steps):max_steps_(max_steps), current_step(0){ }
+    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
+    virtual void reset();
+};
 
 /*
     The class models a neighborhood of a solution
@@ -271,31 +307,7 @@ public:
     virtual Solution* search();
     virtual Solution* timedSearch(int seconds);
 };
-/*
- *  The equivalent of a while(true) termination criteria...
-*/
-class WhileTrueTermination: public Termination
-{
-public:
-    virtual bool terminate(Solution* currentSolution, Solution* newSolution);
-    virtual void reset() { }
-};
 
-/*
- * This starts a system timer whe reset it's called and
- * checks if the timer is expired every time terminate it's called.
- * This way there is not need anymore for the timedsearch method.
- */
-class TimedTermination: public Termination
-{
-protected:
-    int secs;
-public:
-    TimedTermination(int seconds):secs(seconds) { }
-    TimedTermination():secs(1) { }
-    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
-    virtual void reset();
-};
 /*
     This class models the memory of a tabu search.
 */
@@ -438,6 +450,9 @@ static inline float generateRealRandomNumber()
     return realdistr(generator);
 }
 
+/*
+ * Metropolis acceptance creteria implementation (fixed temperature)
+ */
 class MetropolisAcceptance: public emili::AcceptanceCriteria
 {
 protected:
@@ -449,6 +464,10 @@ public:
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution);
 };
 
+/*
+ *  This class models the pertubation algorithm that destruct the solution
+ *  used in the iterated greedy algorithms
+ */
 class Destructor: public emili::Perturbation
 {
 public:
@@ -456,6 +475,10 @@ public:
     virtual emili::Solution* perturb(Solution *solution) { return destruct(solution); }
 };
 
+/*
+ * this class models the algorithm that returns a solution
+ * starting from a partial one.
+ */
 class Constructor: public emili::LocalSearch
 {
 public:
@@ -472,6 +495,9 @@ public:
  virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial);}
 };
 
+/*
+ * This class models an iterated greedy heuristics
+ */
 class IteratedGreedy : public emili::IteratedLocalSearch
 {
 public:
