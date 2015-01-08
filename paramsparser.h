@@ -5,7 +5,7 @@
 
 namespace prs
 {
-
+void emili();
 void info();
 
 class ParamsParser

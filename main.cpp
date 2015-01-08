@@ -83,6 +83,8 @@ void usage(char* progName)
 
 int main(int argc, char *argv[])
 {
+    prs::emili();
+
     /* initialize random seed: */
     srand ( time(0) );
 

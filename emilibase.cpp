@@ -608,14 +608,13 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         /*
             search start
         */
-        iteration_counter_zero();
         beginTime = clock();
         s_cap = ls.search();
         emili::Solution* s = s_cap;
         emili::Solution* s_s;
         //initialization done
         do{
-            iteration_counter_++;
+
             //Pertubation step
             emili::Solution* s_p = pert.perturb(s);            
             //local search on s_p

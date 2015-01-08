@@ -47,7 +47,7 @@
 #define DEFAULT_IT -10
 
 
-void prs::info()
+void prs::emili()
 {
     std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
     std::cout << "\t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
@@ -56,22 +56,25 @@ void prs::info()
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
     std::cout << std::endl;
+}
+
+void prs::info()
+{
     std::cout << "Usage:" << std::endl;
     std::cout << std::endl;
-    std::cout << "EMILI instancefile_path <local_search | iterated_local_search | tabu_search | vnd_search> " << std::endl;
+    std::cout << "EMILI INSTANCE_FILE_PATH <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]" << std::endl;
     std::cout << std::endl;
-    std::cout << "local_search          = search_type intial_solution termination neighborhood [parameters]" << std::endl;
-    std::cout << "iterated_local_search = ils search_type intial_solution termination neighborhood ilstermination perturbation acceptance -it seconds" << std::endl;
-    std::cout << "tabu_search           = tabu intial_solution termination neighborhood tabu_memory" << std::endl;
-    std::cout << "vnd_search            = vnd vnd_type intial_solution termination neighborhood1 neighborhood2 ... neighborhoodN" << std::endl;
-    std::cout << "search_type           = first | best | tabu | vnd | ils" << std::endl;
-    std::cout << "intial_solution       = random | slack | nwslack " << std::endl;
-    std::cout << "termination           = true | time int | locmin | soater | iteration int | maxsteps int" << std::endl;
-    std::cout << "neighborhood          = transpose | exchange | insert | binsert | finsert" << std::endl;
-    std::cout << "pertubaiton           = soaper int | testper " << std::endl;
-    std::cout << "acceptance            = soaacc float | testacc int | metropolis float" << std::endl;
-    std::cout << "tabu_memory           = move | hash | solution" << std::endl;
-    std::cout << "vnd_type              = first | best" << std::endl;
+    std::cout << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" << std::endl;
+    std::cout << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << std::endl;
+    std::cout << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << std::endl;
+    std::cout << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << std::endl;
+    std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
+    std::cout << "INITIAL_SOLUTION      = random | slack | nwslack " << std::endl;
+    std::cout << "TERMINATION           = true | time int | locmin | soater | iteration int | maxsteps int" << std::endl;
+    std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
+    std::cout << "PERTUBATION           = soaper int | testper " << std::endl;
+    std::cout << "ACCEPTANCE            = soaacc float | testacc int | metropolis float" << std::endl;
+    std::cout << "TABU_MEMORY           = move | hash | solution" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
 
