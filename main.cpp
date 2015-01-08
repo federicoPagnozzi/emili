@@ -90,9 +90,11 @@ int main(int argc, char *argv[])
     PfspInstance instance;
 
     /* Read data from file */
-    if (! instance.readDataFromFile(argv[1]) )
+    if (argc < 2 || !instance.readDataFromFile(argv[1]) )
+    {
+      prs::info();
       return 1;
-
+    }
     emili::pfsp::PermutationFlowShop problem(instance);
     prs::ParamsParser ps(argv,argc,problem);
     emili::LocalSearch* ls = ps.parseParams();    

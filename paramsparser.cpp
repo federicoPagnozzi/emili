@@ -47,7 +47,7 @@
 #define DEFAULT_IT -10
 
 
-void info()
+void prs::info()
 {
     std::cout << " syntax for local search -> EMILI instancefile search_type intial_solution termination neighborhood [parameters]" << std::endl;
     std::cout << " syntax for iterated local search -> EMILI instancefile ils search_type intial_solution termination neighborhood ilstermination perturbation acceptance -it seconds" << std::endl;
@@ -65,7 +65,7 @@ void check(char* t,const char* message)
     if(t==nullptr)
     {
         std::cerr <<"PARSING ERROR"<< message << std::endl;
-        info();
+        prs::info();
         exit(-1);
     }
 }

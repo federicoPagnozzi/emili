@@ -6,6 +6,8 @@
 namespace prs
 {
 
+void info();
+
 class ParamsParser
 {
 protected:
