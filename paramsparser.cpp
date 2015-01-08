@@ -50,15 +50,15 @@
 void prs::info()
 {
     std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
-    std::cout << "\t|  ____|  \/  |_   _| |    |_   _|" << std::endl;
-    std::cout << "\t| |__  | \  / | | | | |      | |  " << std::endl;
-    std::cout << "\t|  __| | |\/| | | | | |      | |  " << std::endl;
+    std::cout << "\t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
+    std::cout << "\t| |__  | \\  / | | | | |      | |  " << std::endl;
+    std::cout << "\t|  __| | |\\/| | | | | |      | |  " << std::endl;
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
     std::cout << std::endl;
     std::cout << "Usage:" << std::endl;
     std::cout << std::endl;
-    std::cout << "EMILI instancefile <local_search | iterated_local_search | tabu_search | vnd_search> " << std::endl;
+    std::cout << "EMILI instancefile_path <local_search | iterated_local_search | tabu_search | vnd_search> " << std::endl;
     std::cout << std::endl;
     std::cout << "local_search          = search_type intial_solution termination neighborhood [parameters]" << std::endl;
     std::cout << "iterated_local_search = ils search_type intial_solution termination neighborhood ilstermination perturbation acceptance -it seconds" << std::endl;
