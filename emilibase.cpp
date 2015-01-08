@@ -26,6 +26,7 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 bool keep_going;
 clock_t endTime;
 clock_t beginTime;
+clock_t s_time;
 emili::Solution* s_cap;
 struct itimerval timer;
 
@@ -39,6 +40,7 @@ static void finalise (int _)
     {
         cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << "Solution value: " << s_cap->getSolutionValue() << std::endl;
+        std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
         std::cerr << std::flush;
@@ -624,6 +626,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             if(*s_s < *s_cap)
             {
                 s_cap = s_s;
+                s_time = clock();
             }
             //acceptance step            
             s = acc.accept(s,s_s);

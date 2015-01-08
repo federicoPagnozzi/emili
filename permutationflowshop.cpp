@@ -468,7 +468,7 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
     return s;
 }
 
-static int kappa = 0;
+
 
 emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 {
@@ -528,8 +528,7 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 
     emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
     instance.evaluateSolution(*s);
-    kappa++;
-    std::cout << "kappa -> " << kappa << std::endl;
+
     return s;
 }
 
