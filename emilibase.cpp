@@ -38,7 +38,7 @@ static void finalise (int _)
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     if(s_cap)
     {
-        cout << "iteration counter " << emili::iteration_counter()<< std::endl;
+        //cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << "Solution value: " << s_cap->getSolutionValue() << std::endl;
         std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";

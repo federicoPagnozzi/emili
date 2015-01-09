@@ -483,17 +483,18 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     int size = p->size();
     std::vector< int > solTMP(size,0);
     int sizePartial;
-
+    int sops = solPartial.size()-1;
     for(int k = 0; k < d; k++) {
-        index = emili::generateRandomNumber()%(solPartial.size()-1)+1;
+        index = (emili::generateRandomNumber()%sops)+1;
         removed.push_back(solPartial[index]);
         solPartial.erase(solPartial.begin() + index);
+        sops--;
     }
 
-
+    sizePartial = solPartial.size();
     for(int l=0;l<removed.size();l++){
 
-        sizePartial = solPartial.size();
+
 
         k=removed[l];
         min = std::numeric_limits<int>::max();
@@ -518,10 +519,8 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
             }
 
         }
-
-
-        assert(ind<size && ind > 0 && ind<solPartial.capacity());
         solPartial.insert(solPartial.begin()+ind,k);
+        sizePartial++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 

@@ -127,6 +127,8 @@ emili::LocalSearch* prs::ParamsParser::eparams()
     int seed = getSeed();
     std::cout << "\tRANDOM SEED " << seed<< "\n\t" ;
     emili::initializeRandom(seed);
+    /*std::cout << "test random " << emili::generateRandomNumber() << " " << emili::generateRandomNumber()<< " " << emili::generateRandomNumber()<< " " << emili::generateRandomNumber()<< " " << emili::generateRandomNumber()<< " " << emili::generateRandomNumber()<< " " << emili::generateRandomNumber() <<std::endl;
+    std::cout << "test random real" << emili::generateRealRandomNumber() << " " << emili::generateRealRandomNumber() <<std::endl;*/
     return ls;
 }
 
