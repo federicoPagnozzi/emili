@@ -89,7 +89,7 @@
 		<![CDATA[
 			nes.push_back(ne);
 		]]>	
-	<pfsp:neighborhoodv/>
+	</pfsp:neighborhoodv>
 	
 	<pfsp:nothing/>
 
@@ -101,7 +101,7 @@
 	
 	<pfsp:pertubation>
 		<![CDATA[
-			emili::Pertubation* pr = new emili::pfsp::SOAPerturbation(]]><sp_impact/><![CDATA[,problem);
+			emili::Pertubation* pr = new emili::pfsp::SOAPerturbation(]]><pfsp:sp_impact/><![CDATA[,problem);
 		]]>
 	  	<or/>
 		<![CDATA[
@@ -111,15 +111,15 @@
 
 	<pfsp:acceptance>
 		<![CDATA[
-			emili::AcceptanceCriteria* ac = new emili::pfsp::SOAacceptance(]]><s_acc_temp/><![CDATA[); 
+			emili::AcceptanceCriteria* ac = new emili::pfsp::SOAacceptance(]]><pfsp:s_acc_temp/><![CDATA[); 
 		]]>
 		<or/>
 		<![CDATA[
-			emili::AcceptanceCriteria* ac =  new emili::pfsp::PfspTestAcceptance(problem,]]><ac_percentage/><![CDATA[);
+			emili::AcceptanceCriteria* ac =  new emili::pfsp::PfspTestAcceptance(problem,]]><pfsp:ac_percentage/><![CDATA[);
 		]]>
 		<or/>
 		<![CDATA[
-			emili::AcceptanceCriteria* ac =  new emili::MetropolisAcceptance(]]><metropolis_temp/><![CDATA[);
+			emili::AcceptanceCriteria* ac =  new emili::MetropolisAcceptance(]]><pfsp:metropolis_temp/><![CDATA[);
 		]]>
 	</pfsp:acceptance>	
 
@@ -216,7 +216,7 @@
 			#define GRAMMAR2CODE
 		]]>
 	
-        	<pfsp:algos>     
+        	<pfsp:algos/>     
            <![CDATA[
                 /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
 		clock_t time = clock();

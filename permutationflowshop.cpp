@@ -478,7 +478,7 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     int k,tmp,ind;
     std::vector< int > * p = (std::vector< int > *) solution->getRawData();
     std::vector< int > removed;
-    std::vector< int > solPartial = *p;
+    std::vector< int > solPartial(*p);
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = p->size();
     std::vector< int > solTMP(size,0);
@@ -490,12 +490,8 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
         solPartial.erase(solPartial.begin() + index);
         sops--;
     }
-
     sizePartial = solPartial.size();
     for(int l=0;l<removed.size();l++){
-
-
-
         k=removed[l];
         min = std::numeric_limits<int>::max();
 
