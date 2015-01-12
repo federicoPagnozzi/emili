@@ -91,12 +91,12 @@
 		]]>	
 	</pfsp:neighborhoodv>
 	
-	<pfsp:nothing/>
-
 	<pfsp:neighborhoods>
+		<pfsp:neighborhood/>
+		<![CDATA[
+			nes.push_back(ne);
+		]]>	
 		<pfsp:neighborhoodv/>
-		<or/>
-		<pfsp:nothing/>	
 	</pfsp:neighborhoods>
 	
 	<pfsp:pertubation>
@@ -158,7 +158,7 @@
 	</pfsp:best>
 
 	<pfsp:ils>
-		<pfsp:algos/>
+		<pfsp:algos1/>
 		<pfsp:termination/>
 		<pfsp:pertubation/>
 		<pfsp:acceptance/>
@@ -166,6 +166,16 @@
 			ls =  new emili::IteratedLocalSearch(*ls,*te,*pr,*ac);
 		]]>
 	</pfsp:ils>
+	
+	<pfsp:ils1>
+		<pfsp:algos2/>
+		<pfsp:termination/>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+		<![CDATA[
+			ls =  new emili::IteratedLocalSearch(*ls,*te,*pr,*ac);
+		]]>
+	</pfsp:ils1>
 
 	<pfsp:tabu>
         	<pfsp:initial_solution/>
@@ -210,6 +220,28 @@
 		<or/>
 		<pfsp:vnd/>
 	</pfsp:algos>
+
+	<pfsp:algos1>
+		<pfsp:first/>
+		<or/>
+		<pfsp:best/>
+		<or/>
+		<pfsp:ils1/>
+		<or/>
+		<pfsp:tabu/>
+		<or/>
+		<pfsp:vnd/>
+	</pfsp:algos1>
+
+	<pfsp:algos2>
+		<pfsp:first/>
+		<or/>
+		<pfsp:best/>
+		<or/>
+		<pfsp:tabu/>
+		<or/>
+		<pfsp:vnd/>
+	</pfsp:algos2>
 
         <pfsp:main_algorithm output="algorithm.h">
 		<![CDATA[
