@@ -82,22 +82,6 @@
           emili::pfsp::PfspNeighborhood* ne = new emili::pfsp::PfspBackwardInsertNeighborhood(problem);
 	]]>
 	</pfsp:neighborhood>
-		
-	
-	<pfsp:neighborhoodv>
-		<pfsp:neighborhood/>
-		<![CDATA[
-			nes.push_back(ne);
-		]]>	
-	</pfsp:neighborhoodv>
-	
-	<pfsp:neighborhoods>
-		<pfsp:neighborhood/>
-		<![CDATA[
-			nes.push_back(ne);
-		]]>	
-		<pfsp:neighborhoodv/>
-	</pfsp:neighborhoods>
 	
 	<pfsp:pertubation>
 		<![CDATA[
@@ -195,7 +179,16 @@
 		 	std::vector< emili::Neighborhood* > nes;
 			nes.push_back(ne);
 		]]>
-		<pfsp::neighborhoods/>
+		<pfsp:neighborhood/>
+		<![CDATA[
+		 	std::vector< emili::Neighborhood* > nes;
+			nes.push_back(ne);
+		]]>
+		<pfsp:neighborhood/>
+		<![CDATA[
+		 	std::vector< emili::Neighborhood* > nes;
+			nes.push_back(ne);
+		]]>
 		<pfsp::vnds/>
 	</pfsp:vnd>
 
