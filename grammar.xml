@@ -95,7 +95,7 @@
 
 	<pfsp:neighborhoods>
 		<pfsp:neighborhoodv/>
-		<or>
+		<or/>
 		<pfsp:nothing/>	
 	</pfsp:neighborhoods>
 	
@@ -127,11 +127,11 @@
 	     <![CDATA[
 			emili::TabuMemory* tm =new emili::pfsp::PfspMovesMemory(]]><pfsp:tabutenure_size/><![CDATA[ , *ne);
 	     ]]>
-	     </or>
+	     <or/>
 	     <![CDATA[
 			emili::TabuMemory* tm = new emili::pfsp::PfspTabuHashMemory(]]><pfsp:tabutenure_size/><![CDATA[); 
 	     ]]>
-	     </or>
+	     <or/>
 	     <![CDATA[
 			emili::TabuMemory* tm = new emili::pfsp::PfspFullSolutionMemory(]]><pfsp:tabutenure_size/><![CDATA[); 
 	     ]]>
@@ -171,7 +171,7 @@
         	<pfsp:initial_solution/>
         	<pfsp:termination/>
 		<pfsp:neighborhood/>
-		<pfsp:tabutenure>
+		<pfsp:tabutenure/>
 		<![CDATA[
 			ls = new emili::TabuSearch(*in,*te,*ne,*tm);
 		]]>
