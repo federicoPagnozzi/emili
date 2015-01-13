@@ -187,12 +187,10 @@
 		]]>
 		<pfsp:neighborhood/>
 		<![CDATA[
-		 	std::vector< emili::Neighborhood* > nes;
 			nes.push_back(ne);
 		]]>
 		<pfsp:neighborhood/>
 		<![CDATA[
-		 	std::vector< emili::Neighborhood* > nes;
 			nes.push_back(ne);
 		]]>
 		<pfsp:vnds/>

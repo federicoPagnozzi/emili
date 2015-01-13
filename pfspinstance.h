@@ -33,7 +33,7 @@ class PfspInstance{
     int nbMac;
     std::vector< long int > dueDates;
     std::vector< long int > priority;
-
+    bool silence;
     std::vector< std::vector <long int> > processingTimesMatrix;
 
   public:
@@ -68,6 +68,8 @@ class PfspInstance{
 
     /* Compute partial MakeSpan*/
     long int computeMS(vector<int> &sol,int size);
+
+    void setSilence(bool s);
 
 };
 
