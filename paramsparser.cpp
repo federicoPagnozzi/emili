@@ -74,7 +74,7 @@ void prs::info()
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
     std::cout << "PERTUBATION           = soaper int | testper " << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc int | metropolis float" << std::endl;
-    std::cout << "TABU_MEMORY           = move | hash | solution" << std::endl;
+    std::cout << "TABU_MEMORY           = move int | hash int | solution int" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
 

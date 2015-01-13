@@ -35,12 +35,12 @@ static void finalise (int _)
 
     keep_going = false;
     endTime = clock();
-    std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+    std::cerr << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     if(s_cap)
     {
         //cout << "iteration counter " << emili::iteration_counter()<< std::endl;
-        std::cout << "Solution value: " << s_cap->getSolutionValue() << std::endl;
-        std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        std::cout << s_cap->getSolutionValue() << std::endl;
+       // std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
         std::cerr << std::flush;
@@ -626,7 +626,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             if(*s_s < *s_cap)
             {
                 s_cap = s_s;
-                s_time = clock();
+                //s_time = clock();
             }
             //acceptance step            
             s = acc.accept(s,s_s);
