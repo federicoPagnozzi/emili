@@ -486,6 +486,7 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     int sops = solPartial.size()-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
+        //std::cout << index << " " ;//<< std::endl;
         removed.push_back(solPartial[index]);
         solPartial.erase(solPartial.begin() + index);
         sops--;

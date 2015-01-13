@@ -429,27 +429,10 @@ public:
    that uses the marsenne twister.
  */
 
-static std::mt19937 generator;
-static std::uniform_int_distribution<int> distribution;
-static std::uniform_real_distribution<float> realdistr;
 
-
-static void initializeRandom(int seed)
-{
-    generator = std::mt19937(seed);
-    //rand = std::bind(distribution,generator);
-}
-
-static inline int generateRandomNumber(){
-   // auto rand = std::bind(distribution,generator);
-    return distribution(generator);
-}
-
-static inline float generateRealRandomNumber()
-{
-    return realdistr(generator);
-}
-
+void initializeRandom(int seed);
+int generateRandomNumber();
+float generateRealRandomNumber();
 /*
  * Metropolis acceptance creteria implementation (fixed temperature)
  */
