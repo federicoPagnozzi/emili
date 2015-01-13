@@ -6,13 +6,19 @@
 <gr:grammar xmlns:gr="grammar">
     <gr:derivations xmlns:pfsp="pfsp_automatic_generation">
 	
+	<pfsp:directives output="setup.h">
+		<![CDATA[
+			#define GRAMMAR2CODE
+		]]>
+	</pfsp:directives>
+		
 	 <pfsp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
-	 <pfsp:time type="int" min="1" stepIfEnumerated="1"/>
-	 <pfsp:steps type="int" min="1" stepIfEnumerated="1"/>
-	 <pfsp:sp_impact type="int" min="5" stepIfEnumerated="1"/>
+	 <pfsp:time type="int" min="1" max="30" stepIfEnumerated="1"/>
+	 <pfsp:steps type="int" min="1" max="300" stepIfEnumerated="1"/>
+	 <pfsp:sp_impact type="int" min="5" max="20" stepIfEnumerated="1"/>
 	 <pfsp:s_acc_temp type="float" min="0.1" max="5" stepIfEnumerated="0.1"/>
 	 <pfsp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
-	 <pfsp:metropolis_temp type="float" min="0.1" stepIfEnumerated="1"/>
+	 <pfsp:metropolis_temp type="float" min="0.1" max="30" stepIfEnumerated="1"/>
 	 <pfsp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
 
         <pfsp:initial_solution>
@@ -189,7 +195,7 @@
 		 	std::vector< emili::Neighborhood* > nes;
 			nes.push_back(ne);
 		]]>
-		<pfsp::vnds/>
+		<pfsp:vnds/>
 	</pfsp:vnd>
 
 	<pfsp:vnds>
@@ -237,12 +243,12 @@
 	</pfsp:algos2>
 
         <pfsp:main_algorithm output="algorithm.h">
-		<![CDATA[
+	<!--	<![CDATA[
 			#define GRAMMAR2CODE
 		]]>
-	
+	-->
         	<pfsp:algos/>     
-           <![CDATA[
+           <!--<![CDATA[
                 /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
 		clock_t time = clock();
 		if(search_time == 0 )
@@ -250,7 +256,7 @@
 		else
 			solution = ls->timedSearch(search_time);
 		*/
-           ]]>
+           ]]>-->
         </pfsp:main_algorithm>
 
     </gr:derivations>
