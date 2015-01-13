@@ -788,3 +788,25 @@ emili::Solution* emili::MetropolisAcceptance::accept(Solution *intensification_s
     return diversification_solution;
 }
 
+
+std::mt19937 generator;
+std::uniform_int_distribution<int> distribution;
+std::uniform_real_distribution<float> realdistr;
+
+
+void emili::initializeRandom(int seed)
+{
+    generator = std::mt19937(seed);
+    //rand = std::bind(distribution,generator);
+}
+
+int emili::generateRandomNumber(){
+   // auto rand = std::bind(distribution,generator);
+    return distribution(generator);
+}
+
+float emili::generateRealRandomNumber()
+{
+    return realdistr(generator);
+}
+
