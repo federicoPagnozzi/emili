@@ -431,8 +431,8 @@ public:
 
 
 void initializeRandom(int seed);
-int generateRandomNumber();
-float generateRealRandomNumber();
+std::mt19937& getRandomGenerator();
+
 /*
  * Metropolis acceptance creteria implementation (fixed temperature)
  */
