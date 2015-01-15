@@ -5,20 +5,6 @@
 #include <sstream>
 #include <assert.h>
 
-std::uniform_int_distribution<int> _distribution;
-std::uniform_real_distribution<float> _realdistr;
-
-
-
-inline int generateRandomNumber_(){
-
-    return _distribution(emili::getRandomGenerator());
-}
-
-inline float generateRealRandomNumber_()
-{
-    return _realdistr(emili::getRandomGenerator());
-}
 
 std::vector< int > inline neh(std::vector< int >& partial,int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
@@ -142,7 +128,7 @@ std::vector< int > inline slack_construct(std::vector< int >& partial, int nbJob
 
 int generateRndPos(int min, int max)
 {
-  return (  generateRandomNumber_()%max + min );
+  return (  emili::generateRandomNumber()%max + min );
 }
 
 double emili::pfsp::PermutationFlowShop::evaluateSolution(emili::Solution& solution)
@@ -450,8 +436,8 @@ emili::Solution* emili::pfsp::PfspDestructor::destruct(Solution *solutioon)
      std::vector< int > * p = (std::vector< int > *) solutioon->getRawData();
     std::vector< int > des(*p);
     int size = des.size();
-    int start_position = generateRandomNumber_()%(size-1);
-    int num_postion = generateRandomNumber_()%(size-start_position-1);
+    int start_position = emili::generateRandomNumber()%(size-1);
+    int num_postion = emili::generateRandomNumber()%(size-start_position-1);
     des.erase(des.begin()+start_position,des.begin()+start_position+num_postion);
     des.insert(des.begin()+start_position,num_postion,0);        
     int nbJobs = instance.getNjobs();
@@ -468,7 +454,7 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
     std::vector< int > des (*p);
     int size = des.size();
     for (int var = 0; var < d; ++var) {
-        int num = generateRandomNumber_()%(size-1)+1;
+        int num = emili::generateRandomNumber()%(size-1)+1;
         if(des[num]!=0){
             des[num]=0;
         }else{
@@ -487,6 +473,7 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
 
 emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 {
+    emili::iteration_increment();
 
     int index;
     int min;
@@ -500,7 +487,7 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     int sizePartial;
     int sops = solPartial.size()-1;
     for(int k = 0; k < d; k++) {
-        index = (generateRandomNumber_()%sops)+1;
+        index = (emili::generateRandomNumber()%sops)+1;
         //std::cout << index << " " ;//<< std::endl;
         removed.push_back(solPartial[index]);
         solPartial.erase(solPartial.begin() + index);
@@ -549,8 +536,8 @@ emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
     std::vector< int > des(*p);
     int size = des.size();    
     int hsize = size/2;
-    int start_position =  generateRandomNumber_()%(hsize-1);
-    int start_position_2 = generateRandomNumber_()%(hsize-1)+hsize;
+    int start_position =  emili::generateRandomNumber()%(hsize-1);
+    int start_position_2 = emili::generateRandomNumber()%(hsize-1)+hsize;
     int num_postion = size/10;
     int end_pos = (start_position+num_postion)<hsize?(start_position+num_postion):hsize;
     int end_pos_2 = (start_position_2+num_postion)<size?(start_position_2+num_postion):size;
@@ -663,8 +650,8 @@ emili::Solution* emili::pfsp::PfspBestImprovExchangeNeighborhood::random(Solutio
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100)+1;
-    int best_j = (generateRandomNumber_()%100)+1;
+    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_j = (emili::generateRandomNumber()%100)+1;
     int posb = newsol[best_i];
     newsol[best_i] = newsol[best_j];
     newsol[best_j] = posb;
@@ -868,8 +855,8 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSo
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100)+1;
-    int best_j = (generateRandomNumber_()%100)+1;
+    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_j = (emili::generateRandomNumber()%100)+1;
     int sol_i = newsol[best_i];
     newsol.erase(newsol.begin()+best_i);
     newsol.insert(newsol.begin()+best_j,sol_i);
@@ -912,8 +899,8 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100)+1;
-    int best_j = (generateRandomNumber_()%100)+1;
+    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_j = (emili::generateRandomNumber()%100)+1;
     std::swap(newsol[best_i],newsol[best_j]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
@@ -948,7 +935,7 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100);
+    int best_i = (emili::generateRandomNumber()%100);
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
@@ -996,8 +983,8 @@ emili::Solution* emili::pfsp::PfspBestImprovInsertNeighborhood::random(Solution 
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100)+1;
-    int best_j = (generateRandomNumber_()%100)+1;
+    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_j = (emili::generateRandomNumber()%100)+1;
     int sol_i = newsol[best_i];
     newsol.erase(newsol.begin()+best_i);
     newsol.insert(newsol.begin()+best_j,sol_i);
@@ -1066,7 +1053,7 @@ emili::Solution* emili::pfsp::PfspBestImprovTransposeNeighborhood::random(Soluti
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100);
+    int best_i = (emili::generateRandomNumber()%100);
 
     int posb = newsol[best_i];
     newsol[best_i] = newsol[best_i+1];
@@ -1117,8 +1104,8 @@ emili::Solution* emili::pfsp::PfspFirstImprovExchangeNeighborhood::random(Soluti
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100)+1;
-    int best_j = (generateRandomNumber_()%100)+1;
+    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_j = (emili::generateRandomNumber()%100)+1;
     int posb = newsol[best_i];
     newsol[best_i] = newsol[best_j];
     newsol[best_j] = posb;
@@ -1165,8 +1152,8 @@ emili::Solution* emili::pfsp::PfspFirstImprovInsertNeighborhood::random(Solution
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100)+1;
-    int best_j = (generateRandomNumber_()%100)+1;
+    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_j = (emili::generateRandomNumber()%100)+1;
     int sol_i = newsol[best_i];
     newsol.erase(newsol.begin()+best_i);
     newsol.insert(newsol.begin()+best_j,sol_i);
@@ -1213,7 +1200,7 @@ emili::Solution* emili::pfsp::PfspFirstImprovTransposeNeighborhood::random(Solut
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (generateRandomNumber_()%100);
+    int best_i = (emili::generateRandomNumber()%100);
 
     int posb = newsol[best_i];
     newsol[best_i] = newsol[best_i+1];
@@ -1269,10 +1256,10 @@ emili::Solution* emili::pfsp::PfspRandomSwapPertub::perturb(emili::Solution* sol
     std::vector < int >* sol_data = (std::vector < int >*)solution->getRawData();
     std::vector < int > perturbed(*sol_data);
     int n = pfs.getNjobs()-1;
-    int pos1 = generateRandomNumber_()%n +1;
-    int pos2 = generateRandomNumber_()%n +1;
-    int pos3 = generateRandomNumber_()%n +1;
-    int pos4 = generateRandomNumber_()%n +1;
+    int pos1 = emili::generateRandomNumber()%n +1;
+    int pos2 = emili::generateRandomNumber()%n +1;
+    int pos3 = emili::generateRandomNumber()%n +1;
+    int pos4 = emili::generateRandomNumber()%n +1;
     int swap = perturbed[pos2];
     perturbed[pos2] = perturbed[pos1];
     perturbed[pos1] = swap;
@@ -1286,7 +1273,7 @@ emili::Solution* emili::pfsp::PfspRandomSwapPertub::perturb(emili::Solution* sol
 
 emili::Solution* emili::pfsp::PfspTestAcceptance::accept(Solution *candidate1, Solution *candidate2)
 {
-    int chance = generateRandomNumber_()%100;
+    int chance = emili::generateRandomNumber()%100;
     emili::Solution* c = candidate1;
     emili::Solution* c2 = candidate2;
     if(candidate1->operator >(*candidate2)){
@@ -1312,7 +1299,7 @@ emili::Solution* emili::pfsp::SOAacceptance::accept(Solution *intensification_so
     if(diversification_solution->operator >(*intensification_solution))
     {
         float prob = std::exp(100.0f*((intens-divers)/intens)/temperature);
-        if(prob < 1.0 && generateRealRandomNumber_()>prob)
+        if(prob < 1.0 && emili::generateRealRandomNumber()>prob)
         {
             return intensification_solution;
         }

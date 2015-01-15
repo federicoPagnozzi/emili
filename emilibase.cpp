@@ -35,12 +35,13 @@ std::mt19937& emili::getRandomGenerator()
     return generator;
 }
 
-inline int generateRandomNumber(){
+int emili::generateRandomNumber()
+{
    // auto rand = std::bind(distribution,generator);
     return distribution(generator);
 }
 
-inline float generateRealRandomNumber()
+float emili::generateRealRandomNumber()
 {
     return realdistr(generator);
 }
@@ -62,13 +63,13 @@ static void finalise (int _)
 
     keep_going = false;
     endTime = clock();
-    std::cerr << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+    std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     if(s_cap)
     {
-        //cout << "iteration counter " << emili::iteration_counter()<< std::endl;
+        cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << s_cap->getSolutionValue() << std::endl;
-       // std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-        std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+       //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
         std::cerr << std::flush;
     }
@@ -132,6 +133,10 @@ void emili::iteration_counter_zero()
 
 int emili::iteration_counter(){
     return iteration_counter_;
+}
+
+void emili::iteration_increment(){
+    iteration_counter_++;
 }
 
 /*

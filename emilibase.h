@@ -32,6 +32,7 @@ namespace emili{
 
 void iteration_counter_zero();
 int iteration_counter();
+void iteration_increment();
 
 class Solution;
 /*
@@ -432,6 +433,8 @@ public:
 
 void initializeRandom(int seed);
 std::mt19937& getRandomGenerator();
+int generateRandomNumber();
+float generateRealRandomNumber();
 
 /*
  * Metropolis acceptance creteria implementation (fixed temperature)
