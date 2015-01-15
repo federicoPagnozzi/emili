@@ -158,13 +158,8 @@ public:
 class PfspNeighborhood: public emili::Neighborhood
 {
 protected:
-    PermutationFlowShop& pis;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value)=0;
-    virtual Solution* computeStep(Solution* step)
-    {
-        return this->step(step);
-    }
-
+    PermutationFlowShop& pis;    
+   virtual Solution* computeStep(Solution* step) =0;
 public:
     PfspNeighborhood(PermutationFlowShop& problem):pis(problem){}
     virtual Solution* step(Solution* currentSolution);
@@ -172,33 +167,6 @@ public:
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
 };
 
-class PfspBestImprovExchangeNeighborhood: public emili::pfsp::PfspNeighborhood
-{
-protected:
-    int start_position;
-    int end_position;
-    int njobs;
-    PfspInstance& instance;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-public:
-    PfspBestImprovExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(1),end_position(1),njobs(problem.getNjobs()),instance(problem.getInstance()){}
-    virtual Solution* random(Solution *currentSolution);
-
-};
-
-class PfspBestImprovInsertNeighborhood: public emili::pfsp::PfspNeighborhood
-{
-protected:
-    int start_position;
-    int end_position;
-    int njobs;
-    PfspInstance& instance;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-public:
-    PfspBestImprovInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()){}
-    virtual Solution* random(Solution *currentSolution);
-
-};
 
 class PfspInsertNeighborhood: public emili::pfsp::PfspNeighborhood
 {
@@ -211,7 +179,7 @@ protected:
     std::vector < int > current;
     int current_value;
     PfspInstance& instance;
-    virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution,double value);
+    virtual Solution* computeStep(Solution* value);
 public:
     PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
@@ -223,7 +191,7 @@ public:
 class PfspBackwardInsertNeighborhood: public PfspInsertNeighborhood
 {
 protected:
-    virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution, double value);
+    virtual Solution* computeStep(Solution* value);
 public:
     PfspBackwardInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
 };
@@ -231,7 +199,7 @@ public:
 class PfspForwardInsertNeighborhood: public PfspInsertNeighborhood
 {
 protected:
-    virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution, double value);
+    virtual Solution* computeStep(Solution* value);
 public:
     PfspForwardInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
 };
@@ -246,7 +214,7 @@ protected:
     int ep_iterations;
     int njobs;
     PfspInstance& instance;
-    virtual PermutationFlowShopSolution* computeStep(std::vector<int> &solution,double value);
+    virtual Solution* computeStep(Solution* value);
 public:
     PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
@@ -262,63 +230,13 @@ protected:
     int sp_iterations;
     int njobs;
     PfspInstance& instance;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
+    virtual Solution* computeStep(Solution* value);
 public:
     PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);
-};
-
-
-class PfspBestImprovTransposeNeighborhood: public emili::pfsp::PfspNeighborhood
-{
-protected:
-    int start_position;
-    int end_position;
-    int njobs;
-    PfspInstance& instance;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-public:
-    PfspBestImprovTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()){}
-    virtual Solution* random(Solution *currentSolution);
-};
-
-class PfspFirstImprovExchangeNeighborhood: public emili::pfsp::PfspNeighborhood
-{
-protected:
-    int start_position;
-    int end_position;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-public:
-    PfspFirstImprovExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(1),end_position(1) { }
-    virtual void reset();
-    virtual Solution* random(Solution *currentSolution);
-};
-
-class PfspFirstImprovInsertNeighborhood: public emili::pfsp::PfspNeighborhood
-{
-protected:
-    int start_position;
-    int end_position;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-public:
-    PfspFirstImprovInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(1),end_position(1) { }
-    virtual void reset();
-    virtual Solution* random(Solution *currentSolution);
-};
-
-class PfspFirstImprovTransposeNeighborhood: public emili::pfsp::PfspNeighborhood
-{
-protected:
-    int start_position;
-    int end_position;
-    virtual PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-public:
-    PfspFirstImprovTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(1),end_position(1) { }
-    virtual void reset();
-    virtual Solution* random(Solution *currentSolution);
 };
 
 class PfspTerminationClassic: public emili::Termination
@@ -377,53 +295,6 @@ public:
     PfspTerminationIterations(int max_badIterations):maxIterations(max_badIterations),iterations(0) { }
     virtual bool terminate(Solution* currentSolution, Solution* newSolution);
     void reset();
-};
-
-class PfspTabuNeighborhood: public PfspNeighborhood, public TabuNeighborhood
-{
-protected:
-    emili::Solution* computeStep(Solution *step)
-    {
-        return emili::pfsp::PfspNeighborhood::computeStep(step);
-    }
-
-public:
-    PfspTabuNeighborhood(PermutationFlowShop& problem,int tabuTenureSize):emili::pfsp::PfspNeighborhood(problem),emili::TabuNeighborhood(tabuTenureSize) { }
-    virtual Solution* step(Solution* currentSolution)
-    {
-        return emili::pfsp::PfspNeighborhood::step(currentSolution);
-    }
-
-    virtual void reset(){
-
-    }
-};
-
-class PfspTabuInsertNeighborhood: public PfspTabuNeighborhood
-{
-protected:
-    class NeighborhoodMove
-    {
-        int i;
-        int j;
-    public:
-        NeighborhoodMove(int i_p,int j_p):i(i_p),j(j_p) { }
-        bool operator ==( NeighborhoodMove& b)
-        {
-            return ((i == b.i) && (j==b.j)) || ((i == b.j) && (j==b.i)) ;
-            //return (i+j)-(b.i+b.j) == 0;
-            //what's faster?
-        }
-    };
-    std::vector < NeighborhoodMove > tabuTable;
-    int njobs;
-    PfspInstance& instance;
-    virtual emili::pfsp::PermutationFlowShopSolution* computeStep(std::vector< int > & solution,double value);
-    virtual bool notTabu(NeighborhoodMove a);
-    virtual void updateTabuTable(NeighborhoodMove a);
-public:
-    PfspTabuInsertNeighborhood(PermutationFlowShop& problem,int tabuTenureSize):emili::pfsp::PfspTabuNeighborhood(problem,tabuTenureSize),tabuTable(),njobs(problem.getNjobs()),instance(problem.getInstance()){}
-
 };
 
 class PfspTabuHashMemory: public emili::TabuMemory
