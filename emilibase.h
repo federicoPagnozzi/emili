@@ -169,7 +169,17 @@ public:
     //unsigned long num();
        class NeighborhoodIterator : public std::iterator<std::forward_iterator_tag, emili::Solution> {
        public:
-           NeighborhoodIterator(emili::Neighborhood* n,emili::Solution* startSolution):base_(startSolution),line_(startSolution),n(n) { }
+           NeighborhoodIterator(emili::Neighborhood* n,emili::Solution* startSolution):base_(startSolution),n(n)
+           {
+               if(startSolution != nullptr )
+               {
+                  line_ = n->computeStep(base_);
+               }
+               else
+               {
+                   line_=nullptr;
+               }
+           }
            NeighborhoodIterator& operator=(const NeighborhoodIterator& iter);
            bool operator==(const NeighborhoodIterator& iter);
            bool operator != (const NeighborhoodIterator& iter);

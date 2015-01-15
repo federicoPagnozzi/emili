@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     pls = atoi(argv[2]);
     int seed = atoi(argv[3]);
     emili::initializeRandom(seed);
+    clock_t time = clock();
 #endif
     emili::Solution* solution;
     if(pls>0)
@@ -64,8 +65,7 @@ int main(int argc, char *argv[])
     }
     std::vector < int > *sol = (std::vector < int > *)solution->getRawData();
     long int totalWeightedTardiness = instance.computeWT(*sol);
-#ifndef GRAMMAR2CODE
-    clock_t time = clock();
+#ifndef GRAMMAR2CODE    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     cout << "time : " << time_elapsed << std::endl;
     cout << "iteration counter " << emili::iteration_counter()<< std::endl;

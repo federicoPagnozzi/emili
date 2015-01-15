@@ -196,7 +196,7 @@ bool emili::Neighborhood::NeighborhoodIterator::operator !=(const emili::Neighbo
 }
 
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator++()
-{
+{    
     this->line_ = n->computeStep(this->base_);
     return *this;
 }
@@ -356,8 +356,15 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
                 ithSolution = *iter;
 
                 if(bestOfTheIteration->operator >( *ithSolution)){
+                    if(bestOfTheIteration!=incumbent)
+                    delete bestOfTheIteration;
+
                     bestOfTheIteration = ithSolution;
 
+                }
+                else
+                {
+                    delete ithSolution;
                 }
 
             }
@@ -430,9 +437,17 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
             {
                 emili::Solution* ithSolution = *iter;
                 if(incumbent->operator >(*ithSolution)){
+                    if(incumbent!=bestSoFar)
+                    delete incumbent;
+
                     incumbent = ithSolution;
                     break;
                 }
+                else
+                {
+                    delete ithSolution;
+                }
+
             }
 
         }while(!termcriteria->terminate(bestSoFar,incumbent));
@@ -462,8 +477,16 @@ emili::Solution* emili::FirstImprovementSearch::timedSearch(int seconds, Solutio
         {
             emili::Solution* ithSolution = *iter;
             if(incumbent->operator >(*ithSolution)){
+
+                if(incumbent!=bestSoFar)
+                    delete incumbent;
+
                 incumbent = ithSolution;
                 break;
+            }
+            else
+            {
+              delete ithSolution;
             }
         }
 
