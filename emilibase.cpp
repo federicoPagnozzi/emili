@@ -660,8 +660,19 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
                 s_cap = s_s;
                 //s_time = clock();
             }
-            //acceptance step            
-            s = acc.accept(s,s_s);
+            //acceptance step
+            s_p = s;
+            s = acc.accept(s_p,s_s);
+            if(s == s_p)
+            {
+                if(s_cap != s_s)
+                    delete s_s;
+            }
+            else
+            {
+                if(s_cap != s_p)
+                delete s_p;
+            }
             //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
             //end loop
         }while(!termcriteria->terminate(s,s_s) && keep_going && isTimerUp());
