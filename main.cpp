@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
 
     /* Create instance object */
     PfspInstance instance;
+    clock_t time = clock();
 #ifdef GRAMMAR2CODE
     instance.setSilence(true);
 #else
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     pls = atoi(argv[2]);
     int seed = atoi(argv[3]);
     emili::initializeRandom(seed);
-    clock_t time = clock();
+    time = clock();
 #endif
     emili::Solution* solution;
     if(pls>0)
