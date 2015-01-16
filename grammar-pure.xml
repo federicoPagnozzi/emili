@@ -95,6 +95,7 @@
 
 	<pfsp:neighborhoods>
 		<pfsp:neighborhoodv/>
+		<pfsp:neighborhoods/>
 		<or/>
 		<pfsp:nothing/>	
 	</pfsp:neighborhoods>
@@ -185,8 +186,8 @@
 		 	std::vector< emili::Neighborhood* > nes;
 			nes.push_back(ne);
 		]]>
-		<pfsp::neighborhoods/>
-		<pfsp::vnds/>
+		<pfsp:neighborhoods/>
+		<pfsp:vnds/>
 	</pfsp:vnd>
 
 	<pfsp:vnds>
