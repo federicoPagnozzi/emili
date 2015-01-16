@@ -41,48 +41,6 @@ int main(int argc, char *argv[])
       return 1;
     }
     emili::pfsp::PermutationFlowShop problem(instance);    
-
-    emili::pfsp::PfspRandomInitialSolution r(problem);
-
-    emili::Solution* j = r.generateSolution();
-
-    std::vector< int >* test = (std::vector< int >*)j->getRawData();
-
-    std::vector<std::vector <int> > pt(instance.getNbMac()+1,std::vector<int>(problem.getNjobs()+1,0));
-    long int cazz;
-    clock_t asd = clock();
-    for(int i=0;i<1000;i++){
-    cazz = problem.computeWT(*test);
-    }
-    double time_e = (double)(clock()-asd)/CLOCKS_PER_SEC;
-    std::cout << "normale -> " << cazz  << " tempo-> " << time_e << std::endl;
-    asd = clock();
-    for(int i=0;i<1000;i++){
-    cazz = instance.computeWT(*test,pt,1,101);
-    }
-    time_e = (double)(clock()-asd)/CLOCKS_PER_SEC;
-    std::cout << "nuovo -> " << cazz  << " tempo-> " << time_e << std::endl;
-
-
-
-    std::swap((*test)[70],(*test)[79]);
-    asd = clock();
-    for(int i=0;i<1000;i++){
-
-    cazz = problem.computeWT(*test);
-    }
-    time_e = (double)(clock()-asd)/CLOCKS_PER_SEC;
-    std::cout << "normale -> " << cazz  << " tempo-> " << time_e << std::endl;
-
-    asd = clock();
-    for(int i=0;i<1000;i++){
-
-    cazz = instance.computeWT(*test,pt,70,79);
-    }
-    time_e = (double)(clock()-asd)/CLOCKS_PER_SEC;
-    std::cout << "nuovo -> " << cazz  << " tempo-> " << time_e << std::endl;
-    exit(0);
-
     int pls = 0;
     emili::LocalSearch* ls;
 #include "algorithm.h"
