@@ -361,4 +361,46 @@ long int PfspInstance::computeMS(vector<int> &sol,int size)
     return previousMachineEndTime[size];
 }
 
+/* Compute the weighted tardiness of a given solution starting from a given machine end time table and a starting index */
+long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i)
+{
+   int m = start_i;
+   int j;
+   long int wt;
+   int jobNumber;
+   for(j=start_i;j<end_i;j++)
+   {
+       jobNumber = sol[j];
+       previousMachineEndTimeMatrix[1][j] = previousMachineEndTimeMatrix[1][j-1] + processingTimesMatrix[jobNumber][1];
+   }
+
+       for ( j = start_i; j <= nbJob; ++j )
+       {
+           long int previousJobEndTime = previousMachineEndTimeMatrix[1][j];
+
+           jobNumber = sol[j];
+           for ( m = 2; m <= nbMac; ++m )
+           {
+
+
+           if ( previousMachineEndTimeMatrix[m][j-1] > previousJobEndTime )
+           {
+               previousMachineEndTimeMatrix[m][j] = previousMachineEndTimeMatrix[m][j-1] + processingTimesMatrix[jobNumber][m];
+
+           }
+           else
+           {
+               previousMachineEndTimeMatrix[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+           }
+           previousJobEndTime = previousMachineEndTimeMatrix[m][j];
+       }
+   }
+
+    wt = 0;
+    for ( j = 1; j<= nbJob; ++j )
+        wt += (std::max(previousMachineEndTimeMatrix[nbMac][j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+    return wt;
+}
+
 

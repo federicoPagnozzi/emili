@@ -69,6 +69,9 @@ class PfspInstance{
     /* Compute partial MakeSpan*/
     long int computeMS(vector<int> &sol,int size);
 
+    /* Compute weighted tardines starting from an index*/
+    long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+
     void setSilence(bool s);
 
 };
