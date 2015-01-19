@@ -88,11 +88,11 @@ void check(char* t,const char* message)
     }
 }
 
-emili::pfsp::PfspNeighborhood* ne;
-emili::InitialSolution* in;
-emili::Termination* te;
-emili::TabuMemory* tmem;
-emili::Termination* ilt;
+emili::pfsp::PfspNeighborhood* ne = nullptr;
+emili::InitialSolution* in= nullptr;
+emili::Termination* te= nullptr;
+emili::TabuMemory* tmem= nullptr;
+emili::Termination* ilt= nullptr;
 
 std::vector< emili::Neighborhood*> nes;
 

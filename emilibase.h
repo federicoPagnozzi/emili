@@ -261,6 +261,7 @@ public:
     emili::Termination& getTermination();
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();
+    virtual ~LocalSearch() { delete init; delete termcriteria; delete neighbh;}
 
 };
 
@@ -324,7 +325,7 @@ public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationCriteria,Perturbation& perturb,AcceptanceCriteria& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationCriteria,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
 
     virtual Solution* search();
-    virtual Solution* timedSearch(int seconds);
+    virtual Solution* timedSearch(int seconds);    
 };
 
 /*
@@ -359,6 +360,7 @@ public:
      */
     virtual void reset()=0;
     virtual void setTabuTenure(int tt) { this->tabutenure = tt; }
+
 };
 
 class TabuNeighborhood: public emili::Neighborhood
@@ -379,6 +381,7 @@ public:
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
     virtual Solution* timedSearch(int seconds, Solution* initial);
+
 };
 
 /*
