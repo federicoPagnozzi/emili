@@ -1,0 +1,24 @@
+SET(CMAKE_BUILD_TYPE Debug)
+project(EMILI)
+cmake_minimum_required(VERSION 2.8)
+aux_source_directory(. SRC_LIST)
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g -std=c++11")
+#C++ 11 detection
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
+           add_definitions(-DNOC11)
+           message(WARNING, "Your gcc does not support c++11, switched to c++0x support.")
+    endif ()
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+else ()
+    add_definitions(-DNOC11)
+    message(WARNING, "Your gcc does not support c++11, switched to c++0x support.")
+    #message(FATAL_ERROR "Your C++ compiler does not support C++11.")
+endif ()
+
+add_executable(${PROJECT_NAME} ${SRC_LIST})
+

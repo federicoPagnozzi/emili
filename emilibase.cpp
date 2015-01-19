@@ -19,11 +19,10 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 }
  */
 
+#ifndef NOC11
 std::mt19937 generator;
 std::uniform_int_distribution<int> distribution;
 std::uniform_real_distribution<float> realdistr;
-
-
 void emili::initializeRandom(int seed)
 {
     generator = std::mt19937(seed);
@@ -34,6 +33,25 @@ std::mt19937& emili::getRandomGenerator()
 {
     return generator;
 }
+
+#else
+
+std::tr1::mt19937 generator;
+std::tr1::uniform_int<int> distribution;
+std::tr1::uniform_real<float> realdistr;
+void emili::initializeRandom(int seed)
+{
+    generator = std::tr1::mt19937(seed);
+    //rand = std::bind(distribution,generator);
+}
+
+std::tr1::mt19937& emili::getRandomGenerator()
+{
+    return generator;
+}
+
+#endif
+
 
 int emili::generateRandomNumber()
 {
