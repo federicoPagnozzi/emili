@@ -86,6 +86,7 @@ static void finalise (int _)
     {
         cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << s_cap->getSolutionValue() << std::endl;
+
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
@@ -441,14 +442,14 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
         termcriteria->reset();
         neighbh->reset();
         emili::Solution* bestSoFar = init->generateEmptySolution();
-        emili::Solution* incumbent = init->generateEmptySolution();
+        emili::Solution* incumbent = bestSoFar;
         *incumbent = *initial;
-        bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
+        //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
 
         do{
             if(bestSoFar != incumbent)
             {
-            delete bestSoFar;
+                delete bestSoFar;
             }
             bestSoFar = incumbent;
             for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
@@ -469,7 +470,6 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
             }
 
         }while(!termcriteria->terminate(bestSoFar,incumbent));
-
         return bestSoFar;
 }
 
