@@ -441,9 +441,9 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
         termcriteria->reset();
         neighbh->reset();
         emili::Solution* bestSoFar = init->generateEmptySolution();
-        emili::Solution* incumbent = init->generateEmptySolution();
+        emili::Solution* incumbent = bestSoFar;
         *incumbent = *initial;
-        bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
+        //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
 
         do{
             if(bestSoFar != incumbent)
