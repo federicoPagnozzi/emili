@@ -526,7 +526,6 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 
     emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
     instance.evaluateSolution(*s);
-
     return s;
 }
 

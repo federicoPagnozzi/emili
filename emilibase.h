@@ -25,8 +25,16 @@ Neighborhood, Pertubation and AcceptanceCriteria.
 #include <string>
 #include <iostream>
 #include <vector>
+#ifndef NOC11
 #include <random>
+#else
+//if the compiler does not support c++11 this compile path will be selected.
+#include <tr1/random>
+#define nullptr NULL
+#endif
 #include <functional>
+
+
 
 namespace emili{
 
@@ -442,7 +450,11 @@ public:
 
 
 void initializeRandom(int seed);
+#ifdef NOC11
+std::tr1::mt19937& getRandomGenerator();
+#else
 std::mt19937& getRandomGenerator();
+#endif
 int generateRandomNumber();
 float generateRealRandomNumber();
 
