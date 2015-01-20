@@ -527,6 +527,15 @@ emili::Solution* emili::TabuSearch::search()
     return sol;
 }
 
+emili::Solution* emili::TabuSearch::timedSearch(int seconds)
+{
+    tabuMemory.reset();
+    emili::Solution* current = init->generateSolution();
+    emili::Solution* sol = timedSearch(seconds,current);
+    delete current;
+    return sol;
+}
+
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 {
     termcriteria->reset();
@@ -570,7 +579,7 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
     setTimer(seconds);
     neighbh->reset();
     emili::Solution* bestSoFar = init->generateEmptySolution();
-    emili::Solution* incumbent = init->generateEmptySolution();
+    emili::Solution* incumbent = bestSoFar;
     *incumbent = *initial;
     s_cap = initial;
     emili::Solution* ithSolution = nullptr;
@@ -605,6 +614,8 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
     stopTimer();
     return bestSoFar;
 }
+
+
 
 /*
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)

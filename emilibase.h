@@ -383,6 +383,7 @@ public:
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
     virtual Solution* timedSearch(int seconds, Solution* initial);
+    virtual Solution* timedSearch(int seconds);
 
 };
 

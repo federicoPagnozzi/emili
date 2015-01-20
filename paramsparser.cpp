@@ -315,7 +315,7 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n)
 {
     char* t = nextToken();
     check(t,"TABU MEMORY PARAMETERS EXPECTED!");
-    int ts = ttsize();
+    int ts = number();
     if(strcmp(t,MOVES)==0)
     {
         std::cout << "USING MOVES\n\t";
