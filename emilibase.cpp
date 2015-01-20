@@ -579,7 +579,7 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
     setTimer(seconds);
     neighbh->reset();
     emili::Solution* bestSoFar = init->generateEmptySolution();
-    emili::Solution* incumbent = bestSoFar;
+    emili::Solution* incumbent = init->generateEmptySolution();
     *incumbent = *initial;
     s_cap = initial;
     emili::Solution* ithSolution = nullptr;
@@ -591,13 +591,13 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
             bestSoFar = incumbent;            
         }
         neighbh->reset();
-        Solution* bestOfTheIteration = nullptr;//= incumbent;
+        Solution* bestOfTheIteration = incumbent;//= incumbent;
 
         for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
         {
             ithSolution = *iter;
 
-            if(bestOfTheIteration==nullptr || bestOfTheIteration->operator >( *ithSolution)){
+            if(bestOfTheIteration->operator >( *ithSolution)){
                 tabuMemory.registerMove(incumbent,ithSolution);
                 if(tabuMemory.tabu_check(ithSolution))//<- Aspiration goes here.
                 {                    
