@@ -49,9 +49,7 @@
 	]]>
            <or/>
 	   <![CDATA[
-        	int ti = problem.getNjobs();
-         	ti = 2*(ti-1);
-        	te =  new emili::pfsp::SOAtermination(ti);
+        	te =  new emili::pfsp::SOAtermination(soa_termination);
 	]]>
            <or/>
 	   <![CDATA[
@@ -212,6 +210,8 @@
 		]]>
 	-->
 	<![CDATA[
+        	int soa_termination = problem.getNjobs();
+         	soa_termination = 2*(soa_termination-1);
 		emili::InitialSolution* in;
 	        emili::TabuMemory* tm;
 		emili::pfsp::PfspNeighborhood* ne;
