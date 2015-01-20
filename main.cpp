@@ -66,11 +66,10 @@ int main(int argc, char *argv[])
     }
     std::vector < int > *sol = (std::vector < int > *)solution->getRawData();
     long int totalWeightedTardiness = instance.computeWT(*sol);
-#ifndef GRAMMAR2CODE    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     cout << "time : " << time_elapsed << std::endl;
     cout << "iteration counter " << emili::iteration_counter()<< std::endl;
-    cerr << time_elapsed << " ";
+    //cerr << time_elapsed << " ";
     cout << "Found solution: ";
     for (int i = 1; i <= instance.getNbJob(); ++i)
       cout << (*sol)[i] << " " ;
@@ -78,8 +77,5 @@ int main(int argc, char *argv[])
     cout << endl;
     cout << "Total weighted tardiness: " << totalWeightedTardiness << endl;
     cerr << totalWeightedTardiness << endl;
-#else
-    std::cout << totalWeightedTardiness << std::endl;
-#endif
     exit(0);
 }
