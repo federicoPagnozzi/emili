@@ -659,6 +659,7 @@ emili::Solution* emili::IteratedLocalSearch::search(){
     emili::Solution* s_s;
     //initialization done
     do{
+
         //Pertubation step
         emili::Solution* s_p = pert.perturb(s);
         //local search on s_p
@@ -668,10 +669,57 @@ emili::Solution* emili::IteratedLocalSearch::search(){
         if(*s_s < *s_cap)
         {
             s_cap = s_s;
-        }        
+            //s_time = clock();
+        }
         //acceptance step
-        s = acc.accept(s,s_s);
-        //end loop
+        s_p = s;
+        s = acc.accept(s_p,s_s);
+        if(s == s_p)
+        {
+            if(s_cap != s_s)
+                delete s_s;
+        }
+        else
+        {
+            if(s_cap != s_p)
+            delete s_p;
+        }
+    }while(!termcriteria->terminate(s,s_s));
+    return s_cap;
+}
+
+emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
+    termcriteria->reset();
+    emili::Solution* s_cap = ls.search(initial);
+    emili::Solution* s = s_cap;
+    emili::Solution* s_s;
+    //initialization done
+    do{
+
+        //Pertubation step
+        emili::Solution* s_p = pert.perturb(s);
+        //local search on s_p
+        s_s = ls.search(s_p);
+        delete s_p;
+        //best solution
+        if(*s_s < *s_cap)
+        {
+            s_cap = s_s;
+            //s_time = clock();
+        }
+        //acceptance step
+        s_p = s;
+        s = acc.accept(s_p,s_s);
+        if(s == s_p)
+        {
+            if(s_cap != s_s)
+                delete s_s;
+        }
+        else
+        {
+            if(s_cap != s_p)
+            delete s_p;
+        }
     }while(!termcriteria->terminate(s,s_s));
     return s_cap;
 }
@@ -721,6 +769,53 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         stopTimer();
         return s_cap;
 }
+
+emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+{
+        termcriteria->reset();
+        setTimer(maxTime);
+        /*
+            search start
+        */
+        beginTime = clock();
+        s_cap = initial;
+        s_cap = ls.search(initial);
+        emili::Solution* s = s_cap;
+        emili::Solution* s_s;
+        //initialization done
+        do{
+
+            //Pertubation step
+            emili::Solution* s_p = pert.perturb(s);
+            //local search on s_p
+            s_s = ls.search(s_p);
+            delete s_p;
+            //best solution
+            if(*s_s < *s_cap)
+            {
+                s_cap = s_s;
+                //s_time = clock();
+            }
+            //acceptance step
+            s_p = s;
+            s = acc.accept(s_p,s_s);
+            if(s == s_p)
+            {
+                if(s_cap != s_s)
+                    delete s_s;
+            }
+            else
+            {
+                if(s_cap != s_p)
+                delete s_p;
+            }
+            //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
+            //end loop
+        }while(!termcriteria->terminate(s,s_s) && keep_going && isTimerUp());
+        stopTimer();
+        return s_cap;
+}
+
 
 /*
  * Never stopping termination

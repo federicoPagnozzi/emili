@@ -325,7 +325,9 @@ public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationCriteria,Perturbation& perturb,AcceptanceCriteria& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationCriteria,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
 
     virtual Solution* search();
-    virtual Solution* timedSearch(int seconds);    
+    virtual Solution* search(emili::Solution* initial);
+    virtual Solution* timedSearch(int seconds);
+    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
 };
 
 /*
