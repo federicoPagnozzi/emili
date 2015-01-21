@@ -763,9 +763,9 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             search start
         */
         beginTime = clock();
-        emili::Solution* s = init->generateSolution();
-        s_cap = ls.search(s);
-         *s = *s_cap;
+        s_cap = init->generateSolution();
+        emili::Solution*  s = ls.search(s_cap);
+        *s_cap = *s ;
         emili::Solution* s_s = nullptr;
         //initialization done
         do{
