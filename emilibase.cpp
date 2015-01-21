@@ -70,11 +70,13 @@ float emili::generateRealRandomNumber()
  */
 
 bool keep_going;
+bool timer_keep_going;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
 emili::Solution* s_cap;
 struct itimerval timer;
+struct itimerval termination_timer;
 
 static void finalise (int _)
 {
@@ -100,6 +102,28 @@ static void finalise (int _)
     _Exit(EXIT_SUCCESS);
 }
 
+void timeUp(int _)
+{
+    timer_keep_going = false;
+}
+
+void setTerminationTimer(int time)
+{
+
+    termination_timer.it_value.tv_sec = time;
+    termination_timer.it_value.tv_usec = 0;
+    termination_timer.it_interval.tv_sec = 0;
+    termination_timer.it_interval.tv_usec = 0;
+    signal(SIGPROF, timeUp);
+    signal(SIGINT, timeUp);
+    if (setitimer (ITIMER_PROF, &termination_timer, NULL) != 0) {
+        printf("error in setitimer\n");
+        exit(10);
+    }else{
+       timer_keep_going = true;
+    }
+}
+
 static inline bool isTimerUp()
 {
 
@@ -109,7 +133,7 @@ static inline bool isTimerUp()
               current_timer.it_value.tv_usec != 0);
 
 }
-
+int max_time = -1 ;
 static inline void setTimer(int maxTime)
 {
     keep_going = true;
@@ -125,6 +149,7 @@ static inline void setTimer(int maxTime)
         exit(10);
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
+        max_time = maxTime;
     }
 }
 
@@ -666,73 +691,68 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 emili::Solution* emili::IteratedLocalSearch::search(){
     termcriteria->reset();
     emili::Solution* s_cap = ls.search();    
-    emili::Solution* s = s_cap;
-    emili::Solution* s_s;
+    emili::Solution* s = init->generateEmptySolution();
+    s_cap = ls.search(s);
+     *s = *s_cap;
+    emili::Solution* s_s = nullptr;
     //initialization done
     do{
 
         //Pertubation step
         emili::Solution* s_p = pert.perturb(s);
         //local search on s_p
+        if(s!=s_s && s_s != nullptr)
+            delete s_s;
         s_s = ls.search(s_p);
-        delete s_p;
         //best solution
         if(*s_s < *s_cap)
         {
-            s_cap = s_s;
+
+            *s_cap = *s_s;
             //s_time = clock();
         }
+        delete s_p;
         //acceptance step
         s_p = s;
         s = acc.accept(s_p,s_s);
-        if(s == s_p)
-        {
-            if(s_cap != s_s)
-                delete s_s;
-        }
-        else
-        {
-            if(s_cap != s_p)
+        if(s != s_p)
             delete s_p;
-        }
+        //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
+        //end loop
     }while(!termcriteria->terminate(s,s_s));
     return s_cap;
 }
 
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     termcriteria->reset();
-    emili::Solution* s_cap = ls.search(initial);
-    emili::Solution* s = s_cap;
-    emili::Solution* s_s;
+    emili::Solution* scap = ls.search(initial);
+    emili::Solution* s = init->generateEmptySolution();
+     *s = *scap;
+    emili::Solution* s_s = nullptr;
     //initialization done
     do{
 
         //Pertubation step
         emili::Solution* s_p = pert.perturb(s);
         //local search on s_p
+        if(s!=s_s && s_s != nullptr)
+            delete s_s;
         s_s = ls.search(s_p);
-        delete s_p;
         //best solution
-        if(*s_s < *s_cap)
+        if(*s_s < *scap)
         {
-            s_cap = s_s;
+
+            *scap = *s_s;
             //s_time = clock();
         }
+        delete s_p;
         //acceptance step
         s_p = s;
         s = acc.accept(s_p,s_s);
-        if(s == s_p)
-        {
-            if(s_cap != s_s)
-                delete s_s;
-        }
-        else
-        {
-            if(s_cap != s_p)
+        if(s != s_p)
             delete s_p;
-        }
     }while(!termcriteria->terminate(s,s_s));
-    return s_cap;
+    return scap;
 }
 
 emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
@@ -743,9 +763,9 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             search start
         */
         beginTime = clock();
-        s_cap = init->generateSolution();
-        s_cap = ls.search(s_cap);
-        emili::Solution* s = s_cap;
+        emili::Solution* s = init->generateSolution();
+        s_cap = ls.search(s);
+         *s = *s_cap;
         emili::Solution* s_s = nullptr;
         //initialization done
         do{
@@ -753,25 +773,25 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             //Pertubation step
             emili::Solution* s_p = pert.perturb(s);            
             //local search on s_p
-            if(s_cap != s_s && s!=s_s && s_s != nullptr)
+            if(s!=s_s && s_s != nullptr)
                 delete s_s;
             s_s = ls.search(s_p);
             //best solution
             if(*s_s < *s_cap)
             {
-                s_cap = s_s;
+
+                *s_cap = *s_s;
                 //s_time = clock();
             }
             delete s_p;
             //acceptance step
             s_p = s;
             s = acc.accept(s_p,s_s);
-
-            if(s != s_p && s_cap != s_p)
+            if(s != s_p)
                 delete s_p;            
             //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
             //end loop
-        }while(!termcriteria->terminate(s,s_s) && keep_going && isTimerUp());
+        }while(!termcriteria->terminate(s,s_s) && keep_going);
         stopTimer();
         return s_cap;
 }
@@ -817,7 +837,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
             }
             //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
             //end loop
-        }while(!termcriteria->terminate(s,s_s) && keep_going && isTimerUp());
+        }while(!termcriteria->terminate(s,s_s) && keep_going);
         stopTimer();
         return s_cap;
 }
@@ -837,23 +857,14 @@ bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution*
  */
 
 bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *newSolution)
-{
-    Solution* b = currentSolution;
-    if(currentSolution->operator >(*newSolution)){
-        b = newSolution;
-    }
-    if(s_cap!=nullptr && s_cap->operator >(*b)){
-        s_cap = b;
-    }else{
-        s_cap = b;
-    }
-
-    return !isTimerUp();
+{    
+    return !timer_keep_going;
 }
 
 void emili::TimedTermination::reset()
 {
-    setTimer(this->secs);
+
+    setTerminationTimer(this->secs);
 }
 
 /*emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)

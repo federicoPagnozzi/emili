@@ -147,6 +147,7 @@ class TimedTermination: public Termination
 {
 protected:
     int secs;
+
 public:
     TimedTermination(int seconds):secs(seconds) { }
     TimedTermination():secs(1) { }
