@@ -857,14 +857,17 @@ bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution*
  */
 
 bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *newSolution)
-{    
-    return !timer_keep_going;
+{
+    clock_t test = clock();
+    float time = (test-start)/ (float)CLOCKS_PER_SEC;
+    return !(time < secs);
 }
 
 void emili::TimedTermination::reset()
 {
 
-    setTerminationTimer(this->secs);
+    //setTerminationTimer(this->secs);
+    start = clock();
 }
 
 /*emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)
