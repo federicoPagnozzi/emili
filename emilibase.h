@@ -147,6 +147,7 @@ class TimedTermination: public Termination
 {
 protected:
     int secs;
+    clock_t start;
 public:
     TimedTermination(int seconds):secs(seconds) { }
     TimedTermination():secs(1) { }
@@ -325,7 +326,9 @@ public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationCriteria,Perturbation& perturb,AcceptanceCriteria& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationCriteria,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
 
     virtual Solution* search();
-    virtual Solution* timedSearch(int seconds);    
+    virtual Solution* search(emili::Solution* initial);
+    virtual Solution* timedSearch(int seconds);
+    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
 };
 
 /*
@@ -381,6 +384,7 @@ public:
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
     virtual Solution* timedSearch(int seconds, Solution* initial);
+    virtual Solution* timedSearch(int seconds);
 
 };
 

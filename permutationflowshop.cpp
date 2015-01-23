@@ -473,7 +473,7 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
 
 emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 {
-    emili::iteration_increment();
+    //emili::iteration_increment();
 
     int index;
     int min;
