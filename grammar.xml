@@ -20,7 +20,17 @@
 	 <pfsp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
 	 <pfsp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
 	 <pfsp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
+	 <pfsp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
+	 <pfsp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
+	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+       	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
 
+	<pfsp:always_acc_param>
+		<![CDATA[ acc = emili::ACC_INTENSIFICATION; ]]>
+       	    <or/> 
+           <![CDATA[ acc = emili::ACC_DIVERSIFICATION;]]>
+	</pfsp:always_acc_param>
+ 		
         <pfsp:initial_solution>
            <![CDATA[
                 in = new emili::pfsp::PfspRandomInitialSolution(problem);
@@ -93,6 +103,11 @@
 		<![CDATA[
 		 	pr = new emili::pfsp::PfspRandomSwapPertub(problem);
 		]]>
+		<or/>
+		<pfsp:neighborhood/>
+		<![CDATA[
+		       pr = new emili::pfsp::RandomMovePertubation(*ne,]]><pfsp:random_moves/><![CDATA[);
+		]]>
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
@@ -106,6 +121,19 @@
 		<or/>
 		<![CDATA[
 			ac =  new emili::MetropolisAcceptance(]]><pfsp:metrotemp/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::ImproveAccept();
+		]]>
+		<or/>
+			<pfsp:always_acc_param/>
+		<![CDATA[
+			ac = new emili::AlwaysAccept(acc);		
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::Metropolis(]]><pfsp:start_temp/><![CDATA[,]]><pfsp:end_temp/><![CDATA[,]]><pfsp:temp_ratio/><![CDATA[);
 		]]>
 	</pfsp:acceptance>	
 
@@ -218,7 +246,8 @@
 		emili::Termination* te;
 		emili::AcceptanceCriteria* ac;
 		emili::Perturbation* pr;
-		std::vector< emili::Neighborhood* > nes;	  
+		std::vector< emili::Neighborhood* > nes;
+		emili::accept_candidates acc;	  
 	]]>	
 
         	<pfsp:algos/>     
