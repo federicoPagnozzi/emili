@@ -18,7 +18,7 @@ It's a very bad acronym but it's the best I could came up with in 5 minutes...
 
 In order to use this framework for running your things you should implement
 at least a problem specific extension of the class Problem, Solution, InitialSolution,
-Neighborhood, Pertubation and AcceptanceCriteria.
+Neighborhood, Pertubation and Acceptancecriterion.
 */
 
 
@@ -101,7 +101,7 @@ public:
 };
 
 /*
-    Extends this to implement your termination criteria
+    Extends this to implement your termination criterion
 */
 class Termination
 {
@@ -118,7 +118,7 @@ public:
 };
 
 /*
- * This termination criteria checks if newSolution improves on currentSolution,
+ * This termination criterion checks if newSolution improves on currentSolution,
  * if it does not improve the termination condition is verified and terminate returns true.
  */
 class LocalMinimaTermination: public emili::Termination
@@ -225,16 +225,16 @@ class LocalSearch
 {
 protected:
 InitialSolution* init;
-Termination* termcriteria;
+Termination* termcriterion;
 Neighborhood* neighbh;
 int seconds;
     LocalSearch() { }
 public:
-    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh):
-    init(&initialSolutionGenerator),termcriteria(&terminationCriteria),neighbh(&neighborh),seconds(0)    {    }
+    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0)    {    }
 
-    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh, int time):
-    init(&initialSolutionGenerator),termcriteria(&terminationCriteria),neighbh(&neighborh),seconds(time)    {    }
+    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, int time):
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time)    {    }
     /*
      * search use the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -245,7 +245,7 @@ public:
      */
     virtual Solution* search(Solution* initial);
     /*
-     * this method ends the execution of the algorithm when the termination criteria is true or
+     * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
     virtual Solution* timedSearch(int seconds);
@@ -262,7 +262,7 @@ public:
     emili::Termination& getTermination();
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();
-    virtual ~LocalSearch() { delete init; delete termcriteria; delete neighbh;}
+    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh;}
 
 };
 
@@ -273,7 +273,7 @@ public:
 class BestImprovementSearch : public emili::LocalSearch
 {
 public:
-    BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationCriteria,neighborh) {}
+    BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
     virtual Solution* search(emili::Solution* initial);
     virtual Solution* search()
     {
@@ -289,7 +289,7 @@ public:
 class FirstImprovementSearch : public emili::LocalSearch
 {
 public:
-    FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationCriteria,neighborh) {}
+    FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
     virtual Solution* search(emili::Solution* intial);
     virtual Solution* timedSearch(int seconds, Solution* initial);
 };
@@ -303,7 +303,21 @@ class Perturbation
     virtual Solution* perturb(Solution* solution)=0;
 };
 
-class AcceptanceCriteria
+
+/*
+    Performs a series of random steps in the given neighborhood.
+*/
+class RandomMovePertubation : public emili::Perturbation
+{
+protected:
+    Neighborhood& explorer;
+    int numberOfSteps;
+public:
+    RandomMovePertubation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
+    virtual Solution* perturb(Solution* solution);
+};
+
+class Acceptance
 {
 public:
     /*
@@ -313,6 +327,24 @@ public:
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
 };
+
+enum accept_candidates {ACC_INTENSIFICATION,ACC_DIVERSIFICATION};
+
+class AlwaysAccept : public emili::Acceptance
+{
+protected:
+    accept_candidates acc;
+public:
+    AlwaysAccept(accept_candidates choice):acc(choice) { }
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
+
+class ImproveAccept : public emili::Acceptance
+{
+public:
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
+
 /*
  * IteratedLocalSearch it's a general implementation of iterated local search.
 */
@@ -321,9 +353,9 @@ class IteratedLocalSearch: public emili::LocalSearch
 protected:
     LocalSearch& ls;
     Perturbation& pert;
-    AcceptanceCriteria& acc;
+    Acceptance& acc;
 public:
-    IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationCriteria,Perturbation& perturb,AcceptanceCriteria& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationCriteria,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
+    IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationcriterion,Perturbation& perturb,Acceptance& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationcriterion,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
 
     virtual Solution* search();
     virtual Solution* search(emili::Solution* initial);
@@ -379,8 +411,8 @@ class TabuSearch: public emili::LocalSearch
 protected:
     emili::TabuMemory& tabuMemory;
 public:
-    TabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationCriteria, Neighborhood& neighborh,TabuMemory& tabut):
-    emili::LocalSearch(initialSolutionGenerator,terminationCriteria,neighborh),tabuMemory(tabut) {    }
+    TabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh,TabuMemory& tabut):
+    emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh),tabuMemory(tabut) {    }
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
     virtual Solution* timedSearch(int seconds, Solution* initial);
@@ -466,9 +498,9 @@ int generateRandomNumber();
 float generateRealRandomNumber();
 
 /*
- * Metropolis acceptance creteria implementation (fixed temperature)
+ * Metropolis acceptance criterion implementation (fixed temperature)
  */
-class MetropolisAcceptance: public emili::AcceptanceCriteria
+class MetropolisAcceptance: public emili::Acceptance
 {
 protected:
     float temperature;
@@ -477,6 +509,20 @@ public:
     void setTemp(float temp);
     float getTemp();
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution);
+};
+/*
+ * Proper Metropolis acceptance criterion
+ */
+class Metropolis: public emili::Acceptance
+{
+protected:
+    float temperature;
+    float start_temp;
+    float end_temp;
+    float rate;
+public:
+    Metropolis(float initial_temperature,float final_temperature,float descending_ratio):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio) { }
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
 };
 
 /*
@@ -501,7 +547,7 @@ public:
   {
       this->neighbh = nullptr;//new emili::EmptyNeighBorHood();
       this->init = nullptr;
-      this->termcriteria = nullptr;
+      this->termcriterion = nullptr;
   }
  virtual emili::Solution* construct(emili::Solution* partial) = 0;
  virtual emili::Solution* constructFull() = 0;
@@ -516,7 +562,7 @@ public:
 class IteratedGreedy : public emili::IteratedLocalSearch
 {
 public:
-    IteratedGreedy(Constructor& c,Termination& t,Destructor& d,AcceptanceCriteria& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
+    IteratedGreedy(Constructor& c,Termination& t,Destructor& d,Acceptance& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
 };
 
 }

@@ -194,14 +194,16 @@ protected:
     virtual Solution* computeStep(Solution* value);
 public:
     PfspBackwardInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 class PfspForwardInsertNeighborhood: public PfspInsertNeighborhood
 {
 protected:
     virtual Solution* computeStep(Solution* value);
-public:
+public:    
     PfspForwardInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 
@@ -257,7 +259,7 @@ public:
 
 };
 
-class PfspTestAcceptance: public emili::AcceptanceCriteria
+class PfspTestAcceptance: public emili::Acceptance
 {
 protected:
     PermutationFlowShop pfs;
