@@ -28,6 +28,7 @@
 #define TIME "time"
 #define WNSLACK "nwslack"
 #define WTRUE "true"
+#define RANDOM_MOVE_PERTUBATION "rndmv"
 #define INSERT "insert"
 #define BACK_INSERT "binsert"
 #define FORW_INSERT "finsert"
@@ -42,6 +43,11 @@
 #define TEST_ACC "testacc"
 #define SOA_ACC "soaacc"
 #define SOA_TER "soater"
+#define ACC_ALWAYS "always"
+#define INTENSIFY "intensify"
+#define DIVERSIFY "diversify"
+#define ACC_IMPROVE "improve"
+#define ACC_SA_METRO "sa_metropolis"
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT -10
@@ -72,9 +78,9 @@ void prs::info()
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack " << std::endl;
     std::cout << "TERMINATION           = true | time int | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
-    std::cout << "PERTUBATION           = soaper int | testper " << std::endl;
-    std::cout << "ACCEPTANCE            = soaacc float | testacc int | metropolis float" << std::endl;
-    std::cout << "TABU_MEMORY           = move int | hash int | solution int" << std::endl;
+    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int)" << std::endl;
+    std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio" << std::endl;
+    std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int)" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
 
@@ -149,7 +155,12 @@ emili::LocalSearch* prs::ParamsParser::search()
     char* t = nextToken();
     check(t,"SEARCH PARAMETERS MISSING!!!");
     emili::LocalSearch* ls;
-    if(strcmp(t,TABU)==0)
+    if(strcmp(t,ILS)==0)
+    {
+        std::cout << "ILS \n\t";
+        ls = ils();
+
+    }else if(strcmp(t,TABU)==0)
     {
         std::cout << "TABU SEARCH\n\t";
         ls = tparams();
@@ -192,15 +203,16 @@ emili::LocalSearch* prs::ParamsParser::ils()
     emili::Perturbation* prsp = per();
     //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
     //emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1);
-    emili::AcceptanceCriteria* tac = acc();//new emili::pfsp::SOAacceptance(1.2f);
+    emili::Acceptance* tac = acc();//new emili::pfsp::SOAacceptance(1.2f);
     emili::LocalSearch* iils = new emili::IteratedLocalSearch(*ls,*pft,*prsp,*tac);
     ils_time = ilstime();
-    if(ils_time<=0)
+    if(ils_time>0)
     {
-        std::cerr <<"ERROR for ils a time has to be provided"<< std::endl;
-        exit(-1);
+        iils->setSearchTime(ils_time);
+        //std::cerr <<"ERROR for ils a time has to be provided"<< std::endl;
+        //exit(-1);
     }
-    iils->setSearchTime(ils_time);
+
     return iils;
 }
 
@@ -219,6 +231,13 @@ emili::Perturbation* prs::ParamsParser::per()
     {
         std::cout << "Random swap test pertubation. \n\t";
         return new emili::pfsp::PfspRandomSwapPertub(istance);
+    }else if(strcmp(t,RANDOM_MOVE_PERTUBATION)==0)
+    {
+        std::cout << "Random move perturbation." ;
+        emili::Neighborhood* n = neigh();
+        int num = number();
+        std::cout << "number of moves per pertubation step " << num << ".\n\t";
+        return new emili::RandomMovePertubation(*n,num);
     }
     else
     {
@@ -227,8 +246,9 @@ emili::Perturbation* prs::ParamsParser::per()
     }
 }
 
-emili::AcceptanceCriteria* prs::ParamsParser::acc()
+emili::Acceptance* prs::ParamsParser::acc()
 {
+
     char* t = nextToken();
     check(t,"ACCEPTANCE CRITERIA EXPECTED!");
     if(strcmp(t,SOA_ACC)==0)
@@ -250,6 +270,43 @@ emili::AcceptanceCriteria* prs::ParamsParser::acc()
         std::cout << "metropolis acceptance. temperature : "<<n<<"\n\t";
 
         return new emili::MetropolisAcceptance(n);
+    }
+    else  if(strcmp(t,ACC_ALWAYS)==0)
+    {
+        char* t1 = nextToken();
+
+        emili::accept_candidates acc;
+        if(strcmp(t1,INTENSIFY))
+        {
+            acc = emili::ACC_INTENSIFICATION;
+        }
+        else if(strcmp(t1,DIVERSIFY)==0)
+        {
+            acc = emili::ACC_DIVERSIFICATION;
+        }
+        else
+        {
+            std::cerr<< "'" << t1 << "' -> ERROR " << INTENSIFY << "or " << DIVERSIFY <<"was expected! " << std::endl;
+            exit(-1);
+        }
+        std::cout << "Acceptance always "<< t1<<"\n\t";
+        return new emili::AlwaysAccept(acc);
+    }
+    else  if(strcmp(t,ACC_IMPROVE)==0)
+    {
+
+        std::cout << "improve acceptance \n\t";
+
+        return new emili::ImproveAccept();
+    }
+    else  if(strcmp(t,ACC_SA_METRO)==0)
+    {
+        float start = decimal();
+        float end = decimal();
+        float ratio = decimal();
+        std::cout << "metropolis acceptance. start ,end , ratio : "<< start << ", "<< end << "," << ratio <<"\n\t";
+
+        return new emili::Metropolis(start,end,ratio);
     }
     else
     {
@@ -274,7 +331,7 @@ emili::LocalSearch* prs::ParamsParser::ig()
     emili::WhileTrueTermination* pft = new emili::WhileTrueTermination;
     emili::Destructor* prsp = new emili::pfsp::PfspDestructorTest(istance);
     //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
-    emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(10000);
+    emili::Acceptance* tac = new emili::MetropolisAcceptance(10000);
     emili::LocalSearch* iils = new emili::IteratedGreedy(*ls,*pft,*prsp,*tac);
     iils->setSearchTime(ils_time);
     return iils;

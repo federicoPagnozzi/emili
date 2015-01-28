@@ -31,7 +31,7 @@ protected:
     emili::LocalSearch* vparams();
     emili::InitialSolution* init();
     emili::Termination* term();
-    emili::AcceptanceCriteria* acc();
+    emili::Acceptance* acc();
     emili::Perturbation* per();
     emili::pfsp::PfspNeighborhood* neigh();
 
