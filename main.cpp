@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
     /* Create instance object */
     PfspInstance instance;
     clock_t time = clock();
+
 #ifdef GRAMMAR2CODE
     instance.setSilence(true);
 #else
