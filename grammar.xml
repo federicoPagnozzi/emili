@@ -106,7 +106,7 @@
 		<or/>
 		<pfsp:neighborhood/>
 		<![CDATA[
-		       pr = new emili::pfsp::RandomMovePertubation(*ne,]]><pfsp:random_moves/><![CDATA[);
+		       pr = new emili::RandomMovePertubation(*ne,]]><pfsp:random_moves/><![CDATA[);
 		]]>
 	</pfsp:pertubation>
 
@@ -244,7 +244,7 @@
 	        emili::TabuMemory* tm;
 		emili::pfsp::PfspNeighborhood* ne;
 		emili::Termination* te;
-		emili::AcceptanceCriteria* ac;
+		emili::Acceptance* ac;
 		emili::Perturbation* pr;
 		std::vector< emili::Neighborhood* > nes;
 		emili::accept_candidates acc;	  
