@@ -446,8 +446,15 @@ emili::Solution* emili::BestImprovementSearch::timedSearch(int seconds, Solution
             ithSolution = *iter;
 
             if(bestOfTheIteration->operator >( *ithSolution)){
+                if(bestOfTheIteration!=incumbent)
+                delete bestOfTheIteration;
+
                 bestOfTheIteration = ithSolution;
 
+            }
+            else
+            {
+                delete ithSolution;
             }
 
         }
@@ -561,35 +568,80 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds)
     return sol;
 }
 
+/*
+
+            if(bestSoFar != incumbent)
+            {
+            delete bestSoFar;
+            }
+            bestSoFar = incumbent;
+            neighbh->reset();
+            Solution* bestOfTheIteration = incumbent;
+
+            for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);iter!=neighbh->end();++iter)
+            {
+                ithSolution = *iter;
+
+                if(bestOfTheIteration->operator >( *ithSolution)){
+                    if(bestOfTheIteration!=incumbent)
+                    delete bestOfTheIteration;
+
+                    bestOfTheIteration = ithSolution;
+
+                }
+                else
+                {
+                    delete ithSolution;
+                }
+
+            }
+            incumbent = bestOfTheIteration;
+
+*/
+
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 {
     termcriterion->reset();
-    neighbh->reset();
-    emili::Solution* bestSoFar = init->generateEmptySolution();
+    neighbh->reset();    
     emili::Solution* incumbent = init->generateEmptySolution();
     *incumbent = *initial;
+    emili::Solution* bestSoFar = incumbent;
     emili::Solution* ithSolution = nullptr;
     do
     {
         if(bestSoFar->operator >(*incumbent)){
-            delete bestSoFar;
+            delete bestSoFar;            
             bestSoFar = incumbent;
         }
+
         neighbh->reset();
         Solution* bestOfTheIteration = incumbent;
 
         for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);iter!=neighbh->end();++iter)
         {
-            ithSolution = *iter;
+            ithSolution = *iter;            
 
             if(bestOfTheIteration->operator >( *ithSolution)){
                 tabuMemory.registerMove(incumbent,ithSolution);
+
                 if(tabuMemory.tabu_check(ithSolution))//<- Aspiration goes here.
                 {
+                    if(bestOfTheIteration!=incumbent)
+                        delete bestOfTheIteration;
+
                     bestOfTheIteration = ithSolution;
+                }
+                else
+                {
+                    delete ithSolution;
                 }
 
             }
+            else
+            {
+                delete ithSolution;
+            }
+
 
         }
         incumbent = bestOfTheIteration;
@@ -603,41 +655,55 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
     termcriterion->reset();
     setTimer(seconds);
     neighbh->reset();
-    emili::Solution* bestSoFar = init->generateEmptySolution();
     emili::Solution* incumbent = init->generateEmptySolution();
     *incumbent = *initial;
-    s_cap = initial;
+    s_cap = incumbent;
     emili::Solution* ithSolution = nullptr;
     do
     {
-        if(bestSoFar->operator >(*incumbent)){
+        if(s_cap->operator >(*incumbent)){
+            delete s_cap;
             s_cap = incumbent;
-            delete bestSoFar;
-            bestSoFar = incumbent;            
         }
-        neighbh->reset();
-        Solution* bestOfTheIteration = incumbent;//= incumbent;
 
-        for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
+        neighbh->reset();
+        Solution* bestOfTheIteration = incumbent;
+
+        for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(s_cap);iter!=neighbh->end();++iter)
         {
             ithSolution = *iter;
 
+
+
             if(bestOfTheIteration->operator >( *ithSolution)){
                 tabuMemory.registerMove(incumbent,ithSolution);
+
                 if(tabuMemory.tabu_check(ithSolution))//<- Aspiration goes here.
-                {                    
+                {
+                    if(bestOfTheIteration!=incumbent)
+                        delete bestOfTheIteration;
+
                     bestOfTheIteration = ithSolution;
+                }
+                else
+                {
+                    delete ithSolution;
                 }
 
             }
+            else
+            {
+                delete ithSolution;
+            }
+
+
 
         }
-
-            incumbent = bestOfTheIteration;
-         tabuMemory.forbid(incumbent);
-    }while(!termcriterion->terminate(bestSoFar,incumbent)&&keep_going&& isTimerUp());
+        incumbent = bestOfTheIteration;
+        tabuMemory.forbid(incumbent);
+    }while(!termcriterion->terminate(s_cap,incumbent)&&keep_going&& isTimerUp());
     stopTimer();
-    return bestSoFar;
+    return s_cap;
 }
 
 
