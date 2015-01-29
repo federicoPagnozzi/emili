@@ -511,7 +511,7 @@ emili::Solution* emili::FirstImprovementSearch::timedSearch(int seconds, Solutio
     setTimer(seconds);
     neighbh->reset();
     emili::Solution* bestSoFar = init->generateEmptySolution();
-    emili::Solution* incumbent = init->generateEmptySolution();
+    emili::Solution* incumbent = bestSoFar;
     *incumbent = *initial;
     s_cap = initial;
     bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
@@ -568,36 +568,6 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds)
     return sol;
 }
 
-/*
-
-            if(bestSoFar != incumbent)
-            {
-            delete bestSoFar;
-            }
-            bestSoFar = incumbent;
-            neighbh->reset();
-            Solution* bestOfTheIteration = incumbent;
-
-            for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);iter!=neighbh->end();++iter)
-            {
-                ithSolution = *iter;
-
-                if(bestOfTheIteration->operator >( *ithSolution)){
-                    if(bestOfTheIteration!=incumbent)
-                    delete bestOfTheIteration;
-
-                    bestOfTheIteration = ithSolution;
-
-                }
-                else
-                {
-                    delete ithSolution;
-                }
-
-            }
-            incumbent = bestOfTheIteration;
-
-*/
 
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 {
@@ -644,6 +614,9 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 
 
         }
+        if(incumbent!=bestSoFar)
+            delete incumbent;
+
         incumbent = bestOfTheIteration;
         tabuMemory.forbid(incumbent);
     }while(!termcriterion->terminate(bestSoFar,incumbent));
@@ -699,6 +672,8 @@ emili::Solution* emili::TabuSearch::timedSearch(int seconds, Solution *initial)
 
 
         }
+        if(incumbent!=s_cap)
+            delete incumbent;
         incumbent = bestOfTheIteration;
         tabuMemory.forbid(incumbent);
     }while(!termcriterion->terminate(s_cap,incumbent)&&keep_going&& isTimerUp());
