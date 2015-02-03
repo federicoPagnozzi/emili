@@ -178,6 +178,11 @@ int emili::pfsp::PermutationFlowShop::computeWT(std::vector< int > & partial_sol
     return instance.computeWT(partial_solution,size);
 }
 
+int emili::pfsp::PermutationFlowShop::computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+{
+    return instance.computeWT(sol,prevJob,job,previousMachineEndTime);
+}
+
 const void* emili::pfsp::PermutationFlowShopSolution::getRawData()const
 {
     return &solution;

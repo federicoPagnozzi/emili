@@ -89,6 +89,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 	long int readValue;
 	string str;
 	ifstream fileIn;
+
 	char * aux2;
 	char fileNameOK[100] = "";
 
@@ -110,7 +111,13 @@ bool PfspInstance::readDataFromFile(char * fileName)
 	if ( fileIn.is_open() ) {
 
         fileIn >> nbJob;
-		fileIn >> nbMac;        
+        fileIn >> nbMac;
+        fileIn >> readValue;
+        if(readValue == 12345)
+        {
+            std::string fname(fileName);
+            return readDataFromFile(fname);
+        }
 		allowMatrixMemory(nbJob, nbMac);
         if(!silence){
             cout << "File " << fileName << " is now open, start to read..." << std::endl;
@@ -123,8 +130,11 @@ bool PfspInstance::readDataFromFile(char * fileName)
 		{
 			for (m = 1; m <= nbMac; ++m)
 			{
+                if(j!=1 && m!=1)
+                {
 				fileIn >> readValue; // The number of each machine, not important !
-				fileIn >> readValue; // Process Time
+                }
+                fileIn >> readValue; // Process Time
 
 				processingTimesMatrix[j][m] = readValue;
 			}
@@ -146,13 +156,71 @@ bool PfspInstance::readDataFromFile(char * fileName)
 	}
 	else
 	{
+        if(!silence)
 		cout    << "ERROR. file:pfspInstance.cpp, method:readDataFromFile, "
-				<< "error while opening file " << fileName << std::endl;
+                << "error while opening file " << fileName << std::endl;
+        everythingOK = false;
 
-		everythingOK = false;
 	}
 
 	return everythingOK;
+}
+
+
+bool PfspInstance::readDataFromFile(const string _fileName)
+{
+          std::string buffer;
+          std::string::size_type start, end;
+          std::ifstream inputFile(_fileName.data(), std::ios::in);
+          // opening of the benchmark file
+          //estd::cout << "file <- " << _fileName << std::endl;
+          if (!inputFile.is_open())
+              throw std::runtime_error("*** ERROR : Unable to open the benchmark file");
+          // number of jobs (N)
+          getline(inputFile, buffer, '\n');
+          nbJob = atoi(buffer.data());
+          // number of machines M
+          getline(inputFile, buffer, '\n');
+          nbMac = atoi(buffer.data());
+          // initial and current seeds (not used)
+          getline(inputFile, buffer, '\n');
+          // processing times and due-dates
+          // p = std::vector< std::vector<unsigned int> > (M,N);
+          //p.resize(nbMac);
+          allowMatrixMemory(nbJob, nbMac);
+          /*for (unsigned int j=1 ; j<nbMac ; j++)
+          {
+              p[j].resize(N);
+          }*/
+          //d = std::vector<unsigned int> (nbJob);
+          // for each job...
+          for (unsigned int j=1 ; j<nbJob+1 ; j++)
+          {
+              // index of the job (<=> j)
+              getline(inputFile, buffer, '\n');
+              // due-date of the job j
+              getline(inputFile, buffer, '\n');
+              dueDates[j] = atoi(buffer.data());
+              // processing times of the job j on each machine
+              getline(inputFile, buffer, '\n');
+              start = buffer.find_first_not_of(" ");
+              for (unsigned int i=1 ; i<nbMac+1 ; i++)
+              {
+                  end = buffer.find_first_of(" ", start);
+                  processingTimesMatrix[j][i] = atoi(buffer.substr(start, end-start).data());
+                  start = buffer.find_first_not_of(" ", end);
+              }
+          }
+
+          for (unsigned int j=1 ; j<nbJob+1 ; j++)
+          {
+            getline(inputFile, buffer, '\n');
+            priority[j] = atoi(buffer.data());
+          }
+
+          // closing of the input file
+          inputFile.close();
+    return true;
 }
 
 
@@ -362,6 +430,7 @@ long int PfspInstance::computeMS(vector<int> &sol,int size)
 }
 
 /* Compute the weighted tardiness of a given solution starting from a given machine end time table and a starting index */
+/*
 long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i)
 {
    int m = start_i;
@@ -402,5 +471,67 @@ long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& pr
 
     return wt;
 }
+*/
+
+long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+{
+    int j, m;
+    int jobNumber;
+    long int wt;
+
+    /* And the end time of the previous job, on the same machine : */
+    long int previousJobEndTime;
+
+    /* 1st machine : */
+    jobNumber = sol[job];
+    previousMachineEndTime[job] = prevJob[0] + processingTimesMatrix[jobNumber][1];
+    prevJob[0] = previousMachineEndTime[job];// -> qua iniziare ad aggiornare prevjob[machine 1]
+    for ( j = job+1; j <= nbJob; ++j )
+    {
+        jobNumber = sol[j];
+        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
+    }
 
 
+    /* others machines : */
+    for ( m = 2; m <= nbMac; ++m )
+    {
+
+        previousJobEndTime = prevJob[m-1]; // qua è uguale a prevjob[machine 2]
+        jobNumber = sol[job];
+        if ( previousMachineEndTime[job] > previousJobEndTime )
+        {
+            previousMachineEndTime[job] = previousMachineEndTime[job] + processingTimesMatrix[jobNumber][m];
+            previousJobEndTime = previousMachineEndTime[job];
+        }
+        else
+        {
+            previousJobEndTime += processingTimesMatrix[jobNumber][m];
+            previousMachineEndTime[job] = previousJobEndTime;
+        }
+        prevJob[m-1] = previousMachineEndTime[job];
+
+        //j deve essere Job+1
+        for ( j = job+1; j <= nbJob; ++j )
+        {
+            jobNumber = sol[j];
+
+            if ( previousMachineEndTime[j] > previousJobEndTime )
+            {
+                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
+                previousJobEndTime = previousMachineEndTime[j];
+            }
+            else
+            {
+                previousJobEndTime += processingTimesMatrix[jobNumber][m];
+                previousMachineEndTime[j] = previousJobEndTime;
+            }
+        }
+    }
+
+    wt = 0;
+    for ( j = 1; j<= nbJob; ++j )
+        wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+    return wt;
+}

@@ -321,7 +321,7 @@ class Acceptance
 {
 public:
     /*
-     *  the accept method decides the direction of the search by searching between intensification and diversification,
+     *  the accept method decides the direction of the search by choosing between intensification and diversification,
      *  the IteratedLocalSearch class calls this method putting as first paramenter the solution used for pertubation
      *  in the last iteration and as second parameter the result of the local search around the pertubed solution.
     */
