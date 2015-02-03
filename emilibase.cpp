@@ -269,7 +269,9 @@ emili::Solution* emili::LocalSearch::search()
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
-    delete current;
+    if(current!=sol)
+        delete current;
+
     return sol;
 }
 
@@ -278,7 +280,9 @@ emili::Solution* emili::LocalSearch::timedSearch(int time_seconds)
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = timedSearch(time_seconds,current);
-    delete current;
+    if(current!=sol)
+        delete current;
+
     return sol;
 }
 
@@ -333,7 +337,9 @@ emili::Solution* emili::LocalSearch::timedSearch()
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = timedSearch(seconds,current);
-    delete current;
+    if(current!=sol)
+        delete current;
+
     return sol;
 }
 
