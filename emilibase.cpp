@@ -434,7 +434,7 @@ emili::Solution* emili::BestImprovementSearch::timedSearch(int seconds, Solution
 
     emili::Solution* incumbent = init->generateEmptySolution();
     *incumbent = *initial;
-    s_cap = initial;
+    s_cap = incumbent;
     emili::Solution* ithSolution = nullptr;
 
     do
