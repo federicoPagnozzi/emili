@@ -37,6 +37,7 @@ public:
     int computeWT(std::vector< int > & partial_solution);
     int computeWT(std::vector< int > & partial_solution, int size);
     int computeMS(std::vector< int >& partial, int size);
+    int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     PfspInstance& getInstance();
 };
 
@@ -239,6 +240,11 @@ public:
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class XTransposeNeighborhood: public emili::pfsp::PfspTransposeNeighborhood
+{
+    //TODO FINISH THIS THING!!!!
 };
 
 class PfspTerminationClassic: public emili::Termination

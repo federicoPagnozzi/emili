@@ -59,6 +59,10 @@ class PfspInstance{
 
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
+
+    /* Read Data from file with the other format*/
+    bool readDataFromFile(const std::string _filename);
+
     /*Compute weighted tardiness*/
     long int computeWT (vector< int > & sol);
     /*Compute partial weighted tardiness*/
@@ -70,8 +74,9 @@ class PfspInstance{
     long int computeMS(vector<int> &sol,int size);
 
     /* Compute weighted tardines starting from an index*/
-    long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+   // long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
 
+    long int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void setSilence(bool s);
 
 };

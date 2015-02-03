@@ -379,19 +379,18 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
 {
         termcriterion->reset();
         neighbh->reset();
-        emili::Solution* bestSoFar = init->generateEmptySolution();
         emili::Solution* incumbent = init->generateEmptySolution();
         *incumbent = *initial;        
+        emili::Solution* bestSoFar = incumbent;
         emili::Solution* ithSolution = nullptr;
 
         do
         {
 
-            if(bestSoFar != incumbent)
-            {
-            delete bestSoFar;
+            if(bestSoFar->operator >(*incumbent)){
+                delete bestSoFar;
+                bestSoFar = incumbent;
             }
-            bestSoFar = incumbent;            
             neighbh->reset();
             Solution* bestOfTheIteration = incumbent;
 
@@ -412,6 +411,8 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
                 }
 
             }
+            if(incumbent!=bestSoFar)
+                delete incumbent;
             incumbent = bestOfTheIteration;
 
         }while(!termcriterion->terminate(bestSoFar,incumbent));
@@ -424,7 +425,7 @@ emili::Solution* emili::BestImprovementSearch::timedSearch(int seconds, Solution
     termcriterion->reset();
     setTimer(seconds);
     neighbh->reset();
-    emili::Solution* bestSoFar = init->generateEmptySolution();
+
     emili::Solution* incumbent = init->generateEmptySolution();
     *incumbent = *initial;
     s_cap = initial;
@@ -432,16 +433,14 @@ emili::Solution* emili::BestImprovementSearch::timedSearch(int seconds, Solution
 
     do
     {
-        s_cap = incumbent;
-        if(bestSoFar != incumbent)
-        {
-        delete bestSoFar;
+        if(s_cap->operator >(*incumbent)){
+            delete s_cap;
+            s_cap = incumbent;
         }
-        bestSoFar = incumbent;
         neighbh->reset();
         Solution* bestOfTheIteration = incumbent;
 
-        for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);iter!=neighbh->end();++iter)
+        for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(s_cap);iter!=neighbh->end();++iter)
         {
             ithSolution = *iter;
 
@@ -458,11 +457,13 @@ emili::Solution* emili::BestImprovementSearch::timedSearch(int seconds, Solution
             }
 
         }
+        if(incumbent!=s_cap)
+           delete incumbent;
         incumbent = bestOfTheIteration;
 
-    }while(!termcriterion->terminate(bestSoFar,incumbent)&&keep_going&& isTimerUp());
+    }while(!termcriterion->terminate(s_cap,incumbent)&&keep_going&& isTimerUp());
     stopTimer();
-    return bestSoFar;
+    return s_cap;
 }
 
 /*
