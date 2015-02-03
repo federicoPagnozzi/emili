@@ -130,9 +130,9 @@ bool PfspInstance::readDataFromFile(char * fileName)
         }
 		for (j = 1; j <= nbJob; ++j)
 		{
-			for (m = 1; m <= nbMac; ++m)
+            for (m = 1; m <= nbMac; ++m)
 			{
-                if(j!=1 && m!=1)
+                if(!(j==1 && m==1))
                 {
 				fileIn >> readValue; // The number of each machine, not important !
                 }
