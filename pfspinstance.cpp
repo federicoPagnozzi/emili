@@ -23,6 +23,7 @@
 #include <fstream>
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include "pfspinstance.h"
 
 
