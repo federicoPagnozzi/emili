@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <stdexcept>
 #include "pfspinstance.h"
 
 
