@@ -740,8 +740,9 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSo
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (emili::generateRandomNumber()%100)+1;
-    int best_j = (emili::generateRandomNumber()%100)+1;
+    int njobs = instance.getNbJob();
+    int best_i = (emili::generateRandomNumber()%njobs)+1;
+    int best_j = (emili::generateRandomNumber()%njobs)+1;
     int sol_i = newsol[best_i];
     newsol.erase(newsol.begin()+best_i);
     newsol.insert(newsol.begin()+best_j,sol_i);
@@ -751,10 +752,10 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSo
 
 emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::random(Solution *currentSolution)
 {
-
+    int njobs = instance.getNbJob();
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (emili::generateRandomNumber()%100)+1;    
-    int best_j = (emili::generateRandomNumber()%(100-best_i+1))+best_i;
+    int best_i = (emili::generateRandomNumber()%njobs)+1;
+    int best_j = (emili::generateRandomNumber()%(njobs-best_i+1))+best_i;
     int sol_i = newsol[best_i];
     newsol.erase(newsol.begin()+best_i);
     newsol.insert(newsol.begin()+best_j,sol_i);
@@ -764,9 +765,9 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::random(Solution *cu
 
 emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::random(Solution *currentSolution)
 {
-
+    int njobs = instance.getNbJob();
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (emili::generateRandomNumber()%100)+1;
+    int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%best_i)+1;
     int sol_i = newsol[best_i];
     newsol.erase(newsol.begin()+best_i);
@@ -810,8 +811,9 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
 {
 
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (emili::generateRandomNumber()%100)+1;
-    int best_j = (emili::generateRandomNumber()%100)+1;
+    int njobs = instance.getNbJob();
+    int best_i = (emili::generateRandomNumber()%njobs)+1;
+    int best_j = (emili::generateRandomNumber()%njobs)+1;
     std::swap(newsol[best_i],newsol[best_j]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
@@ -845,9 +847,9 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solu
 
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *currentSolution)
 {
-
+    int njobs = instance.getNbJob();
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (emili::generateRandomNumber()%100);
+    int best_i = (emili::generateRandomNumber()%njobs);
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
