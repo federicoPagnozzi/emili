@@ -77,6 +77,8 @@ class PfspInstance{
    // long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
 
     long int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    //to compute WT and save the values for the job job
+    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void setSilence(bool s);
 
 };

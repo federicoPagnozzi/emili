@@ -33,6 +33,7 @@
 #define BACK_INSERT "binsert"
 #define FORW_INSERT "finsert"
 #define TRANSPOSE "transpose"
+#define XTRANSPOSE "xtranspose"
 #define EXCHANGE "exchange"
 #define RNDSEED "rnds"
 #define PRT_RND "randpert"
@@ -577,6 +578,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
     {
         std::cout << "Transpose neighborhood\n\t";
         return new emili::pfsp::PfspTransposeNeighborhood(istance);
+    }
+    else if(strcmp(t,XTRANSPOSE)==0)
+    {
+        std::cout << "XTranspose neighborhood\n\t";
+        return new emili::pfsp::XTransposeNeighborhood(istance);
     }
     else
     {

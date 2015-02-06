@@ -486,8 +486,8 @@ long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,v
 
     /* 1st machine : */
     jobNumber = sol[job];
-    previousMachineEndTime[job] = prevJob[0] + processingTimesMatrix[jobNumber][1];
-    prevJob[0] = previousMachineEndTime[job];// -> qua iniziare ad aggiornare prevjob[machine 1]
+    previousMachineEndTime[job] = prevJob[1] + processingTimesMatrix[jobNumber][1];
+    prevJob[1] = previousMachineEndTime[job];// -> qua iniziare ad aggiornare prevjob[machine 1]
     for ( j = job+1; j <= nbJob; ++j )
     {
         jobNumber = sol[j];
@@ -499,7 +499,7 @@ long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,v
     for ( m = 2; m <= nbMac; ++m )
     {
 
-        previousJobEndTime = prevJob[m-1]; // qua è uguale a prevjob[machine 2]
+        previousJobEndTime = prevJob[m]; // qua è uguale a prevjob[machine 2]
         jobNumber = sol[job];
         if ( previousMachineEndTime[job] > previousJobEndTime )
         {
@@ -511,7 +511,7 @@ long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,v
             previousJobEndTime += processingTimesMatrix[jobNumber][m];
             previousMachineEndTime[job] = previousJobEndTime;
         }
-        prevJob[m-1] = previousMachineEndTime[job];
+        prevJob[m] = previousMachineEndTime[job];
 
         //j deve essere Job+1
         for ( j = job+1; j <= nbJob; ++j )
@@ -536,4 +536,49 @@ long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,v
         wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
 
     return wt;
+}
+
+//this function sets up the prevJob and previousMachineEndTime vector so that they can be used by the function above
+void PfspInstance::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+{
+    int j, m;
+    int jobNumber;
+
+    /* And the end time of the previous job, on the same machine : */
+    long int previousJobEndTime;
+
+    /* 1st machine : */
+    previousMachineEndTime[0] = 0;
+    for ( j = 1; j <= job; ++j )
+    {
+        jobNumber = sol[j];
+        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];                           
+    }
+     prevJob[1]= previousMachineEndTime[job];
+
+    /* others machines : */
+    for ( m = 2; m <= nbMac; ++m )
+    {
+        previousMachineEndTime[1] +=
+                processingTimesMatrix[sol[1]][m];
+        previousJobEndTime = previousMachineEndTime[1];
+
+        for ( j = 2; j <= job; ++j )
+        {
+            jobNumber = sol[j];
+
+            if ( previousMachineEndTime[j] > previousJobEndTime )
+            {
+                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
+                previousJobEndTime = previousMachineEndTime[j];
+            }
+            else
+            {
+                previousJobEndTime += processingTimesMatrix[jobNumber][m];
+                previousMachineEndTime[j] = previousJobEndTime;
+            }                                   
+        }
+            prevJob[m]= previousMachineEndTime[job];
+    }
+
 }

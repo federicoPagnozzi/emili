@@ -143,6 +143,11 @@ int emili::pfsp::PermutationFlowShop::getNjobs(){
     return instance.getNbJob();
 }
 
+int emili::pfsp::PermutationFlowShop::getNmachines()
+{
+    return instance.getNbMac();
+}
+
 int emili::pfsp::PermutationFlowShop::getDueDate(int job)
 {
     return instance.getDueDate(job);
@@ -181,6 +186,11 @@ int emili::pfsp::PermutationFlowShop::computeWT(std::vector< int > & partial_sol
 int emili::pfsp::PermutationFlowShop::computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
 {
     return instance.computeWT(sol,prevJob,job,previousMachineEndTime);
+}
+
+void emili::pfsp::PermutationFlowShop::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+{
+   instance.computeWTs(sol,prevJob,job,previousMachineEndTime);
 }
 
 const void* emili::pfsp::PermutationFlowShopSolution::getRawData()const
@@ -624,8 +634,14 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspExchangeNeighborhood:
 }
 
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspTransposeNeighborhood::begin(emili::Solution *base)
-{
+{    
     //sp_iterations = 1;
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::XTransposeNeighborhood::begin(emili::Solution *base)
+{
+    last_saved_position = -1;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili::Solution* value)
@@ -838,18 +854,53 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solu
         start_position = (start_position%njobs)+1;
         std::vector< int > * solution = (std::vector< int > *) value->getRawData();
         std::vector < int > newsol(*solution);
-        int endpos = start_position<njobs?start_position+1:1;        
+        int endpos = start_position<njobs?start_position+1:1;
+        //int endpos = (start_position%njobs)+1;
         std::swap(newsol[start_position],newsol[endpos]);
         long int new_value = instance.computeWT(newsol);
         return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
     }
 }
 
+emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solution* value)
+{
+    emili::iteration_increment();
+    if(sp_iterations >= njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        sp_iterations++;
+        start_position = (start_position%njobs)+1;
+        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
+        std::vector < int > newsol(*solution);
+        //int endpos = start_position<njobs?start_position+1:1;
+        int endpos = (start_position%njobs)+1;
+        std::swap(newsol[start_position],newsol[endpos]);
+        long int new_value;
+        int k = start_position-1;
+            if(start_position==1){
+                prevJob.assign(prevJob.size(),0);
+            }else if(last_saved_position == -1 ){
+                instance.computeWTs(*solution,prevJob,k-1,previousMachineEndTime);
+            }
+
+            new_value = instance.computeWT(newsol,prevJob,k,previousMachineEndTime);
+
+            last_saved_position = start_position-1;
+
+
+        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+    }
+}
+
+
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *currentSolution)
 {
-    int njobs = instance.getNbJob();
+    int njobs = instance.getNbJob()-1;
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
-    int best_i = (emili::generateRandomNumber()%njobs);
+    int best_i = (emili::generateRandomNumber()%njobs)+1;
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
