@@ -864,6 +864,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             {
 
                 *s_cap = *s_s;
+
                 //s_time = clock();
             }
             delete s_p;

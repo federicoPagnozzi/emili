@@ -14,6 +14,45 @@ void g2c_info()
 }
 
 
+void testNewEvaluationFunction(PfspInstance& instance)
+{
+
+    std::vector<int > prevJob(instance.getNbMac(),0);
+    std::vector<int > previousMachineEndTime(instance.getNbJob()+1,0);
+    emili::pfsp::PermutationFlowShop pro(instance);
+    emili::pfsp::PfspNEHwslackInitialSolution p(pro);
+    emili::Solution* s =  p.generateSolution();
+    std::vector<int > sol = *((std::vector<int >*)s->getRawData());
+    std::vector<int > test(sol);
+    std::vector<int > test1(sol);
+
+    clock_t start = clock();
+    long k = 0;
+
+    for (int var = 1; var < instance.getNbJob(); ++var) {
+       std::swap(test[var],test[var+1]);
+        k = instance.computeWT(test,prevJob,var,previousMachineEndTime);
+
+    }
+    std::cout << " New time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
+    std::cout << " Value -> " << k << std::endl;
+
+    start = clock();
+    k = 0;
+
+
+
+    for (int var = 1; var < instance.getNbJob(); ++var) {
+        std::swap(test1[var],test1[var+1]);
+        k = instance.computeWT(test1);
+
+    }
+    std::cout << " Normal time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
+    std::cout << " Value -> " << k << std::endl;
+    exit(0);
+}
+
+
 int main(int argc, char *argv[])
 {
 
@@ -41,6 +80,7 @@ int main(int argc, char *argv[])
 #endif
       return 1;
     }
+   // testNewEvaluationFunction(instance);
     emili::pfsp::PermutationFlowShop problem(instance);    
     int pls = 0;
     emili::LocalSearch* ls;

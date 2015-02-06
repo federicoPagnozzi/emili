@@ -31,6 +31,7 @@ public:
 
     virtual double evaluateSolution(emili::Solution& solution);
     int getNjobs();
+    int getNmachines();
     int getDueDate(int job);
     int getPriority(int job);
     int computeMS(std::vector< int > & partial_solution);
@@ -38,6 +39,7 @@ public:
     int computeWT(std::vector< int > & partial_solution, int size);
     int computeMS(std::vector< int >& partial, int size);
     int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     PfspInstance& getInstance();
 };
 
@@ -245,6 +247,14 @@ public:
 class XTransposeNeighborhood: public emili::pfsp::PfspTransposeNeighborhood
 {
     //TODO FINISH THIS THING!!!!
+protected:
+    std::vector<int> prevJob;
+    std::vector<int> previousMachineEndTime;
+    int last_saved_position;
+    virtual Solution* computeStep(Solution *value);
+public:
+    XTransposeNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspTransposeNeighborhood(problem),prevJob(problem.getNmachines()+1,0),previousMachineEndTime(problem.getNjobs()+1,0),last_saved_position(-1) { }
+    virtual NeighborhoodIterator begin(Solution *base);
 };
 
 class PfspTerminationClassic: public emili::Termination
