@@ -92,6 +92,7 @@ static void finalise (int _)
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
+
         std::cerr << std::flush;
     }
     else
