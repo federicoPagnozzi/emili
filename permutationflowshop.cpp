@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <assert.h>
+#include <limits>
 
 
 std::vector< int > inline neh(std::vector< int >& partial,int nbJobs,emili::pfsp::PermutationFlowShop& pis)
@@ -212,8 +213,9 @@ emili::pfsp::PermutationFlowShopSolution::~PermutationFlowShopSolution()
 emili::Solution* emili::pfsp::PfspInitialSolution::generateEmptySolution()
 {
     std::vector< int > empty(pis.getNjobs()+1);
-    return new emili::pfsp::PermutationFlowShopSolution(empty);
-
+    emili::pfsp::PermutationFlowShopSolution*  em =  new emili::pfsp::PermutationFlowShopSolution(empty);
+    em->setSolutionValue(std::numeric_limits<double>::max());
+    return em;
 }
 
 emili::Solution* emili::pfsp::PfspInitialSolution::generateSolution()

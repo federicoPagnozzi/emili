@@ -838,7 +838,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         s = acc.accept(s_p,s_s);
         if(s != s_p)
             delete s_p;
-    }while(!termcriterion->terminate(s,s_s));
+    }while(!termcriterion->terminate(s,s_s));    
     return scap;
 }
 

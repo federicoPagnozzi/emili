@@ -450,6 +450,7 @@ public:
         Solution* bestSoFar = this->init->generateEmptySolution();
         Solution* incumbent = this->init->generateEmptySolution();
         *incumbent  = *initial;
+        *bestSoFar = *initial;
         do{
             this->neighbh = neigh[i];
             Solution* new_s = T::search(incumbent);
@@ -467,7 +468,7 @@ public:
             {
                 i = i+1;
             }
-        }while(i < neigh.size());
+        }while(i < neigh.size());        
         return bestSoFar;
     }
 
