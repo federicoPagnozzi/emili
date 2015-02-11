@@ -24,6 +24,7 @@
 	 <pfsp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
 	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
        	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
+	
 
 	<pfsp:always_acc_param>
 		<![CDATA[ acc = emili::ACC_INTENSIFICATION; ]]>
@@ -107,6 +108,10 @@
 		<pfsp:neighborhood/>
 		<![CDATA[
 		       pr = new emili::RandomMovePertubation(*ne,]]><pfsp:random_moves/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+		       pr = new emili::NoPertubation();
 		]]>
 	</pfsp:pertubation>
 

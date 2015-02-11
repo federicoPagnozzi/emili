@@ -11,14 +11,14 @@
                                 |______|_|  |_|_____|______|_____|
 
 
-E M I L I stands for Easily Modifiable (or Moddable) Iterated Local search Implementation.
+E.M.I.L.I. stands for Easily Modifiable (or Moddable) Iterated Local search Implementation.
 
 P.S.
 It's a very bad acronym but it's the best I could came up with in 5 minutes...
 
 In order to use this framework for running your things you should implement
-at least a problem specific extension of the class Problem, Solution, InitialSolution,
-Neighborhood, Pertubation and Acceptancecriterion.
+at least a problem specific extension of the class Problem, Solution, InitialSolution and
+Neighborhood.
 */
 
 
@@ -97,6 +97,7 @@ public:
     */
     virtual Solution* generateSolution()=0;
     virtual Solution* generateEmptySolution()=0;
+    virtual Problem& getProblem() {return instance;}
     virtual ~InitialSolution() {}
 };
 
@@ -303,6 +304,15 @@ class Perturbation
     virtual Solution* perturb(Solution* solution)=0;
 };
 
+/*
+ * NO pertubation
+ */
+
+class NoPertubation: public emili::Perturbation
+{
+public:
+    virtual Solution* perturb(Solution *solution) { return solution;}
+};
 
 /*
     Performs a series of random steps in the given neighborhood.
@@ -326,6 +336,7 @@ public:
      *  in the last iteration and as second parameter the result of the local search around the pertubed solution.
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
+    virtual void reset() { }
 };
 
 enum accept_candidates {ACC_INTENSIFICATION,ACC_DIVERSIFICATION};
@@ -519,10 +530,14 @@ protected:
     float temperature;
     float start_temp;
     float end_temp;
+    int interval;
+    int counter;
     float rate;
 public:
-    Metropolis(float initial_temperature,float final_temperature,float descending_ratio):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio) { }
+    Metropolis(float initial_temperature,float final_temperature,float descending_ratio):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(1),counter(0) { }
+    Metropolis(float initial_temperature,float final_temperature,float descending_ratio,int iterations):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(iterations),counter(0) { }
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    virtual void reset();
 };
 
 /*

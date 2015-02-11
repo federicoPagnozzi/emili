@@ -92,7 +92,6 @@ static void finalise (int _)
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
-
         std::cerr << std::flush;
     }
     else
@@ -774,6 +773,7 @@ emili::Solution* emili::ImproveAccept::accept(Solution *intensification_solution
 
 emili::Solution* emili::IteratedLocalSearch::search(){
     termcriterion->reset();
+    acc.reset();
     emili::Solution* s_cap = ls.search();    
     emili::Solution* s = init->generateEmptySolution();
     s_cap = ls.search(s);
@@ -795,6 +795,7 @@ emili::Solution* emili::IteratedLocalSearch::search(){
             *s_cap = *s_s;
             //s_time = clock();
         }
+        if(s != s_p)
         delete s_p;
         //acceptance step
         s_p = s;
@@ -809,6 +810,7 @@ emili::Solution* emili::IteratedLocalSearch::search(){
 
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     termcriterion->reset();
+    acc.reset();
     emili::Solution* scap = ls.search(initial);
     emili::Solution* s = init->generateEmptySolution();
      *s = *scap;
@@ -829,6 +831,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
             *scap = *s_s;
             //s_time = clock();
         }
+        if(s != s_p)
         delete s_p;
         //acceptance step
         s_p = s;
@@ -842,6 +845,8 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
 emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
 {
         termcriterion->reset();
+        acc.reset();
+
         setTimer(maxTime);
         /*
             search start
@@ -868,7 +873,8 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
 
                 //s_time = clock();
             }
-            delete s_p;
+            if(s != s_p)
+                delete s_p;
             //acceptance step
             s_p = s;
             s = acc.accept(s_p,s_s);
@@ -884,6 +890,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
 emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
 {
         termcriterion->reset();
+        acc.reset();
         setTimer(maxTime);
         /*
             search start
@@ -1075,10 +1082,12 @@ emili::Solution* emili::MetropolisAcceptance::accept(Solution *intensification_s
 
 emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
-    if(temperature > end_temp)
+    if(counter == interval && temperature > end_temp)
     {
         temperature = temperature - rate;
+        counter=0;
     }
+    counter++;
     float intens = intensification_solution->getSolutionValue();
     float divers = diversification_solution->getSolutionValue();
     if(diversification_solution->operator >(*intensification_solution))
@@ -1092,5 +1101,11 @@ emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, S
 
 
     return diversification_solution;
+}
+
+void emili::Metropolis::reset()
+{
+    temperature = start_temp;
+    counter = 0;
 }
 

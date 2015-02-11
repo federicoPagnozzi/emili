@@ -36,9 +36,11 @@
 #define XTRANSPOSE "xtranspose"
 #define EXCHANGE "exchange"
 #define RNDSEED "rnds"
+#define PRT_NOPER "noper"
 #define PRT_RND "randpert"
 #define ACC_PROB "prob"
 #define ACC_METRO "metropolis"
+#define ACC_PMETRO "pmetro"
 #define SOA_PER "soaper"
 #define TEST_PER "testper"
 #define TEST_ACC "testacc"
@@ -79,8 +81,8 @@ void prs::info()
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack " << std::endl;
     std::cout << "TERMINATION           = true | time int | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
-    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int)" << std::endl;
-    std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio" << std::endl;
+    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper " << std::endl;
+    std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int)" << std::endl;
     std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int)" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
@@ -240,6 +242,11 @@ emili::Perturbation* prs::ParamsParser::per()
         std::cout << "number of moves per pertubation step " << num << ".\n\t";
         return new emili::RandomMovePertubation(*n,num);
     }
+    else if(strcmp(t,PRT_NOPER)==0)
+    {
+        std::cout << "No pertubation.\n\t";
+        return new emili::NoPertubation();
+    }
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a pertubation criteria specification was expected! " << std::endl;
@@ -308,6 +315,16 @@ emili::Acceptance* prs::ParamsParser::acc()
         std::cout << "metropolis acceptance. start ,end , ratio : "<< start << ", "<< end << "," << ratio <<"\n\t";
 
         return new emili::Metropolis(start,end,ratio);
+    }
+    else  if(strcmp(t,ACC_PMETRO)==0)
+    {
+        float start = decimal();
+        float end = decimal();
+        float ratio = decimal();
+        int iterations = number();
+        std::cout << "metropolis acceptance. start ,end , ratio, frequence : "<< start << ", "<< end << "," << ratio <<","<< iterations <<"\n\t";
+
+        return new emili::Metropolis(start,end,ratio,iterations);
     }
     else
     {
