@@ -182,7 +182,7 @@
 	</pfsp:ils>
         
 	<pfsp:gls>
-		<pfsp:algos/>
+		<pfsp:ils/>
 	        <![CDATA[
         	te =  new emili::WhileTrueTermination();
          	]]>
