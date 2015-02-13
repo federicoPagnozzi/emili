@@ -148,10 +148,11 @@ class TimedTermination: public Termination
 {
 protected:
     int secs;
+    float _ratio;
     clock_t start;
 public:
-    TimedTermination(int seconds):secs(seconds) { }
-    TimedTermination():secs(1) { }
+    TimedTermination(float ratio):secs(-1),_ratio(ratio) { }
+    TimedTermination():secs(-1),_ratio(1) { }
     virtual bool terminate(Solution *currentSolution, Solution *newSolution);
     virtual void reset();
 };

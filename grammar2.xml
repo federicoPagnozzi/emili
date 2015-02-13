@@ -13,7 +13,7 @@
 	</pfsp:directives>
 		
 	 <pfsp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
-	 <pfsp:time type="int" min="1" max="30" stepIfEnumerated="1"/>
+	 <pfsp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
 	 <pfsp:steps type="int" min="1" max="300" stepIfEnumerated="1"/>
 	 <pfsp:sp_impact type="int" min="5" max="20" stepIfEnumerated="1"/>
 	 <pfsp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
@@ -24,7 +24,7 @@
 	 <pfsp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
 	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
        	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
-	
+         <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
 
 	<pfsp:always_acc_param>
 		<![CDATA[ acc = emili::ACC_INTENSIFICATION; ]]>
@@ -139,6 +139,10 @@
 		<or/>
 		<![CDATA[
 			ac =  new emili::Metropolis(]]><pfsp:start_temp/><![CDATA[,]]><pfsp:end_temp/><![CDATA[,]]><pfsp:temp_ratio/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::Metropolis(]]><pfsp:start_temp/><![CDATA[,]]><pfsp:end_temp/><![CDATA[,]]><pfsp:temp_ratio/><![CDATA[,]]><pfsp:tempiterations/><![CDATA[);
 		]]>
 	</pfsp:acceptance>	
 

@@ -79,7 +79,7 @@ void prs::info()
     std::cout << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << std::endl;
     std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack " << std::endl;
-    std::cout << "TERMINATION           = true | time int | locmin | soater | iteration int | maxsteps int" << std::endl;
+    std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
     std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper " << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int)" << std::endl;
@@ -550,8 +550,11 @@ emili::Termination* prs::ParamsParser::term()
     else if(strcmp(t,TIME)==0)
     {
 
-        int time = number();
-        std::cout << "Timed termination. secs: " << time << "\n\t";
+        float time = decimal();
+        if(time==0){
+            time = 1;
+        }
+        std::cout << "Timed termination. ratio: " << time << "\n\t";
         return new emili::TimedTermination(time);
     }
     else if(strcmp(t,MAXSTEPS)==0)
