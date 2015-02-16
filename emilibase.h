@@ -229,6 +229,8 @@ protected:
 InitialSolution* init;
 Termination* termcriterion;
 Neighborhood* neighbh;
+Solution* bestSoFar;
+
 int seconds;
     LocalSearch() { }
 public:
@@ -264,6 +266,7 @@ public:
     emili::Termination& getTermination();
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();
+    virtual Solution* getBestSoFar() { return bestSoFar;}
     virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh;}
 
 };
@@ -281,7 +284,6 @@ public:
     {
         return emili::LocalSearch::search();
     }
-    virtual Solution* timedSearch(int seconds, Solution* initial);
 };
 
 /*
@@ -292,8 +294,7 @@ class FirstImprovementSearch : public emili::LocalSearch
 {
 public:
     FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
-    virtual Solution* search(emili::Solution* intial);
-    virtual Solution* timedSearch(int seconds, Solution* initial);
+    virtual Solution* search(emili::Solution* intial);    
 };
 
 /*
@@ -373,6 +374,7 @@ public:
     virtual Solution* search(emili::Solution* initial);
     virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* getBestSoFar();
 };
 
 /*
@@ -426,10 +428,7 @@ public:
     TabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh,TabuMemory& tabut):
     emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh),tabuMemory(tabut) {    }
     virtual emili::Solution* search(emili::Solution* initial);
-    virtual emili::Solution* search();
-    virtual Solution* timedSearch(int seconds, Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-
+    virtual emili::Solution* search();    
 };
 
 /*
