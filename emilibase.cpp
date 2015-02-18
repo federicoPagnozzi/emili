@@ -615,6 +615,7 @@ emili::Solution* emili::IteratedLocalSearch::search(){
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     termcriterion->reset();
     acc.reset();
+    bestSoFar = initial;
     bestSoFar = ls.search(initial);
     emili::Solution* s = init->generateEmptySolution();
      *s = *bestSoFar;
@@ -742,6 +743,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
 emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 {
     emili::Solution* bestOfInnerLocal = this->ls.getBestSoFar();
+
     if(bestOfInnerLocal->operator <(*bestSoFar))
     {
         return bestOfInnerLocal;
