@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <assert.h>
+#include <algorithm>
 #include <limits>
 
 std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& prob)
