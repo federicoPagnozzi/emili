@@ -35,12 +35,40 @@ public:
     int getDueDate(int job);
     int getPriority(int job);
     int computeMS(std::vector< int > & partial_solution);
-    int computeWT(std::vector< int > & partial_solution);
-    int computeWT(std::vector< int > & partial_solution, int size);
+    virtual int computeWT(std::vector< int > & partial_solution)=0;
+    virtual int computeWT(std::vector< int > & partial_solution, int size)=0;
     int computeMS(std::vector< int >& partial, int size);
     int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
     PfspInstance& getInstance();
+};
+
+class PFSP_WT: public PermutationFlowShop
+{
+public:
+    PFSP_WT(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
+    PFSP_WT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeWT(std::vector< int > & partial_solution);
+    virtual int computeWT(std::vector< int > & partial_solution, int size);
+};
+
+class PFSP_WCT: public PermutationFlowShop
+{
+public:
+    PFSP_WCT(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
+    PFSP_WCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeWT(std::vector< int > & partial_solution);
+    virtual int computeWT(std::vector< int > & partial_solution, int size);
+};
+
+class PFSP_WE: public PermutationFlowShop
+{
+public:
+    PFSP_WE(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
+    PFSP_WE(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeWT(std::vector< int > & partial_solution);
+    virtual int computeWT(std::vector< int > & partial_solution, int size);
 };
 
 class PermutationFlowShopSolution: public emili::Solution
@@ -98,6 +126,18 @@ protected:
 public:
     PfspNEHwslackInitialSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance){}
 };
+/*Less idle times construction heuristic from
+        Wang CG, Chu CB, Proth JM. Heuristic approaches for n/m/F/SCi, scheduling
+        problems. European Journal of Operational Research 1997;96(3):636–44.
+
+ */
+class LITSolution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    LITSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) { }
+};
 
 class SlackConstructor: public emili::Constructor
 {
@@ -107,6 +147,30 @@ public:
    SlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
    virtual emili::Solution* construct(Solution *partial);
    virtual emili::Solution* constructFull();
+};
+
+class RZSolution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    RZSolution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
+};
+
+class NeRZSolution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    NeRZSolution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
+};
+
+class NeRZ2Solution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    NeRZ2Solution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
 };
 
 class NEHSlackConstructor: public emili::Constructor
@@ -122,9 +186,9 @@ public:
 class PfspDestructor: public emili::Destructor
 {
 protected:
-    emili::pfsp::PermutationFlowShop instance;
+    emili::pfsp::PermutationFlowShop& instance;
 public:
-    PfspDestructor(emili::pfsp::PermutationFlowShop ist):instance(ist) { }
+    PfspDestructor(emili::pfsp::PermutationFlowShop& ist):instance(ist) { }
     virtual emili::Solution* destruct(Solution* solutioon);
 };
 
@@ -132,9 +196,9 @@ class SOADestructor: public emili::Destructor
 {
 protected:
     int d;
-    emili::pfsp::PermutationFlowShop instance;
+    emili::pfsp::PermutationFlowShop& instance;
 public:
-    SOADestructor(int d_parameter, emili::pfsp::PermutationFlowShop inst):d(d_parameter),instance(inst) {}
+    SOADestructor(int d_parameter, emili::pfsp::PermutationFlowShop& inst):d(d_parameter),instance(inst) {}
     virtual emili::Solution* destruct(Solution *solutioon);
 };
 
@@ -142,9 +206,9 @@ class SOAPerturbation: public emili::Perturbation
 {
 protected:
     int d;
-    emili::pfsp::PermutationFlowShop instance;
+    emili::pfsp::PermutationFlowShop& instance;
 public:
-    SOAPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop problem):d(d_parameter),instance(problem) { }
+    SOAPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -268,9 +332,9 @@ public:
 class PfspRandomSwapPertub: public emili::Perturbation
 {
 protected:
-    PermutationFlowShop pfs;
+    PermutationFlowShop& pfs;
 public:
-    PfspRandomSwapPertub(PermutationFlowShop problem_instance):pfs(problem_instance) { }
+    PfspRandomSwapPertub(PermutationFlowShop& problem_instance):pfs(problem_instance) { }
     virtual Solution* perturb(Solution* solution);
 
 };
@@ -278,11 +342,11 @@ public:
 class PfspTestAcceptance: public emili::Acceptance
 {
 protected:
-    PermutationFlowShop pfs;
+    PermutationFlowShop& pfs;
     int percentage;
 public:
-    PfspTestAcceptance(PermutationFlowShop problem_instance):pfs(problem_instance),percentage(70) { }
-    PfspTestAcceptance(PermutationFlowShop problem_instance,int perc):pfs(problem_instance),percentage(perc) { }
+    PfspTestAcceptance(PermutationFlowShop& problem_instance):pfs(problem_instance),percentage(70) { }
+    PfspTestAcceptance(PermutationFlowShop& problem_instance,int perc):pfs(problem_instance),percentage(perc) { }
     virtual Solution* accept(Solution* candidate1, Solution* candidate2);
 };
 

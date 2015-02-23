@@ -69,9 +69,16 @@ class PfspInstance{
     long int computeWT (vector< int > & sol, int size);
     /* Compute MakeSpan */
     long int computeMS (vector<int> & sol);
-
+    /*Compute weighted completion times*/
+    long int computeWCT (vector< int > & sol);
+    /*Compute partial weighted completion times*/
+    long int computeWCT (vector< int > & sol, int size);
     /* Compute partial MakeSpan*/
     long int computeMS(vector<int> &sol,int size);
+    /*Compute weighted earliness*/
+    long int computeWE (vector< int > & sol);
+    /*Compute partial weighted earliness*/
+    long int computeWE (vector< int > & sol, int size);
 
     /* Compute weighted tardines starting from an index*/
    // long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
@@ -81,6 +88,9 @@ class PfspInstance{
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void setSilence(bool s);
 
+    int computeIdleTimeCoeff(vector<int>& prevJob, int job);
+
+    const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
 };
 
 #endif

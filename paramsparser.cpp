@@ -20,37 +20,41 @@
 #define TE "-te"
 #define NE "-ne"
 #define NS "-ns"
-#define RANDOM "random"
-#define SLACK "slack"
-#define LOCMIN "locmin"
-#define ITERA "iteration"
-#define MAXSTEPS "maxstep"
-#define TIME "time"
-#define WNSLACK "nwslack"
-#define WTRUE "true"
-#define RANDOM_MOVE_PERTUBATION "rndmv"
-#define INSERT "insert"
-#define BACK_INSERT "binsert"
-#define FORW_INSERT "finsert"
-#define TRANSPOSE "transpose"
-#define XTRANSPOSE "xtranspose"
-#define EXCHANGE "exchange"
+#define INITIAL_RANDOM "random"
+#define INITIAL_SLACK "slack"
+#define TERMINATION_LOCMIN "locmin"
+#define TERMINATION_ITERA "iteration"
+#define INITIAL_LIT "lit"
+#define INITIAL_RZ "rz"
+#define INITIAL_NRZ "nrz"
+#define INITIAL_NRZ2 "nrz2"
+#define TERMINATION_MAXSTEPS "maxstep"
+#define TERMINATION_TIME "time"
+#define INITIAL_WNSLACK "nwslack"
+#define TERMINATION_WTRUE "true"
+#define PERTUBATION_RANDOM_MOVE "rndmv"
+#define NEIGHBORHOOD_INSERT "insert"
+#define NEIGHBORHOOD_BACK_INSERT "binsert"
+#define NEIGHBORHOOD_FORW_INSERT "finsert"
+#define NEIGHBORHOOD_TRANSPOSE "transpose"
+#define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
+#define NEIGHBORHOOD_EXCHANGE "exchange"
 #define RNDSEED "rnds"
-#define PRT_NOPER "noper"
-#define PRT_RND "randpert"
-#define ACC_PROB "prob"
-#define ACC_METRO "metropolis"
-#define ACC_PMETRO "pmetro"
-#define SOA_PER "soaper"
-#define TEST_PER "testper"
-#define TEST_ACC "testacc"
-#define SOA_ACC "soaacc"
-#define SOA_TER "soater"
-#define ACC_ALWAYS "always"
+#define PERTUBATION_NOPER "noper"
+#define PERTUBATION_RND "randpert"
+#define ACCEPTANCE_PROB "prob"
+#define ACCEPTANCE_METRO "metropolis"
+#define ACCEPTANCE_PMETRO "pmetro"
+#define PERTUBATION_SOA "soaper"
+#define PERTUBATION_TEST "testper"
+#define ACCEPTANCE_TEST "testacc"
+#define ACCEPTANCE_SOA "soaacc"
+#define TERMINATION_SOA "soater"
+#define ACCEPTANCE_ALWAYS "always"
 #define INTENSIFY "intensify"
 #define DIVERSIFY "diversify"
-#define ACC_IMPROVE "improve"
-#define ACC_SA_METRO "sa_metropolis"
+#define ACCEPTANCE_IMPROVE "improve"
+#define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT -10
@@ -78,7 +82,7 @@ void prs::info()
     std::cout << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << std::endl;
     std::cout << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << std::endl;
     std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
-    std::cout << "INITIAL_SOLUTION      = random | slack | nwslack " << std::endl;
+    std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
     std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper " << std::endl;
@@ -223,18 +227,18 @@ emili::Perturbation* prs::ParamsParser::per()
 {
     char* t = nextToken();
     check(t,"PERTUBATION CRITERIA EXPECTED!");
-    if(strcmp(t,SOA_PER)==0)
+    if(strcmp(t,PERTUBATION_SOA)==0)
     {
         int n = number();
         std::cout << "wslack destruct/construct pertubation. number of job erased: "<<n<<"\n\t";
 
         return new emili::pfsp::SOAPerturbation(n,istance);
     }
-    else if(strcmp(t,TEST_PER)==0)
+    else if(strcmp(t,PERTUBATION_TEST)==0)
     {
         std::cout << "Random swap test pertubation. \n\t";
         return new emili::pfsp::PfspRandomSwapPertub(istance);
-    }else if(strcmp(t,RANDOM_MOVE_PERTUBATION)==0)
+    }else if(strcmp(t,PERTUBATION_RANDOM_MOVE)==0)
     {
         std::cout << "Random move perturbation." ;
         emili::Neighborhood* n = neigh();
@@ -242,7 +246,7 @@ emili::Perturbation* prs::ParamsParser::per()
         std::cout << "number of moves per pertubation step " << num << ".\n\t";
         return new emili::RandomMovePertubation(*n,num);
     }
-    else if(strcmp(t,PRT_NOPER)==0)
+    else if(strcmp(t,PERTUBATION_NOPER)==0)
     {
         std::cout << "No pertubation.\n\t";
         return new emili::NoPertubation();
@@ -259,27 +263,27 @@ emili::Acceptance* prs::ParamsParser::acc()
 
     char* t = nextToken();
     check(t,"ACCEPTANCE CRITERIA EXPECTED!");
-    if(strcmp(t,SOA_ACC)==0)
+    if(strcmp(t,ACCEPTANCE_SOA)==0)
     {
         float n = decimal();
         std::cout << "soa metropolis like acceptance. temperature : "<<n<<"\n\t";
 
         return new emili::pfsp::SOAacceptance(n);
     }
-    else if(strcmp(t,TEST_ACC)==0)
+    else if(strcmp(t,ACCEPTANCE_TEST)==0)
     {
         int n = number();
         std::cout << "Random swap test pertubation. improving solution accepted"<<n<<"% of the time.\n\t";
         return new emili::pfsp::PfspTestAcceptance(istance,n);
     }
-    else  if(strcmp(t,ACC_METRO)==0)
+    else  if(strcmp(t,ACCEPTANCE_METRO)==0)
     {
         float n = decimal();
         std::cout << "metropolis acceptance. temperature : "<<n<<"\n\t";
 
         return new emili::MetropolisAcceptance(n);
     }
-    else  if(strcmp(t,ACC_ALWAYS)==0)
+    else  if(strcmp(t,ACCEPTANCE_ALWAYS)==0)
     {
         char* t1 = nextToken();
 
@@ -300,14 +304,14 @@ emili::Acceptance* prs::ParamsParser::acc()
         std::cout << "Acceptance always "<< t1<<"\n\t";
         return new emili::AlwaysAccept(acc);
     }
-    else  if(strcmp(t,ACC_IMPROVE)==0)
+    else  if(strcmp(t,ACCEPTANCE_IMPROVE)==0)
     {
 
         std::cout << "improve acceptance \n\t";
 
         return new emili::ImproveAccept();
     }
-    else  if(strcmp(t,ACC_SA_METRO)==0)
+    else  if(strcmp(t,ACCEPTANCE_SA_METRO)==0)
     {
         float start = decimal();
         float end = decimal();
@@ -316,7 +320,7 @@ emili::Acceptance* prs::ParamsParser::acc()
 
         return new emili::Metropolis(start,end,ratio);
     }
-    else  if(strcmp(t,ACC_PMETRO)==0)
+    else  if(strcmp(t,ACCEPTANCE_PMETRO)==0)
     {
         float start = decimal();
         float end = decimal();
@@ -495,21 +499,45 @@ emili::InitialSolution* prs::ParamsParser::init()
 {
     char* t = nextToken();
     check(t,"INITIAL SOLUTION GENERATOR EXPECTED!");
-    if(strcmp(t,RANDOM)==0)
+    if(strcmp(t,INITIAL_RANDOM)==0)
     {
         std::cout << "Random initial solution\n\t";
         return new emili::pfsp::PfspRandomInitialSolution(istance);
     }
-    else if(strcmp(t,SLACK)==0)
+    else if(strcmp(t,INITIAL_SLACK)==0)
     {
         std::cout << "SLACK initial solution\n\t";
         return new emili::pfsp::PfspSlackInitialSolution(istance);
-    }else if(strcmp(t,WNSLACK)==0)
+    }else if(strcmp(t,INITIAL_WNSLACK)==0)
     {
         std::cout << "NEH WSLACK initial solution\n\t";
         //return new testIS(istance);
         return new emili::pfsp::PfspNEHwslackInitialSolution(istance);
     }
+    else if(strcmp(t,INITIAL_LIT)==0)
+        {
+            std::cout << "Less idle times initial solution\n\t";
+            //return new testIS(istance);
+            return new emili::pfsp::LITSolution(istance);
+        }
+    else if(strcmp(t,INITIAL_RZ)==0)
+        {
+            std::cout << "rz initial solution\n\t";
+            //return new testIS(istance);
+            return new emili::pfsp::RZSolution(istance);
+        }
+    else if(strcmp(t,INITIAL_NRZ)==0)
+        {
+            std::cout << "neh rz initial solution\n\t";
+            //return new testIS(istance);
+            return new emili::pfsp::NeRZSolution(istance);
+        }
+    else if(strcmp(t,INITIAL_NRZ2)==0)
+        {
+            std::cout << "neh rz initial solution without improvement phase\n\t";
+            //return new testIS(istance);
+            return new emili::pfsp::NeRZ2Solution(istance);
+        }
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;
@@ -522,32 +550,32 @@ emili::Termination* prs::ParamsParser::term()
 {
     char* t = nextToken();
     check(t,"TERMINATION CRITERIA EXPECTED!");
-    if(strcmp(t,LOCMIN)==0)
+    if(strcmp(t,TERMINATION_LOCMIN)==0)
     {
         std::cout << "Local minima termination\n\t";
         return new emili::LocalMinimaTermination();
     }
-    else if(strcmp(t,WTRUE)==0)
+    else if(strcmp(t,TERMINATION_WTRUE)==0)
     {
         std::cout << "While true termination\n\t";
 
         return new emili::WhileTrueTermination();
     }
-    else if(strcmp(t,ITERA)==0)
+    else if(strcmp(t,TERMINATION_ITERA)==0)
     {
 
         int ti = number();
         std::cout << "Relaxed local minima termination. number of max iterations "<< ti <<"\n\t";
         return new emili::pfsp::PfspTerminationIterations(ti);
     }
-    else if(strcmp(t,SOA_TER)==0)
+    else if(strcmp(t,TERMINATION_SOA)==0)
     {
         std::cout << "Max iteration number termination\n\t";
         int ti = istance.getNjobs();
          ti = 2*(ti-1);
         return new emili::pfsp::SOAtermination(ti);
     }
-    else if(strcmp(t,TIME)==0)
+    else if(strcmp(t,TERMINATION_TIME)==0)
     {
 
         float time = decimal();
@@ -557,7 +585,7 @@ emili::Termination* prs::ParamsParser::term()
         std::cout << "Timed termination. ratio: " << time << "\n\t";
         return new emili::TimedTermination(time);
     }
-    else if(strcmp(t,MAXSTEPS)==0)
+    else if(strcmp(t,TERMINATION_MAXSTEPS)==0)
     {
         int steps = number();
         std::cout << "Max Steps termination. # steps: "<< steps << "\n\t";
@@ -574,32 +602,32 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
 {
     char* t = nextToken();
     check(t,"NEIGHBORHOOD EXPECTED!");
-    if(strcmp(t,INSERT)==0)
+    if(strcmp(t,NEIGHBORHOOD_INSERT)==0)
     {
         std::cout << "Insert Neighborhood\n\t";
         return new emili::pfsp::PfspInsertNeighborhood(istance);
     }
-    else  if(strcmp(t,FORW_INSERT)==0)
+    else  if(strcmp(t,NEIGHBORHOOD_FORW_INSERT)==0)
     {
         std::cout << "Forward insert Neighborhood\n\t";
         return new emili::pfsp::PfspForwardInsertNeighborhood(istance);
     }
-    else  if(strcmp(t,BACK_INSERT)==0)
+    else  if(strcmp(t,NEIGHBORHOOD_BACK_INSERT)==0)
     {
         std::cout << "Backward Insert Neighborhood\n\t";
         return new emili::pfsp::PfspBackwardInsertNeighborhood(istance);
     }
-    else if(strcmp(t,EXCHANGE)==0)
+    else if(strcmp(t,NEIGHBORHOOD_EXCHANGE)==0)
     {
         std::cout << "Exchange neighborhood\n\t";
         return new emili::pfsp::PfspExchangeNeighborhood(istance);
     }
-    else if(strcmp(t,TRANSPOSE)==0)
+    else if(strcmp(t,NEIGHBORHOOD_TRANSPOSE)==0)
     {
         std::cout << "Transpose neighborhood\n\t";
         return new emili::pfsp::PfspTransposeNeighborhood(istance);
     }
-    else if(strcmp(t,XTRANSPOSE)==0)
+    else if(strcmp(t,NEIGHBORHOOD_XTRANSPOSE)==0)
     {
         std::cout << "XTranspose neighborhood\n\t";
         return new emili::pfsp::XTransposeNeighborhood(istance);
@@ -615,17 +643,17 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neighV()
 {
     char* t = nextToken();
     check(t,"NEIGHBORHOOD EXPECTED!");
-    if(strcmp(t,INSERT)==0)
+    if(strcmp(t,NEIGHBORHOOD_INSERT)==0)
     {
         std::cout << "Insert Neighborhood\n\t";
         return new emili::pfsp::PfspInsertNeighborhood(istance);
     }
-    else if(strcmp(t,EXCHANGE)==0)
+    else if(strcmp(t,NEIGHBORHOOD_EXCHANGE)==0)
     {
         std::cout << "Exchange neighborhood\n\t";
         return new emili::pfsp::PfspExchangeNeighborhood(istance);
     }
-    else if(strcmp(t,TRANSPOSE)==0)
+    else if(strcmp(t,NEIGHBORHOOD_TRANSPOSE)==0)
     {
         std::cout << "Transpose neighborhood\n\t";
         return new emili::pfsp::PfspTransposeNeighborhood(istance);

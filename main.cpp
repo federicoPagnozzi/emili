@@ -19,7 +19,7 @@ void testNewEvaluationFunction(PfspInstance& instance)
 
     std::vector<int > prevJob(instance.getNbMac(),0);
     std::vector<int > previousMachineEndTime(instance.getNbJob()+1,0);
-    emili::pfsp::PermutationFlowShop pro(instance);
+    emili::pfsp::PFSP_WT pro(instance);
     emili::pfsp::PfspNEHwslackInitialSolution p(pro);
     emili::Solution* s =  p.generateSolution();
     std::vector<int > sol = *((std::vector<int >*)s->getRawData());
@@ -52,6 +52,21 @@ void testNewEvaluationFunction(PfspInstance& instance)
     exit(0);
 }
 
+void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
+    emili::pfsp::LITSolution tests(problem);
+    emili::Solution* sorl = tests.generateSolution();
+    std::vector< int >* sol = (std::vector< int >*) sorl->getRawData();
+    long int totalWeightedTardiness = problem.computeWT(*sol);
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+
+    cout << endl;
+    exit(0);
+}
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -81,7 +96,7 @@ int main(int argc, char *argv[])
       return 1;
     }
    // testNewEvaluationFunction(instance);
-    emili::pfsp::PermutationFlowShop problem(instance);    
+    emili::pfsp::PFSP_WT problem(instance);
     int pls = 0;
     emili::LocalSearch* ls;
 #include "algorithm.h"
