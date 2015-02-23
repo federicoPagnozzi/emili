@@ -32,16 +32,25 @@ std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& pro
             tas[i] = tai;
             temp.push_back(i);
         }
-        std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){return tas[i1] < tas[i2];});
+
+
+        std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
+                                                                if(tas[i1]==tas[i2])
+                                                                    return i1>i2;
+                                                                else
+                                                                   return tas[i1] < tas[i2];
+        });
 
         int w = prob.computeWT(temp);
 
         if(wbest == 0 || wbest > w)
         {
+
             wbest = w;
             best = temp;
         }
     }
+
 
     return best;
 }

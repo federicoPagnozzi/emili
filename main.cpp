@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     }
    // testNewEvaluationFunction(instance);
     emili::pfsp::PFSP_WT problem(instance);
-    testHeuritstic(problem);
+   // testHeuritstic(problem);
     int pls = 0;
     emili::LocalSearch* ls;
 #include "algorithm.h"
