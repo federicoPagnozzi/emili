@@ -675,7 +675,6 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             {
 
                 *bestSoFar = *s_s;
-
                 //s_time = clock();
             }
             if(s != s_p)

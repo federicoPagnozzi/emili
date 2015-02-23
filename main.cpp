@@ -54,14 +54,51 @@ void testNewEvaluationFunction(PfspInstance& instance)
 
 void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
     emili::pfsp::LITSolution tests(problem);
+    emili::pfsp::PfspNEHwslackInitialSolution nwslack(problem);
+    emili::pfsp::RZSolution rz(problem);
+    emili::pfsp::NeRZ2Solution nrz2(problem);
+    emili::pfsp::NeRZSolution nrz(problem);
+
     emili::Solution* sorl = tests.generateSolution();
-    std::vector< int >* sol = (std::vector< int >*) sorl->getRawData();
-    long int totalWeightedTardiness = problem.computeWT(*sol);
+    emili::Solution* nws = nwslack.generateSolution();
+    emili::Solution* rzs = rz.generateSolution();
+    emili::Solution* nrzs = nrz.generateSolution();
+    emili::Solution* nrz2s = nrz2.generateSolution();
+
+    std::vector< int >* sol = (std::vector< int >*) sorl->getRawData();    
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
       cout << (*sol)[i] << " " ;
-
     cout << endl;
+    std::cout << "LIT -> " << sorl->getSolutionValue() << std::endl;
+
+    sol = (std::vector< int >*) nws->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "nws -> " << nws->getSolutionValue() << std::endl;
+
+    sol = (std::vector< int >*) rzs->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "rz -> " << rzs->getSolutionValue() << std::endl;
+
+    sol = (std::vector< int >*) nrzs->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "nrz -> " << nrzs->getSolutionValue() << std::endl;
+
+    sol = (std::vector< int >*) nrz2s->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "nrz2 -> " << nrz2s->getSolutionValue() << std::endl;
     exit(0);
 }
 
@@ -97,6 +134,7 @@ int main(int argc, char *argv[])
     }
    // testNewEvaluationFunction(instance);
     emili::pfsp::PFSP_WT problem(instance);
+    testHeuritstic(problem);
     int pls = 0;
     emili::LocalSearch* ls;
 #include "algorithm.h"
