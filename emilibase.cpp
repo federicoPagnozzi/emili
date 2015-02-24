@@ -660,12 +660,14 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         bestSoFar = init->generateSolution();
         emili::Solution*  s = ls.search(bestSoFar);
         *bestSoFar = *s ;
+        std::cout << bestSoFar->getSolutionValue() << std::endl;
         emili::Solution* s_s = nullptr;
         //initialization done
         do{
             iteration_increment();
             //Pertubation step
-            emili::Solution* s_p = pert.perturb(s);            
+            emili::Solution* s_p = pert.perturb(s);
+            std::cout << s_p->getSolutionValue() << std::endl;
             //local search on s_p
             if(s!=s_s && s_s != nullptr)
                 delete s_s;
@@ -676,7 +678,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
 
                 *bestSoFar = *s_s;
                 //s_time = clock();
-                std::cout << bestSoFar->getSolutionValue() << std::endl;
+            //    std::cout << bestSoFar->getSolutionValue() << std::endl;
             }
             if(s != s_p)
                 delete s_p;
