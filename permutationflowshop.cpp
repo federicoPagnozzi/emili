@@ -1098,6 +1098,7 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
     int njobs = instance.getNbJob()-1;
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
     int best_i = (emili::generateRandomNumber()%njobs)+1;
+    std::cout <<"transpose -> "<< best_i << std::endl;
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
