@@ -34,12 +34,7 @@ std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& pro
         }
 
 
-        std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
-                                                                if(tas[i1]==tas[i2])
-                                                                    return i1>i2;
-                                                                else
-                                                                   return tas[i1] < tas[i2];
-        });
+        std::stable_sort(temp.begin(),temp.end(),[tas](int i1,int i2){return tas[i1] < tas[i2];});
 
         int w = prob.computeWT(temp);
 
@@ -1098,7 +1093,6 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
     int njobs = instance.getNbJob()-1;
     std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
     int best_i = (emili::generateRandomNumber()%njobs)+1;
-    std::cout <<"transpose -> "<< best_i << std::endl;
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = instance.computeWT(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
