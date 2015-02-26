@@ -53,18 +53,19 @@ void testNewEvaluationFunction(PfspInstance& instance)
 }
 
 void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
+    emili::pfsp::PfspRandomInitialSolution rnd(problem);
     emili::pfsp::LITSolution tests(problem);
     emili::pfsp::PfspNEHwslackInitialSolution nwslack(problem);
+    emili::pfsp::PfspSlackInitialSolution slack(problem);
     emili::pfsp::RZSolution rz(problem);
     emili::pfsp::NeRZ2Solution nrz2(problem);
     emili::pfsp::NeRZSolution nrz(problem);
+    emili::pfsp::LRSolution lr(problem,10);
+    emili::pfsp::NLRSolution nlr(problem,10);
 
+    clock_t start = clock();
     emili::Solution* sorl = tests.generateSolution();
-    emili::Solution* nws = nwslack.generateSolution();
-    emili::Solution* rzs = rz.generateSolution();
-    emili::Solution* nrzs = nrz.generateSolution();
-    emili::Solution* nrz2s = nrz2.generateSolution();
-
+    std::cout << " LIT time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
     std::vector< int >* sol = (std::vector< int >*) sorl->getRawData();    
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
@@ -72,6 +73,29 @@ void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
     cout << endl;
     std::cout << "LIT -> " << sorl->getSolutionValue() << std::endl;
 
+    start = clock();
+    emili::Solution* rns = rnd.generateSolution();
+    std::cout << " RANDOM time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
+    sol = (std::vector< int >*) rns->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "rns -> " << rns->getSolutionValue() << std::endl;
+
+    start = clock();
+    emili::Solution* sss = slack.generateSolution();
+    std::cout << " SLACK time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
+    sol = (std::vector< int >*) sss->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "sss -> " << sss->getSolutionValue() << std::endl;
+
+    start = clock();
+    emili::Solution* nws = nwslack.generateSolution();
+    std::cout << " NWSLACK time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
     sol = (std::vector< int >*) nws->getRawData();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
@@ -79,6 +103,9 @@ void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
     cout << endl;
     std::cout << "nws -> " << nws->getSolutionValue() << std::endl;
 
+    start = clock();
+    emili::Solution* rzs = rz.generateSolution();
+    std::cout << " RZ time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
     sol = (std::vector< int >*) rzs->getRawData();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
@@ -86,6 +113,9 @@ void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
     cout << endl;
     std::cout << "rz -> " << rzs->getSolutionValue() << std::endl;
 
+    start = clock();
+    emili::Solution* nrzs = nrz.generateSolution();
+    std::cout << " NRZ time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
     sol = (std::vector< int >*) nrzs->getRawData();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
@@ -93,12 +123,35 @@ void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
     cout << endl;
     std::cout << "nrz -> " << nrzs->getSolutionValue() << std::endl;
 
+    start = clock();
+    emili::Solution* nrz2s = nrz2.generateSolution();
+    std::cout << " NRZ2 time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
     sol = (std::vector< int >*) nrz2s->getRawData();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
       cout << (*sol)[i] << " " ;
     cout << endl;
     std::cout << "nrz2 -> " << nrz2s->getSolutionValue() << std::endl;
+
+    start = clock();
+    emili::Solution* lrs = lr.generateSolution();
+    std::cout << " LR time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
+    sol = (std::vector< int >*) lrs->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "LR -> " << lrs->getSolutionValue() << std::endl;
+
+    start = clock();
+    emili::Solution* nlrs = nlr.generateSolution();
+    std::cout << " NLR time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
+    sol = (std::vector< int >*) nlrs->getRawData();
+    cout << "Found solution: ";
+    for (int i = 1; i <= problem.getNjobs(); ++i)
+      cout << (*sol)[i] << " " ;
+    cout << endl;
+    std::cout << "NLR -> " << nlrs->getSolutionValue() << std::endl;
     exit(0);
 }
 
@@ -134,7 +187,7 @@ int main(int argc, char *argv[])
     }
    // testNewEvaluationFunction(instance);
     emili::pfsp::PFSP_WT problem(instance);
-   // testHeuritstic(problem);
+    //testHeuritstic(problem);
     int pls = 0;
     emili::LocalSearch* ls;
 #include "algorithm.h"

@@ -173,6 +173,25 @@ public:
     NeRZ2Solution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
 };
 
+class LRSolution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    int number_of_sequences;
+    virtual Solution* generate();
+public:
+    LRSolution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem),number_of_sequences(1) { }
+    LRSolution(PermutationFlowShop& problem,int number_of_sequences):emili::pfsp::PfspInitialSolution(problem),number_of_sequences(number_of_sequences) { }
+};
+
+class NLRSolution: public emili::pfsp::LRSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    NLRSolution(PermutationFlowShop& problem):emili::pfsp::LRSolution(problem) { }
+    NLRSolution(PermutationFlowShop& problem,int number_of_sequences):emili::pfsp::LRSolution(problem,number_of_sequences) { }
+};
+
 class NEHSlackConstructor: public emili::Constructor
 {
 protected:

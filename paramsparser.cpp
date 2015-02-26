@@ -28,6 +28,8 @@
 #define INITIAL_RZ "rz"
 #define INITIAL_NRZ "nrz"
 #define INITIAL_NRZ2 "nrz2"
+#define INITIAL_LR "lr"
+#define INITIAL_NLR "nlr"
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_TIME "time"
 #define INITIAL_WNSLACK "nwslack"
@@ -82,7 +84,7 @@ void prs::info()
     std::cout << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << std::endl;
     std::cout << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << std::endl;
     std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
-    std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2" << std::endl;
+    std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int)" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
     std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper " << std::endl;
@@ -537,6 +539,20 @@ emili::InitialSolution* prs::ParamsParser::init()
             std::cout << "neh rz initial solution without improvement phase\n\t";
             //return new testIS(istance);
             return new emili::pfsp::NeRZ2Solution(istance);
+        }
+    else if(strcmp(t,INITIAL_LR)==0)
+        {
+            int n = number();
+            std::cout << "LR initial solution with "<<n<<" starting sequences \n\t";
+            //return new testIS(istance);
+            return new emili::pfsp::LRSolution(istance,n);
+        }
+    else if(strcmp(t,INITIAL_NLR)==0)
+        {
+        int n = number();
+        std::cout << "NLR initial solution with "<<n<<" starting sequences \n\t";
+        //return new testIS(istance);
+        return new emili::pfsp::NLRSolution(istance,n);
         }
     else
     {

@@ -34,7 +34,12 @@ std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& pro
         }
 
 
-        std::stable_sort(temp.begin(),temp.end(),[tas](int i1,int i2){return tas[i1] < tas[i2];});
+        std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
+                                                                if(tas[i1]==tas[i2])
+                                                                    return i1>i2;
+                                                                else
+                                                                   return tas[i1] < tas[i2];
+        });
 
         int w = prob.computeWT(temp);
 
@@ -54,7 +59,7 @@ std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emil
 {
     int jobs = prob.getNjobs();
     std::vector < int > res;
-    int wres = 0;
+    int wres = prob.computeWT(start_seq);
     for(int i = 1; i <= jobs; i++ )
     {
         int spos = start_seq[i];
@@ -66,7 +71,7 @@ std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emil
                 temp.erase(temp.begin()+i);
                 temp.insert(temp.begin()+j,spos);
                 int wtemp = prob.computeWT(temp);
-                if(wres == 0 || wres < wtemp)
+                if( wres > wtemp)
                 {
                     wres = wtemp;
                     res = temp;
@@ -77,6 +82,7 @@ std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emil
 
     return res;
 }
+
 
 std::vector< int > inline neh(std::vector< int >& partial,int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
@@ -228,6 +234,79 @@ std::vector< int > inline lit_construct(std::vector<int>& partial,std::vector<in
 
     return res;
 }
+
+std::vector< float > inline lr_index(std::vector< int >& s, std::vector<int>& u, emili::pfsp::PermutationFlowShop& prob)
+{
+    PfspInstance instance = prob.getInstance();
+    int njobs = instance.getNbJob();
+    int nmac = instance.getNbMac();
+    std::vector< int > lastJobCompletionTimes(nmac+1,0);
+    std::vector< int > pmacend(njobs+1,0);
+    if(s.size() > 1)
+    {
+        instance.computeWTs(s,lastJobCompletionTimes,s.size()-1,pmacend);
+    }
+
+    if(u.size() == 1)
+    {
+        return std::vector< float > (1,0.0f);
+    }
+
+    const std::vector< std::vector< long > >& ctimesMatrix = prob.getProcessingTimesMatrix();
+
+    std::vector< float > findex(njobs+1,std::numeric_limits<float>::max());
+    std::vector< float > tpj = std::vector< float> (nmac+1,0);
+
+
+        for(int j=1;j<=nmac;j++)
+        {
+            for(int i=0;i<u.size();i++)
+            {
+                tpj[j] += ctimesMatrix[u[i]][j];
+            }
+            //tpj[j] = tpj[j];
+        }
+
+    int k = s.size();
+    for(int i=0;i < u.size();i++)
+    {
+        int i_job = u[i];
+        float ITik = 0;
+        float i_comp = lastJobCompletionTimes[1]+ctimesMatrix[i_job][1];
+        float p_comp = i_comp + (tpj[1]-ctimesMatrix[i_job][1])/(float)(u.size()-1);
+        for(int j=2;j<=nmac;j++)
+        {
+            /*ITK calculation*/
+            float wjk = nmac/(j+k*((nmac-j)/(float)(njobs-2)));
+
+            float tcomp = std::max(i_comp-lastJobCompletionTimes[j],0.0f);
+
+
+            ITik += wjk*tcomp;
+
+            i_comp = tcomp>0?i_comp:lastJobCompletionTimes[j];
+            i_comp += ctimesMatrix[i_job][j];
+
+            /* P job completion time calculation*/
+            float tpcj = (tpj[j]-ctimesMatrix[i_job][j])/(float)(u.size()-1);
+
+            if(p_comp + tpcj > i_comp)
+            {
+                p_comp = p_comp + tpcj;
+            }
+            else
+            {
+                p_comp = i_comp + tpcj;
+            }
+        }
+        float ATik = i_comp+p_comp;
+
+        findex[i_job] = ((u.size()-1)*ITik)+ATik;
+    }
+
+    return findex;
+}
+
 
 int generateRndPos(int min, int max)
 {
@@ -525,6 +604,8 @@ emili::Solution* emili::pfsp::LITSolution::generate()
             best = bt;
         }
     }
+   // sol = neh2(sol,nbJobs,pis);
+   // best = pis.computeWT(sol);
     return new PermutationFlowShopSolution(best,sol);
 }
 
@@ -585,10 +666,93 @@ emili::Solution* emili::pfsp::NeRZ2Solution::generate()
     std::vector< int > initial = rz_seed_sequence(pis);
     //initial = rz_improvement_phase(initial,pis);
     initial = neh2(initial,pis.getNjobs(),pis);
+
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
     pis.evaluateSolution(*s);
     return s;
 }
+
+std::vector< int > inline lr_solution_sequence(int start,std::vector< int > u,std::vector< int > initial,emili::pfsp::PermutationFlowShop& pis)
+{
+    std::vector< float > fndx = lr_index(initial,u,pis);
+    std::sort(u.begin(),u.end(),[fndx](int i1,int i2){return fndx[i1] < fndx[i2];});
+    initial.push_back(u[start]);
+    u.erase(u.begin());
+
+    int usize = u.size()-1;
+
+    for(int i=0; i< usize;i++)
+    {
+        fndx = lr_index(initial,u,pis);
+        std::sort(u.begin(),u.end(),[fndx](int i1,int i2){return fndx[i1] < fndx[i2];});
+        initial.push_back(u[0]);
+        u.erase(u.begin());
+    }
+
+    initial.push_back(u[0]);
+
+    return initial;
+}
+
+emili::Solution* emili::pfsp::LRSolution::generate()
+{
+    std::vector< int > initial;
+    initial.push_back(0);
+    std::vector< int > u;
+    for(int i=1; i<= pis.getNjobs() ; i++)
+    {
+        u.push_back(i);
+    }
+
+    //initial = lr_solution_sequence(0,u,initial,pis);
+    std::vector< int > best = lr_solution_sequence(0,u,initial,pis);
+    int best_wt = pis.computeWT(best);
+    for(int i=1; i < number_of_sequences; i++)
+    {
+        std::vector< int > temp = lr_solution_sequence(i,u,initial,pis);
+        int temp_wt = pis.computeWT(temp);
+        if(best_wt>temp_wt)
+        {
+            best = temp;
+            best_wt = temp_wt;
+        }
+    }
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(best_wt,best);
+
+    return s;
+}
+
+emili::Solution* emili::pfsp::NLRSolution::generate()
+{
+    std::vector< int > initial;
+    initial.push_back(0);
+    std::vector< int > u;
+    for(int i=1; i<= pis.getNjobs() ; i++)
+    {
+        u.push_back(i);
+    }
+
+    //initial = lr_solution_sequence(0,u,initial,pis);
+    std::vector< int > best = lr_solution_sequence(0,u,initial,pis);
+    int best_wt = pis.computeWT(best);
+    for(int i=1; i < number_of_sequences; i++)
+    {
+        std::vector< int > temp = lr_solution_sequence(i,u,initial,pis);
+        int temp_wt = pis.computeWT(temp);
+        if(best_wt>temp_wt)
+        {
+            best = temp;
+            best_wt = temp_wt;
+        }
+    }
+
+    best = neh2(best,pis.getNjobs(),pis);
+    best_wt = pis.computeWT(best);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(best_wt,best);
+
+    return s;
+}
+
 
 emili::Solution* emili::pfsp::NEHSlackConstructor::construct(Solution *partial)
 {
