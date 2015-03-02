@@ -46,11 +46,11 @@
            ]]>
 	   <or/>
 	   <![CDATA[
-		in = emili::pfsp::NeRZSolution(problem);	
+		in = new emili::pfsp::NeRZSolution(problem);	
 	   ]]>
 	  <or/>
 	  <![CDATA[
-		in = emili::pfsp::NeRZ2Solution(problem);
+		in = new emili::pfsp::NeRZ2Solution(problem);
 	  ]]>
         </pfsp:initial_solution>
 
@@ -123,7 +123,7 @@
 		]]>
 		<or/>
 		<![CDATA[
-			pr = return new emili::pfsp::NRZPertubation(]]><pfsp:sp_impact/><![CDATA[,problem);
+			pr = new emili::pfsp::NRZPertubation(]]><pfsp:sp_impact/><![CDATA[,problem);
 		]]>
 	</pfsp:pertubation>
 
