@@ -221,6 +221,16 @@ public:
     virtual emili::Solution* destruct(Solution *solutioon);
 };
 
+class NRZPertubation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop& prob;
+public:
+    NRZPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),prob(problem) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class SOAPerturbation: public emili::Perturbation
 {
 protected:

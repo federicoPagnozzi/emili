@@ -44,6 +44,14 @@
            <![CDATA[
                 in = new emili::pfsp::PfspNEHwslackInitialSolution(problem);
            ]]>
+	   <or/>
+	   <![CDATA[
+		in = emili::pfsp::NeRZSolution(problem);	
+	   ]]>
+	  <or/>
+	  <![CDATA[
+		in = emili::pfsp::NeRZ2Solution(problem);
+	  ]]>
         </pfsp:initial_solution>
 
 	<pfsp:termination>
@@ -112,6 +120,10 @@
 		<or/>
 		<![CDATA[
 		       pr = new emili::NoPertubation();
+		]]>
+		<or/>
+		<![CDATA[
+			pr = return new emili::pfsp::NRZPertubation(]]><pfsp:sp_impact/><![CDATA[,problem);
 		]]>
 	</pfsp:pertubation>
 

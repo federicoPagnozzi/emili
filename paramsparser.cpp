@@ -44,6 +44,7 @@
 #define RNDSEED "rnds"
 #define PERTUBATION_NOPER "noper"
 #define PERTUBATION_RND "randpert"
+#define PERTUBATION_NRZ "nrzper"
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
 #define ACCEPTANCE_PMETRO "pmetro"
@@ -87,7 +88,7 @@ void prs::info()
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int)" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert" << std::endl;
-    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper " << std::endl;
+    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper | nrzper " << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int)" << std::endl;
     std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int)" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
@@ -252,6 +253,13 @@ emili::Perturbation* prs::ParamsParser::per()
     {
         std::cout << "No pertubation.\n\t";
         return new emili::NoPertubation();
+    }
+    else if(strcmp(t,PERTUBATION_NRZ)==0)
+    {
+        int n = number();
+        std::cout << "neh rz destruct/construct pertubation. number of job erased: "<<n<<"\n\t";
+
+        return new emili::pfsp::NRZPertubation(n,istance);
     }
     else
     {

@@ -55,6 +55,59 @@ std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& pro
     return best;
 }
 
+std::vector< int > inline rz_seed_sequence(std::vector< int > partial, std::vector< int > removed,emili::pfsp::PermutationFlowShop& prob)
+{
+    std::vector< int > best(removed);
+    std:vector< int > best_sol(partial);
+    best_sol.insert(best_sol.end(),removed.begin(),removed.end());
+    int wbest = prob.computeWT(best_sol);
+    int machines = prob.getNmachines();
+    int jobs = removed.size();
+    const std::vector < std::vector < long int > >& priorities = prob.getProcessingTimesMatrix();
+
+    for(int k=1; k<=machines; k++)
+    {
+        std::vector< int > temp;
+        std::vector< int > tas(prob.getNjobs()+1,0);
+        //temp.push_back(0);
+        for(int i=0;i<jobs;i++ )
+        {
+            int tai= 0;
+
+            for (int j=k;j<=machines;j++)
+            {
+                tai += ( machines - j + 1 ) * priorities[removed[i]][j];
+            }
+            tai = tai/prob.getPriority(removed[i]);
+            tas[removed[i]] = tai;
+            temp.push_back(removed[i]);
+        }
+
+    std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
+                                                            if(tas[i1]==tas[i2])
+                                                                return i1>i2;
+                                                            else
+                                                               return tas[i1] < tas[i2];
+    });
+
+        std::vector< int > test_sol(partial);
+        test_sol.insert(test_sol.end(),temp.begin(),temp.end());
+        int w = prob.computeWT(test_sol);
+
+        if( wbest > w)
+        {
+
+            wbest = w;
+            best = temp;
+            best_sol = test_sol;
+        }
+    }
+
+
+    return best_sol;
+}
+
+
 std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emili::pfsp::PermutationFlowShop& prob)
 {
     int jobs = prob.getNjobs();
@@ -839,7 +892,27 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
     return s;
 }
 
+emili::Solution* emili::pfsp::NRZPertubation::perturb(Solution *solution)
+{
+    std::vector< int > * p = (std::vector< int > *) solution->getRawData();
+    std::vector< int > removed;
+    std::vector< int > solPartial(*p);
 
+    int sops = solPartial.size()-1;
+    for(int k = 0; k < d; k++) {
+        int index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    std::vector< int > nrz_sol = rz_seed_sequence(solPartial,removed,prob);
+    nrz_sol = neh2(nrz_sol,prob.getNjobs(),prob);
+
+    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(nrz_sol);
+    prob.evaluateSolution(*s);
+    return s;
+}
 
 emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 {
