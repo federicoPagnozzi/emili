@@ -329,6 +329,19 @@ public:
     virtual Solution* perturb(Solution* solution);
 };
 
+class VNRandomMovePertubation : public emili::Perturbation
+{
+protected:
+  std::vector< Neighborhood* > explorers;
+  int numberOfSteps;
+  int numberOfIterations;
+  int currentIteration;
+  int currentExplorer;
+public:
+  VNRandomMovePertubation(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations):explorers(neighborhoods),numberOfSteps(number_of_steps),numberOfIterations(number_of_iterations),currentIteration(0),currentExplorer(0) { }
+  virtual Solution* perturb(Solution *solution);
+};
+
 class Acceptance
 {
 public:

@@ -35,10 +35,10 @@ public:
     int getDueDate(int job);
     int getPriority(int job);
     int computeMS(std::vector< int > & partial_solution);
-    virtual int computeWT(std::vector< int > & partial_solution)=0;
-    virtual int computeWT(std::vector< int > & partial_solution, int size)=0;
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
     int computeMS(std::vector< int >& partial, int size);
-    int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
     PfspInstance& getInstance();
@@ -49,8 +49,8 @@ class PFSP_WT: public PermutationFlowShop
 public:
     PFSP_WT(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
     PFSP_WT(char* instance_path):PermutationFlowShop(instance_path) { }
-    virtual int computeWT(std::vector< int > & partial_solution);
-    virtual int computeWT(std::vector< int > & partial_solution, int size);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
 
 class PFSP_WCT: public PermutationFlowShop
@@ -58,8 +58,8 @@ class PFSP_WCT: public PermutationFlowShop
 public:
     PFSP_WCT(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
     PFSP_WCT(char* instance_path):PermutationFlowShop(instance_path) { }
-    virtual int computeWT(std::vector< int > & partial_solution);
-    virtual int computeWT(std::vector< int > & partial_solution, int size);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
 
 class PFSP_WE: public PermutationFlowShop
@@ -67,8 +67,44 @@ class PFSP_WE: public PermutationFlowShop
 public:
     PFSP_WE(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
     PFSP_WE(char* instance_path):PermutationFlowShop(instance_path) { }
-    virtual int computeWT(std::vector< int > & partial_solution);
-    virtual int computeWT(std::vector< int > & partial_solution, int size);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
+};
+
+class PFSP_T: public PermutationFlowShop
+{
+public:
+    PFSP_T(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    PFSP_T(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class PFSP_E: public PermutationFlowShop
+{
+public:
+    PFSP_E(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    PFSP_E(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class PFSP_MS: public PermutationFlowShop
+{
+public:
+    PFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    PFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class NWPFSP_MS: public PermutationFlowShop
+{
+public:
+    NWPFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NWPFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
 class PermutationFlowShopSolution: public emili::Solution
@@ -157,6 +193,14 @@ public:
     RZSolution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
 };
 
+class MNEH: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    MNEH(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
+};
+
 class NeRZSolution: public emili::pfsp::PfspInitialSolution
 {
 protected:
@@ -231,6 +275,18 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class TMIIGPertubation: public emili::Perturbation
+{
+protected:
+    int d;
+    int tbsize;
+    emili::pfsp::PermutationFlowShop& instance;
+    std::vector< std::vector < int > > tblist;
+public:
+    TMIIGPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem,int tabu_list_size):d(d_parameter),instance(problem),tbsize(tabu_list_size),tblist(problem.getNjobs()+1 ) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class SOAPerturbation: public emili::Perturbation
 {
 protected:
@@ -274,10 +330,9 @@ protected:
     int njobs;
     std::vector < int > current;
     int current_value;
-    PfspInstance& instance;
     virtual Solution* computeStep(Solution* value);
 public:
-    PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1),ep_iterations(1){}
+    PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
@@ -302,6 +357,14 @@ public:
     virtual Solution* random(Solution *currentSolution);
 };
 
+class PfspTwoInsertNeighborhood: public PfspInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    PfspTwoInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
+};
 
 class PfspExchangeNeighborhood: public emili::pfsp::PfspNeighborhood
 {
@@ -311,10 +374,9 @@ protected:
     int sp_iterations;
     int ep_iterations;
     int njobs;
-    PfspInstance& instance;
     virtual Solution* computeStep(Solution* value);
 public:
-    PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1),ep_iterations(1){}
+    PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
@@ -326,11 +388,10 @@ class PfspTransposeNeighborhood: public emili::pfsp::PfspNeighborhood
 protected:
     int start_position;
     int sp_iterations;
-    int njobs;
-    PfspInstance& instance;
+    int njobs;    
     virtual Solution* computeStep(Solution* value);
 public:
-    PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),njobs(problem.getNjobs()),instance(problem.getInstance()),sp_iterations(1){}
+    PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),njobs(problem.getNjobs()),sp_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }

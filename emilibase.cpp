@@ -579,6 +579,29 @@ emili::Solution* emili::RandomMovePertubation::perturb(Solution *solution)
     return ret;
 }
 
+emili::Solution* emili::VNRandomMovePertubation::perturb(Solution *solution)
+{
+
+    Solution* ret = explorers[currentExplorer]->random(solution);
+    for (int var = 1; var < numberOfSteps; ++var) {
+        Solution* temp = ret;
+        ret = explorers[currentExplorer]->random(temp);
+        delete temp;
+    }
+
+    if(!currentIteration <= numberOfIterations)
+    {
+        currentIteration=0;
+        currentExplorer = (currentExplorer+1)%explorers.size();
+    }
+    else
+    {
+        currentIteration++;
+    }
+
+    return ret;
+}
+
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(acc==ACC_DIVERSIFICATION)

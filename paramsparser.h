@@ -11,7 +11,7 @@ void info();
 class ParamsParser
 {
 protected:
-    emili::pfsp::PermutationFlowShop& istance;
+    emili::pfsp::PermutationFlowShop* istance;
     char** tokens;
     int numberOfTokens;
     int currentToken;
@@ -38,12 +38,16 @@ protected:
     emili::pfsp::PfspNeighborhood* neighV();
     void neighs();
     void neighs1();
+    void problem();
     int number();
+
     float decimal();
 public:
     int ils_time;
-    ParamsParser(char** tokens,int numberOfTokens,emili::pfsp::PermutationFlowShop& is):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),istance(is),ils_time(-123) { }
+    ParamsParser(char** tokens,int numberOfTokens,emili::pfsp::PermutationFlowShop* is):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),istance(is),ils_time(-123) { }
+    ParamsParser(char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),ils_time(-123) { }
     emili::LocalSearch* parseParams();
+    emili::pfsp::PermutationFlowShop& getInstance() { return *istance;}
 
 };
 }

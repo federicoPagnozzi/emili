@@ -79,6 +79,18 @@ class PfspInstance{
     long int computeWE (vector< int > & sol);
     /*Compute partial weighted earliness*/
     long int computeWE (vector< int > & sol, int size);
+    /*Compute tardiness*/
+    long int computeT(vector< int > & sol);
+    /*Compute partial tardiness*/
+    long int computeT(vector< int > & sol, int size);
+    /*Compute earliness*/
+    long int computeE (vector< int > & sol);
+    /*Compute partial earliness*/
+    long int computeE (vector< int > & sol, int size);
+    /*Compute no wait make span*/
+    long int computeNWMS(vector< int > & sol);
+    /*Compute partial no wait make span*/
+    long int computeNWMS(vector<int> & sol, int size);
 
     /* Compute weighted tardines starting from an index*/
    // long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
