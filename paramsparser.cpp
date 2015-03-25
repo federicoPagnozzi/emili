@@ -13,9 +13,11 @@
 #define BEST "best"
 #define VND "vnd"
 #define IT "-it"
-#define MOVES "move"
-#define HASHES "hash"
-#define SOLUTIONS "solution"
+#define TABU_MEMORY_MOVES "move"
+#define TABU_MEMORY_HASHES "hash"
+#define TABU_MEMORY_SOLUTIONS "solution"
+#define TABU_MEMORY_TSAB "tsabm"
+#define TABU_MEMORY_TSAB_TEST "tsabmt"
 #define TS "-ts"
 #define TI "-ti"
 #define IN "-in"
@@ -105,7 +107,7 @@ void prs::info()
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert" << std::endl;
     std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int)" << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | tmiigacc start_temperature(float)" << std::endl;
-    std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int)" << std::endl;
+    std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int) | tsabm size(int)" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
 
@@ -456,20 +458,31 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n)
     char* t = nextToken();
     check(t,"TABU MEMORY PARAMETERS EXPECTED!");
     int ts = number();
-    if(strcmp(t,MOVES)==0)
+    std::cout << "Tabu tenure size " << ts << "\n\t";
+    if(strcmp(t,TABU_MEMORY_MOVES)==0)
     {
         std::cout << "USING MOVES\n\t";
         return new emili::pfsp::PfspMovesMemory(ts , *n);
     }
-    else if(strcmp(t,HASHES)==0)
+    else if(strcmp(t,TABU_MEMORY_HASHES)==0)
     {
         std::cout << "USING HASHES\n\t";
         return new emili::pfsp::PfspTabuHashMemory(ts);
     }
-    else if(strcmp(t,SOLUTIONS)==0)
+    else if(strcmp(t,TABU_MEMORY_SOLUTIONS)==0)
     {
         std::cout << "USING FULL SOLUtiON\n\t";
         return new emili::pfsp::PfspFullSolutionMemory(ts);
+    }
+    else if(strcmp(t,TABU_MEMORY_TSAB)==0)
+    {
+        std::cout << "USING TSAB\n\t";
+        return new emili::pfsp::TSABMemory(ts , *n);
+    }
+    else if(strcmp(t,TABU_MEMORY_TSAB_TEST)==0)
+    {
+        std::cout << "USING TSAB\n\t";
+        return new emili::pfsp::TSABtestMemory(ts , *n);
     }
     else
     {

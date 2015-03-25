@@ -495,7 +495,7 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
             if(bestOfTheIteration->operator >( *ithSolution)){
                 tabuMemory.registerMove(incumbent,ithSolution);
 
-                if(tabuMemory.tabu_check(ithSolution))//<- Aspiration goes here.
+                if(tabuMemory.tabu_check(ithSolution) || ithSolution->operator <(*incumbent))//<- Aspiration goes here.
                 {
                     if(bestOfTheIteration!=incumbent)
                         delete bestOfTheIteration;                    

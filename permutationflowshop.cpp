@@ -1848,6 +1848,135 @@ void emili::pfsp::PfspMovesMemory::reset()
     tabuVector.clear();
 }
 
+bool emili::pfsp::TSABtestMemory::tabu_check(std::pair< int,int > value)
+{
+    int k = value.first;
+    int l = value.second;
+    if(k<l)
+    {
+        for(std::vector< std::pair<int,int > >::iterator iter = tabuVector.begin();iter!=tabuVector.end();++iter)
+        {
+            std::pair< int ,int> t = *iter ;
+            if(t.first==k && (t.second > k && t.second <= l) )
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        for(std::vector< std::pair<int,int > >::iterator iter = tabuVector.begin();iter!=tabuVector.end();++iter)
+        {
+            std::pair< int ,int> t = *iter ;
+            if(t.second==k && (t.first >= l && t.first < k) )
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void emili::pfsp::TSABtestMemory::forbid(Solution *solution)
+{
+    std::pair< int , int > fmove;
+    int k = lastMove.first;
+    int l = lastMove.second;
+
+    if(k<l)
+    {
+        fmove = std::pair< int, int > (k,k+1);
+    }
+    else
+    {
+        fmove = std::pair< int, int > (k-1,k);
+    }
+
+    if(tabu_check(lastMove))
+    {
+        if(tt_index < this->tabutenure){
+
+            tabuVector.push_back(fmove);
+            tt_index++;
+        }
+        else
+        {
+            tabuVector.erase(tabuVector.begin());
+            tabuVector.push_back(fmove);
+        }
+    }
+}
+
+bool emili::pfsp::TSABMemory::tabu_check(emili::Solution* toCheck)
+{
+    std::vector< int > & pi = *((std::vector< int > *) toCheck->getRawData());
+    return tabu_check(lastMove,pi);
+}
+
+bool emili::pfsp::TSABMemory::tabu_check(std::pair< int,int > value,std::vector< int>& pi)
+{
+    int k = lastMove.first;
+    int l = lastMove.second;
+
+    int size = k>l?k-l:l-k;
+
+    for(int i=0;i<size;i++)
+    {
+        std::pair< int , int > toTest;
+        if(k<l)
+        {
+            toTest = std::pair<int , int >(pi[k+1+i],pi[k]);
+        }
+        else
+        {
+            toTest = std::pair<int, int >( pi[k] , pi[l+i] );
+        }
+
+        for(std::vector< std::pair<int,int > >::iterator iter = tabuVector.begin();iter!=tabuVector.end();++iter)
+        {
+            std::pair< int ,int> t = *iter ;
+            if(toTest==t)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void emili::pfsp::TSABMemory::forbid(Solution *solution)
+{
+    std::pair< int , int > fmove;
+    int k = lastMove.first;
+    int l = lastMove.second;
+    std::vector< int > & pi = *((std::vector< int > *) solution->getRawData());
+    if(k<l)
+    {
+        fmove = std::pair< int, int > (pi[l],pi[k]);
+    }
+    else
+    {
+        fmove = std::pair< int, int > (pi[k],pi[l]);
+    }
+
+    if(tabu_check(lastMove,pi))
+    {
+        if(tt_index < this->tabutenure){
+
+            tabuVector.push_back(fmove);
+            tt_index++;
+        }
+        else
+        {
+            tabuVector.erase(tabuVector.begin());
+            tabuVector.push_back(fmove);
+        }
+    }
+}
+
+
+
 emili::Solution* emili::pfsp::VNDBestSearch::search(emili::Solution* initial)
 {
 

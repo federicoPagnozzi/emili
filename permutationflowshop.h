@@ -525,7 +525,7 @@ protected:
     emili::pfsp::PfspNeighborhood& neigh;
     int tt_index;
     std::pair <int,int> lastMove;
-    bool tabu_check(std::pair< int,int > value);
+    virtual bool tabu_check(std::pair< int,int > value);
   public:
       PfspMovesMemory(int tabtenure,emili::pfsp::PfspNeighborhood& n):emili::TabuMemory(tabtenure),tt_index(0),neigh(n),lastMove(0,0) { }
       PfspMovesMemory(emili::pfsp::PfspNeighborhood& n):emili::TabuMemory(),tt_index(0),neigh(n),lastMove(0,0) { }
@@ -536,6 +536,31 @@ protected:
       virtual void forbid(Solution *solution);
       virtual void registerMove(emili::Solution* base,emili::Solution* solution);
       virtual void reset();
+};
+
+class TSABtestMemory: public emili::pfsp::PfspMovesMemory
+{
+
+protected:
+    virtual bool tabu_check(std::pair<int, int> value);
+
+public:
+    TSABtestMemory(int tabtenure,emili::pfsp::PfspNeighborhood& n):emili::pfsp::PfspMovesMemory(tabtenure,n) { }
+    TSABtestMemory(emili::pfsp::PfspNeighborhood& n):emili::pfsp::PfspMovesMemory(n) { }
+    virtual void forbid(Solution *solution);
+};
+
+class TSABMemory: public emili::pfsp::PfspMovesMemory
+{
+
+protected:
+    virtual bool tabu_check(std::pair<int, int> value,std::vector< int >& solution);
+
+public:
+    TSABMemory(int tabtenure,emili::pfsp::PfspNeighborhood& n):emili::pfsp::PfspMovesMemory(tabtenure,n) { }
+    TSABMemory(emili::pfsp::PfspNeighborhood& n):emili::pfsp::PfspMovesMemory(n) { }
+    virtual bool tabu_check(Solution *solution);
+    virtual void forbid(Solution *solution);
 };
 
 class VNDBestSearch: public emili::BestImprovementSearch

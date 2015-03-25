@@ -25,7 +25,8 @@
 	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
        	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
          <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
-
+	 <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
+	
 	<pfsp:always_acc_param>
 		<![CDATA[ acc = emili::ACC_INTENSIFICATION; ]]>
        	    <or/> 
@@ -51,6 +52,10 @@
 	  <or/>
 	  <![CDATA[
 		in = new emili::pfsp::NeRZ2Solution(problem);
+	  ]]>
+         <or/>
+	  <![CDATA[
+		in = new emili::pfsp::MNEH(problem);
 	  ]]>
         </pfsp:initial_solution>
 
@@ -102,6 +107,10 @@
 	   <![CDATA[
 	  ne = new emili::pfsp::PfspBackwardInsertNeighborhood(problem);
 	]]>
+	<or/>
+	  <![CDATA[
+          ne = new emili::pfsp::PfspTwoInsertNeighborhood(problem);
+	]]>
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
@@ -124,6 +133,10 @@
 		<or/>
 		<![CDATA[
 			pr = new emili::pfsp::NRZPertubation(]]><pfsp:sp_impact/><![CDATA[,problem);
+		]]>
+		<or/>
+		<![CDATA[
+			pr = new emili::pfsp::TMIIGPertubation(]]><pfsp:sp_impact/><![CDATA[,problem,]]><pfsp:tmiig_tabu_size/><![CDATA[);
 		]]>
 	</pfsp:pertubation>
 
@@ -169,6 +182,14 @@
 	     <or/>
 	     <![CDATA[
 			tm = new emili::pfsp::PfspFullSolutionMemory(]]><pfsp:tabutenure_size/><![CDATA[); 
+	     ]]>
+	     <or/>
+	     <![CDATA[
+			tm = new emili::pfsp::TSABMemory(]]><pfsp:tabutenure_size/><![CDATA[ , *ne);
+	     ]]>
+	     <or/>
+	     <![CDATA[
+	     		tm = new emili::pfsp::TSABtestMemory(]]><pfsp:tabutenure_size/><![CDATA[  , *n);
 	     ]]>
 	</pfsp:tabutenure>
 
