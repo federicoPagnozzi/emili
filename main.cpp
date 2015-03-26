@@ -284,14 +284,20 @@ int main(int argc, char *argv[])
         solution = ls->search();
     }
     std::vector < int > *sol = (std::vector < int > *)solution->getRawData();
-    emili::pfsp::PermutationFlowShop& instance = ps.getInstance();
-    long int totalWeightedTardiness = instance.computeObjectiveFunction(*sol);
+#ifndef GRAMMAR2CODE
+    emili::pfsp::PermutationFlowShop& prob = ps.getInstance(); 
+    long int totalWeightedTardiness = prob.computeObjectiveFunction(*sol);
+    int njobs = prob.getNjobs();
+#else
+    long int totalWeightedTardiness = problem.computeObjectiveFunction(*sol);
+    int njobs = problem.getNjobs();
+#endif    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     cout << "time : " << time_elapsed << std::endl;
     cout << "iteration counter " << emili::iteration_counter()<< std::endl;
     //cerr << time_elapsed << " ";
     cout << "Found solution: ";
-    for (int i = 1; i <= instance.getNjobs(); ++i)
+    for (int i = 1; i <= njobs; ++i)
       cout << (*sol)[i] << " " ;
 
     cout << endl;
