@@ -305,7 +305,7 @@
                     g2c_info();
                     return 1;
                 }
-                emili::pfsp::PFSP_MS problem(instance);
+                emili::pfsp::PFSP_WT problem(instance);
         	int soa_termination = problem.getNjobs();
          	soa_termination = 2*(soa_termination-1);
 		emili::InitialSolution* in;

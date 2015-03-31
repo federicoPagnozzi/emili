@@ -189,7 +189,7 @@
 	     ]]>
 	     <or/>
 	     <![CDATA[
-	     		tm = new emili::pfsp::TSABtestMemory(]]><pfsp:tabutenure_size/><![CDATA[  , *n);
+	     		tm = new emili::pfsp::TSABtestMemory(]]><pfsp:tabutenure_size/><![CDATA[  , *ne);
 	     ]]>
 	</pfsp:tabutenure>
 

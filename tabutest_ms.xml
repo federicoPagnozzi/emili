@@ -287,9 +287,12 @@
 	</pfsp:algos>
 
 	<pfsp:main>
+
 	        <pfsp:gls/>
-	        <or/>
+	          <or/>
 		<pfsp:algos/>
+	
+		
 	</pfsp:main>
 
         <pfsp:main_algorithm output="algorithm.h">
@@ -318,7 +321,7 @@
 		emili::accept_candidates acc;	  
 	]]>	
 
-        	<pfsp:main/>     
+        	<pfsp:tabu/>     
            <!--<![CDATA[
                 /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
 		clock_t time = clock();
