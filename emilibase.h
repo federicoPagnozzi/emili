@@ -101,6 +101,7 @@ public:
     virtual ~InitialSolution() {}
 };
 
+
 /*
     Extends this to implement your termination criterion
 */
@@ -220,6 +221,19 @@ public:
     virtual ~Neighborhood() {}
 };
 
+
+class EmptyNeighBorHood: public emili::Neighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *step);
+public:
+    EmptyNeighBorHood() {}
+    virtual Solution* step(Solution *currentSolution);
+    virtual void reset();
+    virtual Solution* random(Solution *currentSolution);
+};
+
+
 /*
   This class models a very general local search.
 */
@@ -269,6 +283,19 @@ public:
     virtual Solution* getBestSoFar() { return bestSoFar;}
     virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh;}
 
+};
+
+
+class EmptyLocalSearch: public emili::LocalSearch
+{
+public:
+    EmptyLocalSearch(InitialSolution& in):emili::LocalSearch() {
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::MaxStepsTermination(0);
+        }
+    virtual Solution* search(Solution* initial) { return initial;}
+    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial;}
+    virtual Solution* timedSearch(Solution* initial) {return initial;}
 };
 
 /*
@@ -485,16 +512,6 @@ public:
         return bestSoFar;
     }
 
-};
-
-class EmptyNeighBorHood: public emili::Neighborhood
-{
-protected:
-    virtual Solution* computeStep(Solution *step);
-public:
-    virtual Solution* step(Solution *currentSolution);
-    virtual void reset();
-    virtual Solution* random(Solution *currentSolution);
 };
 
 

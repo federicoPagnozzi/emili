@@ -39,7 +39,7 @@ std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& p
         stds[i] = sqrtf(sTd);
     }
 
-    std::sort(seq.begin(),seq.end(),[stds](int i1,int i2){return stds[i1] < stds[i2];});
+    std::sort(seq.begin()+1,seq.end(),[stds](int i1,int i2){return stds[i1] < stds[i2];});
 
     return seq;
 

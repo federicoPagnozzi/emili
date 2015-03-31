@@ -212,6 +212,7 @@ emili::LocalSearch* prs::ParamsParser::search()
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a search definition was expected! " << std::endl;
+        prs::info();
         exit(-1);
     }
     return ls;
@@ -298,6 +299,7 @@ emili::Perturbation* prs::ParamsParser::per()
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a pertubation criteria specification was expected! " << std::endl;
+        prs::info();
         exit(-1);
     }
 }
@@ -343,7 +345,8 @@ emili::Acceptance* prs::ParamsParser::acc()
         else
         {
             std::cerr<< "'" << t1 << "' -> ERROR " << INTENSIFY << "or " << DIVERSIFY <<"was expected! " << std::endl;
-            exit(-1);
+            prs::info();
+        exit(-1);
         }
         std::cout << "Acceptance always "<< t1<<"\n\t";
         return new emili::AlwaysAccept(acc);
@@ -396,6 +399,7 @@ emili::Acceptance* prs::ParamsParser::acc()
     else
     {
         std::cerr<< "'" << t << "' -> ERROR an acceptance criteria specification was expected! " << std::endl;
+        prs::info();
         exit(-1);
     }
 }
@@ -410,6 +414,7 @@ emili::LocalSearch* prs::ParamsParser::ig()
     if(ils_time<=0)
     {
         std::cerr <<"ERROR for ils a time has to be provided"<< std::endl;
+        prs::info();
         exit(-1);
     }
     //ils_time = ilstime();
@@ -487,6 +492,7 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n)
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a memory specification for the tabu search was expected! " << std::endl;
+        prs::info();
         exit(-1);
     }
 }
@@ -564,6 +570,7 @@ emili::LocalSearch* prs::ParamsParser::vparams()
     {
         std::cerr<< "'" << t << "' -> ERROR a valid type of search must be specified (first,best) " << std::endl;
 
+        prs::info();
         exit(-1);
     }
     return ls;
@@ -636,6 +643,7 @@ emili::InitialSolution* prs::ParamsParser::init()
     {
         std::cerr<< "'" << t << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;
 
+        prs::info();
         exit(-1);
     }
 }
@@ -688,6 +696,7 @@ emili::Termination* prs::ParamsParser::term()
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a termination criteria specification was expected! " << std::endl;
+        prs::info();
         exit(-1);
     }
 }
@@ -734,6 +743,7 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a neighborhood specification was expected! " << std::endl;
+        prs::info();
         exit(-1);
     }
 }
@@ -853,7 +863,8 @@ void prs::ParamsParser::problem()
         }else
         {
             std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
-            exit(-1);
+            prs::info();
+        exit(-1);
         }
         return ;
     }
