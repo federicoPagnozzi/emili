@@ -93,7 +93,7 @@ class PfspInstance{
     long int computeNWMS(vector<int> & sol, int size);
 
     /* Compute weighted tardines starting from an index*/
-   // long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+    long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
 
     long int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     //to compute WT and save the values for the job job

@@ -64,18 +64,18 @@ class Solution
 {
 protected:    
     double solution_value;
-public:
-    Solution(double value):solution_value(value)    {    }
-    virtual Solution& operator=(const Solution& a);
-    virtual bool operator<(Solution& a);
-    virtual bool operator<=(Solution& a);
-    virtual bool operator>(Solution& a);
     /*
      * It's ugly I know, but every problem has its own data structures.
      * The next version will have an object designed to be a data carrier.
     */
     virtual const void* getRawData()const=0;
     virtual void setRawData(const void* data)=0;
+public:
+    Solution(double value):solution_value(value)    {    }
+    virtual Solution& operator=(const Solution& a);
+    virtual bool operator<(Solution& a);
+    virtual bool operator<=(Solution& a);
+    virtual bool operator>(Solution& a); 
     //virtual Solution clone()=0;
     virtual double getSolutionValue();
     virtual void setSolutionValue(double value);

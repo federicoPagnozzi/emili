@@ -39,6 +39,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
     int computeMS(std::vector< int >& partial, int size);
     int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
     PfspInstance& getInstance();
@@ -111,18 +112,24 @@ class PermutationFlowShopSolution: public emili::Solution
 {
 protected:
     std::vector< int > solution;
-public:
-    PermutationFlowShopSolution(double p_value):emili::Solution(p_value),solution()
-    {}
-
-    PermutationFlowShopSolution(std::vector< int >& solution):emili::Solution(1e9),solution(solution)
-    {}
-
-    PermutationFlowShopSolution(double p_value,std::vector< int >& solution):emili::Solution(p_value),solution(solution)
-    {}
-
+    std::vector< vector<int > > previousMachineEndTimeMatrix;
     virtual const void* getRawData()const;
     virtual void setRawData(const void* data);
+public:
+    PermutationFlowShopSolution(double p_value):emili::Solution(p_value),solution(),previousMachineEndTimeMatrix()
+    {}
+
+    PermutationFlowShopSolution(std::vector< int >& solution):emili::Solution(1e9),solution(solution),previousMachineEndTimeMatrix()
+    {}
+
+    PermutationFlowShopSolution(double p_value,std::vector< int >& solution):emili::Solution(p_value),solution(solution),previousMachineEndTimeMatrix()
+    {}
+
+    PermutationFlowShopSolution(double p_value,std::vector< int >& solution,std::vector< vector<int > > endTimeMatrix):emili::Solution(p_value),solution(solution),previousMachineEndTimeMatrix(endTimeMatrix)
+    {}
+    virtual std::vector< std::vector< int > >& getEndTimeMatrix();
+    virtual void setEndTimeMatrix(std::vector< std::vector< int > >& mat);
+    virtual std::vector< int >& getJobSchedule();
     virtual ~PermutationFlowShopSolution();
 };
 
@@ -474,7 +481,7 @@ class PfspTabuHashMemory: public emili::TabuMemory
 protected:
     std::vector < size_t > tabuVector;
     int tt_index;
-    size_t calc_hash(std::vector< int > * vec_sol);
+    size_t calc_hash(std::vector< int >& vec_sol);
 public:
     PfspTabuHashMemory(int tabuTenure):emili::TabuMemory(tabuTenure),tabuVector(),tt_index(0) { }
     PfspTabuHashMemory():emili::TabuMemory(),tabuVector(),tt_index(0) { }

@@ -432,20 +432,26 @@ long int PfspInstance::computeMS(vector<int> &sol,int size)
 }
 
 /* Compute the weighted tardiness of a given solution starting from a given machine end time table and a starting index */
-/*
+/**/
 long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i)
 {
-   int m = start_i;
-   int j;
+    clock_t start = clock();
+   int j,m;
    long int wt;
    int jobNumber;
+
+  // std::vector< std::vector < int >> previousMachineEndTimeMatrix(previousMachineEndTimeMatri);
+   int prevj = previousMachineEndTimeMatrix[1][start_i-1];
    for(j=start_i;j<end_i;j++)
    {
        jobNumber = sol[j];
-       previousMachineEndTimeMatrix[1][j] = previousMachineEndTimeMatrix[1][j-1] + processingTimesMatrix[jobNumber][1];
+       prevj = prevj + processingTimesMatrix[jobNumber][1];
+       previousMachineEndTimeMatrix[1][j] = prevj;
    }
 
-       for ( j = start_i; j <= nbJob; ++j )
+   std::cout << "time -> " << (clock()-start) << std::endl;
+   start = clock();
+     for ( j = start_i; j <= nbJob; ++j )
        {
            long int previousJobEndTime = previousMachineEndTimeMatrix[1][j];
 
@@ -467,13 +473,40 @@ long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& pr
        }
    }
 
+  std::cout << "time -> " << (clock()-start) << std::endl;
+  start = clock();
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
         wt += (std::max(previousMachineEndTimeMatrix[nbMac][j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
 
+
+    std::cout << "time -> " << (clock()-start) << std::endl;
     return wt;
 }
-*/
+
+/*
+  // others machines :
+  for ( m = 2; m <= nbMac; ++m )
+  {
+       previousJobEndTime = previousMachineEndTimeMatrix[m][start_i-1];
+
+      for ( j = start_i; j <= nbJob; ++j )
+      {
+          jobNumber = sol[j];
+
+          if ( previousMachineEndTimeMatrix[m-1][j] > previousJobEndTime )
+          {
+              previousMachineEndTimeMatrix[m][j] = previousMachineEndTimeMatrix[m-1][j] + processingTimesMatrix[jobNumber][m];
+              previousJobEndTime = previousMachineEndTimeMatrix[m][j];
+          }
+          else
+          {
+              previousJobEndTime += processingTimesMatrix[jobNumber][m];
+              previousMachineEndTimeMatrix[m][j] = previousJobEndTime;
+          }
+      }
+  }*/
+
 
 long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
 {

@@ -405,9 +405,9 @@ int generateRndPos(int min, int max)
 }
 
 double emili::pfsp::PermutationFlowShop::evaluateSolution(emili::Solution& solution)
-{
-    std::vector< int >* current_solution = (std::vector< int >*) solution.getRawData();
-    double p = computeObjectiveFunction(*current_solution);
+{    
+    emili::pfsp::PermutationFlowShopSolution& s = dynamic_cast<emili::pfsp::PermutationFlowShopSolution&> (solution);
+    double p = computeObjectiveFunction(s.getJobSchedule());
     solution.setSolutionValue(p);
     return p;
 }
@@ -453,6 +453,11 @@ int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(vector<int> &sol,
     return instance.computeWT(sol,prevJob,job,previousMachineEndTime);
 }
 
+int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(vector<int> &sol, vector<vector<int> > &previousMachineEndTimeMatrix, int start_i, int end_i)
+{
+    return instance.computeWT(sol,previousMachineEndTimeMatrix,start_i,end_i);
+}
+
 void emili::pfsp::PermutationFlowShop::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
 {
    return instance.computeWTs(sol,prevJob,job,previousMachineEndTime);
@@ -460,13 +465,36 @@ void emili::pfsp::PermutationFlowShop::computeWTs(vector<int> &sol,vector<int>& 
 
 const void* emili::pfsp::PermutationFlowShopSolution::getRawData()const
 {
-    return &solution;
+    void** mem = new void*[2];
+    mem[0] = (void*) &solution;
+    mem[1] = (void*) &previousMachineEndTimeMatrix;
+    return mem;
 }
 
 void emili::pfsp::PermutationFlowShopSolution::setRawData(const void *data)
 {
-    std::vector < int >* data_vector = (std::vector< int >*) data;
+    //
+    void** mem = (void**) data;
+    std::vector < int >* data_vector = (std::vector< int >*) mem[0];
+    std::vector < std::vector < int > >* endtimematrix = (std::vector < std::vector < int > >*) mem[1];
     this->solution = *data_vector;
+    this->previousMachineEndTimeMatrix = *endtimematrix;
+    delete mem;
+}
+
+std::vector< std::vector < int > >& emili::pfsp::PermutationFlowShopSolution::getEndTimeMatrix()
+{
+    return this->previousMachineEndTimeMatrix;
+}
+
+std::vector< int > & emili::pfsp::PermutationFlowShopSolution::getJobSchedule()
+{
+    return this->solution;
+}
+
+void emili::pfsp::PermutationFlowShopSolution::setEndTimeMatrix(std::vector< std::vector< int > >& mat)
+{
+    this->previousMachineEndTimeMatrix = mat;
 }
 
 const std::vector< std::vector < long int > > & emili::pfsp::PermutationFlowShop::getProcessingTimesMatrix()
@@ -660,7 +688,12 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
     //int partial_w = pis.computeWT(partial);
     sol = neh2(partial,nbJobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    pis.evaluateSolution(*s);
+    //pis.evaluateSolution(*s);
+    std::vector< std::vector< int > > etm = std::vector< std::vector< int > >(pis.getNmachines()+1,std::vector<int>(pis.getNjobs()+1,0));
+    //clock_t start = clock();
+    int new_value =  pis.computeObjectiveFunction(sol,etm,1,pis.getNjobs()+1);
+    s->setEndTimeMatrix(etm);
+    s->setSolutionValue(new_value);
     return s;
 }
 
@@ -668,16 +701,16 @@ emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
 {
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
-    std::vector< int > * p = (std::vector<int >*) partial->getRawData();
-    int Ci = pis.computeMS(*p);
+    std::vector< int >&  p = ((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule();
+    int Ci = pis.computeMS(p);
     vector<bool> assigned(nbJobs+1, false);
-    for(std::vector< int >::const_iterator iter = p->begin();iter !=  p->end();++iter)
+    for(std::vector< int >::const_iterator iter = p.begin();iter !=  p.end();++iter)
     {
         assigned[*iter] = true;
     }
 //    assigned[0] = false;
     for (int var = 0; var < nbJobs; ++var) {
-        int kish = p->operator [](var+1);
+        int kish = p[var+1];
         if(kish==0)
         {
             int minJ = 0 ;
@@ -693,13 +726,13 @@ emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
                     }
                 }
             }
-            p->operator [](var+1) = minJ;
+             p[var+1] = minJ;
             assigned[minJ] = true;
-            Ci = pis.computeMS(*p);
+            Ci = pis.computeMS(p);
         }
         //cout << "partial makespan: " << Ci << std::endl;
     }
-    sol = *p;
+    sol = p;
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
     pis.evaluateSolution(*s);
     return s;
@@ -899,8 +932,8 @@ emili::Solution* emili::pfsp::NEHSlackConstructor::construct(Solution *partial)
 {
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
-    std::vector< int > * p = (std::vector<int >*) partial->getRawData();
-    std::vector<int > part = slack_construct(*p,nbJobs,pis);
+
+    std::vector<int > part = slack_construct(((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule(),nbJobs,pis);
     sol = neh(part,nbJobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
     pis.evaluateSolution(*s);
@@ -944,8 +977,8 @@ emili::Solution* emili::pfsp::NEHSlackConstructor::constructFull()
 
 emili::Solution* emili::pfsp::PfspDestructor::destruct(Solution *solutioon)
 {
-     std::vector< int > * p = (std::vector< int > *) solutioon->getRawData();
-    std::vector< int > des(*p);
+
+    std::vector< int > des(((emili::pfsp::PermutationFlowShopSolution*)solutioon)->getJobSchedule());
     int size = des.size();
     int start_position = emili::generateRandomNumber()%(size-1);
     int num_postion = emili::generateRandomNumber()%(size-start_position-1);
@@ -961,8 +994,8 @@ emili::Solution* emili::pfsp::PfspDestructor::destruct(Solution *solutioon)
 
 emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
 {
-    std::vector< int > * p = (std::vector< int > *) solutioon->getRawData();
-    std::vector< int > des (*p);
+
+    std::vector< int > des (((emili::pfsp::PermutationFlowShopSolution*)solutioon)->getJobSchedule());
     int size = des.size();
     for (int var = 0; var < d; ++var) {
         int num = emili::generateRandomNumber()%(size-1)+1;
@@ -982,9 +1015,9 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
 
 emili::Solution* emili::pfsp::NRZPertubation::perturb(Solution *solution)
 {
-    std::vector< int > * p = (std::vector< int > *) solution->getRawData();
+
     std::vector< int > removed;
-    std::vector< int > solPartial(*p);
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
 
     int sops = solPartial.size()-1;
     for(int k = 0; k < d; k++) {
@@ -1009,11 +1042,10 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
     int index;
     int min;
     int k,tmp,ind;
-    std::vector< int > * p = (std::vector< int > *) solution->getRawData();
     std::vector< int > removed;
-    std::vector< int > solPartial(*p);
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
     //std::cout << "partial size " << solPartial.size() << std::endl;
-    int size = p->size();
+    int size = solPartial.size();
     std::vector< int > solTMP(size,0);
     int sizePartial;
     int sops = solPartial.size()-1;
@@ -1074,11 +1106,11 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     int index;
     int min;
     int k,tmp,ind;
-    std::vector< int > * p = (std::vector< int > *) solution->getRawData();
+
     std::vector< int > removed;
-    std::vector< int > solPartial(*p);
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
     //std::cout << "partial size " << solPartial.size() << std::endl;
-    int size = p->size();
+    int size = solPartial.size();
     std::vector< int > solTMP(size,0);
     int sizePartial;
     int sops = solPartial.size()-1;
@@ -1121,15 +1153,20 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     }
 
 
-    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-    instance.evaluateSolution(*s);
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+    //instance.evaluateSolution(*s);
+    std::vector< std::vector< int > >  etm = std::vector< std::vector< int > >(instance.getNmachines()+1,std::vector<int>(instance.getNjobs()+1,0));
+    //clock_t start = clock();
+    int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
+    s->setEndTimeMatrix(etm);
+    s->setSolutionValue(new_value);
     return s;
 }
 
 emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
 {
-     std::vector< int > * p = (std::vector< int > *) solutioon->getRawData();
-    std::vector< int > des(*p);
+
+    std::vector< int > des(((emili::pfsp::PermutationFlowShopSolution*)solutioon)->getJobSchedule());
     int size = des.size();    
     int hsize = size/2;
     int start_position =  emili::generateRandomNumber()%(hsize-1);
@@ -1250,8 +1287,7 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili:
 
         }
         end_position = ((end_position)%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
         int sol_i = newsol[start_position];
 
         newsol.erase(newsol.begin()+start_position);
@@ -1285,9 +1321,8 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
             end_position = start_position;
 
         }
-        end_position = ((end_position)%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
+        end_position = ((end_position)%njobs)+1;     
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
@@ -1323,9 +1358,8 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
             //end_position = start_position;
 
         }        
-        end_position = ((end_position)%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
+        end_position = ((end_position)%njobs)+1;        
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
@@ -1360,8 +1394,8 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::computeStep(emili::Solu
 
         }
         end_position = ((end_position)%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
+
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
 
         // first insert
         int sol_i = newsol[start_position];
@@ -1380,7 +1414,7 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::computeStep(emili::Solu
 emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution)
 {
 
-    std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int njobs = pis.getNjobs();
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%njobs)+1;
@@ -1394,7 +1428,7 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSo
 emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::random(Solution *currentSolution)
 {
     int njobs = pis.getNjobs();
-    std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%(njobs-best_i+1))+best_i;
     int sol_i = newsol[best_i];
@@ -1407,7 +1441,7 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::random(Solution *cu
 emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::random(Solution *currentSolution)
 {
     int njobs = pis.getNjobs();
-    std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%best_i)+1;
     int sol_i = newsol[best_i];
@@ -1419,7 +1453,7 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::random(Solution *c
 
 emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::random(Solution *currentSolution)
 {
-    std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int njobs = pis.getNjobs();
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%njobs)+1;
@@ -1456,8 +1490,7 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::computeStep(emili::Solut
             end_position = start_position;
         }
         end_position = (end_position%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
         std::swap(newsol[start_position],newsol[end_position]);
         long int new_value = pis.computeObjectiveFunction(newsol);
         return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
@@ -1467,7 +1500,7 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::computeStep(emili::Solut
 emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *currentSolution)
 {
 
-    std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int njobs = pis.getNjobs();
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%njobs)+1;
@@ -1485,26 +1518,7 @@ void emili::pfsp::PfspExchangeNeighborhood::reset()
 
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solution* value)
 {
-    if(sp_iterations >= njobs)
-    {
-        return nullptr;
-    }
-    else
-    {
-        sp_iterations++;
-        start_position = (start_position%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
-        int endpos = start_position<njobs?start_position+1:1;
-        //int endpos = (start_position%njobs)+1;
-        std::swap(newsol[start_position],newsol[endpos]);
-        long int new_value = pis.computeObjectiveFunction(newsol);
-        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
-    }
-}
 
-emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solution* value)
-{
     emili::iteration_increment();
     if(sp_iterations >= njobs)
     {
@@ -1514,25 +1528,48 @@ emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solutio
     {
         sp_iterations++;
         start_position = (start_position%njobs)+1;
-        std::vector< int > * solution = (std::vector< int > *) value->getRawData();
-        std::vector < int > newsol(*solution);
-        //int endpos = start_position<njobs?start_position+1:1;
-        int endpos = (start_position%njobs)+1;
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
+        int endpos = start_position<njobs?start_position+1:1;
+        //int endpos = (start_position%njobs)+1;
         std::swap(newsol[start_position],newsol[endpos]);
-        long int new_value;
-        int k = start_position-1;
-            if(start_position==1){
-                prevJob.assign(prevJob.size(),0);
-            }else if(last_saved_position == -1 ){
-                pis.getInstance().computeWTs(*solution,prevJob,k-1,previousMachineEndTime);
-            }
-
-            new_value = pis.computeObjectiveFunction(newsol,prevJob,k,previousMachineEndTime);
-
-            last_saved_position = start_position-1;
-
-
+        //clock_t start = clock();
+        long int new_value = pis.computeObjectiveFunction(newsol);
+        //std::cout <<  (clock()-start) << ", " ;//<< std::endl;
         return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+    }
+}
+
+emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solution* value)
+{
+
+    emili::iteration_increment();
+    if(sp_iterations >= njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        sp_iterations++;
+        start_position = (start_position%njobs)+1;
+        //start_position = njobs-sp_iterations+1;
+        emili::pfsp::PermutationFlowShopSolution* p = (emili::pfsp::PermutationFlowShopSolution*) value;
+        std::vector < int > newsol(p->getJobSchedule());
+        int endpos =  start_position<njobs?start_position+1:1;
+        std::swap(newsol[start_position],newsol[endpos]);
+
+        std::vector< std::vector<int > > etm(p->getEndTimeMatrix());
+        long int new_value = 0;
+        //clock_t start = clock();
+
+            //clock_t start = clock();
+
+
+            new_value =  pis.computeObjectiveFunction(newsol,etm,start_position,endpos);
+
+         //std::cout <<  (clock()-start) << ", " ;//<< std::endl;
+            //assert(new_value == pis.computeObjectiveFunction(newsol));
+
+        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol,etm);
     }
 }
 
@@ -1540,7 +1577,7 @@ emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solutio
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *currentSolution)
 {
     int njobs = pis.getNjobs()-1;
-    std::vector < int > newsol = *((std::vector<int>*)currentSolution->getRawData());
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = pis.computeObjectiveFunction(newsol);
@@ -1578,8 +1615,8 @@ bool emili::pfsp::PfspTerminationClassic::terminate(Solution* currentSolution,So
 
 emili::Solution* emili::pfsp::PfspRandomSwapPertub::perturb(emili::Solution* solution)
 {
-    std::vector < int >* sol_data = (std::vector < int >*)solution->getRawData();
-    std::vector < int > perturbed(*sol_data);
+
+    std::vector < int > perturbed(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
     int n = pfs.getNjobs()-1;
     int pos1 = emili::generateRandomNumber()%n +1;
     int pos2 = emili::generateRandomNumber()%n +1;
@@ -1667,11 +1704,11 @@ void emili::pfsp::PfspTerminationIterations::reset()
     iterations=0;
 }
 
-size_t emili::pfsp::PfspTabuHashMemory::calc_hash(std::vector< int > * v )
+size_t emili::pfsp::PfspTabuHashMemory::calc_hash(std::vector< int >& v )
 {
     std::hash< std::string> hasher;
     std::ostringstream oss;
-    for(std::vector< int > ::iterator iter = v->begin();iter!= v->end();++iter )
+    for(std::vector< int > ::iterator iter = v.begin();iter!= v.end();++iter )
     {
         oss << *iter;
     }
@@ -1680,7 +1717,7 @@ size_t emili::pfsp::PfspTabuHashMemory::calc_hash(std::vector< int > * v )
 
 bool emili::pfsp::PfspTabuHashMemory::tabu_check(emili::Solution* toCheck)
 {  
-    std::vector< int > * v = (std::vector< int > *)toCheck->getRawData();
+    std::vector< int > & v = ((emili::pfsp::PermutationFlowShopSolution*)toCheck)->getJobSchedule();
     size_t c_hash = calc_hash(v);
     for(std::vector< size_t>::iterator iter = tabuVector.begin();iter!=tabuVector.end();++iter)
     {
@@ -1693,7 +1730,7 @@ bool emili::pfsp::PfspTabuHashMemory::tabu_check(emili::Solution* toCheck)
 
 void emili::pfsp::PfspTabuHashMemory::forbid(Solution *solution)
 {
-    std::vector < int > * v = (std::vector < int >* ) solution->getRawData();
+    std::vector < int >& v = ((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule();
     if(tabu_check(solution))
     {
         if(tt_index < this->tabutenure){
@@ -1754,7 +1791,7 @@ void emili::pfsp::PfspTabuValueMemory::reset()
 bool emili::pfsp::PfspFullSolutionMemory::tabu_check(emili::Solution* toCheck)
 {
 
-    std::vector< int > *value = (std::vector< int >*) toCheck->getRawData();
+    std::vector< int >& value = ((emili::pfsp::PermutationFlowShopSolution*)toCheck)->getJobSchedule();
 
     for(std::vector< std::vector<int > >::iterator iter = tabuVector.begin();iter!=tabuVector.end();++iter)
     {
@@ -1762,7 +1799,7 @@ bool emili::pfsp::PfspFullSolutionMemory::tabu_check(emili::Solution* toCheck)
         bool ret = false;
         for(int i=0; i< t.size() ; i++)
         {
-            if(t[i]!=(*value)[i])
+            if(t[i]!=value[i])
             {
                 ret = true;
                 break;
@@ -1781,15 +1818,15 @@ void emili::pfsp::PfspFullSolutionMemory::forbid(Solution *solution)
 
     if(tabu_check(solution))
     {
-        std::vector< int >* solution_vector = (std::vector< int >*) solution->getRawData();
+        std::vector< int >& solution_vector = ((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule();
         if(tt_index < this->tabutenure){
-            tabuVector.push_back(*solution_vector);
+            tabuVector.push_back(solution_vector);
             tt_index++;
         }
         else
         {
             tabuVector.erase(tabuVector.begin());            
-            tabuVector.push_back(*solution_vector);
+            tabuVector.push_back(solution_vector);
 
         }
     }
@@ -1909,7 +1946,7 @@ void emili::pfsp::TSABtestMemory::forbid(Solution *solution)
 
 bool emili::pfsp::TSABMemory::tabu_check(emili::Solution* toCheck)
 {
-    std::vector< int > & pi = *((std::vector< int > *) toCheck->getRawData());
+    std::vector< int > & pi = ((emili::pfsp::PermutationFlowShopSolution*)toCheck)->getJobSchedule();
     return tabu_check(lastMove,pi);
 }
 
@@ -1950,7 +1987,7 @@ void emili::pfsp::TSABMemory::forbid(Solution *solution)
     std::pair< int , int > fmove;
     int k = lastMove.first;
     int l = lastMove.second;
-    std::vector< int > & pi = *((std::vector< int > *) solution->getRawData());
+    std::vector< int > & pi =((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule();
     if(k<l)
     {
         fmove = std::pair< int, int > (pi[l],pi[k]);

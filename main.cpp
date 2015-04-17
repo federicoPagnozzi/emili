@@ -21,8 +21,8 @@ void testNewEvaluationFunction(PfspInstance& instance)
     std::vector<int > previousMachineEndTime(instance.getNbJob()+1,0);
     emili::pfsp::PFSP_WT pro(instance);
     emili::pfsp::PfspNEHwslackInitialSolution p(pro);
-    emili::Solution* s =  p.generateSolution();
-    std::vector<int > sol = *((std::vector<int >*)s->getRawData());
+    emili::pfsp::PermutationFlowShopSolution* s = (emili::pfsp::PermutationFlowShopSolution*) p.generateSolution();
+    std::vector<int > sol(s->getJobSchedule());
     std::vector<int > test(sol);
     std::vector<int > test1(sol);
 
@@ -64,47 +64,47 @@ void testHeuritstics2(emili::pfsp::PermutationFlowShop& problem){
     emili::pfsp::NLRSolution nlr(problem,10);
 
     clock_t start = clock();
-    emili::Solution* sorl = tests.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* sorl = (emili::pfsp::PermutationFlowShopSolution*)tests.generateSolution();
     std::cerr <<(clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << sorl->getSolutionValue();
 
     start = clock();
-    emili::Solution* rns = rnd.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* rns = (emili::pfsp::PermutationFlowShopSolution*)rnd.generateSolution();
     std::cerr << "\t" <<(clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t " << rns->getSolutionValue();
 
     start = clock();
-    emili::Solution* sss = slack.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* sss =(emili::pfsp::PermutationFlowShopSolution*) slack.generateSolution();
     std::cerr << "\t" <<(clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t" << sss->getSolutionValue();
 
     start = clock();
-    emili::Solution* nws = nwslack.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nws = (emili::pfsp::PermutationFlowShopSolution*)nwslack.generateSolution();
     std::cerr << "\t" << (clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t" << nws->getSolutionValue();
 
     start = clock();
-    emili::Solution* rzs = rz.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* rzs = (emili::pfsp::PermutationFlowShopSolution*)rz.generateSolution();
     std::cerr << "\t" <<(clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t" << rzs->getSolutionValue();
 
     start = clock();
-    emili::Solution* nrzs = nrz.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nrzs = (emili::pfsp::PermutationFlowShopSolution*)nrz.generateSolution();
     std::cerr << "\t" << (clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t" << nrzs->getSolutionValue();
 
     start = clock();
-    emili::Solution* nrz2s = nrz2.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nrz2s = (emili::pfsp::PermutationFlowShopSolution*)nrz2.generateSolution();
     std::cerr << "\t" << (clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t" << nrz2s->getSolutionValue();
 
     start = clock();
-    emili::Solution* lrs = lr.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* lrs = (emili::pfsp::PermutationFlowShopSolution*)lr.generateSolution();
     std::cerr << "\t" << (clock()-start)/(float)CLOCKS_PER_SEC;
     std::cout << "\t" << lrs->getSolutionValue();
 
     start = clock();
-    emili::Solution* nlrs = nlr.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nlrs = (emili::pfsp::PermutationFlowShopSolution*)nlr.generateSolution();
     std::cerr << "\t" << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
     std::cout << "\t" << nlrs->getSolutionValue() << std::endl;
     exit(0);
@@ -123,103 +123,103 @@ void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
     emili::pfsp::MNEH mnr(problem);
 
     clock_t start = clock();
-    emili::Solution* sorl = tests.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* sorl = (emili::pfsp::PermutationFlowShopSolution*)tests.generateSolution();
     std::cout << " LIT time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    std::vector< int >* sol = (std::vector< int >*) sorl->getRawData();    
+    std::vector< int > sol =  sorl->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "LIT -> " << sorl->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* rns = rnd.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* rns = (emili::pfsp::PermutationFlowShopSolution*)rnd.generateSolution();
     std::cout << " RANDOM time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) rns->getRawData();
+    sol =  rns->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "rns -> " << rns->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* sss = slack.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* sss = (emili::pfsp::PermutationFlowShopSolution*)slack.generateSolution();
     std::cout << " SLACK time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) sss->getRawData();
+    sol =  sss->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "sss -> " << sss->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* nws = nwslack.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nws = (emili::pfsp::PermutationFlowShopSolution*)nwslack.generateSolution();
     std::cout << " NWSLACK time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) nws->getRawData();
+    sol =  nws->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "nws -> " << nws->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* rzs = rz.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* rzs = (emili::pfsp::PermutationFlowShopSolution*)rz.generateSolution();
     std::cout << " RZ time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) rzs->getRawData();
+    sol =  rzs->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "rz -> " << rzs->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* nrzs = nrz.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nrzs = (emili::pfsp::PermutationFlowShopSolution*)nrz.generateSolution();
     std::cout << " NRZ time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) nrzs->getRawData();
+    sol =  nrzs->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "nrz -> " << nrzs->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* nrz2s = nrz2.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nrz2s =(emili::pfsp::PermutationFlowShopSolution*) nrz2.generateSolution();
     std::cout << " NRZ2 time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) nrz2s->getRawData();
+    sol =  nrz2s->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "nrz2 -> " << nrz2s->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* lrs = lr.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* lrs = (emili::pfsp::PermutationFlowShopSolution*)lr.generateSolution();
     std::cout << " LR time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) lrs->getRawData();
+    sol =  lrs->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "LR -> " << lrs->getSolutionValue() << std::endl;
 
     start = clock();
-    emili::Solution* nlrs = nlr.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* nlrs = (emili::pfsp::PermutationFlowShopSolution*)nlr.generateSolution();
     std::cout << " NLR time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) nlrs->getRawData();
+    sol =  nlrs->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "NLR -> " << nlrs->getSolutionValue() << std::endl;
 
 
     start = clock();
-    emili::Solution* mnehs = mnr.generateSolution();
+    emili::pfsp::PermutationFlowShopSolution* mnehs = (emili::pfsp::PermutationFlowShopSolution*)mnr.generateSolution();
     std::cout << " NLR time -> " << (clock()-start)/(float)CLOCKS_PER_SEC << std::endl;
-    sol = (std::vector< int >*) mnehs->getRawData();
+    sol =  mnehs->getJobSchedule();
     cout << "Found solution: ";
     for (int i = 1; i <= problem.getNjobs(); ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
     cout << endl;
     std::cout << "MNEH -> " << mnehs->getSolutionValue() << std::endl;
     exit(0);
@@ -283,13 +283,13 @@ int main(int argc, char *argv[])
     {
         solution = ls->search();
     }
-    std::vector < int > *sol = (std::vector < int > *)solution->getRawData();
+    std::vector < int >& sol = ((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule();
 #ifndef GRAMMAR2CODE
     emili::pfsp::PermutationFlowShop& prob = ps.getInstance(); 
-    long int totalWeightedTardiness = prob.computeObjectiveFunction(*sol);
+    long int totalWeightedTardiness = prob.computeObjectiveFunction(sol);
     int njobs = prob.getNjobs();
 #else
-    long int totalWeightedTardiness = problem.computeObjectiveFunction(*sol);
+    long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
 #endif    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
     //cerr << time_elapsed << " ";
     cout << "Found solution: ";
     for (int i = 1; i <= njobs; ++i)
-      cout << (*sol)[i] << " " ;
+      cout << sol[i] << " " ;
 
     cout << endl;
     cout << "Total weighted tardiness: " << totalWeightedTardiness << endl;
