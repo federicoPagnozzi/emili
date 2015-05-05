@@ -34,6 +34,8 @@ public:
     int getNmachines();
     int getDueDate(int job);
     int getPriority(int job);
+    std::vector< long int >& getDueDates();
+    std::vector< long int >& getPriorities();
     int computeMS(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
@@ -41,6 +43,9 @@ public:
     int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
     PfspInstance& getInstance();
 };
@@ -108,27 +113,44 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
+class NIPFSP_MS: public PermutationFlowShop
+{
+public:
+    NIPFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NIPFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class NI_A_PFSP_MS: public PermutationFlowShop
+{
+protected:
+    long int nims_base;
+    void calc_nims_base();
+public:
+    NI_A_PFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance),nims_base(0) { calc_nims_base();}
+    NI_A_PFSP_MS(char* instance_path):PermutationFlowShop(instance_path),nims_base(0) { calc_nims_base();}
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
 class PermutationFlowShopSolution: public emili::Solution
 {
 protected:
     std::vector< int > solution;
-    std::vector< vector<int > > previousMachineEndTimeMatrix;
+
     virtual const void* getRawData()const;
     virtual void setRawData(const void* data);
 public:
-    PermutationFlowShopSolution(double p_value):emili::Solution(p_value),solution(),previousMachineEndTimeMatrix()
+    PermutationFlowShopSolution(double p_value):emili::Solution(p_value),solution()
     {}
 
-    PermutationFlowShopSolution(std::vector< int >& solution):emili::Solution(1e9),solution(solution),previousMachineEndTimeMatrix()
+    PermutationFlowShopSolution(std::vector< int >& solution):emili::Solution(1e9),solution(solution)
     {}
 
-    PermutationFlowShopSolution(double p_value,std::vector< int >& solution):emili::Solution(p_value),solution(solution),previousMachineEndTimeMatrix()
+    PermutationFlowShopSolution(double p_value,std::vector< int >& solution):emili::Solution(p_value),solution(solution)
     {}
 
-    PermutationFlowShopSolution(double p_value,std::vector< int >& solution,std::vector< vector<int > > endTimeMatrix):emili::Solution(p_value),solution(solution),previousMachineEndTimeMatrix(endTimeMatrix)
-    {}
-    virtual std::vector< std::vector< int > >& getEndTimeMatrix();
-    virtual void setEndTimeMatrix(std::vector< std::vector< int > >& mat);
     virtual std::vector< int >& getJobSchedule();
     virtual ~PermutationFlowShopSolution();
 };
@@ -343,6 +365,41 @@ public:
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class TaillardAcceleratedInsertNeighborhood: public emili::pfsp::PfspInsertNeighborhood
+{
+protected:
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+
+    virtual Solution* computeStep(Solution *value);
+public:
+    TaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);    
+public:
+    NoIdleAcceleratedInsertNeighborhood(PermutationFlowShop& problem):TaillardAcceleratedInsertNeighborhood(problem) { }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class TAxInsertNeighborhood: public emili::pfsp::PfspInsertNeighborhood
+{
+protected:
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < std::vector < int > > > tails;
+    const std::vector < std::vector < long int > >& pmatrix;
+
+    virtual Solution* computeStep(Solution *value);
+public:
+    TAxInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tails(problem.getNjobs()+1,std::vector< std::vector< int > >(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0))),pmatrix(problem.getProcessingTimesMatrix()) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <ctime>
 #include <cstring>
+#include <algorithm>
 #include "paramsparser.h"
 #include "setup.h"
 
@@ -226,17 +227,21 @@ void testHeuritstic(emili::pfsp::PermutationFlowShop& problem){
 }
 
 
+    //char* file = "/Users/federicopagnozzi/sviluppo/QTCREAT/EMILI-build/instances/testInstance";
+    //Users/federicopagnozzi/Desktop/phd/PFSWTinstances/Taillard_DueDates/DD_Ta086.txt
+    //char* file = "/Users/federicopagnozzi/sviluppo/QTCREAT/EMILI-build/instances/testruiz.txt";
+
+
 
 
 int main(int argc, char *argv[])
 {
 
-
     /* initialize random seed: */
     srand ( time(0) );
 
     /* Create instance object */
-
+    //testTaillardAccel();
     clock_t time = clock();
  //instance.setSilence(true);
 #ifdef GRAMMAR2CODE

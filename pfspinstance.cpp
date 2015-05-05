@@ -434,8 +434,7 @@ long int PfspInstance::computeMS(vector<int> &sol,int size)
 /* Compute the weighted tardiness of a given solution starting from a given machine end time table and a starting index */
 /**/
 long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i)
-{
-    clock_t start = clock();
+{    
    int j,m;
    long int wt;
    int jobNumber;
@@ -449,8 +448,6 @@ long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& pr
        previousMachineEndTimeMatrix[1][j] = prevj;
    }
 
-   std::cout << "time -> " << (clock()-start) << std::endl;
-   start = clock();
      for ( j = start_i; j <= nbJob; ++j )
        {
            long int previousJobEndTime = previousMachineEndTimeMatrix[1][j];
@@ -473,15 +470,192 @@ long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& pr
        }
    }
 
-  std::cout << "time -> " << (clock()-start) << std::endl;
-  start = clock();
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
         wt += (std::max(previousMachineEndTimeMatrix[nbMac][j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
 
 
-    std::cout << "time -> " << (clock()-start) << std::endl;
     return wt;
+}
+
+void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
+{
+    int j,m;
+
+    int jobNumber;
+    int end_i = nbJob-1;
+   // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
+    int prevj = 0;
+    int postj = 0;
+    int k;
+    for(j=1;j<nbJob;j++)
+    {
+        k = nbJob-j;
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        postj = postj + processingTimesMatrix[sol[k]][nbMac];
+        head[1][j] = prevj;
+        tail[nbMac][k] = postj;
+    }
+
+      for ( j = 1; j <= end_i; ++j )
+        {
+            k = nbJob-j;
+            long int previousJobEndTime = head[1][j];
+            long int postJobEndTime = tail[nbMac][k];
+
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+
+            if ( head[m][j-1] > previousJobEndTime )
+            {
+                head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m];
+
+            }
+            else
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+            }
+
+            if ( tail[n][k+1] > postJobEndTime )
+            {
+                tail[n][k] = tail[n][k+1] + processingTimesMatrix[sol[k]][n];
+
+            }
+            else
+            {
+                tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
+            }
+
+            previousJobEndTime = head[m][j];
+            postJobEndTime = tail[n][k];
+        }
+    }
+}
+
+void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
+{
+    int j,m;
+
+    int jobNumber;
+    int end_i = nbJob-1;
+   // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
+    long int a_h = 0;
+    long int a_t = 0;
+    int prevj = 0;
+    int postj = 0;
+    int k;
+    for(j=1;j<nbJob;j++)
+    {
+        k = nbJob-j;
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        postj = postj + processingTimesMatrix[sol[k]][nbMac];
+        head[1][j] = prevj;
+        tail[nbMac][k] = postj;
+    }
+
+    k = nbJob-1;
+
+
+
+       for ( m = 2; m <= nbMac; ++m )
+       {
+           int n = nbMac-m+1;
+           head[m][1] = head[m-1][1] + processingTimesMatrix[sol[1]][m];
+           tail[n][k] = tail[n+1][k] + processingTimesMatrix[sol[k]][n];
+       }
+
+      for ( j = 2; j <= end_i; ++j )
+        {
+            k = nbJob-j;
+            long int previousJobEndTime = head[1][j];
+            long int postJobEndTime = tail[nbMac][k];
+            a_t = 0;
+            a_h = 0;
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+
+            if ( head[m][j-1]+a_h > previousJobEndTime )
+            {
+                head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m]+ a_h;
+            }
+            else
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                a_h += previousJobEndTime-(head[m][j-1]+a_h);
+            }
+
+            if ( tail[n][k+1]+a_t > postJobEndTime )
+            {
+                tail[n][k] = tail[n][k+1] + processingTimesMatrix[sol[k]][n]+a_t;
+            }
+            else
+            {
+                tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
+                a_t += postJobEndTime - (tail[n][k+1]+a_t);
+            }
+
+            previousJobEndTime = head[m][j];
+            postJobEndTime = tail[n][k];
+        }
+    }
+}
+
+
+
+void inline PfspInstance::computeTails(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail)
+{
+    int j,m;
+
+    int jobNumber;
+
+    int postj = 0;
+
+    for(j=size;j>=1;j--)
+    {
+
+        jobNumber = sol[j];
+        postj = postj + processingTimesMatrix[jobNumber][nbMac];
+        tail[nbMac][j] = postj;
+    }
+
+      for ( j = size; j >=1; --j )
+        {
+
+
+            long int postJobEndTime = tail[nbMac][j];
+
+            jobNumber = sol[j];
+
+            for ( m = nbMac-1; m >= 1; --m )
+            {
+
+            if ( tail[m][j+1] > postJobEndTime )
+            {
+                tail[m][j] = tail[m][j+1] + processingTimesMatrix[jobNumber][m];
+
+            }
+            else
+            {
+                tail[m][j] = postJobEndTime + processingTimesMatrix[jobNumber][m];
+            }
+            postJobEndTime = tail[m][j];
+        }
+    }
+}
+
+void PfspInstance::computeTails(std::vector<int> &sol, std::vector<std::vector<std::vector<int> > > &tails)
+{
+    for (int j = nbJob-1 ; j > 1; --j) {
+        computeTails(sol,j-1,tails[j]);
+    }
 }
 
 /*
@@ -1142,3 +1316,78 @@ long int PfspInstance::computeNWMS(vector<int> &sol, int size)
     return nwms;
 }
 
+
+/*No idle permutation flowshop*/
+
+long int PfspInstance::computeNIMS(std::vector<int> &sol)
+{
+   long int nims = processingTimesMatrix[sol[1]][1];
+
+   std::vector< int > minimumDiff(nbMac,0);
+   for(int m=1;m<nbMac;++m)
+       minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
+
+
+   for(int j=2; j<= nbJob; ++j)
+   {
+       nims += processingTimesMatrix[sol[j]][1];
+       for(int m=1;m<nbMac;++m)
+       {
+           minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j]][m],0L) + processingTimesMatrix[sol[j]][m+1];
+
+       }
+   }
+
+   for(int m=1;m<nbMac;++m)
+       nims += minimumDiff[m];
+
+   return nims;
+}
+
+long int PfspInstance::computeNIMS(vector<int> &sol, long int nims)
+{
+    std::vector< int > minimumDiff(nbMac,0);
+    for(int m=1;m<nbMac;++m)
+        minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
+
+
+    for(int j=2; j<= nbJob; ++j)
+    {
+        for(int m=1;m<nbMac;++m)
+        {
+            minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j]][m],0L) + processingTimesMatrix[sol[j]][m+1];
+
+        }
+    }
+
+    for(int m=1;m<nbMac;++m)
+        nims += minimumDiff[m];
+
+    return nims;
+}
+
+long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
+{
+   long int nims = processingTimesMatrix[sol[1]][1];;
+
+   std::vector< int > minimumDiff(nbMac,0);
+   for(int m=1;m<nbMac;++m)
+       minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
+
+
+   for(int j=2; j<= size; ++j)
+   {
+
+       nims += processingTimesMatrix[sol[j]][1];
+       for(int m=1;m<nbMac;++m)
+       {
+           minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j-1]][m],0L) + processingTimesMatrix[sol[j]][m+1];
+
+       }
+   }
+
+   for(int m=1;m<nbMac;++m)
+       nims += minimumDiff[m];
+
+   return nims;
+}

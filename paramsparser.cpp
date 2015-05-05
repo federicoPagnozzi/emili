@@ -31,6 +31,7 @@
 #define PROBLEM_PFS_T "PFSP_T"
 #define PROBLEM_PFS_E "PFSP_E"
 #define PROBLEM_NWPFS_MS "NWPFSP_MS"
+#define PROBLEM_NIPFS_MS "NIPFSP_MS"
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define TERMINATION_LOCMIN "locmin"
@@ -55,6 +56,9 @@
 #define NEIGHBORHOOD_TRANSPOSE "transpose"
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
+#define NEIGHBORHOOD_TA_INSERT "tainsert"
+#define NEIGHBORHOOD_TAx_INSERT "txinsert"
+#define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 #define RNDSEED "rnds"
 #define PERTUBATION_NOPER "noper"
 #define PERTUBATION_RND "randpert"
@@ -96,7 +100,7 @@ void prs::info()
     std::cout << std::endl;
     std::cout << "EMILI INSTANCE_FILE_PATH PROBLEM <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]" << std::endl;
     std::cout << std::endl;
-    std::cout << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_PFS_MS<< " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E << std::endl;
+    std::cout << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_PFS_MS<< " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " " << PROBLEM_NIPFS_MS << std::endl;
     std::cout << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" << std::endl;
     std::cout << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << std::endl;
     std::cout << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << std::endl;
@@ -104,7 +108,7 @@ void prs::info()
     std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int) | mneh" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
-    std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert" << std::endl;
+    std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert | "<< NEIGHBORHOOD_TA_INSERT << " | " << NEIGHBORHOOD_NITA_INSERT<< std::endl;
     std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int)" << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | tmiigacc start_temperature(float)" << std::endl;
     std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int) | tsabm size(int)" << std::endl;
@@ -740,6 +744,21 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
         std::cout << "XTranspose neighborhood\n\t";
         return new emili::pfsp::XTransposeNeighborhood(*istance);
     }
+    else if(strcmp(t,NEIGHBORHOOD_TA_INSERT)==0)
+    {
+        std::cout << "Insert with Taillard Acceleration\n\t";
+        return new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_TAx_INSERT)==0)
+    {
+        std::cout << "Insert with Taillard Acceleration\n\t";
+        return new emili::pfsp::TAxInsertNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_NITA_INSERT)==0)
+    {
+        std::cout << "Insert with Taillard Acceleration\n\t";
+        return new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*istance);
+    }
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a neighborhood specification was expected! " << std::endl;
@@ -860,7 +879,13 @@ void prs::ParamsParser::problem()
         {
             std::cout << "Permutation Flow Shop Make Span" << std::endl;
             istance = new emili::pfsp::PFSP_MS(i);
-        }else
+        }
+        else if(strcmp(t,PROBLEM_NIPFS_MS)==0)
+                {
+                    std::cout << "No Idle Permutation Flow Shop Make Span" << std::endl;
+                    istance = new emili::pfsp::NI_A_PFSP_MS(i);
+                }
+        else
         {
             std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
             prs::info();

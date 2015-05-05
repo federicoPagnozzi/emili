@@ -35,7 +35,7 @@ class PfspInstance{
     std::vector< long int > priority;
     bool silence;
     std::vector< std::vector <long int> > processingTimesMatrix;
-
+    void computeTails(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail);
   public:
     PfspInstance();
     ~PfspInstance();
@@ -56,6 +56,16 @@ class PfspInstance{
 
     long int getPriority(int job);
     void setPriority(int job, int value);
+
+    std::vector< long int >& getDueDates()
+    {
+        return dueDates;
+    }
+
+    std::vector< long int >& getPriorities()
+    {
+        return priority;
+    }
 
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
@@ -91,6 +101,12 @@ class PfspInstance{
     long int computeNWMS(vector< int > & sol);
     /*Compute partial no wait make span*/
     long int computeNWMS(vector<int> & sol, int size);
+    /*Compute no idle make span*/
+    long int computeNIMS(vector<int> & sol);
+    /*Compute no idle partial make span*/
+    long int computeNIMS(vector<int> &sol, int size);
+    /*Compute no idle make span iwthout computing the sums of machine 1 processing times*/
+    long int computeNIMS(vector<int> &sol, long int nims);
 
     /* Compute weighted tardines starting from an index*/
     long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
@@ -100,6 +116,10 @@ class PfspInstance{
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void setSilence(bool s);
 
+    //Compute the earliest completion time starting from the beginning and starting from the end in order to apply taillard acceleration...
+    void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeTails(std::vector<int> &sol, std::vector < std::vector< std::vector< int > > >& tails);
+    void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     int computeIdleTimeCoeff(vector<int>& prevJob, int job);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
