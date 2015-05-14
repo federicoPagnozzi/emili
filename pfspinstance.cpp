@@ -227,68 +227,12 @@ bool PfspInstance::readDataFromFile(const string _fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeWT(vector< int > & sol)
+inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> > processingTimesMatrix,int nbJob, int nbMac, int size)
 {
-	int j, m;
-	int jobNumber;
-	long int wt;
-
-	/* We need end times on previous machine : */
-	vector< long int > previousMachineEndTime ( nbJob + 1 );
-	/* And the end time of the previous job, on the same machine : */
-	long int previousJobEndTime;
-
-	/* 1st machine : */
-	previousMachineEndTime[0] = 0;
-	for ( j = 1; j <= nbJob; ++j )
-	{
-		jobNumber = sol[j];
-		previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-	}
-
-	/* others machines : */
-	for ( m = 2; m <= nbMac; ++m )
-	{
-		previousMachineEndTime[1] +=
-				processingTimesMatrix[sol[1]][m];
-		previousJobEndTime = previousMachineEndTime[1];
-
-
-		for ( j = 2; j <= nbJob; ++j )
-		{
-			jobNumber = sol[j];
-
-			if ( previousMachineEndTime[j] > previousJobEndTime )
-			{
-				previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-				previousJobEndTime = previousMachineEndTime[j];
-			}
-			else
-			{
-				previousJobEndTime += processingTimesMatrix[jobNumber][m];
-				previousMachineEndTime[j] = previousJobEndTime;
-			}
-		}
-	}
-
-	wt = 0;
-	for ( j = 1; j<= nbJob; ++j )
-	    wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
-
-	return wt;
-}
-
-/*compute partial weighted tardiness*/
-long int PfspInstance::computeWT(vector<int> &sol, int size)
-{
+    long int previousJobEndTime;
     int j, m;
     int jobNumber;
-    long int wt;
-    // We need end times on previous machine :
-    vector< long int > previousMachineEndTime ( size + 1 );
-    // And the end time of the previous job, on the same machine :
-    long int previousJobEndTime;
-     //1st machine :
+    /* 1st machine : */
     previousMachineEndTime[0] = 0;
     for ( j = 1; j <= size; ++j )
     {
@@ -296,10 +240,11 @@ long int PfspInstance::computeWT(vector<int> &sol, int size)
         previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
     }
 
-    // others machines :
+    /* others machines : */
     for ( m = 2; m <= nbMac; ++m )
     {
-        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
+        previousMachineEndTime[1] +=
+                processingTimesMatrix[sol[1]][m];
         previousJobEndTime = previousMachineEndTime[1];
 
 
@@ -319,6 +264,39 @@ long int PfspInstance::computeWT(vector<int> &sol, int size)
             }
         }
     }
+}
+
+inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> > processingTimesMatrix,int nbJob, int nbMac)
+{
+    computePartialMakespans( sol,previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,nbJob);
+}
+
+long int PfspInstance::computeWT(vector< int > & sol)
+{
+    int j;
+	long int wt;
+	/* We need end times on previous machine : */
+	vector< long int > previousMachineEndTime ( nbJob + 1 );
+	/* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
+
+	wt = 0;
+	for ( j = 1; j<= nbJob; ++j )
+	    wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+	return wt;
+}
+
+/*compute partial weighted tardiness*/
+long int PfspInstance::computeWT(vector<int> &sol, int size)
+{
+    int j;
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+
 
     wt = 0;
 
@@ -815,51 +793,49 @@ int PfspInstance::computeIdleTimeCoeff(vector<int>& prevJob, int job)
     return alpha;
 
 }
+/*Compute flowtime*/
+long int PfspInstance::computeFT(vector< int >& sol)
+{
+    /*TO MODIFY IF WE HAVE TO DEAL WITH RELEASE DATES!!!*/
+    int j;
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
+
+    wt = 0;
+    for ( j = 1; j<= nbJob; ++j )
+        wt += priority[sol[j]];
+
+    return wt;
+}
+
+long int PfspInstance::computeFT(vector<int> &sol, int size)
+{
+    int j;
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+
+    wt = 0;
+    for ( j = 1; j<= size; ++j )
+        wt += priority[sol[j]];
+
+    return wt;
+}
 
 /* Compute the weighted completion time of a given solution */
 long int PfspInstance::computeWCT(vector< int > & sol)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    long int previousJobEndTime;
-
-    /* 1st machine : */
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= nbJob; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    /* others machines : */
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] +=
-                processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= nbJob; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
 
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
@@ -871,44 +847,12 @@ long int PfspInstance::computeWCT(vector< int > & sol)
 /*compute partial weighted completion time*/
 long int PfspInstance::computeWCT(vector<int> &sol, int size)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-    // We need end times on previous machine :
-    vector< long int > previousMachineEndTime ( size + 1 );
-    // And the end time of the previous job, on the same machine :
-    long int previousJobEndTime;
-     //1st machine :
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= size; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    // others machines :
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= size; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
 
     wt = 0;
 
@@ -924,47 +868,13 @@ long int PfspInstance::computeWCT(vector<int> &sol, int size)
 /* Compute the weighted earliness of a given solution */
 long int PfspInstance::computeWE(vector< int > & sol)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    long int previousJobEndTime;
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
 
-    /* 1st machine : */
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= nbJob; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    /* others machines : */
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] +=
-                processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= nbJob; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
 
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
@@ -976,44 +886,13 @@ long int PfspInstance::computeWE(vector< int > & sol)
 /*compute partial weighted tardiness*/
 long int PfspInstance::computeWE(vector<int> &sol, int size)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-    // We need end times on previous machine :
-    vector< long int > previousMachineEndTime ( size + 1 );
-    // And the end time of the previous job, on the same machine :
-    long int previousJobEndTime;
-     //1st machine :
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= size; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
 
-    // others machines :
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= size; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
 
     wt = 0;
 
@@ -1029,47 +908,12 @@ long int PfspInstance::computeWE(vector<int> &sol, int size)
 /* Compute the weighted tardiness of a given solution */
 long int PfspInstance::computeT(vector< int > & sol)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    long int previousJobEndTime;
-
-    /* 1st machine : */
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= nbJob; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    /* others machines : */
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] +=
-                processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= nbJob; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
 
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
@@ -1081,44 +925,12 @@ long int PfspInstance::computeT(vector< int > & sol)
 /*compute partial  tardiness*/
 long int PfspInstance::computeT(vector<int> &sol, int size)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-    // We need end times on previous machine :
-    vector< long int > previousMachineEndTime ( size + 1 );
-    // And the end time of the previous job, on the same machine :
-    long int previousJobEndTime;
-     //1st machine :
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= size; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    // others machines :
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= size; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
 
     wt = 0;
 
@@ -1134,47 +946,12 @@ long int PfspInstance::computeT(vector<int> &sol, int size)
 /* Compute the earliness of a given solution */
 long int PfspInstance::computeE(vector< int > & sol)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    long int previousJobEndTime;
-
-    /* 1st machine : */
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= nbJob; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    /* others machines : */
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] +=
-                processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= nbJob; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
 
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
@@ -1186,44 +963,12 @@ long int PfspInstance::computeE(vector< int > & sol)
 /*compute partial earliness */
 long int PfspInstance::computeE(vector<int> &sol, int size)
 {
-    int j, m;
-    int jobNumber;
+    int j;
     long int wt;
-    // We need end times on previous machine :
-    vector< long int > previousMachineEndTime ( size + 1 );
-    // And the end time of the previous job, on the same machine :
-    long int previousJobEndTime;
-     //1st machine :
-    previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= size; ++j )
-    {
-        jobNumber = sol[j];
-        previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
-    }
-
-    // others machines :
-    for ( m = 2; m <= nbMac; ++m )
-    {
-        previousMachineEndTime[1] += processingTimesMatrix[sol[1]][m];
-        previousJobEndTime = previousMachineEndTime[1];
-
-
-        for ( j = 2; j <= size; ++j )
-        {
-            jobNumber = sol[j];
-
-            if ( previousMachineEndTime[j] > previousJobEndTime )
-            {
-                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
-                previousJobEndTime = previousMachineEndTime[j];
-            }
-            else
-            {
-                previousJobEndTime += processingTimesMatrix[jobNumber][m];
-                previousMachineEndTime[j] = previousJobEndTime;
-            }
-        }
-    }
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
 
     wt = 0;
 
@@ -1238,51 +983,10 @@ long int PfspInstance::computeE(vector<int> &sol, int size)
 
 /*No wait permutation flowshop*/
 
-/* makespan */
+/* compute partials completition time distances*/
 
-long int PfspInstance::computeNWMS(vector<int> &sol)
+inline void computeNoWaitTimeDistances(vector<int> &sol, int nbMac, int size,vector< vector < long int > >& processingTimesMatrix, vector< int > & completionTimeDistance)
 {
-    std::vector < int > completionTimeDistance(nbJob+1,0);
-
-    for(int m=1; m <= nbMac;m++)
-    {
-        completionTimeDistance[1] += processingTimesMatrix[sol[1]][m];
-    }
-
-    for(int j=2; j <= nbJob ; j++)
-    {
-        int max_ctd = 0;
-        int i = sol[j-1];
-        int jj = sol[j];
-        for (int k = 1; k<= nbMac ; k++)
-        {
-            int temp_ctd = processingTimesMatrix[i][k];
-            for(int h=k; h <= nbMac ; h++ )
-            {
-                temp_ctd += processingTimesMatrix[jj][h]-processingTimesMatrix[i][h];
-            }
-            if(temp_ctd > max_ctd){
-                max_ctd = temp_ctd;
-            }
-        }
-        completionTimeDistance[j] = max_ctd;
-    }
-
-    int nwms = 0;
-    for( int j=1; j<= nbJob ; j++)
-    {
-        nwms += completionTimeDistance[j];
-    }
-
-    return nwms;
-}
-
-/*partial makespan*/
-
-long int PfspInstance::computeNWMS(vector<int> &sol, int size)
-{
-    std::vector < int > completionTimeDistance(nbJob+1,0);
-
     for(int m=1; m <= nbMac;m++)
     {
         completionTimeDistance[1] += processingTimesMatrix[sol[1]][m];
@@ -1306,6 +1010,32 @@ long int PfspInstance::computeNWMS(vector<int> &sol, int size)
         }
         completionTimeDistance[j] = max_ctd;
     }
+}
+
+/* makespan */
+
+long int PfspInstance::computeNWMS(vector<int> &sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    for( int j=1; j<= nbJob ; j++)
+    {
+        nwms += completionTimeDistance[j];
+    }
+
+    return nwms;
+}
+
+/*partial makespan*/
+
+long int PfspInstance::computeNWMS(vector<int> &sol, int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
 
     int nwms = 0;
     for( int j=1; j<= size ; j++)
@@ -1316,8 +1046,194 @@ long int PfspInstance::computeNWMS(vector<int> &sol, int size)
     return nwms;
 }
 
+/* No wait weighted tardiness*/
+long int PfspInstance::computeNWWT(vector< int > &sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=nbJob ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
+    }
+}
+
+long int PfspInstance::computeNWWT(vector< int > &sol, int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=size ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
+    }
+}
+
+/*No wait weighted earliness*/
+long int PfspInstance::computeNWWE(std::vector< int > & sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=nbJob ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += (std::max(dueDates[sol[j]] - nwms , 0L) * priority[sol[j]]);
+    }
+    return wt;
+}
+
+long int PfspInstance::computeNWWE(std::vector<int> &sol, int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=size ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += (std::max(dueDates[sol[j]] - nwms , 0L) * priority[sol[j]]);
+    }
+
+    return wt;
+}
+
+/* No wait earliness*/
+
+long int PfspInstance::computeNWE(std::vector< int > & sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=nbJob ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += std::max(dueDates[sol[j]] - nwms , 0L);
+    }
+
+    return wt;
+}
+
+long int PfspInstance::computeNWE(std::vector<int> &sol, int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=size ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += std::max(dueDates[sol[j]] - nwms , 0L);
+    }
+
+    return wt;
+}
+
+/*No wait tardiness*/
+
+long int PfspInstance::computeNWT(std::vector<int> &sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=nbJob ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += (std::max(nwms - dueDates[sol[j]], 0L) );
+    }
+
+    return wt;
+}
+
+long int PfspInstance::computeNWT(std::vector<int> &sol, int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=size ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += (std::max(nwms - dueDates[sol[j]], 0L));
+    }
+
+    return wt;
+}
 
 /*No idle permutation flowshop*/
+
+
+inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob,int size)
+{
+    std::vector< long int > partialMs(nbJob+1,0);
+
+    long int nims = processingTimesMatrix[sol[1]][1];
+    partialMs[1] = nims;
+    std::vector< int > minimumDiff(nbMac,0);
+
+    for(int m=1;m<nbMac;++m)
+    {
+        minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
+        partialMs[1] += processingTimesMatrix[sol[1]][m+1];
+    }
+
+
+    for(int j=2; j<= size; ++j)
+    {
+        nims += processingTimesMatrix[sol[j]][1];
+        partialMs[j] = nims;
+
+        for(int m=1;m<nbMac;++m)
+        {
+            minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j]][m],0L) + processingTimesMatrix[sol[j]][m+1];
+            partialMs[j] += minimumDiff[m];
+        }
+    }
+
+    /*for(int m=1;m<nbMac;++m)
+        nims += minimumDiff[m];
+
+    return nims;*/
+    return partialMs;
+}
+
+
+inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob)
+{
+    return computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,nbJob);
+}
+
 
 long int PfspInstance::computeNIMS(std::vector<int> &sol)
 {
@@ -1344,6 +1260,8 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol)
    return nims;
 }
 
+
+
 long int PfspInstance::computeNIMS(vector<int> &sol, long int nims)
 {
     std::vector< int > minimumDiff(nbMac,0);
@@ -1361,7 +1279,8 @@ long int PfspInstance::computeNIMS(vector<int> &sol, long int nims)
     }
 
     for(int m=1;m<nbMac;++m)
-        nims += minimumDiff[m];
+        nims += minimumDiff[m];    
+
 
     return nims;
 }
@@ -1389,5 +1308,91 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
    for(int m=1;m<nbMac;++m)
        nims += minimumDiff[m];
 
+
    return nims;
+}
+// Compute no idle weighted tardiness
+long int PfspInstance::computeNIWT(std::vector<int> &sol)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+    long int wt = 0;
+    for ( int j = 1; j<= nbJob; ++j )
+        wt += (std::max(partials[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+    return wt;
+}
+
+long int PfspInstance::computeNIWT(std::vector<int> &sol, int size)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
+    long int wt = 0;
+    for ( int j = 1; j<= size; ++j )
+        wt += (std::max(partials[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+    return wt;
+}
+
+// Compute no idle weighted earliness
+long int PfspInstance::computeNIWE(std::vector< int > & sol)
+{
+    std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+    long int wt = 0;
+    for (int j = 1; j<= nbJob; ++j )
+        wt += (std::max(dueDates[sol[j]] - previousMachineEndTime[j] , 0L) * priority[sol[j]]);
+
+    return wt;
+}
+
+long int PfspInstance::computeNIWE(std::vector<int> &sol, int size)
+{
+    std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
+    long int wt = 0;
+    for (int j = 1; j<= size; ++j )
+        wt += (std::max(dueDates[sol[j]] - previousMachineEndTime[j] , 0L) * priority[sol[j]]);
+
+    return wt;
+}
+
+// Compute no idle earliness
+
+long int PfspInstance::computeNIE(std::vector< int > & sol)
+{
+    std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+    long int wt = 0;
+    for (int j = 1; j<= nbJob; ++j )
+        wt += std::max(dueDates[sol[j]] - previousMachineEndTime[j] , 0L);
+
+    return wt;
+}
+
+long int PfspInstance::computeNIE(std::vector<int> &sol, int size)
+{
+    std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
+    long int wt = 0;
+    for (int j = 1; j<= size; ++j )
+        wt += std::max(dueDates[sol[j]] - previousMachineEndTime[j] , 0L);
+
+    return wt;
+}
+
+// Compute no idle tardiness
+
+long int PfspInstance::computeNIT(std::vector<int> &sol)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+    long int wt = 0;
+    for ( int j = 1; j<= nbJob; ++j )
+        wt += (std::max(partials[j] - dueDates[sol[j]], 0L) );
+
+    return wt;
+}
+
+long int PfspInstance::computeNIT(std::vector<int> &sol, int size)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
+    long int wt = 0;
+    for ( int j = 1; j<= size; ++j )
+        wt += (std::max(partials[j] - dueDates[sol[j]], 0L));
+
+    return wt;
 }

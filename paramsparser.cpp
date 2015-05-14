@@ -12,6 +12,7 @@
 #define FIRST "first"
 #define BEST "best"
 #define VND "vnd"
+#define GVNS_ILS "gvns"
 #define IT "-it"
 #define TABU_MEMORY_MOVES "move"
 #define TABU_MEMORY_HASHES "hash"
@@ -83,7 +84,7 @@
 #define DEFAULT_IT -10
 
 
-void prs::emili()
+void prs::emili_header()
 {
     std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
     std::cout << "\t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
@@ -105,6 +106,7 @@ void prs::info()
     std::cout << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << std::endl;
     std::cout << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << std::endl;
     std::cout << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << std::endl;
+    std::cout << "GVNS_SEARCH           = gvns INITIAL_SOLUTION PERTUBATION1 PERTUBATION2 -it seconds" << std::endl;
     std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int) | mneh" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
@@ -152,14 +154,22 @@ emili::LocalSearch* prs::ParamsParser::eparams()
         ls = ig();
 
     }
+    else if(strcmp(t,GVNS_ILS)==0)
+    {
+        std::cout << "GVNS... \n\t";
+        ls = gvns();
+        ils_time = ilstime();
+        ls->setSearchTime(ils_time);
+
+    }
     else
     {
         currentToken--;
         std::cout << "LocalSearch \n\t";
         ls = search();
 
-    ils_time = ilstime();
-    ls->setSearchTime(ils_time);
+        ils_time = ilstime();
+        ls->setSearchTime(ils_time);
     }
     int seed = getSeed();
     std::cout << "\tRANDOM SEED " << seed<< "\n\t" ;
@@ -429,6 +439,18 @@ emili::LocalSearch* prs::ParamsParser::ig()
     emili::LocalSearch* iils = new emili::IteratedGreedy(*ls,*pft,*prsp,*tac);
     iils->setSearchTime(ils_time);
     return iils;
+}
+
+emili::LocalSearch* prs::ParamsParser::gvns()
+{
+    emili::InitialSolution* is = init();
+    emili::Perturbation* p1 = per();
+    emili::Perturbation* p2 = per();
+    emili::pfsp::GVNS_innerloop* gvi = new emili::pfsp::GVNS_innerloop(*is);
+    std::vector< emili::Perturbation* > p;
+    p.push_back(p1);
+    p.push_back(p2);
+    return new emili::GVNS(*gvi,p);
 }
 
 

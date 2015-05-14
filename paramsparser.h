@@ -5,7 +5,7 @@
 
 namespace prs
 {
-void emili();
+void emili_header();
 void info();
 
 class ParamsParser
@@ -20,6 +20,7 @@ protected:
     emili::LocalSearch* search();
     emili::LocalSearch* ils();
     emili::LocalSearch* ig();
+    emili::LocalSearch* gvns();
     int ilstime();
     emili::TabuSearch* tparams();
     emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n);

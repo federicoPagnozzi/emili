@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 
 
 #else
-    prs::emili();
+    prs::emili_header();
 #endif
     /* Read data from file */
     if (argc < 3 )

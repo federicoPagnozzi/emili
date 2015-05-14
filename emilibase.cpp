@@ -85,7 +85,7 @@ static void finalise (int _)
     endTime = clock();
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* s_cap = localsearch->getBestSoFar();
-    if(s_cap)
+    if(s_cap != nullptr)
     {
         cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << s_cap->getSolutionValue() << std::endl;
@@ -300,9 +300,17 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
         do
         { 
 
-            delete bestSoFar;
-            bestSoFar = newSolution;
+
             newSolution = neighbh->step(bestSoFar);
+            if(bestSoFar->operator >(*newSolution))
+            {
+                delete bestSoFar;
+                bestSoFar = newSolution;
+            }
+            else
+            {
+                delete newSolution;
+            }
 
         }while(!termcriterion->terminate(bestSoFar,newSolution));
 
@@ -771,7 +779,7 @@ emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 {
     emili::Solution* bestOfInnerLocal = this->ls.getBestSoFar();
 
-    if(bestOfInnerLocal->operator <(*bestSoFar))
+    if(bestOfInnerLocal != nullptr &&  bestOfInnerLocal->operator <(*bestSoFar))
     {
         return bestOfInnerLocal;
     }
@@ -957,5 +965,57 @@ void emili::Metropolis::reset()
 {
     temperature = start_temp;
     counter = 0;
+}
+
+/* GVNS */
+
+emili::Solution* emili::GVNS::search(Solution* initial)
+{
+        int k = 0;
+        int k_max = perturbations.size();
+        bestSoFar = initial;
+        ls.setBestSoFar(initial);
+        emili::Solution*  s = ls.search(bestSoFar);
+        *bestSoFar = *s ;
+
+        emili::Solution* s_s = nullptr;
+        //initialization done
+        do{
+
+            //Pertubation step
+            emili::Solution* s_p = perturbations[k]->perturb(s);
+
+            //local search on s_p
+            if(s!=s_s && s_s != nullptr)
+                delete s_s;
+
+            //ls.setBestSoFar(bestSoFar);
+            s_s = ls.search(s_p);
+
+            //best solution
+            if(*s_s < *bestSoFar)
+            {
+                *bestSoFar = *s_s;
+                //ls.setBestSoFar(bestSoFar);
+            }
+
+            if(*s_s < *s_p)
+            {
+                s = s_s;
+                k = 0 ;
+                delete s_p;
+            }
+            else
+            {
+                delete s_p;
+                if(bestSoFar!=s_s)
+                     delete s_s;
+
+                k++;
+            }
+
+        }while(k < k_max && keep_going);
+
+        return bestSoFar;
 }
 

@@ -79,9 +79,12 @@ class PfspInstance{
     long int computeWT (vector< int > & sol, int size);
     /* Compute MakeSpan */
     long int computeMS (vector<int> & sol);
-    /*Compute weighted completion times*/
+    /* Compute FlowTime*/
+    long int computeFT(vector<int> & sol);
+    long int computeFT(vector<int> &sol, int size);
+    /*Compute weighted completion times*/    
     long int computeWCT (vector< int > & sol);
-    /*Compute partial weighted completion times*/
+    /*Compute partial weighted completion times*/    
     long int computeWCT (vector< int > & sol, int size);
     /* Compute partial MakeSpan*/
     long int computeMS(vector<int> &sol,int size);
@@ -97,16 +100,42 @@ class PfspInstance{
     long int computeE (vector< int > & sol);
     /*Compute partial earliness*/
     long int computeE (vector< int > & sol, int size);
+
     /*Compute no wait make span*/
     long int computeNWMS(vector< int > & sol);
     /*Compute partial no wait make span*/
     long int computeNWMS(vector<int> & sol, int size);
+    /*Compute no wait weighted tardiness*/
+    long int computeNWWT(vector<int> &sol);
+    long int computeNWWT(vector<int> &sol,int size);
+    /*Compute no wait weighted earliness*/
+    long int computeNWWE(vector<int> &sol);
+    long int computeNWWE(vector<int> &sol,int size);
+    /*Compute no wait earliness*/
+    long int computeNWE(vector<int> &sol);
+    long int computeNWE(vector<int> &sol,int size);
+    /*Compute no wait tardiness*/
+    long int computeNWT(vector<int> &sol);
+    long int computeNWT(vector<int> &sol,int size);
+
     /*Compute no idle make span*/
     long int computeNIMS(vector<int> & sol);
     /*Compute no idle partial make span*/
     long int computeNIMS(vector<int> &sol, int size);
     /*Compute no idle make span iwthout computing the sums of machine 1 processing times*/
     long int computeNIMS(vector<int> &sol, long int nims);
+    /*Compute no idle weighted tardiness*/
+    long int computeNIWT(vector<int> &sol);
+    long int computeNIWT(vector<int> &sol,int size);
+    /*Compute no idle weighted earliness*/
+    long int computeNIWE(vector<int> &sol);
+    long int computeNIWE(vector<int> &sol,int size);
+    /*Compute no idle earliness*/
+    long int computeNIE(vector<int> &sol);
+    long int computeNIE(vector<int> &sol,int size);
+    /*Compute no idle tardiness*/
+    long int computeNIT(vector<int> &sol);
+    long int computeNIT(vector<int> &sol,int size);
 
     /* Compute weighted tardines starting from an index*/
     long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
@@ -123,6 +152,7 @@ class PfspInstance{
     int computeIdleTimeCoeff(vector<int>& prevJob, int job);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
+
 };
 
 #endif

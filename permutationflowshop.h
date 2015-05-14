@@ -651,6 +651,34 @@ public:
         bs1(is,tc,n1),bs2(is,tc,n2),bs3(is,tc,n3) { }
     virtual emili::Solution* search(Solution* initial);
 };
+
+
+class GVNS_RIS_Neighborhood: public emili::pfsp::PfspNeighborhood
+{
+protected:
+    emili::Solution* reference;
+    int njobs;
+    int index;
+    virtual Solution* computeStep(Solution *step);
+public:
+    GVNS_RIS_Neighborhood(emili::pfsp::PermutationFlowShop& problem):emili::pfsp::PfspNeighborhood(problem),njobs(problem.getNjobs()),index(1) { }
+    void setReference(emili::Solution* ref) {this->reference = ref;}
+    virtual void reset();
+    virtual Solution* random(Solution *currentSolution);
+    virtual std::pair<int,int> lastMove() { return std::pair<int,int>(index,index); }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class GVNS_innerloop: public emili::LocalSearch
+{
+protected:
+    emili::pfsp::GVNS_RIS_Neighborhood* rneigh;
+public:
+    GVNS_innerloop(InitialSolution& initialSolutionGenerator);
+    virtual Solution* search(emili::Solution* initial);
+};
+
+
 }
 }
 

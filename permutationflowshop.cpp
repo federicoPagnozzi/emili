@@ -1027,7 +1027,8 @@ emili::Solution* emili::pfsp::PfspDestructor::destruct(Solution *solutioon)
     int start_position = emili::generateRandomNumber()%(size-1);
     int num_postion = emili::generateRandomNumber()%(size-start_position-1);
     des.erase(des.begin()+start_position,des.begin()+start_position+num_postion);
-    des.insert(des.begin()+start_position,num_postion,0);        
+    des.insert(des.begin()+start_position,num_postion,0);
+
     int nbJobs = instance.getNjobs();
     std::vector<int> res = slack_construct(des,nbJobs,instance);
     res = neh2(res,nbJobs,instance);
@@ -2323,4 +2324,112 @@ emili::Solution* emili::pfsp::VNDFirstSearch::search(emili::Solution* initial)
    temp = bs3.search(temp);
 
    return temp;
+}
+
+emili::pfsp::GVNS_innerloop::GVNS_innerloop(InitialSolution& initialSolutionGenerator)
+{
+    this->init = &initialSolutionGenerator;
+    this->termcriterion = new emili::LocalMinimaTermination();
+    this->rneigh = new emili::pfsp::GVNS_RIS_Neighborhood((emili::pfsp::PermutationFlowShop&)initialSolutionGenerator.getProblem());
+    this->neighbh = this->rneigh;
+}
+
+emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
+{
+    termcriterion->reset();
+    neighbh->reset();
+
+    bestSoFar = init->generateEmptySolution();
+    emili::Solution* incumbent = bestSoFar;
+
+    *incumbent = *initial;
+    //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
+
+    do{
+        if(bestSoFar != incumbent)
+        {
+            delete bestSoFar;
+        }
+        bestSoFar = incumbent;
+        rneigh->setReference(bestSoFar);
+        for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
+        {
+            emili::Solution* ithSolution = *iter;
+            if(incumbent->operator >(*ithSolution)){
+                if(incumbent!=bestSoFar)
+                delete incumbent;
+
+                incumbent = ithSolution;
+                break;
+            }
+            else
+            {
+                delete ithSolution;
+            }
+
+        }
+
+    }while(!termcriterion->terminate(bestSoFar,incumbent));
+    return bestSoFar;
+}
+
+void emili::pfsp::GVNS_RIS_Neighborhood::reset()
+{
+    index = 1;
+}
+
+emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution)
+{
+    return currentSolution;
+}
+
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::GVNS_RIS_Neighborhood::begin(Solution *base)
+{
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
+emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
+{
+    if(index > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::vector< int >& bsf = ((emili::pfsp::PermutationFlowShopSolution*)reference)->getJobSchedule();
+        std::vector< int >& base = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
+        int k = bsf[1];
+        int k_index = 1;
+
+        for(int i=1; i<= njobs; ++i)
+        {
+            if(base[i] == k)
+            {
+                k_index = i;
+                break;
+            }
+        }
+
+        std::vector< int > bestCombination(base);
+        std::vector< int > workCombination(base);
+        long int best_res = step->getSolutionValue();
+
+        for(int i=1; i<=njobs;++i )
+        {
+            if(i!=k_index)
+            {
+                workCombination.erase(workCombination.begin()+k_index);
+                workCombination.insert(workCombination.begin()+i,k);
+                long int nvalue = pis.computeObjectiveFunction(workCombination);
+                if(nvalue < best_res)
+                {
+                    best_res = nvalue;
+                    bestCombination = workCombination;
+                }
+                workCombination = base;
+            }
+        }
+        index++;
+        return new emili::pfsp::PermutationFlowShopSolution(best_res,bestCombination);
+    }
 }

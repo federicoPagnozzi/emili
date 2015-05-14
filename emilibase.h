@@ -225,12 +225,12 @@ public:
 class EmptyNeighBorHood: public emili::Neighborhood
 {
 protected:
-    virtual Solution* computeStep(Solution *step);
+    virtual Solution* computeStep(Solution *step) {return nullptr;}
 public:
     EmptyNeighBorHood() {}
-    virtual Solution* step(Solution *currentSolution);
-    virtual void reset();
-    virtual Solution* random(Solution *currentSolution);
+    virtual Solution* step(Solution *currentSolution) {return currentSolution;}
+    virtual void reset() { }
+    virtual Solution* random(Solution *currentSolution) { return currentSolution;}
 };
 
 
@@ -281,6 +281,7 @@ public:
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();
     virtual Solution* getBestSoFar() { return bestSoFar;}
+    virtual void setBestSoFar(Solution* newBest) {this->bestSoFar=newBest;}
     virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh;}
 
 };
@@ -407,6 +408,7 @@ protected:
     LocalSearch& ls;
     Perturbation& pert;
     Acceptance& acc;
+
 public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationcriterion,Perturbation& perturb,Acceptance& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationcriterion,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
 
@@ -513,6 +515,20 @@ public:
     }
 
 };
+
+
+class GVNS: public emili::LocalSearch
+{
+protected:
+    std::vector < emili::Perturbation* > perturbations;
+    emili::LocalSearch& ls;
+public:
+    GVNS(emili::LocalSearch& localsearch,std::vector< emili::Perturbation* > perturbs):emili::LocalSearch(),perturbations(perturbs),ls(localsearch) {this->init = &ls.getInitialSolution();this->neighbh = new emili::EmptyNeighBorHood(); }
+    virtual Solution* search(emili::Solution* initial);
+    virtual ~GVNS() { delete neighbh;}
+};
+
+
 
 
 class PipeSearch: public emili::LocalSearch
