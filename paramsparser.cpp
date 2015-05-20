@@ -5,7 +5,7 @@
 #include <cstring>
 #include "pfspinstance.h"
 
-
+/* Algos */
 #define IG "ig"
 #define ILS "ils"
 #define TABU "tabu"
@@ -13,30 +13,56 @@
 #define BEST "best"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
-#define IT "-it"
+
+/* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
 #define TABU_MEMORY_HASHES "hash"
 #define TABU_MEMORY_SOLUTIONS "solution"
 #define TABU_MEMORY_TSAB "tsabm"
 #define TABU_MEMORY_TSAB_TEST "tsabmt"
+
+/* modifiers */
+#define IT "-it"
 #define TS "-ts"
 #define TI "-ti"
 #define IN "-in"
 #define TE "-te"
 #define NE "-ne"
 #define NS "-ns"
+#define RNDSEED "rnds"
+#define DEFAULT_TS 10
+#define DEFAULT_TI 10
+#define DEFAULT_IT -10
+
+
+/* Permutation flowshop*/
 #define PROBLEM_PFS_WT "PFSP_WT"
 #define PROBLEM_PFS_WE "PFSP_WE"
-#define PROBLEM_PFS_WCT "PFSP_WCT"
-#define PROBLEM_PFS_MS "PFSP_MS"
+#define PROBLEM_PFS_TCT "PFSP_TCT"
 #define PROBLEM_PFS_T "PFSP_T"
 #define PROBLEM_PFS_E "PFSP_E"
+#define PROBLEM_PFS_WCT "PFSP_WCT"
+#define PROBLEM_PFS_MS "PFSP_MS"
+
+/* no wait permutation flowshop*/
 #define PROBLEM_NWPFS_MS "NWPFSP_MS"
+#define PROBLEM_NWPFS_WT "NWPFSP_WT"
+#define PROBLEM_NWPFS_WE "NWPFSP_WE"
+#define PROBLEM_NWPFS_TCT "NWPFSP_TCT"
+#define PROBLEM_NWPFS_T "NWPFSP_T"
+#define PROBLEM_NWPFS_E "NWPFSP_E"
+
+/* no idle permutation flowshop*/
 #define PROBLEM_NIPFS_MS "NIPFSP_MS"
+#define PROBLEM_NIPFS_WT "NIPFSP_WT"
+#define PROBLEM_NIPFS_WE "NIPFSP_WE"
+#define PROBLEM_NIPFS_TCT "NIPFSP_TCT"
+#define PROBLEM_NIPFS_T "NIPFSP_T"
+#define PROBLEM_NIPFS_E "NIPFSP_E"
+
+/* initial solution heuristics */
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
-#define TERMINATION_LOCMIN "locmin"
-#define TERMINATION_ITERA "iteration"
 #define INITIAL_LIT "lit"
 #define INITIAL_RZ "rz"
 #define INITIAL_NRZ "nrz"
@@ -44,12 +70,17 @@
 #define INITIAL_LR "lr"
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
+#define INITIAL_WNSLACK "nwslack"
+
+/* Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_TIME "time"
-#define INITIAL_WNSLACK "nwslack"
+#define TERMINATION_LOCMIN "locmin"
+#define TERMINATION_ITERA "iteration"
 #define TERMINATION_WTRUE "true"
-#define PERTUBATION_RANDOM_MOVE "rndmv"
-#define PERTUBATION_VNRANDOM_MOVE "vnrmv"
+#define TERMINATION_SOA "soater"
+
+/* permutation flowshop neighborhoods*/
 #define NEIGHBORHOOD_INSERT "insert"
 #define NEIGHBORHOOD_BACK_INSERT "binsert"
 #define NEIGHBORHOOD_FORW_INSERT "finsert"
@@ -60,28 +91,31 @@
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
-#define RNDSEED "rnds"
+
+/* permutation flowshop solution pertubations */
+#define PERTUBATION_RANDOM_MOVE "rndmv"
+#define PERTUBATION_VNRANDOM_MOVE "vnrmv"
 #define PERTUBATION_NOPER "noper"
 #define PERTUBATION_RND "randpert"
 #define PERTUBATION_NRZ "nrzper"
 #define PERTUBATION_TMIIG "tmiigper"
+#define PERTUBATION_SOA "soaper"
+#define PERTUBATION_TEST "testper"
+
+/* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
 #define ACCEPTANCE_PMETRO "pmetro"
 #define ACCEPTANCE_TMIIG "tmiigacc"
-#define PERTUBATION_SOA "soaper"
-#define PERTUBATION_TEST "testper"
+#define ACCEPTANCE_IMPROVE_PLATEAU "implat"
 #define ACCEPTANCE_TEST "testacc"
 #define ACCEPTANCE_SOA "soaacc"
-#define TERMINATION_SOA "soater"
 #define ACCEPTANCE_ALWAYS "always"
 #define INTENSIFY "intensify"
 #define DIVERSIFY "diversify"
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
-#define DEFAULT_TS 10
-#define DEFAULT_TI 10
-#define DEFAULT_IT -10
+
 
 
 void prs::emili_header()
@@ -101,7 +135,11 @@ void prs::info()
     std::cout << std::endl;
     std::cout << "EMILI INSTANCE_FILE_PATH PROBLEM <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]" << std::endl;
     std::cout << std::endl;
-    std::cout << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_PFS_MS<< " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " " << PROBLEM_NIPFS_MS << std::endl;
+    std::cout << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_PFS_TCT<< " " <<PROBLEM_PFS_MS
+              << " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " "<<PROBLEM_NWPFS_WT<< " " <<PROBLEM_NWPFS_WE
+              << " " <<PROBLEM_NWPFS_TCT<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_NWPFS_T<< " " <<PROBLEM_NWPFS_E
+              << PROBLEM_NIPFS_MS <<PROBLEM_NIPFS_WT<< " " <<PROBLEM_NIPFS_WE<< " " <<PROBLEM_NIPFS_TCT<< " " <<PROBLEM_NIPFS_MS<< " "
+              << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E << std::endl;
     std::cout << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" << std::endl;
     std::cout << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << std::endl;
     std::cout << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << std::endl;
@@ -111,8 +149,8 @@ void prs::info()
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int) | mneh" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert | "<< NEIGHBORHOOD_TA_INSERT << " | " << NEIGHBORHOOD_NITA_INSERT<< std::endl;
-    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int)" << std::endl;
-    std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | tmiigacc start_temperature(float)" << std::endl;
+    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int) (int)" << std::endl;
+    std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | tmiigacc start_temperature(float) | implat number_of_non_improving_steps_accepted plateau_threshold" << std::endl;
     std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int) | tsabm size(int)" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
 }
@@ -159,6 +197,7 @@ emili::LocalSearch* prs::ParamsParser::eparams()
         std::cout << "GVNS... \n\t";
         ls = gvns();
         ils_time = ilstime();
+        ils_time = (istance->getNjobs()*(istance->getNmachines()/2)*ils_time)/1000;
         ls->setSearchTime(ils_time);
 
     }
@@ -409,6 +448,12 @@ emili::Acceptance* prs::ParamsParser::acc()
         t = (t*t0)/(10.0f*nj*nm);
         std::cout << "TMIIG metropolis like acceptance criterion. temperature " << t <<"\n\t";
         return new emili::MetropolisAcceptance(t);
+    }else if(strcmp(t,ACCEPTANCE_IMPROVE_PLATEAU)==0)
+    {
+        int plateau_steps = number();
+        int threshold = number();
+        std::cout << "Accept a diversification solution if it improves on the intensification otherwise it will accept "<< plateau_steps << " non improving steps once it reaches the threshold of " << threshold << ". \n\t"  ;
+        return new emili::AcceptPlateau(plateau_steps,threshold);
     }
     else
     {
@@ -447,10 +492,19 @@ emili::LocalSearch* prs::ParamsParser::gvns()
     emili::Perturbation* p1 = per();
     emili::Perturbation* p2 = per();
     emili::pfsp::GVNS_innerloop* gvi = new emili::pfsp::GVNS_innerloop(*is);
+    emili::Perturbation* p3 = per();
+    emili::Perturbation* p4 = per();
+
     std::vector< emili::Perturbation* > p;
     p.push_back(p1);
     p.push_back(p2);
-    return new emili::GVNS(*gvi,p);
+
+    std::vector< emili::Perturbation* > pl;
+    pl.push_back(p3);
+    pl.push_back(p4);
+
+    emili::GVNS* gg = new emili::GVNS(*gvi,p);
+    return new emili::GVNS(*gvi,pl);
 }
 
 
@@ -778,7 +832,7 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
     }
     else if(strcmp(t,NEIGHBORHOOD_NITA_INSERT)==0)
     {
-        std::cout << "Insert with Taillard Acceleration\n\t";
+        std::cout << "Insert with Taillard Acceleration for no idle make span \n\t";
         return new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*istance);
     }
     else

@@ -100,6 +100,9 @@ class PfspInstance{
     long int computeE (vector< int > & sol);
     /*Compute partial earliness*/
     long int computeE (vector< int > & sol, int size);
+    /*Compute total completion time*/
+    long int computeTCT(vector< int > &sol);
+    long int computeTCT(vector< int > &sol,int size);
 
     /*Compute no wait make span*/
     long int computeNWMS(vector< int > & sol);
@@ -117,6 +120,9 @@ class PfspInstance{
     /*Compute no wait tardiness*/
     long int computeNWT(vector<int> &sol);
     long int computeNWT(vector<int> &sol,int size);
+    /*Compute no wait total completion time*/
+    long int computeNWTCT(vector< int > &sol);
+    long int computeNWTCT(vector< int > &sol,int size);
 
     /*Compute no idle make span*/
     long int computeNIMS(vector<int> & sol);
@@ -136,6 +142,9 @@ class PfspInstance{
     /*Compute no idle tardiness*/
     long int computeNIT(vector<int> &sol);
     long int computeNIT(vector<int> &sol,int size);
+    /*Compute no idle total completion time*/
+    long int computeNITCT(vector< int > &sol);
+    long int computeNITCT(vector< int > &sol,int size);
 
     /* Compute weighted tardines starting from an index*/
     long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);

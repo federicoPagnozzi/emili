@@ -75,6 +75,7 @@ public:
     virtual Solution& operator=(const Solution& a);
     virtual bool operator<(Solution& a);
     virtual bool operator<=(Solution& a);
+    virtual bool operator>=(Solution& a);
     virtual bool operator>(Solution& a); 
     //virtual Solution clone()=0;
     virtual double getSolutionValue();
@@ -399,6 +400,24 @@ public:
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
 };
 
+class AcceptImproveEqual : public emili::Acceptance
+{
+public:
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
+
+class AcceptPlateau : public emili::Acceptance
+{
+protected:
+    int max_plateau_steps;
+    int current_step;
+    int threshold_status;
+    int plateau_threshold;
+public:
+    AcceptPlateau(int maxNonImprovingSteps,int threshold):max_plateau_steps(maxNonImprovingSteps),plateau_threshold(threshold),current_step(0),threshold_status(0) { }
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
+
 /*
  * IteratedLocalSearch it's a general implementation of iterated local search.
 */
@@ -525,6 +544,7 @@ protected:
 public:
     GVNS(emili::LocalSearch& localsearch,std::vector< emili::Perturbation* > perturbs):emili::LocalSearch(),perturbations(perturbs),ls(localsearch) {this->init = &ls.getInitialSolution();this->neighbh = new emili::EmptyNeighBorHood(); }
     virtual Solution* search(emili::Solution* initial);
+    virtual Solution* getBestSoFar();
     virtual ~GVNS() { delete neighbh;}
 };
 

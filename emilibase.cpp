@@ -206,6 +206,11 @@ bool emili::Solution::operator<=(emili::Solution& a)
     return solution_value <= a.solution_value;
 }
 
+bool emili::Solution::operator>=(emili::Solution& a)
+{
+    return solution_value >= a.solution_value;
+}
+
 bool emili::Solution::operator>(emili::Solution& a)
 {
     return solution_value > a.solution_value;
@@ -622,6 +627,15 @@ emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution,
     }
 }
 
+emili::Solution* emili::AcceptImproveEqual::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+    if(*diversification_solution <= *intensification_solution)
+    {
+        return diversification_solution;
+    }
+    return intensification_solution;
+}
+
 emili::Solution* emili::ImproveAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     Solution* k = intensification_solution;
@@ -629,6 +643,35 @@ emili::Solution* emili::ImproveAccept::accept(Solution *intensification_solution
         k = diversification_solution;
     }
     return k;
+}
+
+emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+    if(*diversification_solution <= *intensification_solution)
+    {
+        return diversification_solution;
+        this->current_step=0;
+        this->threshold_status=0;
+    }
+    else
+    {
+        threshold_status++;
+        if(threshold_status >= this->plateau_threshold)
+        {
+            if(current_step <= max_plateau_steps)
+            {
+                current_step++;
+                return diversification_solution;
+            }
+            else
+            {
+                threshold_status = 0;
+                current_step = 0;
+            }
+
+        }
+    }
+    return intensification_solution;
 }
 
 
@@ -1008,14 +1051,22 @@ emili::Solution* emili::GVNS::search(Solution* initial)
             else
             {
                 delete s_p;
-                if(bestSoFar!=s_s)
-                     delete s_s;
-
                 k++;
             }
 
         }while(k < k_max && keep_going);
 
         return bestSoFar;
+}
+
+emili::Solution* emili::GVNS::getBestSoFar()
+{
+    emili::Solution* bestOfInnerLocal = this->ls.getBestSoFar();
+
+    if(bestOfInnerLocal != nullptr &&  bestOfInnerLocal->operator <(*bestSoFar))
+    {
+        return bestOfInnerLocal;
+    }
+    return bestSoFar;
 }
 

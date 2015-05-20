@@ -865,6 +865,45 @@ long int PfspInstance::computeWCT(vector<int> &sol, int size)
 
 }
 
+/* total completion time*/
+long int PfspInstance::computeTCT(vector< int > &sol)
+{
+    int j;
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
+
+    wt = 0;
+
+    for ( j = 1; j<= nbJob; ++j ){
+
+        wt += previousMachineEndTime[j];
+    }
+
+    return wt;
+}
+
+long int PfspInstance::computeTCT(vector< int > &sol,int size)
+{
+    int j;
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+
+    wt = 0;
+
+    for ( j = 1; j<=size; ++j ){
+
+        wt += previousMachineEndTime[j];
+    }
+
+    return wt;
+}
+
 /* Compute the weighted earliness of a given solution */
 long int PfspInstance::computeWE(vector< int > & sol)
 {
@@ -1067,7 +1106,7 @@ long int PfspInstance::computeNWWT(vector< int > &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
-    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
 
     int nwms = 0;
     int wt = 0;
@@ -1101,7 +1140,7 @@ long int PfspInstance::computeNWWE(std::vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
-    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
 
     int nwms = 0;
     int wt = 0;
@@ -1139,7 +1178,7 @@ long int PfspInstance::computeNWE(std::vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
-    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
 
     int nwms = 0;
     int wt = 0;
@@ -1177,7 +1216,7 @@ long int PfspInstance::computeNWT(std::vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
-    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
 
     int nwms = 0;
     int wt = 0;
@@ -1186,6 +1225,43 @@ long int PfspInstance::computeNWT(std::vector<int> &sol, int size)
     {
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L));
+    }
+
+    return wt;
+}
+
+/* total completion time*/
+long int PfspInstance::computeNWTCT(vector< int > &sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=nbJob ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += nwms;
+    }
+
+    return wt;
+}
+
+long int PfspInstance::computeNWTCT(vector< int > &sol,int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=size ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += nwms;
     }
 
     return wt;
@@ -1396,3 +1472,26 @@ long int PfspInstance::computeNIT(std::vector<int> &sol, int size)
 
     return wt;
 }
+
+// Compute no idle total completion time
+
+long int PfspInstance::computeNITCT(std::vector<int> &sol)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+    long int wt = 0;
+    for ( int j = 1; j<= nbJob; ++j )
+        wt += partials[j] ;
+
+    return wt;
+}
+
+long int PfspInstance::computeNITCT(std::vector<int> &sol, int size)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
+    long int wt = 0;
+    for ( int j = 1; j<= size; ++j )
+        wt += partials[j];
+
+    return wt;
+}
+

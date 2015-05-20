@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <limits>
+
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
     int njobs = prob.getNjobs();
@@ -592,6 +593,46 @@ int emili::pfsp::NWPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_s
     return instance.computeNWMS(partial_solution,size);
 }
 
+int emili::pfsp::NWPFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWWT(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWWT(partial_solution,size);
+}
+
+int emili::pfsp::NWPFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWWE(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWWE(partial_solution,size);
+}
+
+int emili::pfsp::NWPFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWE(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWE(partial_solution,size);
+}
+
+int emili::pfsp::NWPFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWT(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWT(partial_solution,size);
+}
+
 int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeNIMS(partial_solution);
@@ -600,6 +641,46 @@ int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_s
 int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
     return instance.computeNIMS(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNIWT(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNIWT(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNIWE(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNIWE(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNIE(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNIE(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNIT(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNIT(partial_solution,size);
 }
 
 void emili::pfsp::NI_A_PFSP_MS::calc_nims_base()
@@ -2333,7 +2414,7 @@ emili::pfsp::GVNS_innerloop::GVNS_innerloop(InitialSolution& initialSolutionGene
     this->rneigh = new emili::pfsp::GVNS_RIS_Neighborhood((emili::pfsp::PermutationFlowShop&)initialSolutionGenerator.getProblem());
     this->neighbh = this->rneigh;
 }
-
+//Users/federicopagnozzi/Desktop/phd/PFSP_NO_IDLE/PFSP_NOIDLE/PFSP_NoIdle/I_7_500_50_4.txt NIPFSP_MS gvns nwslack soaper 8 rndmv insert 5 rndmv insert 1 rndmv transpose 1 -it 30 rnds 30
 emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
 {
     termcriterion->reset();
@@ -2349,8 +2430,8 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
         if(bestSoFar != incumbent)
         {
             delete bestSoFar;
+            bestSoFar = incumbent;
         }
-        bestSoFar = incumbent;
         rneigh->setReference(bestSoFar);
         for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
         {
@@ -2375,7 +2456,7 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
 
 void emili::pfsp::GVNS_RIS_Neighborhood::reset()
 {
-    index = 1;
+    index = 0;
 }
 
 emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution)
@@ -2398,7 +2479,8 @@ emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
     {
         std::vector< int >& bsf = ((emili::pfsp::PermutationFlowShopSolution*)reference)->getJobSchedule();
         std::vector< int >& base = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
-        int k = bsf[1];
+
+        int k = bsf[index];
         int k_index = 1;
 
         for(int i=1; i<= njobs; ++i)
@@ -2430,6 +2512,9 @@ emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
             }
         }
         index++;
+
+           //std::cout<< best_res << std::endl;
+
         return new emili::pfsp::PermutationFlowShopSolution(best_res,bestCombination);
     }
 }
