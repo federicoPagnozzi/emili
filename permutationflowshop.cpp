@@ -220,7 +220,7 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
             solTMP[2]=_fsp[1];
 
             int mS=pis.computeObjectiveFunction(_fsp);//compute_total_wt(_fsp,2);
-            if(pis.computeObjectiveFunction(solTMP,solTMP.size())<mS){//compute_total_wt(solTMP,2)<mS){
+            if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
                 _fsp[1]=solTMP[1];
                 _fsp[2]=solTMP[2];
             }
@@ -235,7 +235,7 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
                     for(int h=r+1; h<=k; h++)
                         solTMP[h]=_fsp[h-1];
 
-                    tmp=pis.computeObjectiveFunction(solTMP,solTMP.size());//compute_total_wt(solTMP,k+1);
+                    tmp=pis.computeObjectiveFunction(solTMP,k);//compute_total_wt(solTMP,k+1);
                     if(tmp<min){
                         min=tmp;
                         ind=r;

@@ -227,14 +227,14 @@ bool PfspInstance::readDataFromFile(const string _fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> > processingTimesMatrix,int nbJob, int nbMac, int size)
+inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> > processingTimesMatrix,int nbJob, int nbMac)
 {
     long int previousJobEndTime;
     int j, m;
     int jobNumber;
     /* 1st machine : */
     previousMachineEndTime[0] = 0;
-    for ( j = 1; j <= size; ++j )
+    for ( j = 1; j <= nbJob; ++j )
     {
         jobNumber = sol[j];
         previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
@@ -248,7 +248,7 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
         previousJobEndTime = previousMachineEndTime[1];
 
 
-        for ( j = 2; j <= size; ++j )
+        for ( j = 2; j <= nbJob; ++j )
         {
             jobNumber = sol[j];
 
@@ -266,10 +266,6 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
     }
 }
 
-inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> > processingTimesMatrix,int nbJob, int nbMac)
-{
-    computePartialMakespans( sol,previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,nbJob);
-}
 
 long int PfspInstance::computeWT(vector< int > & sol)
 {
@@ -293,9 +289,9 @@ long int PfspInstance::computeWT(vector<int> &sol, int size)
     int j;
     long int wt;
     /* We need end times on previous machine : */
-    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    vector< long int > previousMachineEndTime ( nbJob + 1 ,0);
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
 
     wt = 0;
@@ -818,7 +814,7 @@ long int PfspInstance::computeFT(vector<int> &sol, int size)
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
     wt = 0;
     for ( j = 1; j<= size; ++j )
@@ -852,7 +848,7 @@ long int PfspInstance::computeWCT(vector<int> &sol, int size)
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
     wt = 0;
 
@@ -892,7 +888,7 @@ long int PfspInstance::computeTCT(vector< int > &sol,int size)
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
     wt = 0;
 
@@ -930,7 +926,7 @@ long int PfspInstance::computeWE(vector<int> &sol, int size)
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
 
     wt = 0;
@@ -969,7 +965,7 @@ long int PfspInstance::computeT(vector<int> &sol, int size)
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
     wt = 0;
 
@@ -1007,7 +1003,7 @@ long int PfspInstance::computeE(vector<int> &sol, int size)
     /* We need end times on previous machine : */
     vector< long int > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
-    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac,size);
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,size,nbMac);
 
     wt = 0;
 
