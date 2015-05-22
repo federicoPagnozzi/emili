@@ -147,7 +147,7 @@ void prs::info()
     std::cout << "GVNS_SEARCH           = gvns INITIAL_SOLUTION PERTUBATION1 PERTUBATION2 -it seconds" << std::endl;
     std::cout << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << std::endl;
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int) | mneh" << std::endl;
-    std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxsteps int" << std::endl;
+    std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxstep int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert | "<< NEIGHBORHOOD_TA_INSERT << " | " << NEIGHBORHOOD_NITA_INSERT<< std::endl;
     std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int) (int)" << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | tmiigacc start_temperature(float) | implat number_of_non_improving_steps_accepted plateau_threshold" << std::endl;
@@ -387,7 +387,7 @@ emili::Acceptance* prs::ParamsParser::acc()
         char* t1 = nextToken();
 
         emili::accept_candidates acc;
-        if(strcmp(t1,INTENSIFY))
+        if(strcmp(t1,INTENSIFY)==0)
         {
             acc = emili::ACC_INTENSIFICATION;
         }
@@ -397,7 +397,7 @@ emili::Acceptance* prs::ParamsParser::acc()
         }
         else
         {
-            std::cerr<< "'" << t1 << "' -> ERROR " << INTENSIFY << "or " << DIVERSIFY <<"was expected! " << std::endl;
+            std::cerr<< "'" << t1 << "' -> ERROR " << INTENSIFY << " or " << DIVERSIFY <<" was expected! " << std::endl;
             prs::info();
         exit(-1);
         }
