@@ -52,7 +52,7 @@
            <or/>
 	   <![CDATA[time ]]><pfsp:time/><![CDATA[ ]]>
            <or/>
-	   <![CDATA[maxsteps ]]><pfsp:steps/><![CDATA[	]]>
+	   <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
 	</pfsp:termination>
 
 	<pfsp:neighborhood>
@@ -80,7 +80,7 @@
 		<or/>
 		<![CDATA[nrzper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<or/>
-		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[  ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
+		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
@@ -92,7 +92,7 @@
 		<or/>
 		<![CDATA[improve ]]>
 		<or/>
-		<![CDATA[always	]]><pfsp:always_acc_param/><![CDATA[ ]]>
+		<![CDATA[always ]]><pfsp:always_acc_param/>
 		<or/>
 		<![CDATA[sa_metropolis ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]>
 		<or/>
@@ -160,9 +160,9 @@
 	</pfsp:vnd>
 
 	<pfsp:vnds>
-		<![CDATA[ first]]>
+		<![CDATA[first ]]>
 		<or/>
-		<![CDATA[ best]]>
+		<![CDATA[best ]]>
 	</pfsp:vnds>
 	
 	<pfsp:algos>
