@@ -45,9 +45,19 @@ int PfspInstance::getNbJob()
   return nbJob;
 }
 
+void PfspInstance::setNbJob(int jobCount)
+{
+    this->nbJob = jobCount;
+}
+
 int PfspInstance::getNbMac()
 {
   return nbMac;
+}
+
+void PfspInstance::setNbMac(int machineCount)
+{
+    this->nbMac = machineCount;
 }
 
 void PfspInstance::setSilence(bool s)

@@ -1249,6 +1249,9 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
     }
 
     sizePartial = solPartial.size();
+    //
+    // Local search on partial
+    //
     for(int l=0;l<removed.size();l++){
         k=removed[l];
         min = std::numeric_limits<int>::max();
@@ -1280,14 +1283,82 @@ emili::Solution* emili::pfsp::SOAPerturbation::perturb(Solution *solution)
 
 
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-    //instance.evaluateSolution(*s);
-    std::vector< std::vector< int > >  etm = std::vector< std::vector< int > >(instance.getNmachines()+1,std::vector<int>(instance.getNjobs()+1,0));
+    instance.evaluateSolution(*s);
+    //std::vector< std::vector< int > >  etm = std::vector< std::vector< int > >(instance.getNmachines()+1,std::vector<int>(instance.getNjobs()+1,0));
     //clock_t start = clock();
-    int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
+    //int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
 
-    s->setSolutionValue(new_value);
+    //s->setSolutionValue(new_value);
     return s;
 }
+
+emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
+{
+    //emili::iteration_increment();
+
+    int index;
+    int min;
+    int k,tmp,ind;
+
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    //std::cout << "partial size " << solPartial.size() << std::endl;
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sizePartial;
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        //std::cout << index << " " ;//<< std::endl;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    sizePartial = solPartial.size();
+    //
+    // Local search on partial
+    //
+      emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sizePartial));
+      s =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
+      solPartial = s->getJobSchedule();
+
+    for(int l=0;l<removed.size();l++){
+        k=removed[l];
+        min = std::numeric_limits<int>::max();
+
+        for(int r=1; r<sizePartial; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sizePartial; h++)
+                solTMP[h]=solPartial[h-1];
+
+
+            //tmp=compute_total_wt(solTMP,sizePartial+1);
+            //                  std::cout << "start perturb" << std::endl;
+            //check why plus 1
+            tmp = instance.computeObjectiveFunction(solTMP,sizePartial);
+
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+        sizePartial++;
+        //std::cout << "end insert " << solPartial.size() << std::endl;
+    }
+
+    delete s;
+    s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+    instance.evaluateSolution(*s);
+    return s;
+}
+
 
 emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
 {

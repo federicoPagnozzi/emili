@@ -50,6 +50,7 @@ public:
     emili::LocalSearch* parseParams();
     emili::pfsp::PermutationFlowShop& getInstance() { return *istance;}
 
+
 };
 }
 #endif // PARAMSPARSER_H

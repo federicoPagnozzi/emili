@@ -398,6 +398,15 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class IgLsPertubation: public emili::pfsp::SOAPerturbation
+{
+protected:
+    emili::LocalSearch* ls;
+public:
+    IgLsPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::SOAPerturbation(d_parameter,problem),ls(ls) {/*   */}
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class PfspDestructorTest: public emili::Destructor
 {
 protected:

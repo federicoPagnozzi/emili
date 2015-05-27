@@ -101,6 +101,7 @@
 #define PERTUBATION_TMIIG "tmiigper"
 #define PERTUBATION_SOA "soaper"
 #define PERTUBATION_TEST "testper"
+#define PERTUBATION_IGLS "igls"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -116,6 +117,47 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 
+char* problem_type;
+
+emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
+{
+    if(strcmp(t,PROBLEM_PFS_WT)==0)
+    {
+        std::cout << "Permutation Flow Shop Weighted Tardiness" << std::endl;
+        return new emili::pfsp::PFSP_WT(i);
+    }else if(strcmp(t,PROBLEM_NWPFS_MS)==0)
+    {
+        std::cout << "No Wait Permutation Flow Shop Make Span" << std::endl;
+        return new emili::pfsp::NWPFSP_MS(i);
+    }else if(strcmp(t,PROBLEM_PFS_E)==0)
+    {
+        std::cout << "Permutation Flow Shop Earliness" << std::endl;
+        return new emili::pfsp::PFSP_E(i);
+    }else if(strcmp(t,PROBLEM_PFS_WE)==0)
+    {
+        std::cout << "Permutation Flow Shop Weighted Earliness" << std::endl;
+        return new emili::pfsp::PFSP_WE(i);
+    }else if(strcmp(t,PROBLEM_PFS_T)==0)
+    {
+        std::cout << "Permutation Flow Shop Tardiness" << std::endl;
+        return new emili::pfsp::PFSP_T(i);
+    }else if(strcmp(t,PROBLEM_PFS_MS)==0)
+    {
+        std::cout << "Permutation Flow Shop Make Span" << std::endl;
+        return new emili::pfsp::PFSP_MS(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_MS)==0)
+            {
+                std::cout << "No Idle Permutation Flow Shop Make Span" << std::endl;
+                return new emili::pfsp::NI_A_PFSP_MS(i);
+            }
+    else
+    {
+        std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
+        prs::info();
+    exit(-1);
+    }
+}
 
 
 void prs::emili_header()
@@ -307,6 +349,19 @@ emili::Perturbation* prs::ParamsParser::per()
         std::cout << "wslack destruct/construct pertubation. number of job erased: "<<n<<"\n\t";
 
         return new emili::pfsp::SOAPerturbation(n,*istance);
+    }
+    else if(strcmp(t,PERTUBATION_IGLS)==0)
+    {
+        int n = number();
+        std::cout << "wslack destruct/construct pertubation with local search applied on the partial solution. number of job erased: "<<n<<"\n\t";
+        PfspInstance pfs = this->istance->getInstance();
+        pfs.setNbJob(pfs.getNbJob()-n);
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->istance;
+        this->istance = pfse;
+        emili::LocalSearch* ll = search();
+        this->istance = is;
+        return new emili::pfsp::IgLsPertubation(n,*istance,ll);
     }
     else if(strcmp(t,PERTUBATION_TEST)==0)
     {
@@ -924,6 +979,7 @@ float prs::ParamsParser::decimal()
     return k;
 }
 
+
 void prs::ParamsParser::problem()
 {
     PfspInstance i;
@@ -931,43 +987,9 @@ void prs::ParamsParser::problem()
     if(i.readDataFromFile(tokens[1]))
     {
         char* t = nextToken();
-        if(strcmp(t,PROBLEM_PFS_WT)==0)
-        {
-            std::cout << "Permutation Flow Shop Weighted Tardiness" << std::endl;
-            istance = new emili::pfsp::PFSP_WT(i);
-        }else if(strcmp(t,PROBLEM_NWPFS_MS)==0)
-        {
-            std::cout << "No Wait Permutation Flow Shop Make Span" << std::endl;
-            istance = new emili::pfsp::NWPFSP_MS(i);
-        }else if(strcmp(t,PROBLEM_PFS_E)==0)
-        {
-            std::cout << "Permutation Flow Shop Earliness" << std::endl;
-            istance = new emili::pfsp::PFSP_E(i);
-        }else if(strcmp(t,PROBLEM_PFS_WE)==0)
-        {
-            std::cout << "Permutation Flow Shop Weighted Earliness" << std::endl;
-            istance = new emili::pfsp::PFSP_WE(i);
-        }else if(strcmp(t,PROBLEM_PFS_T)==0)
-        {
-            std::cout << "Permutation Flow Shop Tardiness" << std::endl;
-            istance = new emili::pfsp::PFSP_T(i);
-        }else if(strcmp(t,PROBLEM_PFS_MS)==0)
-        {
-            std::cout << "Permutation Flow Shop Make Span" << std::endl;
-            istance = new emili::pfsp::PFSP_MS(i);
-        }
-        else if(strcmp(t,PROBLEM_NIPFS_MS)==0)
-                {
-                    std::cout << "No Idle Permutation Flow Shop Make Span" << std::endl;
-                    istance = new emili::pfsp::NI_A_PFSP_MS(i);
-                }
-        else
-        {
-            std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
-            prs::info();
-        exit(-1);
-        }
-        return ;
+        problem_type = t;
+        istance = instantiateProblem(t, i);
+    return;
     }
         info();
         exit(-1);

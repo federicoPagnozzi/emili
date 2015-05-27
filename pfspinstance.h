@@ -37,12 +37,25 @@ class PfspInstance{
     std::vector< std::vector <long int> > processingTimesMatrix;
     void computeTails(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail);
   public:
+    PfspInstance(PfspInstance& is)
+    {
+        this->nbJob = is.getNbJob();
+        this->nbMac = is.getNbMac();
+        this->dueDates = is.getDueDates();
+        this->priority = is.getPriorities();
+        this->processingTimesMatrix = is.getProcessingTimesMatrix();
+        this->silence = is.silence;
+    }
+
     PfspInstance();
     ~PfspInstance();
 
-    /* Read write privates attributs : */
+    /* Read write privates attributes : */
     int getNbJob();
+    void setNbJob(int jobCount);
+
     int getNbMac();
+    void setNbMac(int machienCount);
 
     /* Allow the memory for the processing times matrix : */
     void allowMatrixMemory(int nbJ, int nbM);
@@ -161,6 +174,8 @@ class PfspInstance{
     int computeIdleTimeCoeff(vector<int>& prevJob, int job);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
+
+
 
 };
 
