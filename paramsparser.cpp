@@ -917,11 +917,6 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neighV()
         std::cout << "Backward Insert Neighborhood\n\t";
         return new emili::pfsp::PfspBackwardInsertNeighborhood(*istance);
     }
-    else if(strcmp(t,NEIGHBORHOOD_TWO_INSERT)==0)
-    {
-        std::cout << "Two insert neighborhood\n\t";
-        return new emili::pfsp::PfspTwoInsertNeighborhood(*istance);
-    }
     else if(strcmp(t,NEIGHBORHOOD_EXCHANGE)==0)
     {
         std::cout << "Exchange neighborhood\n\t";
@@ -931,6 +926,31 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neighV()
     {
         std::cout << "Transpose neighborhood\n\t";
         return new emili::pfsp::PfspTransposeNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_TWO_INSERT)==0)
+    {
+        std::cout << "Two insert neighborhood\n\t";
+        return new emili::pfsp::PfspTwoInsertNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_XTRANSPOSE)==0)
+    {
+        std::cout << "XTranspose neighborhood\n\t";
+        return new emili::pfsp::XTransposeNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_TA_INSERT)==0)
+    {
+        std::cout << "Insert with Taillard Acceleration\n\t";
+        return new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_TAx_INSERT)==0)
+    {
+        std::cout << "Insert with Taillard Acceleration\n\t";
+        return new emili::pfsp::TAxInsertNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_NITA_INSERT)==0)
+    {
+        std::cout << "Insert with Taillard Acceleration for no idle make span \n\t";
+        return new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*istance);
     }
     else
     {
