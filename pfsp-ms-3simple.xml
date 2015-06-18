@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<!-- TODO: all the new inside the calls should be pushed in some datastructure
-           and properly freed before the end to avoid memory leaks...
-	Simplified version because irace can't generate the candidates!!!!
+<!--
+     17/06/2015
+
+     Grammar for PFSP Makespan,
+     without time related termination and optimized for simple algorithms
  -->
 
 <gr:grammar xmlns:gr="grammar">
@@ -48,13 +50,14 @@
    <or/>
    <![CDATA[true ]]>
    <or/>
-   <![CDATA[iteration ]]><pfsp:iteration_number/><![CDATA[ ]]>
+    <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
    <or/>
    <![CDATA[soater ]]>
-   <or/>
+   <!--<or/>
    <![CDATA[time ]]><pfsp:time/><![CDATA[ ]]>
    <or/>
-   <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
+   <![CDATA[iteration ]]><pfsp:iteration_number/><![CDATA[ ]]>
+   -->  
 </pfsp:termination>
 
 <pfsp:neighborhood>
@@ -72,21 +75,21 @@
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
-		<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
-	  	<or/>
+		<!-- <![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
+	  	<or/> -->
 		<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<!--	![CDATA[testper ]]> --> 
 		<or/>
-		<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
-		<!--	![CDATA[rndmv ]]><pfsp:neighborhood/><pfsp:random_moves/><![CDATA[ ]]> -->
+		<!--<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>-->
+		<![CDATA[rndmv ]]><pfsp:neighborhood/><pfsp:random_moves/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[noper ]]>
 		<or/>
-			<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
-		<!-- <![CDATA[nrzper ]]><pfsp:sp_impact/><![CDATA[ ]]>-->
+		<!-- <![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/> -->
+	 	<![CDATA[nrzper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<or/>
-			<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
-	<!--	<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>-->
+		<!-- <![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>-->
+		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 	</pfsp:pertubation>
@@ -95,14 +98,14 @@
 		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
-		<or/>
-		<![CDATA[metropolis ]]><pfsp:metrotemp/><![CDATA[ ]]>
+	<!--	<or/>
+		<![CDATA[metropolis ]]><pfsp:metrotemp/><![CDATA[ ]]> -->
 		<or/>
 		<![CDATA[improve ]]>
 		<or/>
 		<![CDATA[always ]]><pfsp:always_acc_param/>
-		<or/>
-		<![CDATA[sa_metropolis ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]>
+	<!--	<or/>
+		<![CDATA[sa_metropolis ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]> -->
 		<or/>
 		<![CDATA[pmetro ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]><pfsp:tempiterations/><![CDATA[ ]]>
 	</pfsp:acceptance>	
@@ -135,11 +138,19 @@
 
 	<pfsp:ils>
 		<![CDATA[ils ]]>
-		<pfsp:algos/>
+		<pfsp:ilsalgos/>
 		<pfsp:termination/>
 		<pfsp:pertubation/>
 		<pfsp:acceptance/>
 	</pfsp:ils>
+	
+	<pfsp:ails>
+		<![CDATA[ils ]]>
+		<pfsp:ilsalgos/>
+	        <![CDATA[true ]]>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+	</pfsp:ails>
         
 	<pfsp:gls>
            <![CDATA[ils ]]>
@@ -156,6 +167,14 @@
 		<pfsp:neighborhood/>
 		<pfsp:tabutenure/>
 	</pfsp:tabu>
+
+	<pfsp:stabu>
+           <![CDATA[tabu ]]>
+        	<pfsp:initial_solution/>
+	        <![CDATA[true ]]>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:stabu>
 
 	<pfsp:vnd>
            <![CDATA[vnd ]]>
@@ -190,9 +209,8 @@
            <pfsp:termination/>
 	   <pfsp:neighborhood/>
 	</pfsp:bestp>
-
 	
-	<pfsp:algos>
+	<pfsp:ilsalgos>
 		<pfsp:first/>
 		<or/>
 		<pfsp:best/>
@@ -202,11 +220,25 @@
 		<pfsp:tabu/>
 		<or/>
 		<pfsp:vnd/>
+	</pfsp:ilsalgos>
+	
+	<pfsp:algos>
+	<!--	<pfsp:first/>
+		<or/>
+		<pfsp:best/>
+		<or/>-->
+		<pfsp:ails/>
+		<or/>
+		<pfsp:stabu/>
+	<!--	<or/>
+		<pfsp:vnd/>-->
+		<or/>
+		<pfsp:gls/>
 	</pfsp:algos>
 
 	<pfsp:main>
-	        <pfsp:gls/>
-	        <or/>
+	        <!--<pfsp:gls/>
+	        <or/>-->
 		<pfsp:algos/>
 	</pfsp:main>
 

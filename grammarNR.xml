@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- TODO: all the new inside the calls should be pushed in some datastructure
+           and properly freed before the end to avoid memory leaks... -->
+
+<gr:grammar xmlns:gr="grammar">
+    <gr:derivations xmlns:pfsp="pfsp_automatic_generation">
+	
+	<pfsp:directives output="setup.h">
+		<![CDATA[
+			#define GRAMMAR2CODE
+		]]>
+	</pfsp:directives>
+		
+	 <pfsp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
+	 <pfsp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
+	 <pfsp:steps type="int" min="1" max="300" stepIfEnumerated="1"/>
+	 <pfsp:sp_impact type="int" min="5" max="20" stepIfEnumerated="1"/>
+	 <pfsp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
+	 <pfsp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
+	 <pfsp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
+	 <pfsp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
+	 <pfsp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
+	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+       	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
+         <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
+	 <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
+	
+	<pfsp:always_acc_param>
+		<![CDATA[ acc = emili::ACC_INTENSIFICATION; ]]>
+       	    <or/> 
+           <![CDATA[ acc = emili::ACC_DIVERSIFICATION;]]>
+	</pfsp:always_acc_param>
+ 		
+        <pfsp:initial_solution>
+           <![CDATA[
+                in = new emili::pfsp::PfspRandomInitialSolution(problem);
+           ]]>
+           <or/>
+           <![CDATA[
+                in = new emili::pfsp::PfspSlackInitialSolution(problem);
+           ]]>
+           <or/>
+           <![CDATA[
+                in = new emili::pfsp::PfspNEHwslackInitialSolution(problem);
+           ]]>
+	   <or/>
+	   <![CDATA[
+		in = new emili::pfsp::NeRZSolution(problem);	
+	   ]]>
+	  <or/>
+	  <![CDATA[
+		in = new emili::pfsp::NeRZ2Solution(problem);
+	  ]]>
+         <or/>
+	  <![CDATA[
+		in = new emili::pfsp::MNEH(problem);
+	  ]]>
+        </pfsp:initial_solution>
+
+	<pfsp:termination>
+	   <![CDATA[
+         	te =  new emili::LocalMinimaTermination();
+	]]>
+           <or/>
+	   <![CDATA[
+        	te =  new emili::WhileTrueTermination();
+	]]>
+           <or/>
+	   <![CDATA[
+        	te =  new emili::pfsp::PfspTerminationIterations(]]><pfsp:iteration_number/><![CDATA[);
+	]]>
+           <or/>
+	   <![CDATA[
+        	te =  new emili::pfsp::SOAtermination(soa_termination);
+	]]>
+           <or/>
+	   <![CDATA[
+
+        	 te =  new emili::TimedTermination(]]><pfsp:time/><![CDATA[);
+	]]>
+           <or/>
+	   <![CDATA[
+         	 te = new emili::MaxStepsTermination(]]><pfsp:steps/><![CDATA[);
+	]]>
+
+	</pfsp:termination>
+
+	<pfsp:neighborhood>
+	   <![CDATA[
+          ne = new emili::pfsp::PfspExchangeNeighborhood(problem);
+	]]>
+	<or/>
+	   <![CDATA[
+          ne = new emili::pfsp::PfspTransposeNeighborhood(problem);
+	]]>
+	<or/>
+	   <![CDATA[
+          ne = new emili::pfsp::PfspInsertNeighborhood(problem);
+	]]>
+	<or/>
+	   <![CDATA[
+          ne = new emili::pfsp::PfspForwardInsertNeighborhood(problem);
+	]]>
+	<or/>
+	   <![CDATA[
+	  ne = new emili::pfsp::PfspBackwardInsertNeighborhood(problem);
+	]]>
+	<or/>
+	  <![CDATA[
+          ne = new emili::pfsp::PfspTwoInsertNeighborhood(problem);
+	]]>
+	</pfsp:neighborhood>
+	
+	<pfsp:pertubation>
+		<![CDATA[
+			pr = new emili::pfsp::SOAPerturbation(]]><pfsp:sp_impact/><![CDATA[,problem);
+		]]>
+	  	<or/>
+		<![CDATA[
+		 	pr = new emili::pfsp::PfspRandomSwapPertub(problem);
+		]]>
+		<or/>
+		<pfsp:neighborhood/>
+		<![CDATA[
+		       pr = new emili::RandomMovePertubation(*ne,]]><pfsp:random_moves/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+		       pr = new emili::NoPertubation();
+		]]>
+		<or/>
+		<![CDATA[
+			pr = new emili::pfsp::NRZPertubation(]]><pfsp:sp_impact/><![CDATA[,problem);
+		]]>
+		<or/>
+		<![CDATA[
+			pr = new emili::pfsp::TMIIGPertubation(]]><pfsp:sp_impact/><![CDATA[,problem,]]><pfsp:tmiig_tabu_size/><![CDATA[);
+		]]>
+	</pfsp:pertubation>
+
+	<pfsp:acceptance>
+		<![CDATA[
+			ac = new emili::pfsp::SOAacceptance(]]><pfsp:s_acc_temp/><![CDATA[); 
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::pfsp::PfspTestAcceptance(problem,]]><pfsp:ac_percentage/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::MetropolisAcceptance(]]><pfsp:metrotemp/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::ImproveAccept();
+		]]>
+		<or/>
+			<pfsp:always_acc_param/>
+		<![CDATA[
+			ac = new emili::AlwaysAccept(acc);		
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::Metropolis(]]><pfsp:start_temp/><![CDATA[,]]><pfsp:end_temp/><![CDATA[,]]><pfsp:temp_ratio/><![CDATA[);
+		]]>
+		<or/>
+		<![CDATA[
+			ac =  new emili::Metropolis(]]><pfsp:start_temp/><![CDATA[,]]><pfsp:end_temp/><![CDATA[,]]><pfsp:temp_ratio/><![CDATA[,]]><pfsp:tempiterations/><![CDATA[);
+		]]>
+	</pfsp:acceptance>	
+
+	<pfsp:tabutenure>
+	     <![CDATA[
+			tm =new emili::pfsp::PfspMovesMemory(]]><pfsp:tabutenure_size/><![CDATA[ , *ne);
+	     ]]>
+	     <or/>
+	     <![CDATA[
+			tm = new emili::pfsp::PfspTabuHashMemory(]]><pfsp:tabutenure_size/><![CDATA[); 
+	     ]]>
+	     <or/>
+	     <![CDATA[
+			tm = new emili::pfsp::PfspFullSolutionMemory(]]><pfsp:tabutenure_size/><![CDATA[); 
+	     ]]>
+	     <or/>
+	     <![CDATA[
+			tm = new emili::pfsp::TSABMemory(]]><pfsp:tabutenure_size/><![CDATA[ , *ne);
+	     ]]>
+	     <or/>
+	     <![CDATA[
+	     		tm = new emili::pfsp::TSABtestMemory(]]><pfsp:tabutenure_size/><![CDATA[  , *ne);
+	     ]]>
+	</pfsp:tabutenure>
+
+	<pfsp:first>
+		  <pfsp:initial_solution/>
+          	  <pfsp:termination/>
+  		  <pfsp:neighborhood/>
+
+		<![CDATA[
+			ls = new emili::FirstImprovementSearch(*in,*te,*ne);
+		]]>
+	</pfsp:first>
+
+	<pfsp:best>
+           <pfsp:initial_solution/>
+           <pfsp:termination/>
+	   <pfsp:neighborhood/>
+
+		<![CDATA[
+			ls = new emili::BestImprovementSearch(*in,*te,*ne);
+		]]>
+	</pfsp:best>
+
+	<pfsp:ils>
+		<pfsp:algos/>
+		<pfsp:termination/>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+		<![CDATA[
+			ls =  new emili::IteratedLocalSearch(*ls,*te,*pr,*ac);
+		]]>
+	</pfsp:ils>
+        
+	<pfsp:gls>
+		<pfsp:ils/>
+	        <![CDATA[
+        	te =  new emili::WhileTrueTermination();
+         	]]>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+		<![CDATA[
+			ls =  new emili::IteratedLocalSearch(*ls,*te,*pr,*ac);
+		]]>
+	</pfsp:gls>
+
+	<pfsp:tabu>
+        	<pfsp:initial_solution/>
+        	<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+		<![CDATA[
+			ls = new emili::TabuSearch(*in,*te,*ne,*tm);
+		]]>
+	</pfsp:tabu>
+
+	<pfsp:vnd>
+		<pfsp:initial_solution/>
+		<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<![CDATA[
+			nes.clear();
+ 			nes.push_back(ne);
+		]]>
+		<pfsp:neighborhood/>
+		<![CDATA[
+			nes.push_back(ne);
+		]]>
+		<pfsp:neighborhood/>
+		<![CDATA[
+			nes.push_back(ne);
+		]]>
+		<pfsp:vnds/>
+	</pfsp:vnd>
+
+	<pfsp:vnds>
+		<![CDATA[
+			ls = new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
+		]]>
+		<or/>
+		<![CDATA[
+			ls = new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
+		]]>
+	</pfsp:vnds>
+	
+	<pfsp:algos>
+		<pfsp:first/>
+		<or/>
+		<pfsp:best/>
+		<or/>
+		<pfsp:ils/>
+		<or/>
+		<pfsp:tabu/>
+		<or/>
+		<pfsp:vnd/>
+	</pfsp:algos>
+
+	<pfsp:main>
+	        <pfsp:gls/>
+	        <or/>
+		<pfsp:algos/>
+	</pfsp:main>
+
+        <pfsp:main_algorithm output="algorithm.h">
+	<!--	<![CDATA[
+			#define GRAMMAR2CODE
+		]]>
+	-->
+	<![CDATA[
+                PfspInstance instance;
+                instance.setSilence(true);
+                if(!instance.readDataFromFile(argv[1]))
+                {
+                    g2c_info();
+                    return 1;
+                }
+                emili::pfsp::PFSP_WT problem(instance);
+        	int soa_termination = problem.getNjobs();
+         	soa_termination = 2*(soa_termination-1);
+		emili::InitialSolution* in;
+	        emili::TabuMemory* tm;
+		emili::pfsp::PfspNeighborhood* ne;
+		emili::Termination* te;
+		emili::Acceptance* ac;
+		emili::Perturbation* pr;
+		std::vector< emili::Neighborhood* > nes;
+		emili::accept_candidates acc;	  
+	]]>	
+
+        	<pfsp:algos/>     
+           <!--<![CDATA[
+                /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
+		clock_t time = clock();
+		if(search_time == 0 )
+			solution = ls->search();
+		else
+			solution = ls->timedSearch(search_time);
+		*/
+           ]]>-->
+        </pfsp:main_algorithm>
+
+    </gr:derivations>
+</gr:grammar>
