@@ -507,22 +507,17 @@ public:
     VNDSearch(T& ls, std::vector<emili::Neighborhood*> n):T(ls),neigh(n) { }
     virtual emili::Solution* search(emili::Solution *initial)
     {
+
+        this->neighbh = neigh[0];
+        Solution* incumbent = T::search(initial);
         int i = 0;
-        Solution* bestSoFar = this->init->generateEmptySolution();
-        Solution* incumbent = this->init->generateEmptySolution();
-        *incumbent  = *initial;
-        *bestSoFar = *initial;
         do{
             this->neighbh = neigh[i];
             Solution* new_s = T::search(incumbent);
-            if(new_s->operator <(*incumbent))
+            if(*new_s < *incumbent)
             {
                 delete incumbent;
                 incumbent = new_s;
-                if(incumbent->operator <(*bestSoFar))
-                {
-                    *bestSoFar = *incumbent;
-                }
                 i = 0;
             }
             else
@@ -530,9 +525,8 @@ public:
                 i = i+1;
             }
         }while(i < neigh.size());        
-        return bestSoFar;
+        return incumbent;
     }
-
 };
 
 

@@ -99,6 +99,7 @@ static void finalise (int _)
     else
     {
         std::cout << "No valid solution found!" << std::endl;
+
     }
     std::cout << std::flush;
     _Exit(EXIT_SUCCESS);

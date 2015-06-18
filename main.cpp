@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
       cout << sol[i] << " " ;
 
     cout << endl;
-    cout << "Total weighted tardiness: " << totalWeightedTardiness << endl;
+    cout << "Objective function value: " << totalWeightedTardiness << endl;
     cerr << totalWeightedTardiness << endl;
     exit(0);
 }

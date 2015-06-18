@@ -180,7 +180,7 @@ void prs::info()
     std::cout << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_PFS_TCT<< " " <<PROBLEM_PFS_MS
               << " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " "<<PROBLEM_NWPFS_WT<< " " <<PROBLEM_NWPFS_WE
               << " " <<PROBLEM_NWPFS_TCT<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_NWPFS_T<< " " <<PROBLEM_NWPFS_E
-              << PROBLEM_NIPFS_MS <<PROBLEM_NIPFS_WT<< " " <<PROBLEM_NIPFS_WE<< " " <<PROBLEM_NIPFS_TCT<< " " <<PROBLEM_NIPFS_MS<< " "
+              << PROBLEM_NIPFS_MS <<" "<<PROBLEM_NIPFS_WT<< " " <<PROBLEM_NIPFS_WE<< " " <<PROBLEM_NIPFS_TCT<< " " <<PROBLEM_NIPFS_MS<< " "
               << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E << std::endl;
     std::cout << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" << std::endl;
     std::cout << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << std::endl;
@@ -427,7 +427,7 @@ emili::Acceptance* prs::ParamsParser::acc()
     else if(strcmp(t,ACCEPTANCE_TEST)==0)
     {
         int n = number();
-        std::cout << "Random swap test pertubation. improving solution accepted"<<n<<"% of the time.\n\t";
+        std::cout << "Probabilistic Acceptance. improving solution accepted"<<n<<"% of the time.\n\t";
         return new emili::pfsp::PfspTestAcceptance(*istance,n);
     }
     else  if(strcmp(t,ACCEPTANCE_METRO)==0)
