@@ -505,27 +505,15 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
         for(;iter!=neighbh->end();++iter)
         {
             ithSolution = *iter;            
-
-            if(bestOfTheIteration->operator >( *ithSolution)){
-                tabuMemory.registerMove(incumbent,ithSolution);
-
-                if(tabuMemory.tabu_check(ithSolution) || ithSolution->operator <(*incumbent))//<- Aspiration goes here.
-                {
-                    if(bestOfTheIteration!=incumbent)
-                        delete bestOfTheIteration;                    
-                    bestOfTheIteration = ithSolution;
-                }
-                else
-                {                    
-                    delete ithSolution;
-                }
-
+            tabuMemory.registerMove(incumbent,ithSolution); // make the tabu memory record the move used on incumbent to generate ithSolution
+            if(*bestOfTheIteration > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *incumbent)){
+                    delete bestOfTheIteration;
+                    bestOfTheIteration = ithSolution;                
             }
             else
             {
                 delete ithSolution;
             }
-
 
         }
         if(incumbent!=bestSoFar)
