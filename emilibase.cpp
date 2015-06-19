@@ -477,7 +477,9 @@ emili::Solution* emili::TabuSearch::search()
     tabuMemory.reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
+    if(current!=sol)
     delete current;
+
     return sol;
 }
 
@@ -517,12 +519,14 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
             }
 
         }
+
         if(incumbent!=bestSoFar)
             delete incumbent;
 
         incumbent = bestOfTheIteration;
         tabuMemory.forbid(incumbent);
     }while(!termcriterion->terminate(bestSoFar,incumbent));
+    delete incumbent;
     return bestSoFar;
 }
 
