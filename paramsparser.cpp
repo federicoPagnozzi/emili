@@ -20,6 +20,7 @@
 #define TABU_MEMORY_SOLUTIONS "solution"
 #define TABU_MEMORY_TSAB "tsabm"
 #define TABU_MEMORY_TSAB_TEST "tsabmt"
+#define TABU_MEMORY_VALUE "value"
 
 /* modifiers */
 #define IT "-it"
@@ -623,6 +624,11 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n)
     {
         std::cout << "USING TSAB\n\t";
         return new emili::pfsp::TSABtestMemory(ts , *n);
+    }
+    else if(strcmp(t,TABU_MEMORY_VALUE)==0)
+    {
+        std::cout << "USING VALUE\n\t" ;
+        return new emili::pfsp::PfspTabuValueMemory(ts);
     }
     else
     {

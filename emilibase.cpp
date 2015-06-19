@@ -489,24 +489,25 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
     emili::Solution* incumbent = init->generateEmptySolution();
     *incumbent = *initial;
     bestSoFar = incumbent;
-     Solution* bestOfTheIteration = incumbent;
     emili::Solution* ithSolution = nullptr;
     do
     {
         if(bestSoFar->operator >(*incumbent)){
             delete bestSoFar;            
             bestSoFar = incumbent;
+          //  std::cout << bestSoFar->getSolutionValue() << " at " << (clock() - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         }
 
         neighbh->reset();
         Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
-        bestOfTheIteration = *iter;
+        Solution* bestOfTheIteration = *iter;
+        tabuMemory.registerMove(incumbent,bestOfTheIteration);
         ++iter;
         for(;iter!=neighbh->end();++iter)
         {
             ithSolution = *iter;            
             tabuMemory.registerMove(incumbent,ithSolution); // make the tabu memory record the move used on incumbent to generate ithSolution
-            if(*bestOfTheIteration > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *incumbent)){
+            if(*bestOfTheIteration > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){
                     delete bestOfTheIteration;
                     bestOfTheIteration = ithSolution;                
             }
