@@ -2189,6 +2189,18 @@ void emili::pfsp::PfspTabuHashMemory::forbid(Solution *solution)
     }
 }
 
+std::string emili::pfsp::PermutationFlowShopSolution::getSolutionRepresentation()
+{
+    std::ostringstream oss;
+    oss << "[ ";
+
+    for (int i = 1; i < solution.size(); ++i)
+      oss << solution[i] << " " ;
+
+    oss << " ]";
+    return oss.str();
+}
+
 void emili::pfsp::PfspTabuHashMemory::reset()
 {
     tt_index = 0;

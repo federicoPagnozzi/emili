@@ -224,6 +224,7 @@ public:
     {}
 
     virtual std::vector< int >& getJobSchedule();
+    virtual std::string getSolutionRepresentation();
     virtual ~PermutationFlowShopSolution();
 };
 
