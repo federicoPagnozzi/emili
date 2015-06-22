@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include "pfspinstance.h"
 
 /* Algos */
@@ -220,8 +221,8 @@ void check(char* t,const char* message)
 {
     if(t==nullptr)
     {
-        std::cerr <<"PARSING ERROR"<< message << std::endl;
         prs::info();
+        std::cerr <<"PARSING ERROR "<< message << std::endl;
         exit(-1);
     }
 }
@@ -1097,6 +1098,10 @@ int prs::ParamsParser::number()
 {
     char* t = nextToken();
     check(t,"A NUMBER WAS EXPECTED!");
+    std::string num(t);
+    if( !std::all_of(num.begin(),num.end(),::isdigit))
+       check(nullptr,"A NUMBER WAS EXPECTED!");
+
     int k = atoi(t);
    // std::cout << k << "\n\t";
     return k;
@@ -1106,6 +1111,10 @@ float prs::ParamsParser::decimal()
 {
     char* t = nextToken();
     check(t,"A DECIMAL NUMBER WAS EXPECTED!");
+    std::string num(t);
+    if(!std::none_of(num.begin(),num.end(),::isalpha))
+        check(nullptr,"A DECIMAL NUMBER WAS EXPECTED!");
+
     float k = atof(t);
     //std::cout << k << "\n\t";
     return k;

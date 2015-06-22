@@ -80,27 +80,23 @@ struct itimerval termination_timer;
 
 static void finalise (int _)
 {
-
     keep_going = false;
     endTime = clock();
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* s_cap = localsearch->getBestSoFar();
     if(s_cap != nullptr)
     {
-        cout << "iteration counter " << emili::iteration_counter()<< std::endl;
+        std::cout << "iteration counter " << emili::iteration_counter()<< std::endl;
         std::cout << s_cap->getSolutionValue() << std::endl;
-
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << s_cap->getSolutionValue() << std::endl;
-        std::cout << s_cap->getSolutionRepresentation() << std::endl;
+        //std::cout << s_cap->getSolutionRepresentation() << std::endl;
         std::cerr << std::flush;
-
     }
     else
     {
         std::cout << "No valid solution found!" << std::endl;
-
     }
     std::cout << std::flush;
     _Exit(EXIT_SUCCESS);
