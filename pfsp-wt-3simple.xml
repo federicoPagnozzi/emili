@@ -3,7 +3,7 @@
 <!--
      17/06/2015
 
-     Grammar for PFSP Makespan,
+     Grammar for PFSP Weighted Tardiness,
      without time related termination and optimized for simple algorithms
  -->
 
@@ -23,8 +23,8 @@
 	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
        	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
        	 <pfsp:metro_alpha type="real" min="0.1" max="1" stepIfEnumeraterd="0.1"/>
- <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
- <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
+	 <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
+	 <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
 
 <pfsp:always_acc_param>
 	<![CDATA[intensify ]]>
@@ -66,7 +66,7 @@
 	<or/>
 	   <![CDATA[transpose ]]>
 	<or/>
-	   <![CDATA[tainsert ]]>
+	   <![CDATA[insert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
@@ -250,7 +250,7 @@
 			#define GRAMMAR2CODE
 		]]>
 	-->
-                <![CDATA[PFSP_MS ]]>
+                <![CDATA[PFSP_WT ]]>
         	<pfsp:main/>     
            <!--<![CDATA[
                 /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
