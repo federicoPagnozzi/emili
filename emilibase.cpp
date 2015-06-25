@@ -86,12 +86,12 @@ static void finalise (int _)
     emili::Solution* s_cap = localsearch->getBestSoFar();
     if(s_cap != nullptr)
     {
+        double sol_val = s_cap->getSolutionValue();
         std::cout << "iteration counter " << emili::iteration_counter()<< std::endl;
-        std::cout << s_cap->getSolutionValue() << std::endl;
+        std::cout << sol_val << std::endl;
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
-        std::cerr << s_cap->getSolutionValue() << std::endl;
-        //std::cout << s_cap->getSolutionRepresentation() << std::endl;
+        std::cerr << sol_val << std::endl;
         std::cerr << std::flush;
     }
     else

@@ -1782,6 +1782,7 @@ emili::Solution* emili::pfsp::TAxInsertNeighborhood::computeStep(emili::Solution
 
         partials[end_position] = c_cur;
 
+        int wt = 0;
         for(int k=end_position+1; k<= njobs; k++)
         {
             std::vector < std::vector < int > >& tail = tails[k];
@@ -1792,17 +1793,18 @@ emili::Solution* emili::pfsp::TAxInsertNeighborhood::computeStep(emili::Solution
                 c_max = c_max>c_can?c_max:c_can;
             }
             partials[k] = c_max;
+            wt += (std::max(c_max - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
         }
 
 
-        int wt = 0;
-        for (int j = 1; j<= njobs; ++j )
+
+        for (int j = 1; j<= end_position; ++j )
             wt += (std::max(partials[j] - pis.getDueDate(newsol[j]), 0L) * pis.getPriority(newsol[j]));
 
 
-        //long int old_v  = pis.computeObjectiveFunction(newsol);
+       // long int old_v  = pis.computeObjectiveFunction(newsol);
         //std::cout << c_max << " - " << old_v << std::endl;
-        //assert(c_max == old_v);
+       // assert(wt == old_v);
      //   int robj = pis.computeObjectiveFunction(newsol);
         //std::cout << "wt " << wt << " <-> "<< robj << std::endl;
 
