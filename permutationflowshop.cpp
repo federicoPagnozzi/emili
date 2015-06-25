@@ -1601,7 +1601,7 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
 
 emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
 {
-    //emili::iteration_increment();
+    emili::iteration_increment();
     if(sp_iterations >= njobs)
     {
         return nullptr;

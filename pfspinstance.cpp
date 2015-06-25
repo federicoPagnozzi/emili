@@ -237,7 +237,7 @@ bool PfspInstance::readDataFromFile(const string _fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> > processingTimesMatrix,int nbJob, int nbMac)
+inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     long int previousJobEndTime;
     int j, m;
@@ -280,17 +280,17 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
 long int PfspInstance::computeWT(vector< int > & sol)
 {
     int j;
-	long int wt;
-	/* We need end times on previous machine : */
-	vector< long int > previousMachineEndTime ( nbJob + 1 );
-	/* And the end time of the previous job, on the same machine : */
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
     computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
 
-	wt = 0;
-	for ( j = 1; j<= nbJob; ++j )
-	    wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+    wt = 0;
+    for ( j = 1; j<= nbJob; ++j )
+        wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
 
-	return wt;
+    return wt;
 }
 
 /*compute partial weighted tardiness*/
@@ -314,6 +314,8 @@ long int PfspInstance::computeWT(vector<int> &sol, int size)
     return wt;
 
 }
+
+
 
 long int PfspInstance::getDueDate(int job)
 {
