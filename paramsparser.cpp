@@ -26,6 +26,7 @@
 #define TABU_MEMORY_VALUE "value"
 
 /* modifiers */
+#define RO "-ro"
 #define IT "-it"
 #define TS "-ts"
 #define TI "-ti"
@@ -36,7 +37,7 @@
 #define RNDSEED "rnds"
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
-#define DEFAULT_IT -10
+#define DEFAULT_IT 0
 
 
 /* Permutation flowshop*/
@@ -63,6 +64,10 @@
 #define PROBLEM_NIPFS_TCT "NIPFSP_TCT"
 #define PROBLEM_NIPFS_T "NIPFSP_T"
 #define PROBLEM_NIPFS_E "NIPFSP_E"
+
+/* Sequence dependent setup times */
+#define PROBLEM_SDSTPFS_MS "SDSTPFS_MS"
+
 
 /* initial solution heuristics */
 #define INITIAL_RANDOM "random"
@@ -103,9 +108,12 @@
 #define PERTUBATION_RND "randpert"
 #define PERTUBATION_NRZ "nrzper"
 #define PERTUBATION_TMIIG "tmiigper"
-#define PERTUBATION_SOA "soaper"
+#define PERTUBATION_SOA "igper"
+#define PERTUBATION_SOA_LEGACY "soaper"
 #define PERTUBATION_TEST "testper"
 #define PERTUBATION_IGLS "igls"
+#define PERTUBATION_RSLS "rsls"
+#define PERTUBATION_RS "rsper"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -170,6 +178,11 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
                 printTab("No Idle Permutation Flow Shop Make Span" );
                 prob = new emili::pfsp::NI_A_PFSP_MS(i);
             }
+    else if(strcmp(t,PROBLEM_SDSTPFS_MS)==0)
+    {
+        printTab("Sequence dependent setup times Make Span");
+        prob = new emili::pfsp::SDSTFSP_MS(i);
+    }
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
@@ -211,7 +224,7 @@ void prs::info()
     std::cout << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int) | mneh" << std::endl;
     std::cout << "TERMINATION           = true | time float | locmin | soater | iteration int | maxstep int" << std::endl;
     std::cout << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert | "<< NEIGHBORHOOD_TA_INSERT << " | " << NEIGHBORHOOD_NITA_INSERT<< std::endl;
-    std::cout << "PERTUBATION           = soaper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int) (int)" << std::endl;
+    std::cout << "PERTUBATION           = igper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int) (int) | igls (int) LOCAL_SEARCH | rsls (int) LOCAL_SEARCH" << std::endl;
     std::cout << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | saacc start_temp end_temp ratio frequence(int) alpha ]0,1] | tmiigacc start_temperature(float) | implat number_of_non_improving_steps_accepted plateau_threshold" << std::endl;
     std::cout << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int) | tsabm size(int)" << std::endl;
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
@@ -373,13 +386,20 @@ emili::Perturbation* prs::ParamsParser::per()
     check(t,"PERTUBATION CRITERIA EXPECTED!");
     std::ostringstream oss;
     emili::Perturbation* per;
-    if(strcmp(t,PERTUBATION_SOA)==0)
+    if(strcmp(t,PERTUBATION_SOA)==0 || strcmp(t,PERTUBATION_SOA_LEGACY)==0)
     {
         int n = number();
 
-        oss << "wslack destruct/construct pertubation. number of job erased: "<<n;
+        oss << "NEH destruct/construct pertubation which use objective function. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::SOAPerturbation(n,*istance);
+        per = new emili::pfsp::IGPerturbation(n,*istance);
+    }else if(strcmp(t,PERTUBATION_RS)==0)
+    {
+        int n = number();
+
+        oss << "NEH destruct/construct pertubation. number of job erased: "<<n;
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::RSPertubation(n,*istance);
     }
     else if(strcmp(t,PERTUBATION_IGLS)==0)
     {
@@ -394,6 +414,20 @@ emili::Perturbation* prs::ParamsParser::per()
         emili::LocalSearch* ll = search();
         this->istance = is;
         per = new emili::pfsp::IgLsPertubation(n,*istance,ll);
+    }
+    else if(strcmp(t,PERTUBATION_RSLS)==0)
+    {
+        int n = number();
+        oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
+        printTab(oss.str().c_str());
+        PfspInstance pfs = this->istance->getInstance();
+        pfs.setNbJob(pfs.getNbJob()-n);
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->istance;
+        this->istance = pfse;
+        emili::LocalSearch* ll = search();
+        this->istance = is;
+        per = new emili::pfsp::RSLSPertubation(n,*istance,ll);
     }
     else if(strcmp(t,PERTUBATION_TEST)==0)
     {
@@ -638,6 +672,16 @@ int prs::ParamsParser::ilstime()
             oss << "ILS time secs : " << n;
             printTab(oss.str().c_str());
 
+            return n;
+        }
+        else if(strcmp(t,RO)==0)
+        {
+            float d = decimal();
+            float time = d*istance->getNjobs()*istance->getNmachines();
+            int n = floorf(time);
+            std::ostringstream oss;
+            oss << "Rho = "<< d << " ILS time secs : " << n;
+            printTab(oss.str().c_str());
             return n;
         }
         else
@@ -1124,14 +1168,25 @@ float prs::ParamsParser::decimal()
 void prs::ParamsParser::problem()
 {
     PfspInstance i;
-
-    if(i.readDataFromFile(tokens[1]))
+    char* t = nextToken();
+    problem_type = t;
+    bool ok;
+    if(strcmp(t,PROBLEM_SDSTPFS_MS)==0)
     {
-        char* t = nextToken();
-        problem_type = t;
-        istance = instantiateProblem(t, i);
-    return;
+        ok = i.readSeqDepDataFromFile(tokens[1]);
     }
+    else
+    {
+        ok = i.readDataFromFile(tokens[1]);
+
+    }
+
+    if(ok)
+     {
+         istance = instantiateProblem(t, i);
+        return;
+     }
+
         info();
         exit(-1);
 }

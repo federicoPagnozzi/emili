@@ -44,6 +44,7 @@ public:
     int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
@@ -202,6 +203,15 @@ class NIPFSP_E: public PermutationFlowShop
 public:
     NIPFSP_E(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
     NIPFSP_E(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_MS: public PermutationFlowShop
+{
+public:
+    SDSTFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
@@ -389,22 +399,50 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class SOAPerturbation: public emili::Perturbation
+class IGPerturbation: public emili::Perturbation
 {
 protected:
     int d;
     emili::pfsp::PermutationFlowShop& instance;
 public:
-    SOAPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem) { }
+    IGPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class IgLsPertubation: public emili::pfsp::SOAPerturbation
+class RSPertubation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop& instance;
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+
+public:
+    RSPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
+class IgLsPertubation: public emili::pfsp::IGPerturbation
 {
 protected:
     emili::LocalSearch* ls;
 public:
-    IgLsPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::SOAPerturbation(d_parameter,problem),ls(ls) {/*   */}
+    IgLsPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::IGPerturbation(d_parameter,problem),ls(ls) {/*   */}
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
+class RSLSPertubation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop& instance;
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+    emili::LocalSearch* ls;
+public:
+    RSLSPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ls(ls) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -478,10 +516,11 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < std::vector < int > > > tails;
     const std::vector < std::vector < long int > >& pmatrix;
+    const int nmac;
 
     virtual Solution* computeStep(Solution *value);
 public:
-    TAxInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tails(problem.getNjobs()+1,std::vector< std::vector< int > >(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0))),pmatrix(problem.getProcessingTimesMatrix()) { }
+    TAxInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tails(problem.getNjobs()+1,std::vector< std::vector< int > >(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0))),pmatrix(problem.getProcessingTimesMatrix()),nmac(pis.getNmachines()) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 

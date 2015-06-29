@@ -35,6 +35,7 @@ class PfspInstance{
     std::vector< long int > priority;
     bool silence;
     std::vector< std::vector <long int> > processingTimesMatrix;
+    std::vector< std::vector < std::vector< int > > > setUpTimes;
     void computeTails(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail);
   public:
     PfspInstance(PfspInstance& is)
@@ -45,6 +46,7 @@ class PfspInstance{
         this->priority = is.getPriorities();
         this->processingTimesMatrix = is.getProcessingTimesMatrix();
         this->silence = is.silence;
+        this->setUpTimes = is.setUpTimes;
     }
 
     PfspInstance();
@@ -85,6 +87,9 @@ class PfspInstance{
 
     /* Read Data from file with the other format*/
     bool readDataFromFile(const std::string _filename);
+
+    /* Read Data from sequence dependent setup times file*/
+    bool readSeqDepDataFromFile(char* filename);
 
     /*Compute weighted tardiness*/
     long int computeWT (vector< int > & sol);
@@ -158,6 +163,28 @@ class PfspInstance{
     /*Compute no idle total completion time*/
     long int computeNITCT(vector< int > &sol);
     long int computeNITCT(vector< int > &sol,int size);
+    /*Compute Make Span with sequence depedent setup times*/
+    long int computeSDSTMS(vector< int > &sol);
+    long int computeSDSTMS(vector< int > &sol,int size);
+    /*Compute sequence depedent setup times weighted earliness*/
+    long int computeSDSTWT(vector<int> &sol);
+    long int computeSDSTWT(vector<int> &sol,int size);
+    /*Compute sequence depedent setup times weighted earliness*/
+    long int computeSDSTWE(vector<int> &sol);
+    long int computeSDSTWE(vector<int> &sol,int size);
+    /*Compute sequence depedent setup times earliness*/
+    long int computeSDSTE(vector<int> &sol);
+    long int computeSDSTE(vector<int> &sol,int size);
+    /*Compute sequence depedent setup times tardiness*/
+    long int computeSDSTT(vector<int> &sol);
+    long int computeSDSTT(vector<int> &sol,int size);
+    /*Compute sequence depedent setup times total completion time*/
+    long int computeSDSTTCT(vector< int > &sol);
+    long int computeSDSTTCT(vector< int > &sol,int size);
+    /*Compute sequence depedent setup times weighted completion time*/
+    long int computeSDSTWCT(vector< int > &sol);
+    long int computeSDSTWCT(vector< int > &sol,int size);
+
 
     /* Compute weighted tardines starting from an index*/
     long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
@@ -169,7 +196,9 @@ class PfspInstance{
 
     //Compute the earliest completion time starting from the beginning and starting from the end in order to apply taillard acceleration...
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeTails(std::vector<int> &sol, std::vector < std::vector< std::vector< int > > >& tails);
+
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     int computeIdleTimeCoeff(vector<int>& prevJob, int job);
 
