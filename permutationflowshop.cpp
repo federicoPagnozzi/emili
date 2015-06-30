@@ -1235,8 +1235,8 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
     }
 
 
-    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-    instance.evaluateSolution(*s);
+    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    //instance.evaluateSolution(*s);
     return s;
 }
 
