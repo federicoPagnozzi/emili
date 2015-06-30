@@ -78,7 +78,7 @@
 	<pfsp:pertubation>
 		<!-- <![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	  	<or/> -->
-		<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
+		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<!--	![CDATA[testper ]]> --> 
 		<or/>
 		<!--<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>-->
@@ -92,7 +92,7 @@
 		<!-- <![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>-->
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
-		<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
