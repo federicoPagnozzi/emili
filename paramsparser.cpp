@@ -99,6 +99,7 @@
 #define NEIGHBORHOOD_EXCHANGE "exchange"
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
+#define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 
 /* permutation flowshop solution pertubations */
@@ -1035,6 +1036,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh()
     {
         printTab( "Insert with Taillard Acceleration(Experimental)");
         neigh = new emili::pfsp::TAxInsertNeighborhood(*istance);
+    }
+    else if(strcmp(t,NEIGHBORHOOD_ATAx_INSERT)==0)
+    {
+        printTab( "Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        neigh = new emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(strcmp(t,NEIGHBORHOOD_NITA_INSERT)==0)
     {

@@ -501,6 +501,15 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
+class ApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    const int nmac;
+    virtual Solution* computeStep(Solution *value);
+public:
+    ApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),nmac(problem.getNmachines()) { }
+};
+
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
 {
 protected:
