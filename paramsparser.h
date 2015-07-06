@@ -1,56 +1,41 @@
 #ifndef PARAMSPARSER_H
 #define PARAMSPARSER_H
-#include "emilibase.h"
+#include "generalParser.h"
 #include "permutationflowshop.h"
-
 namespace prs
 {
-void emili_header();
+//void emili_header();
 void info();
 
-class ParamsParser
+class ParamsParser: public AlgoBuilder
 {
-protected:
+protected:    
     emili::pfsp::PermutationFlowShop* istance;
-    char** tokens;
-    int numberOfTokens;
-    int currentToken;
-    char* nextToken();
-    emili::LocalSearch* eparams();
-    emili::LocalSearch* search();
-    emili::LocalSearch* ils();
-    emili::LocalSearch* ig();
-    emili::LocalSearch* gvns();
-    int ilstime();
-    emili::TabuSearch* tparams();
-    emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n);
-    std::pair<int,int> tsettings();
-    int ttsize();
-    int ttiter();
-    void params();
-    int getSeed();
-    emili::LocalSearch* vparams();
-    emili::InitialSolution* init();
-    emili::Termination* term();
-    emili::Acceptance* acc();
-    emili::Perturbation* per();
-    emili::pfsp::PfspNeighborhood* neigh();
+    emili::LocalSearch* eparams(prs::TokenManager& tm);
+    emili::LocalSearch* search(prs::TokenManager& tm);
+    emili::LocalSearch* ils(prs::TokenManager& tm);
+    emili::LocalSearch* gvns(prs::TokenManager& tm);
+    emili::TabuSearch* tparams(prs::TokenManager& tm);
+    emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n,prs::TokenManager& tm);
+    void params(prs::TokenManager& tm);
+    emili::LocalSearch* vparams(prs::TokenManager& tm);
+    emili::InitialSolution* init(prs::TokenManager& tm);
+    emili::Termination* term(prs::TokenManager& tm);
+    emili::Acceptance* acc(prs::TokenManager& tm);
+    emili::Perturbation* per(prs::TokenManager& tm);
+    emili::pfsp::PfspNeighborhood* neigh(prs::TokenManager& tm);
 
-    emili::pfsp::PfspNeighborhood* neighV();
-    void neighs();
-    void neighs1();
-    void problem();
-    int number();
+    emili::pfsp::PfspNeighborhood* neighV(prs::TokenManager& tm);
+    void neighs(prs::TokenManager& tm);
+    void neighs1(prs::TokenManager& tm);
+    void problem(prs::TokenManager& tm);
 
-    float decimal();
+    virtual std::string availableProblems() const;
 public:
-    int ils_time;
-    ParamsParser(char** tokens,int numberOfTokens,emili::pfsp::PermutationFlowShop* is):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),istance(is),ils_time(-123) { }
-    ParamsParser(char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(2),ils_time(-123) { }
-    emili::LocalSearch* parseParams();
-    emili::pfsp::PermutationFlowShop& getInstance() { return *istance;}
-
-
+    virtual bool isParsable(std::string& problem) ;
+    virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);
+    virtual std::string info();
+    ParamsParser() { }
 };
 }
 #endif // PARAMSPARSER_H

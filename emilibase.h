@@ -17,8 +17,8 @@ P.S.
 It's a very bad acronym but it's the best I could came up with in 5 minutes...
 
 In order to use this framework for running your things you should implement
-at least a problem specific extension of the class Problem, Solution, InitialSolution and
-Neighborhood.
+at least a problem specific extension of the class Problem, Solution, InitialSolution,
+Neighborhood and Perturbation.
 */
 
 
@@ -50,6 +50,7 @@ class Problem{
 public:
 
     virtual double evaluateSolution(Solution & solution)=0;
+    virtual int problemSize() {return 1;}
 
 };
 
@@ -143,9 +144,9 @@ public:
 };
 
 /*
- * This starts a system timer whe reset it's called and
- * checks if the timer is expired every time terminate it's called.
- * This way there is not need anymore for the timedsearch method.
+ *
+ * It checks if the timer is expired every time terminate it's called.
+ *
  */
 class TimedTermination: public Termination
 {
@@ -159,7 +160,9 @@ public:
     virtual bool terminate(Solution *currentSolution, Solution *newSolution);
     virtual void reset();
 };
-
+/*
+ * As the name suggests after max_steps this Termination returns true.
+ */
 class MaxStepsTermination : public Termination
 {
 protected:
@@ -302,7 +305,7 @@ public:
 };
 
 /*
- this class models a best improvement local search using the dumb neighboor
+ this class models a best improvement local search using the dumb neighborhood
  with the iterator interface.
  */
 class BestImprovementSearch : public emili::LocalSearch
@@ -317,7 +320,7 @@ public:
 };
 
 /*
- this class models a first improvement local search using the dumb neighboor
+ this class models a first improvement local search using the dumb neighborhood
  with the iterator interface.
  */
 class FirstImprovementSearch : public emili::LocalSearch
@@ -643,6 +646,17 @@ class IteratedGreedy : public emili::IteratedLocalSearch
 public:
     IteratedGreedy(Constructor& c,Termination& t,Destructor& d,Acceptance& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
 };
-
+/*
+class SimulatedAnnealing : public emili::LocalSearch
+{
+protected:
+emili::Acceptance* acceptance;
+public:
+SimulatedAnnealing(InitialSolution* initial,Neighborhood* neigh,Termination* term,Acceptance* acc):emili::LocalSearch(*initial,*term,*neigh),acceptance(acc) { }
+virtual Solution* getBestSoFar();
+virtual Solution* search(Solution *initial);
+virtual ~SimulatedAnnealing() { delete acceptance;}
+};
+*/
 }
 #endif // EMILIBASE_H

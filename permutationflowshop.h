@@ -48,6 +48,7 @@ public:
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
+    virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
     PfspInstance& getInstance();
 };
 
@@ -494,20 +495,30 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < int > > tail;
     const std::vector < std::vector < long int > >& pmatrix;
-
+    const int nmac;
+    void computeTAmatrices(std::vector<int>& sol);
     virtual Solution* computeStep(Solution *value);
 public:
-    TaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    TaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
 class ApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
 protected:
-    const int nmac;
     virtual Solution* computeStep(Solution *value);
 public:
-    ApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),nmac(problem.getNmachines()) { }
+    ApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
+};
+
+class HeavilyApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    void computeHead(std::vector<int>& sol);
+    virtual Solution* computeStep(Solution *value);
+public:
+    HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
+    virtual NeighborhoodIterator begin(Solution *base);
 };
 
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
