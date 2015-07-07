@@ -548,6 +548,16 @@ int emili::pfsp::PFSP_WCT::computeObjectiveFunction(std::vector< int > & partial
     return instance.computeWCT(partial_solution,size);
 }
 
+int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector< int > & partial_solution)
+{
+    return instance.computeTCT(partial_solution);
+}
+
+int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector< int > & partial_solution,int size)
+{
+    return instance.computeTCT(partial_solution,size);
+}
+
 int emili::pfsp::PFSP_WE::computeObjectiveFunction(std::vector< int > & partial_solution)
 {
     return -instance.computeWE(partial_solution);
@@ -638,6 +648,26 @@ int emili::pfsp::NWPFSP_T::computeObjectiveFunction(std::vector<int> &partial_so
     return instance.computeNWT(partial_solution,size);
 }
 
+int emili::pfsp::NWPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWTCT(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWTCT(partial_solution,size);
+}
+
+int emili::pfsp::NWPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWWCT(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWWCT(partial_solution,size);
+}
+
 int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeNIMS(partial_solution);
@@ -688,6 +718,26 @@ int emili::pfsp::NIPFSP_T::computeObjectiveFunction(std::vector<int> &partial_so
     return instance.computeNIT(partial_solution,size);
 }
 
+int emili::pfsp::NIPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNIWCT(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNIWCT(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNITCT(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNITCT(partial_solution,size);
+}
+
 void emili::pfsp::NI_A_PFSP_MS::calc_nims_base()
 {
     const std::vector < std::vector < long > > & ptm = instance.getProcessingTimesMatrix();
@@ -716,6 +766,65 @@ int emili::pfsp::SDSTFSP_MS::computeObjectiveFunction(std::vector<int> &partial_
     return instance.computeSDSTMS(partial_solution,size);
 }
 
+int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTWT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTWT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTWE(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTWE(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTE(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTE(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTTCT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTTCT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTWCT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTWCT(partial_solution,size);
+}
 
 emili::Solution* emili::pfsp::PfspInitialSolution::generateEmptySolution()
 {

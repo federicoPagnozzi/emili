@@ -70,6 +70,15 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
 
+class PFSP_TCT: public PermutationFlowShop
+{
+public:
+    PFSP_TCT(PfspInstance& problemInstance):PermutationFlowShop(problemInstance) { }
+    PFSP_TCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
+    virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
+};
+
 class PFSP_WE: public PermutationFlowShop
 {
 public:
@@ -151,6 +160,24 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
+class NWPFSP_WCT: public PermutationFlowShop
+{
+public:
+    NWPFSP_WCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NWPFSP_WCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class NWPFSP_TCT: public PermutationFlowShop
+{
+public:
+    NWPFSP_TCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NWPFSP_TCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
 class NIPFSP_MS: public PermutationFlowShop
 {
 public:
@@ -208,11 +235,83 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
 
+class NIPFSP_WCT: public PermutationFlowShop
+{
+public:
+    NIPFSP_WCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NIPFSP_WCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class NIPFSP_TCT: public PermutationFlowShop
+{
+public:
+    NIPFSP_TCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NIPFSP_TCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
 class SDSTFSP_MS: public PermutationFlowShop
 {
 public:
     SDSTFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
     SDSTFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_WT: public PermutationFlowShop
+{
+public:
+    SDSTFSP_WT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_WT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_WE: public PermutationFlowShop
+{
+public:
+    SDSTFSP_WE(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_WE(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_T: public PermutationFlowShop
+{
+public:
+    SDSTFSP_T(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_T(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_E: public PermutationFlowShop
+{
+public:
+    SDSTFSP_E(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_E(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_TCT: public PermutationFlowShop
+{
+public:
+    SDSTFSP_TCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_TCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+};
+
+class SDSTFSP_WCT: public PermutationFlowShop
+{
+public:
+    SDSTFSP_WCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    SDSTFSP_WCT(char* instance_path):PermutationFlowShop(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };

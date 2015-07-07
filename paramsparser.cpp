@@ -53,6 +53,7 @@
 #define PROBLEM_NWPFS_MS "NWPFSP_MS"
 #define PROBLEM_NWPFS_WT "NWPFSP_WT"
 #define PROBLEM_NWPFS_WE "NWPFSP_WE"
+#define PROBLEM_NWPFS_WCT "NWPFSP_WCT"
 #define PROBLEM_NWPFS_TCT "NWPFSP_TCT"
 #define PROBLEM_NWPFS_T "NWPFSP_T"
 #define PROBLEM_NWPFS_E "NWPFSP_E"
@@ -61,12 +62,19 @@
 #define PROBLEM_NIPFS_MS "NIPFSP_MS"
 #define PROBLEM_NIPFS_WT "NIPFSP_WT"
 #define PROBLEM_NIPFS_WE "NIPFSP_WE"
+#define PROBLEM_NIPFS_WCT "NIPFSP_WCT"
 #define PROBLEM_NIPFS_TCT "NIPFSP_TCT"
 #define PROBLEM_NIPFS_T "NIPFSP_T"
 #define PROBLEM_NIPFS_E "NIPFSP_E"
 
 /* Sequence dependent setup times */
 #define PROBLEM_SDSTPFS_MS "SDSTPFS_MS"
+#define PROBLEM_SDSTPFS_WT "SDSTPFS_WT"
+#define PROBLEM_SDSTPFS_WE "SDSTPFS_WE"
+#define PROBLEM_SDSTPFS_T "SDSTPFS_T"
+#define PROBLEM_SDSTPFS_E "SDSTPFS_E"
+#define PROBLEM_SDSTPFS_TCT "SDSTPFS_TCT"
+#define PROBLEM_SDSTPFS_WCT "SDSTPFS_WCT"
 
 
 /* initial solution heuristics */
@@ -142,10 +150,6 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
 
         prs::printTab("Permutation Flow Shop Weighted Tardiness");
         prob = new emili::pfsp::PFSP_WT(i);
-    }else if(strcmp(t,PROBLEM_NWPFS_MS)==0)
-    {
-        prs::printTab("No Wait Permutation Flow Shop Make Span");
-        prob = new emili::pfsp::NWPFSP_MS(i);
     }else if(strcmp(t,PROBLEM_PFS_E)==0)
     {
         prs::printTab("Permutation Flow Shop Earliness");
@@ -163,21 +167,126 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
         prs::printTab("Permutation Flow Shop Make Span");
         prob = new emili::pfsp::PFSP_MS(i);
     }
+    else if(strcmp(t,PROBLEM_PFS_TCT)==0)
+    {
+        prs::printTab("Permutation Flow Shop TCT");
+        prob = new emili::pfsp::PFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_PFS_WCT)==0)
+    {
+        prs::printTab("Permutation Flow Shop WCT");
+        prob = new emili::pfsp::PFSP_WCT(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_MS)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Make Span");
+        prob = new emili::pfsp::NWPFSP_MS(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_WT)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Weighted Tardiness");
+        prob = new emili::pfsp::NWPFSP_WT(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_WE)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Weighted Earliness");
+        prob = new emili::pfsp::NWPFSP_WE(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_T)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Tardiness");
+        prob = new emili::pfsp::NWPFSP_T(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_E)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Earliness");
+        prob = new emili::pfsp::NWPFSP_E(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_TCT)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop TCT");
+        prob = new emili::pfsp::NWPFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_WCT)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop WCT");
+        prob = new emili::pfsp::NWPFSP_WCT(i);
+    }
     else if(strcmp(t,PROBLEM_NIPFS_MS)==0)
-            {
-                prs::printTab("No Idle Permutation Flow Shop Make Span" );
-                prob = new emili::pfsp::NI_A_PFSP_MS(i);
-            }
+    {
+        prs::printTab("No Idle Permutation Flow Shop Make Span" );
+        prob = new emili::pfsp::NI_A_PFSP_MS(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_WT)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Weighted Tardiness" );
+        prob = new emili::pfsp::NIPFSP_WT(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_WE)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Weighted Earliness" );
+        prob = new emili::pfsp::NIPFSP_WE(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_T)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Tardiness" );
+        prob = new emili::pfsp::NIPFSP_T(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_E)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Earliness" );
+        prob = new emili::pfsp::NIPFSP_E(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_TCT)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop total completion time" );
+        prob = new emili::pfsp::NIPFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_WCT)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Weighted completion time" );
+        prob = new emili::pfsp::NIPFSP_WCT(i);
+    }
     else if(strcmp(t,PROBLEM_SDSTPFS_MS)==0)
     {
         prs::printTab("Sequence dependent setup times Make Span");
         prob = new emili::pfsp::SDSTFSP_MS(i);
     }
+    else if(strcmp(t,PROBLEM_SDSTPFS_WT)==0)
+    {
+        prs::printTab("Sequence dependent setup times weighted tardiness");
+        prob = new emili::pfsp::SDSTFSP_WT(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_WE)==0)
+    {
+        prs::printTab("Sequence dependent setup times weighted earliness");
+        prob = new emili::pfsp::SDSTFSP_WE(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_T)==0)
+    {
+        prs::printTab("Sequence dependent setup times Tardiness");
+        prob = new emili::pfsp::SDSTFSP_T(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_E)==0)
+    {
+        prs::printTab("Sequence dependent setup times Earliness");
+        prob = new emili::pfsp::SDSTFSP_E(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_TCT)==0)
+    {
+        prs::printTab("Sequence dependent setup times Total completion time");
+        prob = new emili::pfsp::SDSTFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_WCT)==0)
+    {
+        prs::printTab("Sequence dependent setup times weighted completion time");
+        prob = new emili::pfsp::SDSTFSP_WCT(i);
+    }
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
         prs::info();
-    exit(-1);
+        exit(-1);
     }
     return prob;
 }
@@ -982,8 +1091,10 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
     PfspInstance i;    
     problem_type = tm.nextToken();
     bool ok;
+    std::string pro(problem_type);
+    std::string sdst("SDSTPFS");
 
-    if(tm.checkToken(PROBLEM_SDSTPFS_MS))
+    if(pro.find(sdst) != string::npos)
     {
         ok = i.readSeqDepDataFromFile(tm.tokenAt(1));
     }
@@ -1017,9 +1128,6 @@ bool prs::ParamsParser::isParsable(string &problem)
     if(strcmp(problem.c_str(),PROBLEM_PFS_WT)==0)
     {
         return true;
-    }else if(strcmp(problem.c_str(),PROBLEM_NWPFS_MS)==0)
-    {
-        return true;
     }else if(strcmp(problem.c_str(),PROBLEM_PFS_E)==0)
     {
         return true;
@@ -1028,16 +1136,93 @@ bool prs::ParamsParser::isParsable(string &problem)
         return true;
     }else if(strcmp(problem.c_str(),PROBLEM_PFS_T)==0)
     {
-    return true;
+        return true;
     }else if(strcmp(problem.c_str(),PROBLEM_PFS_MS)==0)
     {
         return true;
     }
-    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_MS)==0)
-            {
+    else if(strcmp(problem.c_str(),PROBLEM_PFS_TCT)==0)
+    {
         return true;
-            }
+    }else if(strcmp(problem.c_str(),PROBLEM_PFS_WCT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_MS)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_E)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NIPFS_T)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_WT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_WE)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_TCT)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NIPFS_WCT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_MS)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_E)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NWPFS_T)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_WT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_WE)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_TCT)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NWPFS_WCT)==0)
+    {
+        return true;
+    }
     else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_MS)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_E)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_T)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_WT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_WE)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_TCT)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_WCT)==0)
     {
         return true;
     }
