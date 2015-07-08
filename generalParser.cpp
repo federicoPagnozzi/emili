@@ -193,7 +193,7 @@ int getTime(prs::TokenManager& tm,int problemSize)
         {
             int n = tm.getInteger();
             std::ostringstream oss;
-            oss << "ILS time secs : " << n;
+            oss << "Run time secs : " << n;
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
             return n;
@@ -204,7 +204,7 @@ int getTime(prs::TokenManager& tm,int problemSize)
             float time = d*problemSize;
             int n = floorf(time);
             std::ostringstream oss;
-            oss << "Rho = "<< d << " ILS time secs : " << n;
+            oss << "Rho = "<< d << " Run time secs : " << n;
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
             return n;
@@ -216,12 +216,13 @@ int getTime(prs::TokenManager& tm,int problemSize)
 
 int getSeed(prs::TokenManager& tm)
 {
-
+    int rnds = 0;
     if(tm.checkToken(RNDSEED))
     {
-        return tm.getInteger();
+        rnds = tm.getInteger();
     }
-    return 0;
+    std::cout << "Random seed : " << rnds << std::endl;
+    return rnds;
 }
 
 

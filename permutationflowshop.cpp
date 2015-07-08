@@ -219,7 +219,7 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
             solTMP[1]=_fsp[2];
             solTMP[2]=_fsp[1];
 
-            int mS=pis.computeObjectiveFunction(_fsp);//compute_total_wt(_fsp,2);
+            int mS=pis.computeObjectiveFunction(_fsp,2);//compute_total_wt(_fsp,2);
             if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
                 _fsp[1]=solTMP[1];
                 _fsp[2]=solTMP[2];
@@ -907,32 +907,32 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
 
 emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
 {
-    int nbJobs = pis.getNjobs();
-    std::vector< int >  sol(nbJobs+1, 0);
+
+    //SLACK: At time t, the job with the minimum value of dj − Cj (s) is selected.
+    int nbJobs = pis.getNjobs(); // number of jobs in the problem
+    std::vector< int >  sol(nbJobs+1, 0); //vector that contains the solution
     int Ci  = 0;
-    vector<bool> assigned(nbJobs+1, false);
-    vector<int> partial(nbJobs+1,0);
+    vector<bool> assigned(nbJobs+1, false); // vector that indicates if a job it's already assigned to the partial solution
+    vector<int> partial(nbJobs+1,0); // partial solution
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
-        for (int jb = 1; jb <= nbJobs; ++jb) {
-            if(!assigned[jb]){
-                int dd = pis.getDueDate(jb);
-                int pr = pis.getPriority(jb);
-                partial[var+1] = jb;
-                Ci = pis.computeMS(partial,var+1);
-                int wej = pr * (dd-Ci);
-                partial[var+1] = 0;
+        for (int jb = 1; jb <= nbJobs; ++jb) { //this loop finds the job that added to the partial solution achieves the minimum earliness
+            if(!assigned[jb]){ // if jb it's not already assigned to the partial solution
+                int dd = pis.getDueDate(jb); // get the due date of jb
+                int pr = pis.getPriority(jb); // get the weight of jb
+                partial[var+1] = jb; // insert jb at the end of the partial solution
+                Ci = pis.computeMS(partial,var+1); // compute partial solution make span
+                int wej = pr * (dd-Ci); // weighted earliness of jb when put in var+1
+                partial[var+1] = 0; // deletes jb from the partial solution
                 if(minE > wej){
                     minJ = jb;
-                    minE = wej;
+                    minE = wej; //updates the current minimum earliness
                 }
             }
         }
-        partial[var+1] = minJ;
-        assigned[minJ] = true;
-        //Ci = pis.computeMS(partial);
-        //cout << "partial makespan: " << Ci << std::endl;
+        partial[var+1] = minJ; // updates the partial solution inserting ad the end the job with the minimum earliness
+        assigned[minJ] = true; // updates the assigned vector
     }
     //int partial_w = pis.computeWT(partial);
     sol = neh2(partial,nbJobs,pis);
@@ -2092,7 +2092,8 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
 
 
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
-        if(wt < value->getSolutionValue())
+        int value_wt = value->getSolutionValue();
+        if(wt < value_wt)
         {
 
             for(int k=end_position+1; k< njobs; k++)
@@ -2114,6 +2115,13 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+                if(pre_wt > value_wt)
+                 {
+                    // cout << "exited at " << k << std::endl;
+
+                     news->setSolutionValue(pre_wt);
+                     return news;
+                  }
             }
              //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
             //assert( pre_wt == pis.computeObjectiveFunction(newsol));
@@ -2239,7 +2247,8 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
 
 
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
-        if(wt < value->getSolutionValue())
+        int value_wt = value->getSolutionValue();
+        if(wt < value_wt)
         {
 
             for(int k=end_position+1; k<= njobs; k++)
@@ -2261,6 +2270,13 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
                     ins_pos[m] = pre_c_cur;
                 }
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+              if(pre_wt > value_wt)
+               {
+                  // cout << "exited at " << k << std::endl;
+
+                   news->setSolutionValue(pre_wt);
+                   return news;
+                }
             }
              //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
             //assert( pre_wt == pis.computeObjectiveFunction(newsol));
