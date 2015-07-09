@@ -15,7 +15,7 @@ protected:
     emili::LocalSearch* search(prs::TokenManager& tm);
     emili::LocalSearch* ils(prs::TokenManager& tm);
     emili::LocalSearch* gvns(prs::TokenManager& tm);
-    emili::TabuSearch* tparams(prs::TokenManager& tm);
+    emili::BestTabuSearch* tparams(prs::TokenManager& tm);
     emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n,prs::TokenManager& tm);
     void params(prs::TokenManager& tm);
     emili::LocalSearch* vparams(prs::TokenManager& tm);

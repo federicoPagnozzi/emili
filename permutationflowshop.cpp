@@ -2006,6 +2006,13 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
                 c_cur = c_pm + pmatrix[sol_i][i];
             }
             long int c_can = (c_cur+tail[i][end_position]);
+
+            if(c_can>value->getSolutionValue())
+            {
+
+                return new emili::pfsp::PermutationFlowShopSolution(c_can,newsol);
+            }
+
             c_max = c_max>c_can?c_max:c_can;
         }
         //long int old_v  = pis.computeObjectiveFunction(newsol);

@@ -315,7 +315,7 @@ std::string prs::ParamsParser::info()
               << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E <<"\n";
     oss << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" <<"\n";
     oss << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << "\n";
-    oss << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << "\n";
+    oss << "TABU_SEARCH           = tabu < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY " << "\n";
     oss << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << "\n";
     oss << "GVNS_SEARCH           = gvns INITIAL_SOLUTION PERTUBATION1 PERTUBATION2 -it seconds" << "\n";
     oss << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << "\n";
@@ -677,14 +677,26 @@ emili::LocalSearch* prs::ParamsParser::gvns(prs::TokenManager& tm)
     return new emili::GVNS(*gvi,pl);
 }
 
-emili::TabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
+emili::BestTabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
 {
-    params(tm);
-    tmem = tmemory(ne,tm);
-    //std::pair<int,int > tset = tsettings();
-   // tm->setTabuTenure(tset.first);
-    //emili::pfsp::PfspTerminationIterations* ptc = new emili::pfsp::PfspTerminationIterations(tset.second);
-    return new emili::TabuSearch(*in,*te,*ne,*tmem);
+    if(tm.checkToken(BEST))
+    {
+        params(tm);
+        tmem = tmemory(ne,tm);
+        return new emili::BestTabuSearch(*in,*te,*ne,*tmem);
+    }
+    else if(tm.checkToken(FIRST))
+    {
+        params(tm);
+        tmem = tmemory(ne,tm);
+        return new emili::FirstTabuSearch(*in,*te,*ne,*tmem);
+    }
+    else
+    {
+        std::cerr<< "'" << *tm << "' -> ERROR a pivotal rule (best or first) for the tabu search was expected! \n" << std::endl;
+        std::cout << info() << std::endl;
+        exit(-1);
+    }
 }
 
 emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n,prs::TokenManager& tm)

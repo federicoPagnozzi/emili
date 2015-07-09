@@ -99,7 +99,7 @@ static void finalise (int _)
         std::cout << "No valid solution found!" << std::endl;
     }
     std::cout << std::flush;
-   _Exit(EXIT_SUCCESS);
+   //_Exit(EXIT_SUCCESS);
 }
 
 void timeUp(int _)
@@ -475,7 +475,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 /*
  * TABU SEARCH
  */
-emili::Solution* emili::TabuSearch::search()
+emili::Solution* emili::BestTabuSearch::search()
 {
     tabuMemory.reset();
     emili::Solution* current = init->generateSolution();
@@ -487,7 +487,7 @@ emili::Solution* emili::TabuSearch::search()
 }
 
 
-emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
+emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
 {
     termcriterion->reset();
     neighbh->reset();    
@@ -534,6 +534,41 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 }
 
 
+emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
+{
+    termcriterion->reset();
+    neighbh->reset();
+    emili::Solution* incumbent = init->generateEmptySolution();
+    *incumbent = *initial;
+    bestSoFar = incumbent;
+        do{
+            if(bestSoFar != incumbent)
+            {
+                delete bestSoFar;
+            }
+            bestSoFar = incumbent;
+            for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
+            {
+                emili::Solution* ithSolution = *iter;
+                tabuMemory.registerMove(incumbent,ithSolution);
+                if(incumbent->operator >(*ithSolution)&& (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){
+                    if(incumbent!=bestSoFar)
+                    delete incumbent;
+
+                    incumbent = ithSolution;
+                    break;
+                }
+                else
+                {
+                    delete ithSolution;
+                }
+
+            }
+        tabuMemory.forbid(incumbent);
+    }while(!termcriterion->terminate(bestSoFar,incumbent));
+
+    return bestSoFar;
+}
 /*
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 {
