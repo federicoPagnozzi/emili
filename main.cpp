@@ -16,7 +16,7 @@ void g2c_info()
 }
 int main(int argc, char *argv[])
 {
-
+    prs::emili_header();
     /* initialize random seed: */
     srand ( time(0) );
 

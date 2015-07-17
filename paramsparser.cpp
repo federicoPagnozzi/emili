@@ -78,6 +78,7 @@
 
 
 /* initial solution heuristics */
+#define INITIAL_NEH "neh"
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
@@ -871,6 +872,12 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             //return new testIS(istance);
             init = new emili::pfsp::MNEH(*istance);
         }
+    else if(tm.checkToken(INITIAL_NEH))
+    {
+        printTab( "NEH initial solution");
+        //return new testIS(istance);
+        init = new emili::pfsp::NEH(*istance);
+    }
     else
     {
         std::cerr<< "'" << *tm << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;

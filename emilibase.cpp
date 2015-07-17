@@ -99,7 +99,7 @@ static void finalise (int _)
         std::cout << "No valid solution found!" << std::endl;
     }
     std::cout << std::flush;
-   //_Exit(EXIT_SUCCESS);
+    _Exit(EXIT_SUCCESS);
 }
 
 void timeUp(int _)

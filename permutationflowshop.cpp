@@ -937,12 +937,39 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
     //int partial_w = pis.computeWT(partial);
     sol = neh2(partial,nbJobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    //pis.evaluateSolution(*s);
-    std::vector< std::vector< int > > etm = std::vector< std::vector< int > >(pis.getNmachines()+1,std::vector<int>(pis.getNjobs()+1,0));
+    pis.evaluateSolution(*s);
+    //std::vector< std::vector< int > > etm = std::vector< std::vector< int > >(pis.getNmachines()+1,std::vector<int>(pis.getNjobs()+1,0));
     //clock_t start = clock();
-    int new_value =  pis.computeObjectiveFunction(sol,etm,1,pis.getNjobs()+1);
+    //int new_value =  pis.computeObjectiveFunction(sol,etm,1,pis.getNjobs()+1);
 
-    s->setSolutionValue(new_value);
+    //s->setSolutionValue(new_value);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NEH::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    int nmac = pis.getNmachines();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
+    order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        int tpti = 0;
+        for (int k = 1; k <= nmac; ++k) {
+            tpti += ptm[i][k];
+        }
+        tpt[i] = tpti;
+        order.push_back(i);
+    }
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){
+
+                                                               return tpt[i1] < tpt[i2];
+    });
+    order = neh2(order,njobs,pis);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
+    pis.evaluateSolution(*s);
     return s;
 }
 
@@ -2558,6 +2585,7 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::random(Solution *curren
 
 emili::Solution* emili::pfsp::PfspExchangeNeighborhood::computeStep(emili::Solution* value)
 {
+   emili::iteration_increment();
     if(sp_iterations >= (njobs-1))
     {
         return nullptr;

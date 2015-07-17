@@ -374,6 +374,15 @@ protected:
 public:
     PfspNEHwslackInitialSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance){}
 };
+
+class NEH: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    NEH(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) {}
+};
+
 /*Less idle times construction heuristic from
         Wang CG, Chu CB, Proth JM. Heuristic approaches for n/m/F/SCi, scheduling
         problems. European Journal of Operational Research 1997;96(3):636–44.

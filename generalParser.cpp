@@ -228,7 +228,6 @@ int getSeed(prs::TokenManager& tm)
 
 emili::LocalSearch* prs::GeneralParser::parseParams()
 {
-    emili_header();
     tm++;
     tm++;
     char* p = tm.peek();
