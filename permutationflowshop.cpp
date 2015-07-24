@@ -256,6 +256,129 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
          return _fsp;
 }
 
+std::vector< int > inline nehff(std::vector<int >& _fsp,
+                                int N,
+                                emili::pfsp::PermutationFlowShop& pis
+                                )
+{
+    //tmp=compute_total_wt(solTMP,sizePartial+1);
+    //                  std::cout << "start perturb" << std::endl;
+    //check why plus 1
+    const std::vector < std::vector < long int > >& pmatrix = pis.getProcessingTimesMatrix();
+
+    int min;
+    int tmp,ind;
+    std::vector< int >  solTMP(N+1,0);
+    int m = pis.getNmachines();
+    std::vector < std::vector < int > > head(m+1,std::vector< int > (pis.getNjobs()+1,0));
+    std::vector < std::vector < int > > tail(m+1,std::vector< int > (pis.getNjobs()+1,0));
+
+
+    solTMP[1]=_fsp[2];
+    solTMP[2]=_fsp[1];
+
+    int mS=pis.computeMS(_fsp,2);//compute_total_wt(_fsp,2);
+    if(pis.computeMS(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
+        _fsp[1]=solTMP[1];
+        _fsp[2]=solTMP[2];
+    }
+
+    for(int k=3;k<=N;k++){
+            min = std::numeric_limits<int>::max();//min=10000000;
+            pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
+            std::vector< int >  ptb;
+            int kk = _fsp[k];
+        for(int r=1; r<=k; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=_fsp[h];
+            solTMP[r]=_fsp[k];
+            for(int h=r+1; h<=k; h++)
+                solTMP[h]=_fsp[h-1];
+
+            //tmp=pis.computeObjectiveFunction(solTMP,k);//compute_total_wt(solTMP,k+1);
+
+            long int c_cur = head[1][r-1]+pmatrix[kk][1];
+            long int c_max = c_cur+tail[1][r];
+            for (int i = 2; i <= m; ++i) {
+                int c_pm = head[i][r-1];
+                if(c_pm < c_cur)
+                {
+                    c_cur = c_cur + pmatrix[kk][i];
+                }
+                else
+                {
+                    c_cur = c_pm + pmatrix[kk][i];
+                }
+                long int c_can = (c_cur+tail[i][r]);
+                c_max = c_max>c_can?c_max:c_can;
+            }
+            tmp = c_max;
+
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+                ptb.clear();
+                ptb.push_back(ind);
+            }else if(tmp==min)
+            {
+                ptb.push_back(r);
+            }
+
+        }
+    int tb = ptb.size();
+        if(tb > 1 && k<N)
+        {
+            //tie breaker!
+            int bp = ptb[0];
+            int itbp = std::numeric_limits<int> ::max();
+            for(int l=0; l < tb; l++)
+            {
+                int ptbl = ptb[l];
+                int itdd = 0;
+                int fil = 0;
+                if(ptbl == k)
+                {
+                    fil =  head[1][ptbl-1]+pmatrix[kk][1]; //???????????
+                    for(int i=2 ; i <= m; i++)
+                    {
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i];
+                        fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
+                    }
+                }
+                else
+                {
+                    int sptbl = solTMP[ptbl];
+                    int filp =  fil+ pmatrix[sptbl][1];
+                    for(int i=2 ; i <= m; i++)
+                    {
+                        fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]+pmatrix[sptbl][i]+max(filp-fil,0);
+                        filp = std::max(fil,filp) + pmatrix[sptbl][i];
+                    }
+                }
+                if(itbp > itdd)
+                {
+                    itbp = itdd;
+                    bp = ptbl;
+                }
+            }
+            ind = bp;
+        }
+        //end tie braking
+        for(int h=0; h<ind; h++)
+            solTMP[h]=_fsp[h];
+        solTMP[ind]=_fsp[k];
+        for(int h=ind+1; h<=k; h++)
+            solTMP[h]=_fsp[h-1];
+
+        for(int h=0; h<=k; ++h)
+            _fsp[h]=solTMP[h];
+    }
+
+ return _fsp;
+}
+
 std::vector< int > inline slack_construct(std::vector< int >& partial, int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
     int Ci = pis.computeMS(partial);
@@ -963,11 +1086,36 @@ emili::Solution* emili::pfsp::NEH::generate()
         tpt[i] = tpti;
         order.push_back(i);
     }
-    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){
-
-                                                               return tpt[i1] < tpt[i2];
-    });
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NEHff::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    int nmac = pis.getNmachines();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
+    order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        int tpti = 0;
+        for (int k = 1; k <= nmac; ++k) {
+            tpti += ptm[i][k];
+        }
+        tpt[i] = tpti;
+        order.push_back(i);
+    }
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
+    order = nehff(order,njobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
     return s;
@@ -1519,12 +1667,130 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     instance.evaluateSolution(*s);
-    //assert(s->getSolutionValue() == min);
-    //std::vector< std::vector< int > >  etm = std::vector< std::vector< int > >(instance.getNmachines()+1,std::vector<int>(instance.getNjobs()+1,0));
-    //clock_t start = clock();
-    //int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
+    return s;
+}
 
-    //s->setSolutionValue(new_value);
+emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int k,tmp=0,ind;
+    int nmac = instance.getNmachines();
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    //std::cout << "partial size " << solPartial.size() << std::endl;
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sizePartial;
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        //std::cout << index << " " ;//<< std::endl;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    sizePartial = solPartial.size();
+
+
+    for(int l=0;l<removed.size();l++){
+        k=removed[l];
+
+        min = std::numeric_limits<int>::max();
+
+        instance.computeTAmatrices(solPartial,head,tail,sizePartial);
+         std::vector< int >  ptb;
+        for(int r=1; r<sizePartial; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sizePartial; h++)
+                solTMP[h]=solPartial[h-1];
+
+
+            //tmp=compute_total_wt(solTMP,sizePartial+1);
+            //                  std::cout << "start perturb" << std::endl;
+            //check why plus 1
+            long int c_cur = head[1][r-1]+pmatrix[k][1];
+            long int c_max = c_cur+tail[1][r];
+            for (int i = 2; i <= nmac; ++i) {
+                int c_pm = head[i][r-1];
+                if(c_pm < c_cur)
+                {
+                    c_cur = c_cur + pmatrix[k][i];
+                }
+                else
+                {
+                    c_cur = c_pm + pmatrix[k][i];
+                }
+                long int c_can = (c_cur+tail[i][r]);
+                c_max = c_max>c_can?c_max:c_can;
+            }
+            tmp = c_max;//instance.computeObjectiveFunction(solTMP,sizePartial);
+
+            //assert(c_max == tmp);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+                ptb.clear();
+                ptb.push_back(ind);
+            }else if(tmp==min)
+            {
+                ptb.push_back(r);
+            }
+
+        }
+        /*TIE BREAKING FF*/
+        int tb = ptb.size();
+            if(tb > 1 && l<sizePartial)
+            {
+                //tie breaker!
+                int bp = ptb[0];
+                int itbp = std::numeric_limits<int> ::max();
+                for(int l=0; l < tb; l++)
+                {
+                    int ptbl = ptb[l];
+                    int itdd = 0;
+                    int fil = 0;
+                    if(ptbl == k)
+                    {
+                        fil =  head[1][ptbl-1]+pmatrix[k][1]; //???????????
+                        for(int i=2 ; i <= nmac; i++)
+                        {
+                            itdd += fil-head[i][ptbl-1]-pmatrix[k][i];
+                            fil = std::max(head[i][ptbl-1],fil) + pmatrix[k][i];
+                        }
+                    }
+                    else
+                    {
+                        int sptbl = solTMP[ptbl];
+                        int filp =  fil+ pmatrix[sptbl][1];
+                        for(int i=2 ; i <= nmac; i++)
+                        {
+                            fil = std::max(head[i][ptbl-1],fil) + pmatrix[k][i];
+                            itdd += fil-head[i][ptbl-1]-pmatrix[k][i]+pmatrix[sptbl][i]+max(filp-fil,0);
+                            filp = std::max(fil,filp) + pmatrix[sptbl][i];
+                        }
+                    }
+                    if(itbp > itdd)
+                    {
+                        itbp = itdd;
+                        bp = ptbl;
+                    }
+                }
+                ind = bp;
+            }
+        /*END TIE BREAKING*/
+        solPartial.insert(solPartial.begin()+ind,k);
+        sizePartial++;
+        //std::cout << "end insert " << solPartial.size() << std::endl;
+    }
+
+
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    instance.evaluateSolution(*s);
     return s;
 }
 

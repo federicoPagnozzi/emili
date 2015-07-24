@@ -383,6 +383,14 @@ public:
     NEH(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) {}
 };
 
+class NEHff: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    NEHff(PermutationFlowShop &problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) {}
+};
+
 /*Less idle times construction heuristic from
         Wang CG, Chu CB, Proth JM. Heuristic approaches for n/m/F/SCi, scheduling
         problems. European Journal of Operational Research 1997;96(3):636–44.
@@ -529,6 +537,20 @@ protected:
 
 public:
     RSPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
+class RSffPertubation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop& instance;
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+
+public:
+    RSffPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 

@@ -79,6 +79,7 @@
 
 /* initial solution heuristics */
 #define INITIAL_NEH "neh"
+#define INITIAL_NEHFF "nehff"
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
@@ -125,6 +126,7 @@
 #define PERTUBATION_IGLS "igls"
 #define PERTUBATION_RSLS "rsls"
 #define PERTUBATION_RS "rsper"
+#define PERTUBATION_RSFF "rsff"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -442,6 +444,14 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSPertubation(n,*istance);
     }
+    else if(tm.checkToken(PERTUBATION_RSFF))
+        {
+            int n = tm.getInteger();
+
+            oss << "NEH destruct/construct pertubation with tbff tie breaking. number of job erased: "<<n;
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::RSffPertubation(n,*istance);
+        }
     else if(tm.checkToken(PERTUBATION_IGLS))
     {
         int n = tm.getInteger();
@@ -878,6 +888,12 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         //return new testIS(istance);
         init = new emili::pfsp::NEH(*istance);
     }
+    else if(tm.checkToken(INITIAL_NEHFF))
+    {
+        printTab( "NEH initial solution");
+        //return new testIS(istance);
+        init = new emili::pfsp::NEHff(*istance);
+    }
     else
     {
         std::cerr<< "'" << *tm << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;
@@ -1136,7 +1152,7 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
 
 emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
 {
-    problem(tm);
+    problem(tm);  
     emili::LocalSearch* local = eparams(tm);
     std::cout << "------" << std::endl;
     return local;
