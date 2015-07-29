@@ -67,7 +67,7 @@
 	   <![CDATA[transpose ]]>
 	<or/>
 	   <!--<![CDATA[insert ]]>-->
-	   <![CDATA[atxinsert ]]>
+	   <![CDATA[hatxinsert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
@@ -167,22 +167,38 @@
 		<pfsp:pertubation/>
 		<pfsp:acceptance/>
 	</pfsp:gls>
-
+	
 	<pfsp:tabu>
-           <![CDATA[tabu ]]>
-        	<pfsp:initial_solution/>
+           <![CDATA[tabu best ]]>
+              	<pfsp:initial_solution/>
         	<pfsp:termination/>
 		<pfsp:neighborhood/>
 		<pfsp:tabutenure/>
 	</pfsp:tabu>
 
 	<pfsp:stabu>
-           <![CDATA[tabu ]]>
+           <![CDATA[tabu best ]]>
         	<pfsp:initial_solution/>
 	        <![CDATA[true ]]>
 		<pfsp:neighborhood/>
 		<pfsp:tabutenure/>
 	</pfsp:stabu>
+
+	<pfsp:tabuf>
+           <![CDATA[tabu first ]]>
+              	<pfsp:initial_solution/>
+        	<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:tabuf>
+
+	<pfsp:stabuf>
+           <![CDATA[tabu first ]]>
+        	<pfsp:initial_solution/>
+	        <![CDATA[true ]]>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:stabuf>
 
 	<pfsp:vnd>
            <![CDATA[vnd ]]>
@@ -228,6 +244,8 @@
 		<pfsp:tabu/>
 		<or/>
 		<pfsp:vnd/>
+		<or/>
+		<pfsp:tabuf/>
 	</pfsp:ilsalgos>
 	
 	<pfsp:algos>
@@ -242,6 +260,8 @@
 		<pfsp:vnd/>-->
 		<or/>
 		<pfsp:gls/>
+		<or/>
+		<pfsp:stabuf/>
 	</pfsp:algos>
 
 	<pfsp:main>
