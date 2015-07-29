@@ -1744,17 +1744,18 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
         }
         /*TIE BREAKING FF*/
         int tb = ptb.size();
+
             if(tb > 1 && l<sizePartial)
             {
                 //tie breaker!
                 int bp = ptb[0];
                 int itbp = std::numeric_limits<int> ::max();
-                for(int l=0; l < tb; l++)
+                for(int l2=0; l2 < tb; l2++)
                 {
-                    int ptbl = ptb[l];
+                    int ptbl = ptb[l2];
                     int itdd = 0;
                     int fil = 0;
-                    if(ptbl == k)
+                    if(ptbl == l)
                     {
                         fil =  head[1][ptbl-1]+pmatrix[k][1]; //???????????
                         for(int i=2 ; i <= nmac; i++)
