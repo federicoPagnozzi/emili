@@ -131,6 +131,7 @@
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
+#define ACCEPTANCE_RS "rsacc"
 #define ACCEPTANCE_PMETRO "pmetro"
 #define ACCEPTANCE_TMIIG "tmiigacc"
 #define ACCEPTANCE_IMPROVE_PLATEAU "implat"
@@ -565,6 +566,29 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         oss.str(""); oss  << "metropolis acceptance. temperature : "<<n;
         printTab(oss.str().c_str());
         acc = new  emili::MetropolisAcceptance(n);
+    }
+    else  if(tm.checkToken(ACCEPTANCE_RS))
+    {
+        float n = tm.getDecimal();
+        const std::vector < std::vector < long int > >& pm = istance->getProcessingTimesMatrix();
+        int nj = istance->getNjobs();
+        int nm = istance->getNmachines();
+
+        float temp = 0;
+
+        for(int i = 1; i<= nj; i++ )
+        {
+            for(int j=1; i<=nm; i++)
+            {
+                temp += pm[i][j];
+            }
+        }
+
+        temp = n*temp/(nj*nm*10);
+
+        oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
+        printTab(oss.str().c_str());
+        acc = new  emili::MetropolisAcceptance(temp);
     }
     else  if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {

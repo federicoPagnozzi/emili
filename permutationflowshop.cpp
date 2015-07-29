@@ -327,22 +327,22 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
 
         }
     int tb = ptb.size();
-        if(tb > 1 && k<N)
+        if(tb > 1 && k<N)// if there are ties to break...
         {
             //tie breaker!
-            int bp = ptb[0];
-            int itbp = std::numeric_limits<int> ::max();
-            for(int l=0; l < tb; l++)
+            int bp = ptb[0]; // insert position for the minimum idle time
+            int itbp = std::numeric_limits<int> ::max(); // minimum idle time estimation
+            for(int l=0; l < tb; l++) // for each tie location
             {
                 int ptbl = ptb[l];
-                int itdd = 0;
-                int fil = 0;
-                if(ptbl == k)
+                int itdd = 0; // idle time estimation
+                int fil = 0; // make span of kk when inserted in ptbl
+                if(ptbl == k) // if insert position is the last position in the partial solution
                 {
-                    fil =  head[1][ptbl-1]+pmatrix[kk][1]; //???????????
+                    fil =  head[1][ptbl-1]+pmatrix[kk][1];
                     for(int i=2 ; i <= m; i++)
                     {
-                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i];
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]; //
                         fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
                     }
                 }
