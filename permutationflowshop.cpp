@@ -342,18 +342,21 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
                     fil =  head[1][ptbl-1]+pmatrix[kk][1];
                     for(int i=2 ; i <= m; i++)
                     {
-                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]; //
                         fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]; //
+
                     }
                 }
                 else
                 {
                     int sptbl = solTMP[ptbl];
+                    fil =  head[1][ptbl-1]+pmatrix[kk][1];
                     int filp =  fil+ pmatrix[sptbl][1];
                     for(int i=2 ; i <= m; i++)
                     {
                         fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
                         itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]+pmatrix[sptbl][i]+max(filp-fil,0);
+                        //itdd += fil-head[i][ptbl-1]+pmatrix[sptbl][i]+max(filp-fil,0);
                         filp = std::max(fil,filp) + pmatrix[sptbl][i];
                     }
                 }

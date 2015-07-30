@@ -16,6 +16,7 @@
 #define BEST "best"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
+#define TEST_INIT "stin"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -396,6 +397,15 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
     {
         printTab("VND SEARCH");
         ls = vparams(tm);
+    }
+    else if(tm.checkToken(TEST_INIT))
+    {
+        emili::InitialSolution* ini = init(tm);
+        emili::Solution* s = ini->generateSolution();
+        std::cout << s->getSolutionRepresentation() << std::endl;
+        std::cout << s-> getSolutionValue() << std::endl;
+        std::cerr << s-> getSolutionValue() << std::endl;
+        exit(-1);
     }
     else
     {
