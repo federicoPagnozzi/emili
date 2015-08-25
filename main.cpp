@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 #endif    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     cout << "time : " << time_elapsed << std::endl;
-    cout << "iteration counter " << emili::iteration_counter()<< std::endl;
+    cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
     //cerr << time_elapsed << " ";    
     cout << "Objective function value: " << solution->getSolutionValue() << endl;
     cout << "Found solution: ";

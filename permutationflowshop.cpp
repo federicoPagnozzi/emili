@@ -1057,7 +1057,7 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
                 }
             }
         }
-        partial[var+1] = minJ; // updates the partial solution inserting ad the end the job with the minimum earliness
+        partial[var+1] = minJ; // updates the partial solution inserting at the end the job with the minimum earliness
         assigned[minJ] = true; // updates the assigned vector
     }
     //int partial_w = pis.computeWT(partial);
@@ -2047,7 +2047,7 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::HeavilyApproximatedTailla
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-    computeHead(sol);
+    computeHead(sol);    
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2387,18 +2387,18 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
         }
 
         int pre_wt = wt;
-        for(int k=end_position+1; k< njobs; k++)
+       /* for(int k=end_position+1; k< njobs; k++)
         {
             pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
             wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
         }
 
 
-
+*/
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
         int value_wt = value->getSolutionValue();
-        if(wt < value_wt)
-        {
+  //      if(wt < value_wt)
+   //     {
 
             for(int k=end_position+1; k< njobs; k++)
             {
@@ -2419,13 +2419,13 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
-                if(pre_wt > value_wt)
+     /*           if(pre_wt > value_wt)
                  {
                     // cout << "exited at " << k << std::endl;
 
                      news->setSolutionValue(pre_wt);
                      return news;
-                  }
+                  } */
             }
              //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
             //assert( pre_wt == pis.computeObjectiveFunction(newsol));
@@ -2436,7 +2436,7 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
            {
                emili::iteration_increment();
            }*/
-        }
+        //}
 
 
         //long int old_v  = pis.computeObjectiveFunction(newsol);
@@ -2536,25 +2536,25 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
 
         long int pre_c_cur = c_cur;
 
+
         for (int j = 1; j< end_position; ++j )
         {
             wt += (std::max((long int)head[nmac][j] - pis.getDueDate(newsol[j]), 0L) * pis.getPriority(newsol[j]));
         }
 
         int pre_wt = wt;
+
         for(int k=end_position+1; k<= njobs; k++)
         {
             pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
             wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
         }
 
-
-
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
         int value_wt = value->getSolutionValue();
+
         if(wt < value_wt)
         {
-
             for(int k=end_position+1; k<= njobs; k++)
             {
                 int job = newsol[k];
@@ -2581,6 +2581,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
                    news->setSolutionValue(pre_wt);
                    return news;
                 }
+
             }
              //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
             //assert( pre_wt == pis.computeObjectiveFunction(newsol));
