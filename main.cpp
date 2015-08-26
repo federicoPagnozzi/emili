@@ -5,8 +5,10 @@
 #include <cstring>
 #include <algorithm>
 #include "generalParser.h"
-#include "paramsparser.h"
+// #include "paramsparser.h"
 #include "setup.h"
+
+#include "SA/sa_pfsp_parser.h"
 
 
 void g2c_info()
@@ -50,7 +52,7 @@ int main(int argc, char *argv[])
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE
     std::cout << "searching..." << std::endl;
-    prs::ParamsParser p;
+    SAPFSPParser p;
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
     ls = ps.parseParams();
