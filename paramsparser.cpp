@@ -16,6 +16,7 @@
 #define BEST "best"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
+#define TEST_INIT "stin"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -53,6 +54,7 @@
 #define PROBLEM_NWPFS_MS "NWPFSP_MS"
 #define PROBLEM_NWPFS_WT "NWPFSP_WT"
 #define PROBLEM_NWPFS_WE "NWPFSP_WE"
+#define PROBLEM_NWPFS_WCT "NWPFSP_WCT"
 #define PROBLEM_NWPFS_TCT "NWPFSP_TCT"
 #define PROBLEM_NWPFS_T "NWPFSP_T"
 #define PROBLEM_NWPFS_E "NWPFSP_E"
@@ -61,15 +63,24 @@
 #define PROBLEM_NIPFS_MS "NIPFSP_MS"
 #define PROBLEM_NIPFS_WT "NIPFSP_WT"
 #define PROBLEM_NIPFS_WE "NIPFSP_WE"
+#define PROBLEM_NIPFS_WCT "NIPFSP_WCT"
 #define PROBLEM_NIPFS_TCT "NIPFSP_TCT"
 #define PROBLEM_NIPFS_T "NIPFSP_T"
 #define PROBLEM_NIPFS_E "NIPFSP_E"
 
 /* Sequence dependent setup times */
 #define PROBLEM_SDSTPFS_MS "SDSTPFS_MS"
+#define PROBLEM_SDSTPFS_WT "SDSTPFS_WT"
+#define PROBLEM_SDSTPFS_WE "SDSTPFS_WE"
+#define PROBLEM_SDSTPFS_T "SDSTPFS_T"
+#define PROBLEM_SDSTPFS_E "SDSTPFS_E"
+#define PROBLEM_SDSTPFS_TCT "SDSTPFS_TCT"
+#define PROBLEM_SDSTPFS_WCT "SDSTPFS_WCT"
 
 
 /* initial solution heuristics */
+#define INITIAL_NEH "neh"
+#define INITIAL_NEHFF "nehff"
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
@@ -116,10 +127,12 @@
 #define PERTUBATION_IGLS "igls"
 #define PERTUBATION_RSLS "rsls"
 #define PERTUBATION_RS "rsper"
+#define PERTUBATION_RSFF "rsff"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
+#define ACCEPTANCE_RS "rsacc"
 #define ACCEPTANCE_PMETRO "pmetro"
 #define ACCEPTANCE_TMIIG "tmiigacc"
 #define ACCEPTANCE_IMPROVE_PLATEAU "implat"
@@ -142,10 +155,6 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
 
         prs::printTab("Permutation Flow Shop Weighted Tardiness");
         prob = new emili::pfsp::PFSP_WT(i);
-    }else if(strcmp(t,PROBLEM_NWPFS_MS)==0)
-    {
-        prs::printTab("No Wait Permutation Flow Shop Make Span");
-        prob = new emili::pfsp::NWPFSP_MS(i);
     }else if(strcmp(t,PROBLEM_PFS_E)==0)
     {
         prs::printTab("Permutation Flow Shop Earliness");
@@ -163,21 +172,126 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
         prs::printTab("Permutation Flow Shop Make Span");
         prob = new emili::pfsp::PFSP_MS(i);
     }
+    else if(strcmp(t,PROBLEM_PFS_TCT)==0)
+    {
+        prs::printTab("Permutation Flow Shop TCT");
+        prob = new emili::pfsp::PFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_PFS_WCT)==0)
+    {
+        prs::printTab("Permutation Flow Shop WCT");
+        prob = new emili::pfsp::PFSP_WCT(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_MS)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Make Span");
+        prob = new emili::pfsp::NWPFSP_MS(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_WT)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Weighted Tardiness");
+        prob = new emili::pfsp::NWPFSP_WT(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_WE)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Weighted Earliness");
+        prob = new emili::pfsp::NWPFSP_WE(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_T)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Tardiness");
+        prob = new emili::pfsp::NWPFSP_T(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_E)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop Earliness");
+        prob = new emili::pfsp::NWPFSP_E(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_TCT)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop TCT");
+        prob = new emili::pfsp::NWPFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_NWPFS_WCT)==0)
+    {
+        prs::printTab("No Wait Permutation Flow Shop WCT");
+        prob = new emili::pfsp::NWPFSP_WCT(i);
+    }
     else if(strcmp(t,PROBLEM_NIPFS_MS)==0)
-            {
-                prs::printTab("No Idle Permutation Flow Shop Make Span" );
-                prob = new emili::pfsp::NI_A_PFSP_MS(i);
-            }
+    {
+        prs::printTab("No Idle Permutation Flow Shop Make Span" );
+        prob = new emili::pfsp::NI_A_PFSP_MS(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_WT)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Weighted Tardiness" );
+        prob = new emili::pfsp::NIPFSP_WT(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_WE)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Weighted Earliness" );
+        prob = new emili::pfsp::NIPFSP_WE(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_T)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Tardiness" );
+        prob = new emili::pfsp::NIPFSP_T(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_E)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Earliness" );
+        prob = new emili::pfsp::NIPFSP_E(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_TCT)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop total completion time" );
+        prob = new emili::pfsp::NIPFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_NIPFS_WCT)==0)
+    {
+        prs::printTab("No Idle Permutation Flow Shop Weighted completion time" );
+        prob = new emili::pfsp::NIPFSP_WCT(i);
+    }
     else if(strcmp(t,PROBLEM_SDSTPFS_MS)==0)
     {
         prs::printTab("Sequence dependent setup times Make Span");
         prob = new emili::pfsp::SDSTFSP_MS(i);
     }
+    else if(strcmp(t,PROBLEM_SDSTPFS_WT)==0)
+    {
+        prs::printTab("Sequence dependent setup times weighted tardiness");
+        prob = new emili::pfsp::SDSTFSP_WT(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_WE)==0)
+    {
+        prs::printTab("Sequence dependent setup times weighted earliness");
+        prob = new emili::pfsp::SDSTFSP_WE(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_T)==0)
+    {
+        prs::printTab("Sequence dependent setup times Tardiness");
+        prob = new emili::pfsp::SDSTFSP_T(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_E)==0)
+    {
+        prs::printTab("Sequence dependent setup times Earliness");
+        prob = new emili::pfsp::SDSTFSP_E(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_TCT)==0)
+    {
+        prs::printTab("Sequence dependent setup times Total completion time");
+        prob = new emili::pfsp::SDSTFSP_TCT(i);
+    }
+    else if(strcmp(t,PROBLEM_SDSTPFS_WCT)==0)
+    {
+        prs::printTab("Sequence dependent setup times weighted completion time");
+        prob = new emili::pfsp::SDSTFSP_WCT(i);
+    }
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
         prs::info();
-    exit(-1);
+        exit(-1);
     }
     return prob;
 }
@@ -206,7 +320,7 @@ std::string prs::ParamsParser::info()
               << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E <<"\n";
     oss << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" <<"\n";
     oss << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << "\n";
-    oss << "TABU_SEARCH           = tabu INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY" << "\n";
+    oss << "TABU_SEARCH           = tabu < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY " << "\n";
     oss << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << "\n";
     oss << "GVNS_SEARCH           = gvns INITIAL_SOLUTION PERTUBATION1 PERTUBATION2 -it seconds" << "\n";
     oss << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << "\n";
@@ -284,6 +398,15 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         printTab("VND SEARCH");
         ls = vparams(tm);
     }
+    else if(tm.checkToken(TEST_INIT))
+    {
+        emili::InitialSolution* ini = init(tm);
+        emili::Solution* s = ini->generateSolution();
+        std::cout << s->getSolutionRepresentation() << std::endl;
+        std::cout << s-> getSolutionValue() << std::endl;
+        std::cerr << s-> getSolutionValue() << std::endl;
+        exit(-1);
+    }
     else
     {
         std::cerr<< "'" << tm.peek() << "' -> ERROR a search definition was expected! " << std::endl;
@@ -332,6 +455,14 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSPertubation(n,*istance);
     }
+    else if(tm.checkToken(PERTUBATION_RSFF))
+        {
+            int n = tm.getInteger();
+
+            oss << "NEH destruct/construct pertubation with tbff tie breaking. number of job erased: "<<n;
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::RSffPertubation(n,*istance);
+        }
     else if(tm.checkToken(PERTUBATION_IGLS))
     {
         int n = tm.getInteger();
@@ -445,6 +576,29 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         oss.str(""); oss  << "metropolis acceptance. temperature : "<<n;
         printTab(oss.str().c_str());
         acc = new  emili::MetropolisAcceptance(n);
+    }
+    else  if(tm.checkToken(ACCEPTANCE_RS))
+    {
+        float n = tm.getDecimal();
+        const std::vector < std::vector < long int > >& pm = istance->getProcessingTimesMatrix();
+        int nj = istance->getNjobs();
+        int nm = istance->getNmachines();
+
+        float temp = 0;
+
+        for(int i = 1; i<= nj; i++ )
+        {
+            for(int j=1; i<=nm; i++)
+            {
+                temp += pm[i][j];
+            }
+        }
+
+        temp = n*temp/(nj*nm*10);
+
+        oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
+        printTab(oss.str().c_str());
+        acc = new  emili::MetropolisAcceptance(temp);
     }
     else  if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {
@@ -568,14 +722,26 @@ emili::LocalSearch* prs::ParamsParser::gvns(prs::TokenManager& tm)
     return new emili::GVNS(*gvi,pl);
 }
 
-emili::TabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
+emili::BestTabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
 {
-    params(tm);
-    tmem = tmemory(ne,tm);
-    //std::pair<int,int > tset = tsettings();
-   // tm->setTabuTenure(tset.first);
-    //emili::pfsp::PfspTerminationIterations* ptc = new emili::pfsp::PfspTerminationIterations(tset.second);
-    return new emili::TabuSearch(*in,*te,*ne,*tmem);
+    if(tm.checkToken(BEST))
+    {
+        params(tm);
+        tmem = tmemory(ne,tm);
+        return new emili::BestTabuSearch(*in,*te,*ne,*tmem);
+    }
+    else if(tm.checkToken(FIRST))
+    {
+        params(tm);
+        tmem = tmemory(ne,tm);
+        return new emili::FirstTabuSearch(*in,*te,*ne,*tmem);
+    }
+    else
+    {
+        std::cerr<< "'" << *tm << "' -> ERROR a pivotal rule (best or first) for the tabu search was expected! \n" << std::endl;
+        std::cout << info() << std::endl;
+        exit(-1);
+    }
 }
 
 emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n,prs::TokenManager& tm)
@@ -750,6 +916,18 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             //return new testIS(istance);
             init = new emili::pfsp::MNEH(*istance);
         }
+    else if(tm.checkToken(INITIAL_NEH))
+    {
+        printTab( "NEH initial solution");
+        //return new testIS(istance);
+        init = new emili::pfsp::NEH(*istance);
+    }
+    else if(tm.checkToken(INITIAL_NEHFF))
+    {
+        printTab( "NEH initial solution");
+        //return new testIS(istance);
+        init = new emili::pfsp::NEHff(*istance);
+    }
     else
     {
         std::cerr<< "'" << *tm << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;
@@ -982,8 +1160,10 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
     PfspInstance i;    
     problem_type = tm.nextToken();
     bool ok;
+    std::string pro(problem_type);
+    std::string sdst("SDSTPFS");
 
-    if(tm.checkToken(PROBLEM_SDSTPFS_MS))
+    if(pro.find(sdst) != string::npos)
     {
         ok = i.readSeqDepDataFromFile(tm.tokenAt(1));
     }
@@ -1006,7 +1186,7 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
 
 emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
 {
-    problem(tm);
+    problem(tm);  
     emili::LocalSearch* local = eparams(tm);
     std::cout << "------" << std::endl;
     return local;
@@ -1017,9 +1197,6 @@ bool prs::ParamsParser::isParsable(string &problem)
     if(strcmp(problem.c_str(),PROBLEM_PFS_WT)==0)
     {
         return true;
-    }else if(strcmp(problem.c_str(),PROBLEM_NWPFS_MS)==0)
-    {
-        return true;
     }else if(strcmp(problem.c_str(),PROBLEM_PFS_E)==0)
     {
         return true;
@@ -1028,16 +1205,93 @@ bool prs::ParamsParser::isParsable(string &problem)
         return true;
     }else if(strcmp(problem.c_str(),PROBLEM_PFS_T)==0)
     {
-    return true;
+        return true;
     }else if(strcmp(problem.c_str(),PROBLEM_PFS_MS)==0)
     {
         return true;
     }
-    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_MS)==0)
-            {
+    else if(strcmp(problem.c_str(),PROBLEM_PFS_TCT)==0)
+    {
         return true;
-            }
+    }else if(strcmp(problem.c_str(),PROBLEM_PFS_WCT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_MS)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_E)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NIPFS_T)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_WT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_WE)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NIPFS_TCT)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NIPFS_WCT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_MS)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_E)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NWPFS_T)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_WT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_WE)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_NWPFS_TCT)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_NWPFS_WCT)==0)
+    {
+        return true;
+    }
     else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_MS)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_E)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_T)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_WT)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_WE)==0)
+    {
+        return true;
+    }
+    else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_TCT)==0)
+    {
+        return true;
+    }else if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_WCT)==0)
     {
         return true;
     }

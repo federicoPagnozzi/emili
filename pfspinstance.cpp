@@ -1458,6 +1458,42 @@ long int PfspInstance::computeNWTCT(vector< int > &sol,int size)
     return wt;
 }
 
+long int PfspInstance::computeNWWCT(vector< int > &sol)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,nbJob,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=nbJob ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += nwms * priority[sol[j]];
+    }
+
+    return wt;
+}
+
+long int PfspInstance::computeNWWCT(vector< int > &sol,int size)
+{
+    std::vector < int > completionTimeDistance(nbJob+1,0);
+
+    computeNoWaitTimeDistances(sol,nbMac,size,processingTimesMatrix,completionTimeDistance);
+
+    int nwms = 0;
+    int wt = 0;
+
+    for(int j=1 ; j<=size ; j++ )
+    {
+        nwms += completionTimeDistance[j];
+        wt += nwms* priority[sol[j]];
+    }
+
+    return wt;
+}
+
 /*No idle permutation flowshop*/
 
 
@@ -1686,9 +1722,27 @@ long int PfspInstance::computeNITCT(std::vector<int> &sol, int size)
     return wt;
 }
 
+long int PfspInstance::computeNIWCT(std::vector<int> &sol)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+    long int wt = 0;
+    for ( int j = 1; j<= nbJob; ++j )
+        wt += (partials[j] * priority[sol[j]]) ;
+
+    return wt;
+}
+
+long int PfspInstance::computeNIWCT(std::vector<int> &sol, int size)
+{
+    std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
+    long int wt = 0;
+    for ( int j = 1; j<= size; ++j )
+        wt += (partials[j] * priority[sol[j]]);
+
+    return wt;
+}
+
 // Compute sequence dependent setup times
-
-
 
 long int PfspInstance::computeSDSTMS(vector<int> &sol)
 {

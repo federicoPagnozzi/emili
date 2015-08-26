@@ -44,6 +44,10 @@
   <![CDATA[nrz2 ]]>
  <or/>
   <![CDATA[mneh ]]>
+ <or/>
+  <![CDATA[neh ]]>
+ <or/>
+  <![CDATA[nehff ]]>
 </pfsp:initial_solution>
 
 <pfsp:termination>
@@ -93,6 +97,8 @@
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<or/>
+		<![CDATA[rsff ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
@@ -163,8 +169,24 @@
 		<pfsp:acceptance/>
 	</pfsp:gls>
 
+	<pfsp:tabuf>
+           <![CDATA[tabu first ]]>
+        	<pfsp:initial_solution/>
+        	<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:tabuf>
+
+	<pfsp:stabuf>
+           <![CDATA[tabu first ]]>
+        	<pfsp:initial_solution/>
+	        <![CDATA[true ]]>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:stabuf>
+
 	<pfsp:tabu>
-           <![CDATA[tabu ]]>
+           <![CDATA[tabu best ]]>
         	<pfsp:initial_solution/>
         	<pfsp:termination/>
 		<pfsp:neighborhood/>
@@ -172,7 +194,7 @@
 	</pfsp:tabu>
 
 	<pfsp:stabu>
-           <![CDATA[tabu ]]>
+           <![CDATA[tabu best ]]>
         	<pfsp:initial_solution/>
 	        <![CDATA[true ]]>
 		<pfsp:neighborhood/>
@@ -223,6 +245,8 @@
 		<pfsp:tabu/>
 		<or/>
 		<pfsp:vnd/>
+		<or/>
+		<pfsp:tabuf/>
 	</pfsp:ilsalgos>
 	
 	<pfsp:algos>
@@ -237,6 +261,8 @@
 		<pfsp:vnd/>-->
 		<or/>
 		<pfsp:gls/>
+		<or/>
+		<pfsp:tabuf/>
 	</pfsp:algos>
 
 	<pfsp:main>

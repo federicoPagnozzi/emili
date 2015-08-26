@@ -485,16 +485,25 @@ public:
     TabuNeighborhood(int tt_size):tabutenure(tt_size) { }
 };
 
-class TabuSearch: public emili::LocalSearch
+class BestTabuSearch: public emili::LocalSearch
 {
 protected:
     emili::TabuMemory& tabuMemory;
 public:
-    TabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh,TabuMemory& tabut):
+    BestTabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh,TabuMemory& tabut):
     emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh),tabuMemory(tabut) {    }
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();    
 };
+
+class FirstTabuSearch: public emili::BestTabuSearch
+{
+public:
+    FirstTabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh,TabuMemory& tabut):
+    emili::BestTabuSearch(initialSolutionGenerator,terminationcriterion,neighborh,tabut) {    }
+    virtual emili::Solution* search(emili::Solution* initial);
+};
+
 
 /*
  * Variable Neighborhood Descent implementation

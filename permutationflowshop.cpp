@@ -219,7 +219,7 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
             solTMP[1]=_fsp[2];
             solTMP[2]=_fsp[1];
 
-            int mS=pis.computeObjectiveFunction(_fsp);//compute_total_wt(_fsp,2);
+            int mS=pis.computeObjectiveFunction(_fsp,2);//compute_total_wt(_fsp,2);
             if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
                 _fsp[1]=solTMP[1];
                 _fsp[2]=solTMP[2];
@@ -254,6 +254,132 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
             }
 
          return _fsp;
+}
+
+std::vector< int > inline nehff(std::vector<int >& _fsp,
+                                int N,
+                                emili::pfsp::PermutationFlowShop& pis
+                                )
+{
+    //tmp=compute_total_wt(solTMP,sizePartial+1);
+    //                  std::cout << "start perturb" << std::endl;
+    //check why plus 1
+    const std::vector < std::vector < long int > >& pmatrix = pis.getProcessingTimesMatrix();
+
+    int min;
+    int tmp,ind;
+    std::vector< int >  solTMP(N+1,0);
+    int m = pis.getNmachines();
+    std::vector < std::vector < int > > head(m+1,std::vector< int > (pis.getNjobs()+1,0));
+    std::vector < std::vector < int > > tail(m+1,std::vector< int > (pis.getNjobs()+1,0));
+
+
+    solTMP[1]=_fsp[2];
+    solTMP[2]=_fsp[1];
+
+    int mS=pis.computeMS(_fsp,2);//compute_total_wt(_fsp,2);
+    if(pis.computeMS(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
+        _fsp[1]=solTMP[1];
+        _fsp[2]=solTMP[2];
+    }
+
+    for(int k=3;k<=N;k++){
+            min = std::numeric_limits<int>::max();//min=10000000;
+            pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
+            std::vector< int >  ptb;
+            int kk = _fsp[k];
+        for(int r=1; r<=k; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=_fsp[h];
+            solTMP[r]=_fsp[k];
+            for(int h=r+1; h<=k; h++)
+                solTMP[h]=_fsp[h-1];
+
+            //tmp=pis.computeObjectiveFunction(solTMP,k);//compute_total_wt(solTMP,k+1);
+
+            long int c_cur = head[1][r-1]+pmatrix[kk][1];
+            long int c_max = c_cur+tail[1][r];
+            for (int i = 2; i <= m; ++i) {
+                int c_pm = head[i][r-1];
+                if(c_pm < c_cur)
+                {
+                    c_cur = c_cur + pmatrix[kk][i];
+                }
+                else
+                {
+                    c_cur = c_pm + pmatrix[kk][i];
+                }
+                long int c_can = (c_cur+tail[i][r]);
+                c_max = c_max>c_can?c_max:c_can;
+            }
+            tmp = c_max;
+
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+                ptb.clear();
+                ptb.push_back(ind);
+            }else if(tmp==min)
+            {
+                ptb.push_back(r);
+            }
+
+        }
+    int tb = ptb.size();
+        if(tb > 1 && k<N)// if there are ties to break...
+        {
+            //tie breaker!
+            int bp = ptb[0]; // insert position for the minimum idle time
+            int itbp = std::numeric_limits<int> ::max(); // minimum idle time estimation
+            for(int l=0; l < tb; l++) // for each tie location
+            {
+                int ptbl = ptb[l];
+                int itdd = 0; // idle time estimation
+                int fil = 0; // make span of kk when inserted in ptbl
+                if(ptbl == k) // if insert position is the last position in the partial solution
+                {
+                    fil =  head[1][ptbl-1]+pmatrix[kk][1];
+                    for(int i=2 ; i <= m; i++)
+                    {
+                        fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]; //
+
+                    }
+                }
+                else
+                {
+                    int sptbl = solTMP[ptbl];
+                    fil =  head[1][ptbl-1]+pmatrix[kk][1];
+                    int filp =  fil+ pmatrix[sptbl][1];
+                    for(int i=2 ; i <= m; i++)
+                    {
+                        fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]+pmatrix[sptbl][i]+max(filp-fil,0);
+                        //itdd += fil-head[i][ptbl-1]+pmatrix[sptbl][i]+max(filp-fil,0);
+                        filp = std::max(fil,filp) + pmatrix[sptbl][i];
+                    }
+                }
+                if(itbp > itdd)
+                {
+                    itbp = itdd;
+                    bp = ptbl;
+                }
+            }
+            ind = bp;
+        }
+        //end tie braking
+        for(int h=0; h<ind; h++)
+            solTMP[h]=_fsp[h];
+        solTMP[ind]=_fsp[k];
+        for(int h=ind+1; h<=k; h++)
+            solTMP[h]=_fsp[h-1];
+
+        for(int h=0; h<=k; ++h)
+            _fsp[h]=solTMP[h];
+    }
+
+ return _fsp;
 }
 
 std::vector< int > inline slack_construct(std::vector< int >& partial, int nbJobs,emili::pfsp::PermutationFlowShop& pis)
@@ -548,6 +674,16 @@ int emili::pfsp::PFSP_WCT::computeObjectiveFunction(std::vector< int > & partial
     return instance.computeWCT(partial_solution,size);
 }
 
+int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector< int > & partial_solution)
+{
+    return instance.computeTCT(partial_solution);
+}
+
+int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector< int > & partial_solution,int size)
+{
+    return instance.computeTCT(partial_solution,size);
+}
+
 int emili::pfsp::PFSP_WE::computeObjectiveFunction(std::vector< int > & partial_solution)
 {
     return -instance.computeWE(partial_solution);
@@ -638,6 +774,26 @@ int emili::pfsp::NWPFSP_T::computeObjectiveFunction(std::vector<int> &partial_so
     return instance.computeNWT(partial_solution,size);
 }
 
+int emili::pfsp::NWPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWTCT(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWTCT(partial_solution,size);
+}
+
+int emili::pfsp::NWPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNWWCT(partial_solution);
+}
+
+int emili::pfsp::NWPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNWWCT(partial_solution,size);
+}
+
 int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeNIMS(partial_solution);
@@ -688,6 +844,26 @@ int emili::pfsp::NIPFSP_T::computeObjectiveFunction(std::vector<int> &partial_so
     return instance.computeNIT(partial_solution,size);
 }
 
+int emili::pfsp::NIPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNIWCT(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNIWCT(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeNITCT(partial_solution);
+}
+
+int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeNITCT(partial_solution,size);
+}
+
 void emili::pfsp::NI_A_PFSP_MS::calc_nims_base()
 {
     const std::vector < std::vector < long > > & ptm = instance.getProcessingTimesMatrix();
@@ -716,6 +892,65 @@ int emili::pfsp::SDSTFSP_MS::computeObjectiveFunction(std::vector<int> &partial_
     return instance.computeSDSTMS(partial_solution,size);
 }
 
+int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTWT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTWT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTWE(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTWE(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTE(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTE(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTTCT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTTCT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+    return instance.computeSDSTWCT(partial_solution);
+}
+
+int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+    return instance.computeSDSTWCT(partial_solution,size);
+}
 
 emili::Solution* emili::pfsp::PfspInitialSolution::generateEmptySolution()
 {
@@ -798,42 +1033,94 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
 
 emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
 {
-    int nbJobs = pis.getNjobs();
-    std::vector< int >  sol(nbJobs+1, 0);
+
+    //SLACK: At time t, the job with the minimum value of dj − Cj (s) is selected.
+    int nbJobs = pis.getNjobs(); // number of jobs in the problem
+    std::vector< int >  sol(nbJobs+1, 0); //vector that contains the solution
     int Ci  = 0;
-    vector<bool> assigned(nbJobs+1, false);
-    vector<int> partial(nbJobs+1,0);
+    vector<bool> assigned(nbJobs+1, false); // vector that indicates if a job it's already assigned to the partial solution
+    vector<int> partial(nbJobs+1,0); // partial solution
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
-        for (int jb = 1; jb <= nbJobs; ++jb) {
-            if(!assigned[jb]){
-                int dd = pis.getDueDate(jb);
-                int pr = pis.getPriority(jb);
-                partial[var+1] = jb;
-                Ci = pis.computeMS(partial,var+1);
-                int wej = pr * (dd-Ci);
-                partial[var+1] = 0;
+        for (int jb = 1; jb <= nbJobs; ++jb) { //this loop finds the job that added to the partial solution achieves the minimum earliness
+            if(!assigned[jb]){ // if jb it's not already assigned to the partial solution
+                int dd = pis.getDueDate(jb); // get the due date of jb
+                int pr = pis.getPriority(jb); // get the weight of jb
+                partial[var+1] = jb; // insert jb at the end of the partial solution
+                Ci = pis.computeMS(partial,var+1); // compute partial solution make span
+                int wej = pr * (dd-Ci); // weighted earliness of jb when put in var+1
+                partial[var+1] = 0; // deletes jb from the partial solution
                 if(minE > wej){
                     minJ = jb;
-                    minE = wej;
+                    minE = wej; //updates the current minimum earliness
                 }
             }
         }
-        partial[var+1] = minJ;
-        assigned[minJ] = true;
-        //Ci = pis.computeMS(partial);
-        //cout << "partial makespan: " << Ci << std::endl;
+        partial[var+1] = minJ; // updates the partial solution inserting at the end the job with the minimum earliness
+        assigned[minJ] = true; // updates the assigned vector
     }
     //int partial_w = pis.computeWT(partial);
     sol = neh2(partial,nbJobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    //pis.evaluateSolution(*s);
-    std::vector< std::vector< int > > etm = std::vector< std::vector< int > >(pis.getNmachines()+1,std::vector<int>(pis.getNjobs()+1,0));
+    pis.evaluateSolution(*s);
+    //std::vector< std::vector< int > > etm = std::vector< std::vector< int > >(pis.getNmachines()+1,std::vector<int>(pis.getNjobs()+1,0));
     //clock_t start = clock();
-    int new_value =  pis.computeObjectiveFunction(sol,etm,1,pis.getNjobs()+1);
+    //int new_value =  pis.computeObjectiveFunction(sol,etm,1,pis.getNjobs()+1);
 
-    s->setSolutionValue(new_value);
+    //s->setSolutionValue(new_value);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NEH::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    int nmac = pis.getNmachines();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
+    order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        int tpti = 0;
+        for (int k = 1; k <= nmac; ++k) {
+            tpti += ptm[i][k];
+        }
+        tpt[i] = tpti;
+        order.push_back(i);
+    }
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
+    order = neh2(order,njobs,pis);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NEHff::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    int nmac = pis.getNmachines();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
+    order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        int tpti = 0;
+        for (int k = 1; k <= nmac; ++k) {
+            tpti += ptm[i][k];
+        }
+        tpt[i] = tpti;
+        order.push_back(i);
+    }
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
+    order = nehff(order,njobs,pis);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
+    pis.evaluateSolution(*s);
     return s;
 }
 
@@ -1383,12 +1670,131 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     instance.evaluateSolution(*s);
-    //assert(s->getSolutionValue() == min);
-    //std::vector< std::vector< int > >  etm = std::vector< std::vector< int > >(instance.getNmachines()+1,std::vector<int>(instance.getNjobs()+1,0));
-    //clock_t start = clock();
-    //int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
+    return s;
+}
 
-    //s->setSolutionValue(new_value);
+emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int k,tmp=0,ind;
+    int nmac = instance.getNmachines();
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    //std::cout << "partial size " << solPartial.size() << std::endl;
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sizePartial;
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        //std::cout << index << " " ;//<< std::endl;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    sizePartial = solPartial.size();
+
+
+    for(int l=0;l<removed.size();l++){
+        k=removed[l];
+
+        min = std::numeric_limits<int>::max();
+
+        instance.computeTAmatrices(solPartial,head,tail,sizePartial);
+         std::vector< int >  ptb;
+        for(int r=1; r<sizePartial; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sizePartial; h++)
+                solTMP[h]=solPartial[h-1];
+
+
+            //tmp=compute_total_wt(solTMP,sizePartial+1);
+            //                  std::cout << "start perturb" << std::endl;
+            //check why plus 1
+            long int c_cur = head[1][r-1]+pmatrix[k][1];
+            long int c_max = c_cur+tail[1][r];
+            for (int i = 2; i <= nmac; ++i) {
+                int c_pm = head[i][r-1];
+                if(c_pm < c_cur)
+                {
+                    c_cur = c_cur + pmatrix[k][i];
+                }
+                else
+                {
+                    c_cur = c_pm + pmatrix[k][i];
+                }
+                long int c_can = (c_cur+tail[i][r]);
+                c_max = c_max>c_can?c_max:c_can;
+            }
+            tmp = c_max;//instance.computeObjectiveFunction(solTMP,sizePartial);
+
+            //assert(c_max == tmp);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+                ptb.clear();
+                ptb.push_back(ind);
+            }else if(tmp==min)
+            {
+                ptb.push_back(r);
+            }
+
+        }
+        /*TIE BREAKING FF*/
+        int tb = ptb.size();
+
+            if(tb > 1 && l<sizePartial)
+            {
+                //tie breaker!
+                int bp = ptb[0];
+                int itbp = std::numeric_limits<int> ::max();
+                for(int l2=0; l2 < tb; l2++)
+                {
+                    int ptbl = ptb[l2];
+                    int itdd = 0;
+                    int fil = 0;
+                    if(ptbl == l)
+                    {
+                        fil =  head[1][ptbl-1]+pmatrix[k][1]; //???????????
+                        for(int i=2 ; i <= nmac; i++)
+                        {
+                            itdd += fil-head[i][ptbl-1]-pmatrix[k][i];
+                            fil = std::max(head[i][ptbl-1],fil) + pmatrix[k][i];
+                        }
+                    }
+                    else
+                    {
+                        int sptbl = solTMP[ptbl];
+                        int filp =  fil+ pmatrix[sptbl][1];
+                        for(int i=2 ; i <= nmac; i++)
+                        {
+                            fil = std::max(head[i][ptbl-1],fil) + pmatrix[k][i];
+                            itdd += fil-head[i][ptbl-1]-pmatrix[k][i]+pmatrix[sptbl][i]+max(filp-fil,0);
+                            filp = std::max(fil,filp) + pmatrix[sptbl][i];
+                        }
+                    }
+                    if(itbp > itdd)
+                    {
+                        itbp = itdd;
+                        bp = ptbl;
+                    }
+                }
+                ind = bp;
+            }
+        /*END TIE BREAKING*/
+        solPartial.insert(solPartial.begin()+ind,k);
+        sizePartial++;
+        //std::cout << "end insert " << solPartial.size() << std::endl;
+    }
+
+
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    instance.evaluateSolution(*s);
     return s;
 }
 
@@ -1641,7 +2047,7 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::HeavilyApproximatedTailla
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-    computeHead(sol);
+    computeHead(sol);    
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -1897,6 +2303,13 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
                 c_cur = c_pm + pmatrix[sol_i][i];
             }
             long int c_can = (c_cur+tail[i][end_position]);
+
+            if(c_can>value->getSolutionValue())
+            {
+
+                return new emili::pfsp::PermutationFlowShopSolution(c_can,newsol);
+            }
+
             c_max = c_max>c_can?c_max:c_can;
         }
         //long int old_v  = pis.computeObjectiveFunction(newsol);
@@ -1974,17 +2387,18 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
         }
 
         int pre_wt = wt;
-        for(int k=end_position+1; k< njobs; k++)
+       /* for(int k=end_position+1; k< njobs; k++)
         {
             pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
             wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
         }
 
 
-
+*/
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
-        if(wt < value->getSolutionValue())
-        {
+        int value_wt = value->getSolutionValue();
+  //      if(wt < value_wt)
+   //     {
 
             for(int k=end_position+1; k< njobs; k++)
             {
@@ -2005,6 +2419,13 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+     /*           if(pre_wt > value_wt)
+                 {
+                    // cout << "exited at " << k << std::endl;
+
+                     news->setSolutionValue(pre_wt);
+                     return news;
+                  } */
             }
              //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
             //assert( pre_wt == pis.computeObjectiveFunction(newsol));
@@ -2015,7 +2436,7 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
            {
                emili::iteration_increment();
            }*/
-        }
+        //}
 
 
         //long int old_v  = pis.computeObjectiveFunction(newsol);
@@ -2115,24 +2536,25 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
 
         long int pre_c_cur = c_cur;
 
+
         for (int j = 1; j< end_position; ++j )
         {
             wt += (std::max((long int)head[nmac][j] - pis.getDueDate(newsol[j]), 0L) * pis.getPriority(newsol[j]));
         }
 
         int pre_wt = wt;
+
         for(int k=end_position+1; k<= njobs; k++)
         {
             pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
             wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
         }
 
-
-
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
-        if(wt < value->getSolutionValue())
-        {
+        int value_wt = value->getSolutionValue();
 
+        if(wt < value_wt)
+        {
             for(int k=end_position+1; k<= njobs; k++)
             {
                 int job = newsol[k];
@@ -2152,6 +2574,14 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
                     ins_pos[m] = pre_c_cur;
                 }
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+              if(pre_wt > value_wt)
+               {
+                  // cout << "exited at " << k << std::endl;
+
+                   news->setSolutionValue(pre_wt);
+                   return news;
+                }
+
             }
              //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
             //assert( pre_wt == pis.computeObjectiveFunction(newsol));
@@ -2426,6 +2856,7 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::random(Solution *curren
 
 emili::Solution* emili::pfsp::PfspExchangeNeighborhood::computeStep(emili::Solution* value)
 {
+   emili::iteration_increment();
     if(sp_iterations >= (njobs-1))
     {
         return nullptr;

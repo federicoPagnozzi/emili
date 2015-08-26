@@ -141,6 +141,8 @@ class PfspInstance{
     /*Compute no wait total completion time*/
     long int computeNWTCT(vector< int > &sol);
     long int computeNWTCT(vector< int > &sol,int size);
+    long int computeNWWCT(vector< int > &sol);
+    long int computeNWWCT(vector< int > &sol,int size);
 
     /*Compute no idle make span*/
     long int computeNIMS(vector<int> & sol);
@@ -163,6 +165,10 @@ class PfspInstance{
     /*Compute no idle total completion time*/
     long int computeNITCT(vector< int > &sol);
     long int computeNITCT(vector< int > &sol,int size);
+    long int computeNIWCT(vector< int > &sol);
+    long int computeNIWCT(vector< int > &sol,int size);
+
+
     /*Compute Make Span with sequence depedent setup times*/
     long int computeSDSTMS(vector< int > &sol);
     long int computeSDSTMS(vector< int > &sol,int size);
