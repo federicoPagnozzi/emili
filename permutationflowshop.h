@@ -644,11 +644,29 @@ public:
 class HeavilyApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
 protected:
-    void computeHead(std::vector<int>& sol);
+    virtual void computeHead(std::vector<int>& sol);
     virtual Solution* computeStep(Solution *value);
 public:
     HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
     virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class NatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    //std::vector < int > apjw;
+    virtual Solution* computeStep(Solution *value);
+public:
+    NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem)//,apjw(njobs+1,0)
+    {
+      /*  for(int j=1; j <= njobs ; j++)
+        {
+            for(int m=1;m<=nmac;m++)
+            {
+                apjw[j] += pmatrix[j][m];
+            }
+        }*/
+    }
 };
 
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
