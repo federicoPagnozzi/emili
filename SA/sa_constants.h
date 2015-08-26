@@ -27,5 +27,6 @@
  * termination criteria
  */
 #define MAXBADITERS "MAXBADITERS" 
+#define MAXITERS "MAXITERS"
 
 #endif

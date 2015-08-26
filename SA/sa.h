@@ -45,6 +45,7 @@ protected:
     SAAcceptance     *acceptanceCriterion;
     SACooling        *coolingScheme;
     SATermination    *terminationCriterion;
+    int               counter;
 
 
 public:
@@ -58,6 +59,7 @@ public:
                       acceptanceCriterion(acceptanceCriterion),
                       coolingScheme(coolingScheme),
                       terminationCriterion(terminationCriterion),
+                      counter(0),
                       emili::LocalSearch(*initialSolutionGenerator,
                                          *terminationCriterion,
                                          *neighborhood) { }

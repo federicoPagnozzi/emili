@@ -179,6 +179,9 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm) {
     if (tm.checkToken(MAXBADITERS)) {
         int    mb = tm.getInteger();
         return new SAMaxBadIterTermination(mb);
+    } else if (tm.checkToken(MAXITERS)) {
+        int    mi = tm.getInteger();
+        return new SAMaxIterTermination(mi);
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

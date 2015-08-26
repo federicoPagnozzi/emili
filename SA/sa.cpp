@@ -32,31 +32,30 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     *incumbent = *initial;
     bestSoFar  = incumbent;
 
-    int counter = 0;
+    std::string type = terminationCriterion->getType();
 
     do {
 
         counter++;
-        std::cout << "counter " << counter << std::endl;
 
         if(bestSoFar->operator > (*incumbent)) {
             delete bestSoFar;
             bestSoFar = incumbent;
+            if (type == MAXBADITERS) {
+                counter = 0;
+            }
         } else if (incumbent != bestSoFar) {
             delete incumbent;
         }
 
-        std::cout << "generate random solution" << std::endl;
+        // std::cout << counter << std::endl;
+
         incumbent = neighbh->random(bestSoFar);
-        std::cout << "generated" << std::endl;
 
         incumbent = acceptanceCriterion->accept(bestSoFar, incumbent);
-        std::cout << "accepted" << std::endl;
 
         temp = coolingScheme->update_cooling(temp);
-        std::cout << "cooling updated" << std::endl;
         acceptanceCriterion->setCurrentTemp(temp);
-        std::cout << "end of cycle" << std::endl;
 
     } while(!terminationCriterion->terminate(counter));
 
