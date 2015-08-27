@@ -669,6 +669,14 @@ public:
     }
 };
 
+class EatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    EatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
+};
+
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
 {
 protected:

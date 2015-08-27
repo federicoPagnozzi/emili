@@ -2710,6 +2710,117 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
     }
 }
 
+emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations >= njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
+        int sol_i;
+        if(ep_iterations < njobs){
+            ep_iterations++;
+            if(ep_iterations == sp_iterations){
+                ep_iterations++;
+                end_position++;
+            }
+            sol_i = newsol[start_position];
+            newsol.erase(newsol.begin()+start_position);
+        }
+        else
+        {
+            sp_iterations++;
+            ep_iterations = 1;
+            start_position = ((start_position)%njobs)+1;
+            sol_i = newsol[start_position];
+            newsol.erase(newsol.begin()+start_position);
+            computeHead(newsol);
+
+        }
+        end_position = ((end_position)%njobs)+1;
+
+
+
+        newsol.insert(newsol.begin()+end_position,sol_i);
+        //std::vector< int > ins_pos(nmac+1,0);
+        int ins_pos[nmac+1];
+        long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
+        ins_pos[1] = c_cur;
+
+        for (int i = 2; i <= nmac; ++i) {
+            int c_pm = head[i][end_position-1];
+            if(c_pm < c_cur)
+            {
+                c_cur = c_cur + pmatrix[sol_i][i];
+            }
+            else
+            {
+                c_cur = c_pm + pmatrix[sol_i][i];
+            }
+           ins_pos[i] =  c_cur;
+
+        }
+        long int ppre_c_cur = ins_pos[nmac-1];
+        long int pre_c_cur = c_cur;
+
+        int wt = (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
+        for (int j = 1; j< end_position; ++j )
+        {
+            wt += (std::max((long int)head[nmac][j] - pis.getDueDate(newsol[j]), 0L) * pis.getPriority(newsol[j]));
+        }
+
+        int pre_wt = wt;
+
+        if(end_position > njobs/2)
+        for(int k=end_position+1; k<= njobs; k++)
+        {
+            ppre_c_cur = ppre_c_cur+pmatrix[newsol[k]][nmac-1];
+            pre_c_cur = std::max(pre_c_cur,ppre_c_cur) + pmatrix[newsol[k]][nmac];
+            wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+        }
+
+        Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
+        int value_wt = value->getSolutionValue();
+
+        if(wt < value_wt)
+        {
+            for(int k=end_position+1; k<= njobs; k++)
+            {
+                int job = newsol[k];
+                pre_c_cur = ins_pos[1] + pmatrix[job][1];
+                ins_pos[1] = pre_c_cur;
+                for(int m=2; m <= nmac ; m++)
+                {
+                    int c_pm = ins_pos[m];
+                    if(c_pm < pre_c_cur)
+                    {
+                        pre_c_cur += pmatrix[job][m];
+                    }
+                    else
+                    {
+                        pre_c_cur = c_pm + pmatrix[job][m];
+                    }
+                    ins_pos[m] = pre_c_cur;
+                }
+               pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+              if(pre_wt > value_wt)
+                {
+                   news->setSolutionValue(pre_wt);
+                   return news;
+                }
+
+            }
+
+            news->setSolutionValue(pre_wt);
+
+        }
+        return news;
+    }
+}
+
 
 emili::Solution* emili::pfsp::NoIdleAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
 {
