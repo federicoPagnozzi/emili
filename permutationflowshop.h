@@ -672,9 +672,20 @@ public:
 class EatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
+    float aptre;
     virtual Solution* computeStep(Solution *value);
 public:
-    EatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
+    EatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),aptre(0.5*problem.getNjobs()) { }
+};
+
+class TatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    float aptre;
+    int aplev;
+    virtual Solution* computeStep(Solution *value);
+public:
+    TatxNeighborhood(float approximation_start_threshold, int approximation_level, PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),aplev(problem.getNmachines()-approximation_level),aptre(approximation_start_threshold*problem.getNjobs()) { }
 };
 
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood

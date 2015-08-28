@@ -114,6 +114,7 @@
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NATAx_INSERT "natxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
+#define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 
 /* permutation flowshop solution pertubations */
@@ -1069,6 +1070,20 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     {
         printTab( "Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness with new kind of approximation");
         neigh = new emili::pfsp::EatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_TATAx_INSERT))
+    {
+        printTab( "Tunable Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness with new kind of approximation");
+        float start_level = tm.getDecimal();
+        int app_grade = tm.getInteger();
+        if(app_grade >= istance->getNmachines())
+        {
+            app_grade = istance->getNmachines() - 1 ;
+            ostringstream oss;
+            oss << "WARNING: the level of approximation cannot be greater or equal the number of machines. the level is set to: " << app_grade;
+            printTab(oss.str().c_str());
+        }
+        neigh = new emili::pfsp::TatxNeighborhood(start_level,app_grade,*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NITA_INSERT))
     {
