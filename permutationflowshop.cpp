@@ -2664,7 +2664,7 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
         }
 
         int pre_wt = wt;
-        if(end_position >aptre)
+        if(end_position > njobs/2)
         for(int k=end_position+1; k<= njobs; k++)
         {
             pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
@@ -2774,7 +2774,7 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
 
         int pre_wt = wt;
 
-        if(end_position >aptre)
+        if(end_position >njobs/2)
         for(int k=end_position+1; k<= njobs; k++)
         {
             int job = newsol[k];
