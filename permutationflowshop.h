@@ -597,6 +597,7 @@ public:
     virtual Solution* step(Solution* currentSolution);
     virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
+    virtual int size();
 };
 
 
@@ -653,20 +654,28 @@ public:
 
 class NatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
-protected:
-    //std::vector < int > apjw;
+protected:    
     virtual Solution* computeStep(Solution *value);
 public:
-    NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem)//,apjw(njobs+1,0)
-    {
-      /*  for(int j=1; j <= njobs ; j++)
-        {
-            for(int m=1;m<=nmac;m++)
-            {
-                apjw[j] += pmatrix[j][m];
-            }
-        }*/
-    }
+    NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
+};
+
+class EatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    EatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
+};
+
+class TatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    float aptre;
+    int aplev;
+    virtual Solution* computeStep(Solution *value);
+public:
+    TatxNeighborhood(float approximation_start_threshold, int approximation_level, PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),aplev(problem.getNmachines()-approximation_level),aptre(approximation_start_threshold*problem.getNjobs()) { }
 };
 
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
@@ -749,6 +758,7 @@ public:
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);
+    virtual int size();
 };
 
 class XTransposeNeighborhood: public emili::pfsp::PfspTransposeNeighborhood

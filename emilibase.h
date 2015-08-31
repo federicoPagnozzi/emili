@@ -223,6 +223,10 @@ public:
      * A method that returns a random solution in the neighborhood has to be provided
      */
     virtual Solution* random(Solution* currentSolution) = 0;
+    /*
+     * This method returns the size of the neighborhood
+    */
+    virtual int size()=0;
     virtual ~Neighborhood() {}
 };
 
@@ -236,6 +240,7 @@ public:
     virtual Solution* step(Solution *currentSolution) {return currentSolution;}
     virtual void reset() { }
     virtual Solution* random(Solution *currentSolution) { return currentSolution;}
+    virtual int size() { return 0;}
 };
 
 
