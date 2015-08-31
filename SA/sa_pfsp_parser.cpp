@@ -154,17 +154,15 @@ SAAcceptance* SAPFSPParser::ACCEPTANCE(prs::TokenManager& tm) {
     if (tm.checkToken(METROPOLIS)) {
         double it = tm.getDecimal();
         double ft = tm.getDecimal();
-        double dr = tm.getDecimal();
-        int    ir = tm.getInteger();
-        double al = tm.getDecimal();
-        return new SAMetropolisAcceptance(it, ft, dr, ir, al);
+        return new SAMetropolisAcceptance(it, ft);
     } else if (tm.checkToken(BASICACC)) {
         double it = tm.getDecimal();
         double ft = tm.getDecimal();
-        double dr = tm.getDecimal();
-        int    ir = tm.getInteger();
-        double al = tm.getDecimal();
-        return new SABasicAcceptance(it, ft, dr, ir, al);
+        return new SABasicAcceptance(it, ft);
+    } else if (tm.checkToken(GEOMACC)) {
+        double ia = tm.getDecimal();
+        double rf = tm.getDecimal();
+        return new SAGeometricAcceptance(ia, rf);
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -201,6 +199,23 @@ SACooling* SAPFSPParser::COOL(prs::TokenManager& tm) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
         return new MarkovCooling(a,b);
+    } else if (tm.checkToken(LOGCOOLING)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        return new LogCooling(a,b);
+    } else if (tm.checkToken(CONSTCOOLING)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        return new ConstantCooling(a,b);
+    } else if (tm.checkToken(LUNDYMEES)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        return new LundyMeesCooling(a,b);
+    } else if (tm.checkToken(LINEARCOOLING)) {
+        float a = tm.getDecimal();
+        return new LinearCooling(a);
+    } else if (tm.checkToken(NOCOOLING)) {
+        return new NoCooling();
     } else {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

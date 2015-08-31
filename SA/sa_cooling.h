@@ -15,12 +15,16 @@ class SACooling {
 protected:
     double a;
     double b;
+    int maxIterations;
+    int counter;
 
 public:
 
     SACooling(double a, double b):
         a(a),
-        b(b) { }
+        b(b),
+        maxIterations(0),
+        counter(0) { }
 
     /**
      * SA cooling scheme
@@ -28,6 +32,16 @@ public:
      * @return      updated temperature
      */
     virtual double update_cooling(double temp)=0;
+
+
+    /**
+     * set the maximum number of iterations to be performed
+     * at the same temperature
+     * @param maxIt maximum number of iterations
+     */
+    void setMaxIterations(int maxIt) {
+        maxIterations = maxIt;
+    }
 
 }; // SACooling
 
@@ -51,7 +65,13 @@ public:
         SACooling(a, b) { }
 
     virtual double update_cooling(double temp) {
-        return (a * std::pow(b, temp));
+        counter++;
+        if (counter >= maxIterations) {
+            counter = 0;
+            return (a * std::pow(b, temp));
+        }
+
+        return(temp);
     }
 }; // GeomCooling
 
@@ -67,8 +87,127 @@ public:
         SACooling(a, b) { }
 
     virtual double update_cooling(double temp) {
-        return (a / (b + std::log(temp)));
+        counter++;
+        if (counter >= maxIterations) {
+            counter = 0;
+            return (a / (b + std::log(temp)));
+        }
+
+        return(temp);
     }
 }; // MarkovCooling
+
+
+/**
+ * Log-based cooling.
+ */
+class LogCooling: public SACooling {
+
+public:
+    LogCooling(double a, double b):
+        SACooling(a, b) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+        if (counter >= maxIterations) {
+            counter = 0;
+            return (a / std::log(temp + b));
+        }
+
+        return(temp);
+    }
+
+}; // LogCooling
+
+
+/**
+ * http://www.sciencedirect.com/science/article/pii/037722179090301Q#
+ */
+class ConstantCooling: public SACooling {
+
+public:
+    ConstantCooling(double a, double b):
+        SACooling(a, b) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+        if (counter >= maxIterations) {
+            counter = 0;
+            return (a / (1 + b*temp));
+        }
+
+        return(temp);
+    }
+
+
+}; // ConstantCooling
+
+
+/**
+ * LundyMeesCooling
+ * a = 1
+ * b << T_0
+ *
+ * http://link.springer.com/article/10.1007/BF01582166
+ * 
+ */
+class LundyMeesCooling: public SACooling {
+
+public:
+    LundyMeesCooling(double a, double b):
+        SACooling(a, b) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+        if (counter >= maxIterations) {
+            counter = 0;
+            return (temp / (a + b*temp));
+        }
+
+        return(temp);
+    }
+
+}; // LundyMeesCooling
+
+
+/**
+ * Linear cooling
+ * 0 < a < 1
+ *
+ * equal to b*temp, where b = 1 - a
+ */
+class LinearCooling: public SACooling {
+
+public:
+    LinearCooling(double a):
+        SACooling(a, 0) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+        if (counter >= maxIterations) {
+            counter = 0;
+            return (temp - a*temp);
+        }
+
+        return(temp);
+    }
+
+}; // LinearCooling
+
+
+/**
+ * No Cooling - contant temperature
+ */
+class NoCooling: public SACooling {
+
+public:
+    NoCooling(void):
+        SACooling(0, 0) { }
+
+    virtual double update_cooling(double temp) {
+        return temp;
+    }
+
+}; // NoCooling
 
 #endif

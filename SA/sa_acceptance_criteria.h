@@ -19,10 +19,6 @@ protected:
     float temperature;
     float start_temp;
     float end_temp;
-    int   interval;
-    int   counter;
-    float rate;
-    float alpha;
 
 public:
 
@@ -31,43 +27,12 @@ public:
      *
      * @param  initial_temperature initial temperature
      * @param  final_temperature   final_temperature
-     * @param  descending_ratio    ratio of descent
-     * @param  iterations          number of iterations (optional)
-     * @param  alpha               alpha (optional)
      */
     SAAcceptance(float initial_temperature,
-                 float final_temperature,
-                 float descending_ratio):
+                 float final_temperature):
                 temperature(initial_temperature),
                 start_temp(initial_temperature),
-                end_temp(final_temperature),
-                rate(descending_ratio),
-                interval(1),
-                counter(0),
-                alpha(1) {}
-    SAAcceptance(float initial_temperature,
-                 float final_temperature,
-                 float descending_ratio,
-                 int   iterations):
-                temperature(initial_temperature),
-                start_temp(initial_temperature),
-                end_temp(final_temperature),
-                rate(descending_ratio),
-                interval(iterations),
-                counter(0),
-                alpha(1) { }
-    SAAcceptance(float initial_temperature,
-                 float final_temperature,
-                 float descending_ratio,
-                 int   iterations,
-                 float alpha):
-                temperature(initial_temperature),
-                start_temp(initial_temperature),
-                end_temp(final_temperature),
-                rate(descending_ratio),
-                interval(iterations),
-                counter(0),
-                alpha(alpha) { }
+                end_temp(final_temperature) { }
 
     /**
      * Acceptance method
@@ -93,29 +58,9 @@ public:
 class SAMetropolisAcceptance: public SAAcceptance {
 public:
     SAMetropolisAcceptance(float initial_temperature,
-                           float final_temperature,
-                           float descending_ratio):
+                           float final_temperature):
                 SAAcceptance(initial_temperature,
-                             final_temperature,
-                             descending_ratio) { }
-    SAMetropolisAcceptance(float initial_temperature,
-                           float final_temperature,
-                           float descending_ratio,
-                           int   iterations):
-                SAAcceptance(initial_temperature,
-                             final_temperature,
-                             descending_ratio,
-                             iterations) { }
-    SAMetropolisAcceptance(float initial_temperature,
-                           float final_temperature,
-                           float descending_ratio,
-                           int   iterations,
-                           float alpha):
-                SAAcceptance(initial_temperature,
-                             final_temperature,
-                             descending_ratio,
-                             iterations,
-                             alpha) { }
+                             final_temperature) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
@@ -126,33 +71,37 @@ public:
 class SABasicAcceptance: public SAAcceptance {
 public:
     SABasicAcceptance(float initial_temperature,
-                      float final_temperature,
-                      float descending_ratio):
+                      float final_temperature):
                 SAAcceptance(initial_temperature,
-                             final_temperature,
-                             descending_ratio) { }
-    SABasicAcceptance(float initial_temperature,
-                      float final_temperature,
-                      float descending_ratio,
-                      int   iterations):
-                SAAcceptance(initial_temperature,
-                             final_temperature,
-                             descending_ratio,
-                             iterations) { }
-    SABasicAcceptance(float initial_temperature,
-                      float final_temperature,
-                      float descending_ratio,
-                      int   iterations,
-                      float alpha):
-                SAAcceptance(initial_temperature,
-                             final_temperature,
-                             descending_ratio,
-                             iterations,
-                             alpha) { }
+                             final_temperature) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
     
 }; // SABasicAcceptance
+
+
+
+/**
+ * http://www.sciencedirect.com/science/article/pii/030505489090001N#
+ *
+ * 0 < initial_acceptance < 1
+ */
+class SAGeometricAcceptance: public SAAcceptance {
+
+protected:
+    float: rate;
+
+public:
+    SAGeometricAcceptance(float initial_acceptance,
+                          float reducing_factor):
+                rate(reducing_factor),
+                SAAcceptance(initial_acceptance,
+                             0) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // SAGeometricAcceptance
 
 #endif

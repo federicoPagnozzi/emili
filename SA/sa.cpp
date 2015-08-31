@@ -52,7 +52,8 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
         incumbent = neighbh->random(bestSoFar);
 
-        incumbent = acceptanceCriterion->accept(bestSoFar, incumbent);
+        incumbent = acceptanceCriterion->accept(bestSoFar,
+                                                incumbent);
 
         temp = coolingScheme->update_cooling(temp);
         acceptanceCriterion->setCurrentTemp(temp);
