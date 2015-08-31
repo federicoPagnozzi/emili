@@ -597,6 +597,7 @@ public:
     virtual Solution* step(Solution* currentSolution);
     virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
+    virtual int size();
 };
 
 
@@ -757,6 +758,7 @@ public:
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);
+    virtual int size();
 };
 
 class XTransposeNeighborhood: public emili::pfsp::PfspTransposeNeighborhood

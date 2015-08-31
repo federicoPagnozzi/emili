@@ -2019,6 +2019,11 @@ emili::Solution* emili::pfsp::PfspNeighborhood::step(emili::Solution *currentSol
     return computeStep(currentSolution);
 }
 
+int emili::pfsp::PfspNeighborhood::size()
+{
+    return (pis.getNjobs()*(pis.getNjobs()-1))/2;
+}
+
 void emili::pfsp::PfspNeighborhood::reset()
 {
     /*No counters to reset*/
@@ -3267,6 +3272,11 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solu
         //std::cout <<  (clock()-start) << ", " ;//<< std::endl;
         return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
     }
+}
+
+int emili::pfsp::PfspTransposeNeighborhood::size()
+{
+    return pis.getNjobs();
 }
 
 emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solution* value)
