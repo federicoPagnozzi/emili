@@ -1,7 +1,7 @@
 #ifndef SA_TEMPLENGTH_H
 #define SA_TEMPLENGTH_H
 
-
+#include "sa_constants.h"
 #include "../emilibase.h"
 
 
@@ -43,7 +43,10 @@ public:
 }; // ConstantTempLength
 
 
-
+/**
+ * Length dependant on the size of the neighborhood:
+ * alpha * |neigh|
+ */
 class NeighSizeTempLength: public SATempLength {
 
 protected:
@@ -51,12 +54,12 @@ protected:
 	float alpha;
 
 public:
-	ConstantTempLength(emili::Neighborhood* neigh,
+	NeighSizeTempLength(emili::Neighborhood* neigh,
 		               float alpha):
 	    neigh(neigh),
 	    alpha(alpha),
 	    SATempLength(NEIGHSIZETEMPLEN,
-	    	         std::lrint(alpha * neigh->size())) { }
+	    	         (int)std::lrint(alpha * neigh->size())) { }
 
 
 }; // NeighSizeTempLength

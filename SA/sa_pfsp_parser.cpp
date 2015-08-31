@@ -225,6 +225,24 @@ SACooling* SAPFSPParser::COOL(prs::TokenManager& tm) {
 }
 
 
+SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
+                                       emili::Neighborhood* neigh) {
+
+    if (tm.checkToken(CONSTTEMPLEN)) {
+        int l = tm.getInteger();
+        return new ConstantTempLength(l);
+    } else if (tm.checkToken(NEIGHSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new NeighSizeTempLength(neigh, a);
+    } else {
+        std::cerr << "SATempLength expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
+
 emili::InitialSolution* SAPFSPParser::init(prs::TokenManager& tm)
 {
     prs::incrementTabLevel();
@@ -475,12 +493,14 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     SAAcceptance*    acceptance = ACCEPTANCE(tm);
     SACooling*       cooling    = COOL(tm);
     SATermination*     term       = TERMINATION(tm); // termin(tm);
+    SATempLength*    templ      = TEMPLENGTH(tm, nei);
 
     return new SimulatedAnnealing(initsol,
                                   inittemp,
                                   acceptance,
                                   cooling,
                                   term,
+                                  templ,
                                   nei);
 
 }

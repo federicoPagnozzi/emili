@@ -32,7 +32,11 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     *incumbent = *initial;
     bestSoFar  = incumbent;
 
-    std::string type = terminationCriterion->getType();
+    std::string tc_type = terminationCriterion->getType();
+    std::string ac_type = acceptanceCriterion->getType();
+    std::string tl_type = tempLength->getType();
+
+    coolingScheme->setMaxIterations(tempLength->getLength());
 
     do {
 
@@ -41,7 +45,7 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
         if(bestSoFar->operator > (*incumbent)) {
             delete bestSoFar;
             bestSoFar = incumbent;
-            if (type == MAXBADITERS) {
+            if (tc_type == MAXBADITERS) {
                 counter = 0;
             }
         } else if (incumbent != bestSoFar) {

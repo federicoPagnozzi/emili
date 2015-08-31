@@ -41,7 +41,7 @@ emili::Solution* SAGeometricAcceptance::accept(emili::Solution *current_solution
     double ns = new_solution->getSolutionValue();
     
     if (ns > cs) {
-        double prob = start_temp * std::pow(rate, counter - 1);
+        double prob = start_temp * std::pow(rate, step - 1);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;

@@ -17,6 +17,7 @@ protected:
     double b;
     int maxIterations;
     int counter;
+    int step;
 
 public:
 
@@ -24,7 +25,8 @@ public:
         a(a),
         b(b),
         maxIterations(0),
-        counter(0) { }
+        counter(0),
+        step(1) { }
 
     /**
      * SA cooling scheme
@@ -41,6 +43,10 @@ public:
      */
     void setMaxIterations(int maxIt) {
         maxIterations = maxIt;
+    }
+
+    int getStep(void) {
+        return step;
     }
 
 }; // SACooling
@@ -66,8 +72,10 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
+
         if (counter >= maxIterations) {
             counter = 0;
+            step++;
             return (a * std::pow(b, temp));
         }
 
@@ -88,8 +96,10 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
+
         if (counter >= maxIterations) {
             counter = 0;
+            step++;
             return (a / (b + std::log(temp)));
         }
 
@@ -109,8 +119,10 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
+
         if (counter >= maxIterations) {
             counter = 0;
+            step++;
             return (a / std::log(temp + b));
         }
 
@@ -131,8 +143,10 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
+
         if (counter >= maxIterations) {
             counter = 0;
+            step++;
             return (a / (1 + b*temp));
         }
 
@@ -159,8 +173,10 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
+
         if (counter >= maxIterations) {
             counter = 0;
+            step++;
             return (temp / (a + b*temp));
         }
 
@@ -184,8 +200,10 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
+
         if (counter >= maxIterations) {
             counter = 0;
+            step++;
             return (temp - a*temp);
         }
 

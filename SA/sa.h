@@ -30,8 +30,9 @@
 #include "sa_termination_criteria.h"
 #include "sa_neighborhood.h"
 #include "sa_init_temp.h"
+#include "sa_templength.h"
 
- #include "../emilibase.h"
+#include "../emilibase.h"
 
 #define nullptr NULL
 
@@ -45,6 +46,7 @@ protected:
     SAAcceptance     *acceptanceCriterion;
     SACooling        *coolingScheme;
     SATermination    *terminationCriterion;
+    SATempLength     *tempLength;
     int               counter;
 
 
@@ -53,12 +55,14 @@ public:
                        SAInitTemp       *initialTemperature,
                        SAAcceptance     *acceptanceCriterion,
                        SACooling        *coolingScheme,
-                       SATermination      *terminationCriterion,
+                       SATermination    *terminationCriterion,
+                       SATempLength     *tempLength,
                        emili::Neighborhood     *neighborhood):
                       initialTemperature(initialTemperature),
                       acceptanceCriterion(acceptanceCriterion),
                       coolingScheme(coolingScheme),
                       terminationCriterion(terminationCriterion),
+                      tempLength(tempLength),
                       counter(0),
                       emili::LocalSearch(*initialSolutionGenerator,
                                          *terminationCriterion,

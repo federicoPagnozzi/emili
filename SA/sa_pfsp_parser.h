@@ -9,6 +9,7 @@
 #include "sa_cooling.h"
 #include "sa_termination_criteria.h"
 #include "sa_neighborhood.h"
+#include "sa_templength.h"
 
 #include "../emilibase.h"
 #include "../generalParser.h"
@@ -67,6 +68,10 @@ protected:
      * @return    InitialSolution object
      */
     emili::InitialSolution* INITSOL(prs::TokenManager& tm);
+
+
+    SATempLength* TEMPLENGTH(prs::TokenManager& tm,
+                                       emili::Neighborhood* neigh);
 
     emili::InitialSolution* init(prs::TokenManager& tm);
     emili::Termination* termin(prs::TokenManager& tm);
