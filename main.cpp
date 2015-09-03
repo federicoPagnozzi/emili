@@ -9,6 +9,8 @@
 #include "setup.h"
 
 #include "SA/sa_pfsp_parser.h"
+#include "QAP/qapinitialsolution.h"
+#include "QAP/qap.h"
 
 
 void g2c_info()
@@ -18,6 +20,22 @@ void g2c_info()
 }
 int main(int argc, char *argv[])
 {
+
+    string file(argv[1]);
+    QAPInstance* inst = new QAPInstance(file);
+
+    std::cout << inst->toString() << std::endl;
+
+    qap::QAP* prob = new qap::QAP(*inst);
+
+    QAPRandomInitialSolution* initsol = new QAPRandomInitialSolution(*prob);
+    emili::Solution* sol = initsol->generateSolution();
+
+    std::cout << sol->getSolutionRepresentation() << std::endl;
+    std::cout << sol->getSolutionValue() << std::endl;
+
+    return 0;
+
     prs::emili_header();
     /* initialize random seed: */
     srand ( time(0) );
