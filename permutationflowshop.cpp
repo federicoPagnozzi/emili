@@ -3328,6 +3328,7 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
 
         int wt = (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
 
+        long int ppre_c_cur = ins_pos[nmac-1];
         long int pre_c_cur = c_cur;
 
         for (int j = 1; j< ms_pos; ++j )
@@ -3336,19 +3337,21 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
         }
 
         int pre_wt = wt;
-       if(ms_pos > (njobs-njobs/4))
-        for(int k=ms_pos+1; k<= njobs; k++)
-        {
-            pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
-            wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
-        }
 
-        Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
+        if(ms_pos > (njobs/2))
+            for(int k=ms_pos+1; k<= njobs; k++)
+            {
+                ppre_c_cur = ppre_c_cur + pmatrix[newsol[k]][nmac-1];
+                pre_c_cur = std::max(pre_c_cur,ppre_c_cur) + pmatrix[newsol[k]][nmac];
+                wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+            }
+
         int value_wt = value->getSolutionValue();
+        Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
 
         if(wt < value_wt)
         {
-             emili::iteration_decrement();
+             //emili::iteration_decrement();
             for(int k=ms_pos+1; k<= njobs; k++)
             {
                 int job = newsol[k];
@@ -3368,24 +3371,15 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
-                if(pre_wt > value_wt)
+               if(pre_wt > value_wt)
                 {
-                    // cout << "exited at " << k << std::endl;
-
                     news->setSolutionValue(pre_wt);
                     return news;
                 }
 
             }
-            //   std::cout << pre_wt << " "<< pis.computeObjectiveFunction(newsol);
-            //assert( pre_wt == pis.computeObjectiveFunction(newsol));
-
             news->setSolutionValue(pre_wt);
-            //pis.evaluateSolution(*news);
-            /*   if(news->getSolutionValue() > value->getSolutionValue())
-           {
-               emili::iteration_increment();
-           }*/
+
         }
 
 
