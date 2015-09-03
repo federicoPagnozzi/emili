@@ -108,6 +108,8 @@
 #define NEIGHBORHOOD_TRANSPOSE "transpose"
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
+#define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
+#define NEIGHBORHOOD_OPT_EXCHANGE "oexchange"
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
 #define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
@@ -1025,6 +1027,16 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     {
         printTab( "Exchange neighborhood");
         neigh = new emili::pfsp::PfspExchangeNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_ATX_EXCHANGE))
+    {
+        printTab( "Exchange neighborhood");
+        neigh = new emili::pfsp::AxtExchange(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_OPT_EXCHANGE))
+    {
+        printTab( "Exchange neighborhood");
+        neigh = new emili::pfsp::OptExchange(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_TRANSPOSE))
     {

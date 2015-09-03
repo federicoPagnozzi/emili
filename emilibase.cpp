@@ -183,6 +183,10 @@ void emili::iteration_increment(){
     iteration_counter_++;
 }
 
+void emili::iteration_decrement(){
+    iteration_counter_--;
+}
+
 /*
  * Solution implementation
  */
