@@ -745,6 +745,27 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
+class AxtExchange: public emili::pfsp::PfspExchangeNeighborhood
+{
+protected:
+    std::vector < std::vector < int > > head;
+    const std::vector < std::vector < long int > >& pmatrix;
+    const int nmac;
+    virtual Solution* computeStep(Solution *value);
+    virtual void computeHead(std::vector<int>& sol);
+public:
+    AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class OptExchange: public emili::pfsp::AxtExchange
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    OptExchange(PermutationFlowShop& problem):emili::pfsp::AxtExchange(problem) { }
+};
+
 class PfspTransposeNeighborhood: public emili::pfsp::PfspNeighborhood
 {
 protected:

@@ -41,7 +41,7 @@ namespace emili{
 void iteration_counter_zero();
 int iteration_counter();
 void iteration_increment();
-
+void iteration_decrement();
 class Solution;
 /*
  * The istance of the problem to solve.
