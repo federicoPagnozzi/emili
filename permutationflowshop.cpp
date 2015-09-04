@@ -3327,7 +3327,7 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
         }
 
         int wt = (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
-
+        long int pppre_c_cur = ins_pos[nmac-2];
         long int ppre_c_cur = ins_pos[nmac-1];
         long int pre_c_cur = c_cur;
 
@@ -3341,7 +3341,8 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
         if(ms_pos > (njobs/2))
             for(int k=ms_pos+1; k<= njobs; k++)
             {
-                ppre_c_cur = ppre_c_cur + pmatrix[newsol[k]][nmac-1];
+                pppre_c_cur = pppre_c_cur + pmatrix[newsol[k]][nmac-2];
+                ppre_c_cur = std::max(ppre_c_cur,pppre_c_cur) + pmatrix[newsol[k]][nmac-1];
                 pre_c_cur = std::max(pre_c_cur,ppre_c_cur) + pmatrix[newsol[k]][nmac];
                 wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
             }
