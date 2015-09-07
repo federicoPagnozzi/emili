@@ -14,6 +14,8 @@
 
 using namespace std;
 
+#define XOR(x,y) ((x && !y) || (!x && y))
+
 
 typedef int matrixEl;
 
@@ -24,8 +26,17 @@ class QAPInstance {
 
 private:
     int n;
+    /* matrices: they might not be the original ones
+       after symmetry manipulation */
+    // distance matrix
     vector< vector< matrixEl > > A;
+    // flow matrix
     vector< vector< matrixEl > > B;
+
+    // original distance matrix
+    vector< vector< matrixEl > > A_orig;
+    // original flow matrix
+    vector< vector< matrixEl > > B_orig;
 
     vector< int > optPerm;
 
@@ -35,6 +46,18 @@ private:
 
     /* bestKnownValue is the value read in Thomas' QAP instances */
     float bestKnownValue;
+
+    /* symmetry flags */
+    bool null_diagonal_flag  = false;  /* at least one matrix has zero diagonal: TRUE */
+    bool d_symmetric_flag    = false;  /* if first (d) matrix is symmetric: TRUE */
+    bool f_symmetric_flag    = false;  /* if second (f) matrix is symmetric: TRUE */
+    bool make_symmetric_flag = false;  /* convert asymmetric instance into symmetric 
+                                          instance: TRUE
+                                        */
+    /* symmetry checking and handling */
+    bool check_null_diagonal(vector< vector< matrixEl > > matrix);
+    bool check_symmetry(vector< vector< matrixEl > > matrix);
+    vector< vector< matrixEl > > make_matrix_symmetric(vector< vector< matrixEl > > matrix);
 
 public:
     QAPInstance(void);
@@ -80,10 +103,6 @@ public:
     string toString(void);
 
     float computeObjectiveFunction(QAPSolution* _solution);
-
-    QAPSolution* getRandomSolution(void) {
-
-    }
 
 }; // QAPInstance
 
