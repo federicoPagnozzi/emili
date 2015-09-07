@@ -33,6 +33,9 @@ private:
 
     float optValue;
 
+    /* bestKnownValue is the value read in Thomas' QAP instances */
+    float bestKnownValue;
+
 public:
     QAPInstance(void);
     /**

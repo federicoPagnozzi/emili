@@ -3,6 +3,7 @@
 
 QAPInstance::QAPInstance() {
     n = 0;
+    bestKnownValue = -1;
 }
 
 
@@ -10,6 +11,7 @@ QAPInstance::QAPInstance(string QAPLibFile) {
 
     /* temporary attributes */
     int _n = -1;
+    float _bkv = -1;
     vector< vector< matrixEl > > _A;
     vector< vector< matrixEl > > _B;
 
@@ -33,11 +35,22 @@ QAPInstance::QAPInstance(string QAPLibFile) {
             } else {
                 if (!is_n_set) {
                     // reading n
-                    _n = stoi(line);
-                    is_n_set = true;
-                    _A.resize(_n);
-                    _B.resize(_n);
-                    str.resize(_n, "0");
+                    // also check if the best known value if present
+                    int firstrowcounter = 0, tmp;
+                    istringstream stream(line);
+                    while (stream >> tmp) {
+                        if (firstrowcounter == 0) {
+                            _n = tmp;
+                            is_n_set = true;
+                            _A.resize(_n);
+                            _B.resize(_n);
+                            str.resize(_n, "0");
+                            firstrowcounter = 1;
+                        } else if (firstrowcounter == 1) {
+                            _bkv = 1.0 * tmp;
+                            firstrowcounter = 2;
+                        }
+                    }
                 } else if(!is_a_set) {
                     // reading A
                     str[count++] = line;
@@ -75,6 +88,7 @@ QAPInstance::QAPInstance(string QAPLibFile) {
     } // end if (infile)
 
     n = _n;
+    bestKnownValue = _bkv;
 
     //A.resize(n);
     A = _A;
@@ -111,6 +125,12 @@ string QAPInstance::toString(void) {
     str.append("\n");
     str.append(strb);
     str.append("\n");
+
+    if (this->bestKnownValue > -1) {
+        str.append("Best known value: ");
+        str.append(to_string(this->bestKnownValue));
+        str.append("\n");
+    }
 
     return str;
 }
