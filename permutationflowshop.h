@@ -660,6 +660,14 @@ public:
     NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
 };
 
+class Natx2Neighborhood: public emili::pfsp::NatxNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    Natx2Neighborhood(PermutationFlowShop& problem):emili::pfsp::NatxNeighborhood(problem) { }
+};
+
 class EatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
