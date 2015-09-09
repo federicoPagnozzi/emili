@@ -2762,6 +2762,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
         //std::vector< int > ins_pos(nmac+1,0);
         //int wt=0;
         long int pre_c_cur = head[nmac][end_position-1];
+
         int wt = (std::max(pre_c_cur - pis.getDueDate(newsol[end_position-1]), 0L) * pis.getPriority(newsol[end_position-1]));
 
         for (int j = 1; j< end_position-1; ++j )
@@ -2771,12 +2772,18 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
 
         int pre_wt = wt;
         if(end_position > njobs/2)
-        for(int k=end_position; k<= njobs; k++)
         {
-            pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
-            wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
-        }
+            long int ppre_c_cur = head[nmac-1][end_position-1];
 
+            for(int k=end_position; k<= njobs; k++)
+            {
+                //pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
+                int job = newsol[k];
+                ppre_c_cur = ppre_c_cur+pmatrix[job][nmac-1];
+                pre_c_cur = std::max(pre_c_cur,ppre_c_cur) + pmatrix[job][nmac];
+                wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
+            }
+        }
         Solution* news = new emili::pfsp::PermutationFlowShopSolution(wt,newsol);
         int value_wt = value->getSolutionValue();
 
