@@ -25,7 +25,7 @@ public:
     virtual emili::Solution* generateSolution(void)=0;
 
     virtual emili::Solution* generateEmptySolution(void) {
-        std::vector< int > empty(problem.getInstance().getn());
+        std::vector< int > empty(problem.getInstance()->getn());
         QAPSolution* sol = new QAPSolution(empty);
         sol->setSolutionValue(std::numeric_limits<double>::max());
         return sol;
@@ -41,9 +41,9 @@ public:
         QAPInitialSolution(problem_instance) { }
 
     virtual emili::Solution* generateSolution(void) {
-        std::vector< int > rnd(problem.getInstance().getn());
+        std::vector< int > rnd(problem.getInstance()->getn());
         std::iota(rnd.begin(), rnd.end(), 0);
-        std::shuffle(rnd.begin(), rnd.end(), std::mt19937{std::random_device{}()});
+        std::shuffle(rnd.begin(), rnd.end(), emili::getRandomGenerator());
         QAPSolution* sol = new QAPSolution(rnd);
         double value = problem.evaluateSolution(*sol);
         return sol;

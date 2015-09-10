@@ -102,9 +102,6 @@ QAPInstance::QAPInstance(string QAPLibFile) {
 
     make_symmetric_flag = XOR(d_symmetric_flag, f_symmetric_flag);
 
-    std::cout << make_symmetric_flag << " " << null_diagonal_flag << std::endl;
-    std::cout << d_symmetric_flag << " " << f_symmetric_flag << std::endl;
-
     if ( make_symmetric_flag && null_diagonal_flag ) {
         if ( !d_symmetric_flag )
             _A = make_matrix_symmetric(_A);
@@ -205,24 +202,10 @@ vector< vector< matrixEl > > QAPInstance::make_matrix_symmetric(vector< vector< 
 
     for ( i = 0 ; i < n ; i++ ) {
         for ( j = 0 ; j < i ; j++ ) {
-            std::cout << m2[i][j] <<  " ";
-        }
-        std::cout << std::endl;
-    }
-
-    for ( i = 0 ; i < n ; i++ ) {
-        for ( j = 0 ; j < i ; j++ ) {
             help = matrix[i][j] + matrix[j][i];
             m2[i][j] = help;
             m2[j][i] = help;
         }
-    }
-
-    for ( i = 0 ; i < n ; i++ ) {
-        for ( j = 0 ; j < i ; j++ ) {
-            std::cout << m2[i][j] <<  " ";
-        }
-        std::cout << std::endl;
     }
 
     return m2;

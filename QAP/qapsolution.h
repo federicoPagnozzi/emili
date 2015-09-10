@@ -35,6 +35,10 @@ public:
         solutionValue = value;
     }
 
+    /**
+     * does not set solutionValue too
+     * @param _solution 
+     */
     void setSolution(std::vector< int > _solution) {
         solution = _solution;
     }

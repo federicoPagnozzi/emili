@@ -104,6 +104,22 @@ public:
 
     float computeObjectiveFunction(QAPSolution* _solution);
 
+    bool is_null_diagonal(void) {
+        return null_diagonal_flag;
+    }
+
+    bool is_d_symmetric(void) {
+        return d_symmetric_flag;
+    }
+
+    bool is_f_symmetric(void) {
+        return f_symmetric_flag;
+    }
+
+    bool is_made_symmetric(void) {
+        return make_symmetric_flag;
+    }
+
 }; // QAPInstance
 
 #endif

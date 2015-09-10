@@ -24,8 +24,8 @@ public:
     QAP(char* instance_path):
         instance(QAPInstance(instance_path)) { }
 
-    QAPInstance& getInstance(void) {
-        return instance;
+    QAPInstance* getInstance(void) {
+        return (&instance);
     }
 
     virtual double evaluateSolution(emili::Solution& solution);
