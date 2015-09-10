@@ -10,6 +10,7 @@
 
 #include "SA/sa_pfsp_parser.h"
 #include "QAP/qapinitialsolution.h"
+#include "QAP/qapneighborhood.h"
 #include "QAP/qap.h"
 
 
@@ -20,6 +21,8 @@ void g2c_info()
 }
 int main(int argc, char *argv[])
 {
+
+    emili::initializeRandom(atoi(argv[2]));
 
     string file(argv[1]);
     QAPInstance* inst = new QAPInstance(file);
@@ -33,6 +36,13 @@ int main(int argc, char *argv[])
 
     std::cout << sol->getSolutionRepresentation() << std::endl;
     std::cout << sol->getSolutionValue() << std::endl;
+
+    QAPBest2optNeighborhood* neigh = new QAPBest2optNeighborhood(*prob);
+
+    emili::Solution* sol2 = neigh->step(sol);
+
+    std::cout << sol2->getSolutionRepresentation() << std::endl;
+    std::cout << sol2->getSolutionValue() << std::endl;
 
     return 0;
 
