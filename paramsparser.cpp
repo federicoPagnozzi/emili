@@ -115,6 +115,7 @@
 #define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NATAx_INSERT "natxinsert"
+#define NEIGHBORHOOD_NATA2x_INSERT "natx2insert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
@@ -1077,6 +1078,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     {
         printTab( "Improved Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
         neigh = new emili::pfsp::NatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NATA2x_INSERT))
+    {
+        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        neigh = new emili::pfsp::Natx2Neighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_EATAx_INSERT))
     {
