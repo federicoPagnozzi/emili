@@ -19,22 +19,22 @@
 class QAPNeighborhood: public emili::Neighborhood {
 
 protected:
-	qap::QAP& problem_instance;
-	virtual emili::Solution* computeStep(emili::Solution* step)=0;
+    qap::QAP& problem_instance;
+    virtual emili::Solution* computeStep(emili::Solution* step)=0;
 
 public:
-	QAPNeighborhood(qap::QAP& problem_instance):
-		problem_instance(problem_instance) { }
-	~QAPNeighborhood(void);
+    QAPNeighborhood(qap::QAP& problem_instance):
+        problem_instance(problem_instance) { }
+    ~QAPNeighborhood(void);
 
-	virtual emili::Solution* step(emili::Solution* currentSolution)=0;
+    virtual emili::Solution* step(emili::Solution* currentSolution);
     virtual void reset()=0;
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
     virtual int size()=0;
 
     // i don't think a setter method is useful.
     qap::QAP& getProblemInstance(void) {
-    	return problem_instance;
+        return problem_instance;
     }
 
 }; // QAPNeighborhood
@@ -53,7 +53,7 @@ public:
 class QAPInsertNeighborhood: public QAPNeighborhood {
 
 protected:
-	int start_position;
+    int start_position;
     int end_position;
     int sp_iterations;
     int ep_iterations;
@@ -62,15 +62,15 @@ protected:
     virtual emili::Solution* computeStep(emili::Solution* value);
 
 public:
-	QAPInsertNeighborhood(qap::QAP& problem_instance):
-		start_position(0),
-		end_position(0),
-		sp_iterations(1),
-		ep_iterations(1),
-		QAPNeighborhood(problem_instance) { }
-	virtual ~QAPInsertNeighborhood(void);
+    QAPInsertNeighborhood(qap::QAP& problem_instance):
+        start_position(0),
+        end_position(0),
+        sp_iterations(1),
+        ep_iterations(1),
+        QAPNeighborhood(problem_instance) { }
+    virtual ~QAPInsertNeighborhood(void);
 
-	virtual void reset();
+    virtual void reset();
     virtual emili::Solution* random(emili::Solution *currentSolution);//=0
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
     virtual NeighborhoodIterator begin(emili::Solution *base);//=0
@@ -92,34 +92,68 @@ public:
 class QAPExchangeNeighborhood: public QAPNeighborhood {
 
 protected:
-	int start_position;
+    int start_position;
     int end_position;
     int sp_iterations;
     int ep_iterations;
     std::vector < int > current;
     int current_value;
-    virtual emili::Solution* computeStep(emili::Solution* value)=0;
+
+    QAPInstance* instance;
+
+    // additional info for speedup
+    vector< vector< matrixEl > > move_values;
+    vector< vector< matrixEl > > d;
+    vector< vector< matrixEl > > f;
+    vector< matrixEl > x;
+    int n;
+    bool first_iter;
+    bool symmetric, make_symmetric;
+
+    virtual emili::Solution* computeStep(emili::Solution* value);
+
+    double computeDelta(int u, int v);
 
 public:
-	QAPExchangeNeighborhood(qap::QAP& problem_instance):
-		start_position(0),
-		end_position(0),
-		sp_iterations(1),
-		ep_iterations(1),
-		QAPNeighborhood(problem_instance) { }
-	virtual ~QAPExchangeNeighborhood(void);
+    QAPExchangeNeighborhood(qap::QAP& problem_instance):
+        start_position(0),
+        end_position(0),
+        sp_iterations(1),
+        ep_iterations(1),
+        first_iter(true),
+        QAPNeighborhood(problem_instance) {
+            QAPInstance* instance = problem_instance.getInstance();
+            n = instance->getn();
+            d = instance->getA();
+            f = instance->getB();
+            
+            vector< matrixEl > vtemp(n, 0);
+            move_values = vector< vector< matrixEl > >(n, vtemp);
 
-	virtual void reset();
-	/**
-	 * just return a permutation
-	 */
-	virtual emili::Solution* random(emili::Solution *currentSolution)=0;
+            if ( instance->is_made_symmetric() ||
+                (instance->is_d_symmetric() && instance->is_f_symmetric() && instance->is_null_diagonal())
+               ) {
+                symmetric = true;
+            } else {
+                symmetric = false;
+            }
+
+            make_symmetric = instance->is_made_symmetric();
+        }
+
+    virtual ~QAPExchangeNeighborhood(void) { }
+
+    virtual void reset();
+    /**
+     * just return a permutation
+     */
+    virtual emili::Solution* random(emili::Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
-    virtual NeighborhoodIterator begin(emili::Solution *base)=0;
+    virtual NeighborhoodIterator begin(emili::Solution *base);
 
-    virtual int size()=0;
+    virtual int size();
 
-    virtual emili::Solution* step(emili::Solution* currentSolution)=0;
+    //virtual emili::Solution* step(emili::Solution* currentSolution)=0;
 
 }; // QAPExchangeNeighborhood
 
@@ -127,7 +161,7 @@ public:
 class QAPFirst2optNeighborhood: public QAPExchangeNeighborhood {
 
 protected:
-	int start_position;
+    int start_position;
     int end_position;
     int sp_iterations;
     int ep_iterations;
@@ -138,21 +172,21 @@ protected:
     virtual emili::Solution* computeStep(emili::Solution* value);
 
 public:
-	QAPFirst2optNeighborhood(qap::QAP& problem_instance):
-		start_position(0),
-		end_position(0),
-		sp_iterations(1),
-		ep_iterations(1),
-		QAPExchangeNeighborhood(problem_instance) { }
-	~QAPFirst2optNeighborhood(void);
+    QAPFirst2optNeighborhood(qap::QAP& problem_instance):
+        start_position(0),
+        end_position(0),
+        sp_iterations(1),
+        ep_iterations(1),
+        QAPExchangeNeighborhood(problem_instance) { }
+    ~QAPFirst2optNeighborhood(void);
 
-	virtual void reset();
+    virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
     virtual NeighborhoodIterator begin(emili::Solution *base);
 
-	/**
-	 * just return a permutation
-	 */
+    /**
+     * just return a permutation
+     */
     virtual emili::Solution* random(emili::Solution *currentSolution);
 
     virtual int size();
@@ -165,7 +199,7 @@ public:
 class QAPBest2optNeighborhood: public QAPExchangeNeighborhood {
 
 protected:
-	int start_position;
+    int start_position;
     int end_position;
     int sp_iterations;
     int ep_iterations;
@@ -176,21 +210,21 @@ protected:
     virtual emili::Solution* computeStep(emili::Solution* value);
 
 public:
-	QAPBest2optNeighborhood(qap::QAP& problem_instance):
-		start_position(0),
-		end_position(0),
-		sp_iterations(1),
-		ep_iterations(1),
-		QAPExchangeNeighborhood(problem_instance) { }
-	~QAPBest2optNeighborhood(void);
+    QAPBest2optNeighborhood(qap::QAP& problem_instance):
+        start_position(0),
+        end_position(0),
+        sp_iterations(1),
+        ep_iterations(1),
+        QAPExchangeNeighborhood(problem_instance) { }
+    ~QAPBest2optNeighborhood(void);
 
-	virtual void reset();
+    virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
     virtual NeighborhoodIterator begin(emili::Solution *base);
 
-	/**
-	 * just return a permutation
-	 */
+    /**
+     * just return a permutation
+     */
     virtual emili::Solution* random(emili::Solution *currentSolution);
 
     virtual int size();

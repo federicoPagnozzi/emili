@@ -37,12 +37,46 @@ int main(int argc, char *argv[])
     std::cout << sol->getSolutionRepresentation() << std::endl;
     std::cout << sol->getSolutionValue() << std::endl;
 
+
+    QAPFirst2optNeighborhood* neigh2 = new QAPFirst2optNeighborhood(*prob);
+
+    emili::Solution* solf = neigh2->step(sol);
+
+    std::cout << solf->getSolutionRepresentation() << std::endl;
+    std::cout << solf->getSolutionValue() << std::endl;
+
     QAPBest2optNeighborhood* neigh = new QAPBest2optNeighborhood(*prob);
 
     emili::Solution* sol2 = neigh->step(sol);
 
     std::cout << sol2->getSolutionRepresentation() << std::endl;
     std::cout << sol2->getSolutionValue() << std::endl;
+
+
+    QAPExchangeNeighborhood* neighe = new QAPExchangeNeighborhood(*prob);
+
+    emili::Solution* ithSolution = nullptr;
+    emili::Solution* bestOfTheIteration = sol2;
+    for(emili::Neighborhood::NeighborhoodIterator iter = neighe->begin(sol2);iter!=neighe->end();++iter)
+    {
+        ithSolution = *iter;
+
+        std::cout << ithSolution->getSolutionRepresentation() << std::endl;
+
+        /*if(bestOfTheIteration->operator >( *ithSolution)){
+            if(bestOfTheIteration!=sol2)
+            delete bestOfTheIteration;
+
+            bestOfTheIteration = ithSolution;
+
+        }
+        else
+        {
+            delete ithSolution;
+        }*/
+
+    }
+
 
     return 0;
 
