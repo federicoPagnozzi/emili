@@ -92,8 +92,7 @@ int QAPExchangeNeighborhood::size(void) {
 
 
 emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolution) {
-    QAPSolution* _cur = (QAPSolution*)currentSolution;
-    std::vector< int > x = _cur->getSolution();
+    std::vector< int > x(((QAPSolution*)currentSolution)->getSolution());
 
     int a, b;
     
@@ -105,8 +104,8 @@ emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolutio
     x[a] = x[b];
     x[b] = c;
 
-    _cur->setSolution(x);
-    _cur->setSolutionValue(instance->computeObjectiveFunction(_cur));
+    QAPSolution* _cur = new QAPSolution(x);
+    problem_instance.evaluateSolution(*_cur);
 
     return(_cur);
 }
@@ -173,6 +172,7 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
                                computeDelta(start_position,
                                             end_position));
 
+
     return newvalue;
 }
 
@@ -218,24 +218,10 @@ emili::Neighborhood::NeighborhoodIterator QAPFirst2optNeighborhood::begin(emili:
 
 
 emili::Solution* QAPFirst2optNeighborhood::random(emili::Solution *currentSolution) {
-    QAPSolution* _cur = (QAPSolution*)currentSolution;
-    std::vector< int > x = _cur->getSolution();
-    QAPInstance* instance = this->getProblemInstance().getInstance();
-    int n = x.size();
-    int a, b;
-    
-    a = emili::generateRandomNumber() % n;
-    do {
-        b = emili::generateRandomNumber() % n;
-    } while (a == b);
-    int c = x[a];
-    x[a] = x[b];
-    x[b] = c;
+    if (!first_iter)
+        return nullptr;
 
-    _cur->setSolution(x);
-    _cur->setSolutionValue(instance->computeObjectiveFunction(_cur));
-
-    return(_cur);
+    return computeStep(currentSolution);
 }
 
 
@@ -439,24 +425,10 @@ emili::Neighborhood::NeighborhoodIterator QAPBest2optNeighborhood::begin(emili::
 }
 
 emili::Solution* QAPBest2optNeighborhood::random(emili::Solution *currentSolution) {
-    QAPSolution* _cur = (QAPSolution*)currentSolution;
-    std::vector< int > x = _cur->getSolution();
-    QAPInstance* instance = this->getProblemInstance().getInstance();
-    int n = x.size();
-    int a, b;
-    
-    a = emili::generateRandomNumber() % n;
-    do {
-        b = emili::generateRandomNumber() % n;
-    } while (a == b);
-    int c = x[a];
-    x[a] = x[b];
-    x[b] = c;
+    if (!first_iter)
+        return nullptr;
 
-    _cur->setSolution(x);
-    _cur->setSolutionValue(instance->computeObjectiveFunction(_cur));
-
-    return(_cur);
+    return computeStep(currentSolution);
 }
 
 

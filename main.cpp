@@ -9,6 +9,7 @@
 #include "setup.h"
 
 #include "SA/sa_pfsp_parser.h"
+#include "SA/sa_qap_parser.h"
 #include "QAP/qapinitialsolution.h"
 #include "QAP/qapneighborhood.h"
 #include "QAP/qap.h"
@@ -22,7 +23,7 @@ void g2c_info()
 int main(int argc, char *argv[])
 {
 
-    emili::initializeRandom(atoi(argv[2]));
+    /** /emili::initializeRandom(atoi(argv[2]));
 
     string file(argv[1]);
     QAPInstance* inst = new QAPInstance(file);
@@ -55,6 +56,13 @@ int main(int argc, char *argv[])
 
     QAPExchangeNeighborhood* neighe = new QAPExchangeNeighborhood(*prob);
 
+    emili::Solution* incumbent = neighe->random(sol2);
+
+    std::cout << incumbent->getSolutionRepresentation() << std::endl;
+    std::cout << incumbent->getSolutionValue() << std::endl;
+
+    return 0;
+
     emili::Solution* ithSolution = nullptr;
     emili::Solution* bestOfTheIteration = sol2;
     for(emili::Neighborhood::NeighborhoodIterator iter = neighe->begin(sol2);iter!=neighe->end();++iter)
@@ -62,6 +70,7 @@ int main(int argc, char *argv[])
         ithSolution = *iter;
 
         std::cout << ithSolution->getSolutionRepresentation() << std::endl;
+        std::cout << ithSolution->getSolutionValue() << std::endl;
 
         /*if(bestOfTheIteration->operator >( *ithSolution)){
             if(bestOfTheIteration!=sol2)
@@ -73,12 +82,12 @@ int main(int argc, char *argv[])
         else
         {
             delete ithSolution;
-        }*/
+        }* /
 
     }
 
 
-    return 0;
+    return 0;/ **/
 
     prs::emili_header();
     /* initialize random seed: */
@@ -113,7 +122,8 @@ int main(int argc, char *argv[])
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE
     std::cout << "searching..." << std::endl;
-    SAPFSPParser p;
+    //SAPFSPParser p;
+    SAQAPParser p;
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
     ls = ps.parseParams();

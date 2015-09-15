@@ -11,7 +11,7 @@
 class QAPSolution: public emili::Solution {
 
 protected:
-    double solutionValue;
+    //double solutionValue;
     std::vector< int > solution;
 
     virtual const void* getRawData()const;
@@ -20,11 +20,10 @@ protected:
 public:
     QAPSolution(std::vector< int >& solution):
         emili::Solution(1e9),
-        solutionValue(0.0),
         solution(solution) { }
 
     virtual double getSolutionValue(void) {
-        return solutionValue;
+        return solution_value;
     }
 
     std::vector<int> getSolution(void) {
@@ -32,7 +31,7 @@ public:
     }
 
     void setSolutionValue(double value) {
-        solutionValue = value;
+        solution_value = value;
     }
 
     /**
