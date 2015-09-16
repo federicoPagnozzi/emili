@@ -39,5 +39,6 @@
  */
 #define MAXBADITERS "MAXBADITERS" 
 #define MAXITERS    "MAXITERS"
+#define NEVERTERM   "NEVERTERM"
 
 #endif

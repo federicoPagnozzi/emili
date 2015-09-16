@@ -180,6 +180,8 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm) {
     } else if (tm.checkToken(MAXITERS)) {
         int    mi = tm.getInteger();
         return new SAMaxIterTermination(mi);
+    } else if (tm.checkToken(NEVERTERM)) {
+        return new SAWhileTrueTermination();
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

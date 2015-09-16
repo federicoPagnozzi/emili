@@ -91,6 +91,8 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm) {
     } else if (tm.checkToken(MAXITERS)) {
         int    mi = tm.getInteger();
         return new SAMaxIterTermination(mi);
+    } else if (tm.checkToken(NEVERTERM)) {
+        return new SAWhileTrueTermination();
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -166,7 +168,7 @@ emili::InitialSolution* SAQAPParser::init(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;
+        std::cerr<< "'" << *tm << "' -> ERROR an initial solution generator specification was expected! (random,slack)" << std::endl;
 
         std::cout << SAQAPParser::info() << std::endl;
         exit(-1);
