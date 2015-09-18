@@ -77,11 +77,12 @@ public:
     virtual bool operator<(Solution& a);
     virtual bool operator<=(Solution& a);
     virtual bool operator>=(Solution& a);
-    virtual bool operator>(Solution& a); 
+    virtual bool operator>(Solution& a);
     //virtual Solution clone()=0;
     virtual std::string getSolutionRepresentation();
     virtual double getSolutionValue();
     virtual void setSolutionValue(double value);
+    virtual Solution* clone()=0;
     virtual ~Solution() {}
 };
 
@@ -182,6 +183,7 @@ class Neighborhood
 {
 protected:
     virtual Solution* computeStep(Solution* step)=0;
+    virtual void reverseLastMove(Solution* step)=0;
 public:
     //unsigned long num();
        class NeighborhoodIterator : public std::iterator<std::forward_iterator_tag, emili::Solution> {
@@ -190,7 +192,8 @@ public:
            {
                if(startSolution != nullptr )
                {
-                  line_ = n->computeStep(base_);
+                  line_ = base_->clone();
+                  line_ = n->computeStep(line_);
                }
                else
                {
@@ -235,6 +238,7 @@ class EmptyNeighBorHood: public emili::Neighborhood
 {
 protected:
     virtual Solution* computeStep(Solution *step) {return nullptr;}
+    virtual void reverseLastMove(Solution *step) { }
 public:
     EmptyNeighBorHood() {}
     virtual Solution* step(Solution *currentSolution) {return currentSolution;}
@@ -332,7 +336,7 @@ class FirstImprovementSearch : public emili::LocalSearch
 {
 public:
     FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
-    virtual Solution* search(emili::Solution* intial);    
+    virtual Solution* search(emili::Solution* intial);
 };
 
 /*
@@ -498,7 +502,7 @@ public:
     BestTabuSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh,TabuMemory& tabut):
     emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh),tabuMemory(tabut) {    }
     virtual emili::Solution* search(emili::Solution* initial);
-    virtual emili::Solution* search();    
+    virtual emili::Solution* search();
 };
 
 class FirstTabuSearch: public emili::BestTabuSearch
@@ -542,7 +546,7 @@ public:
             {
                 i = i+1;
             }
-        }while(i < neigh.size());        
+        }while(i < neigh.size());
         return incumbent;
     }
 };

@@ -256,7 +256,9 @@ bool emili::Neighborhood::NeighborhoodIterator::operator !=(const emili::Neighbo
 
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator++()
 {    
-    this->line_ = n->computeStep(this->base_);
+    n->reverseLastMove(line_);
+    line_->setSolutionValue(this->base_->getSolutionValue());
+    this->line_ = n->computeStep(this->line_);
     return *this;
 }
 
@@ -394,44 +396,22 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
 {
         termcriterion->reset();
         neighbh->reset();
-        emili::Solution* incumbent = init->generateEmptySolution();
-        *incumbent = *initial;        
-        bestSoFar = incumbent;
+        emili::Solution* incumbent = initial->clone();
+        bestSoFar = initial->clone();
         emili::Solution* ithSolution = nullptr;
-
         do
-        {
-
-            if(bestSoFar->operator >(*incumbent)){
-                delete bestSoFar;
-                bestSoFar = incumbent;
-            }
-            neighbh->reset();
-            Solution* bestOfTheIteration = incumbent;
-
+        {                       
+            *bestSoFar = *incumbent;
             for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);iter!=neighbh->end();++iter)
             {
                 ithSolution = *iter;
-
-                if(bestOfTheIteration->operator >( *ithSolution)){
-                    if(bestOfTheIteration!=incumbent)
-                    delete bestOfTheIteration;
-
-                    bestOfTheIteration = ithSolution;
-
-                }
-                else
-                {
-                    delete ithSolution;
-                }
-
+                if(incumbent->operator >( *ithSolution)){
+                    *incumbent = *ithSolution;
+                }                
             }
-            if(incumbent!=bestSoFar)
-                delete incumbent;
-            incumbent = bestOfTheIteration;
-
+            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
-
+        delete incumbent;
         return bestSoFar;
 }
 
@@ -445,34 +425,26 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
         termcriterion->reset();
         neighbh->reset();
         bestSoFar = init->generateEmptySolution();
-        emili::Solution* incumbent = bestSoFar;
-        *incumbent = *initial;
+        emili::Solution* incumbent = initial->clone();
+        emili::Solution* ithSolution;
+
         //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
 
         do{
-            if(bestSoFar != incumbent)
-            {
-                delete bestSoFar;
-            }
-            bestSoFar = incumbent;
+
+            *bestSoFar = *incumbent;
+
             for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
             {
-                emili::Solution* ithSolution = *iter;
-                if(incumbent->operator >(*ithSolution)){
-                    if(incumbent!=bestSoFar)
-                    delete incumbent;
-
-                    incumbent = ithSolution;
+                 ithSolution = *iter;
+                if(incumbent->operator >(*ithSolution)){                    
+                    *incumbent = *ithSolution;
                     break;
-                }
-                else
-                {
-                    delete ithSolution;
-                }
-
-            }
-
+                }                
+            } 
+            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        delete incumbent;
         return bestSoFar;
 }
 
@@ -494,47 +466,39 @@ emili::Solution* emili::BestTabuSearch::search()
 emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
 {
     termcriterion->reset();
-    neighbh->reset();    
-    emili::Solution* incumbent = init->generateEmptySolution();
-    *incumbent = *initial;
-    bestSoFar = incumbent;
+    neighbh->reset();
+    emili::Solution* incumbent = initial->clone();
+    bestSoFar = initial->clone();
     emili::Solution* ithSolution = nullptr;
     do
     {
-        if(bestSoFar->operator >(*incumbent)){
-            delete bestSoFar;            
-            bestSoFar = incumbent;
-          //  std::cout << bestSoFar->getSolutionValue() << " at " << (clock() - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        if(*bestSoFar > *incumbent){
+            *bestSoFar = *incumbent;
         }
 
-        neighbh->reset();
-        Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
-        Solution* bestOfTheIteration = *iter;
-        tabuMemory.registerMove(incumbent,bestOfTheIteration);
-        ++iter;
+        Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
+        if(iter!=neighbh->end())
+        {
+           ithSolution = *iter;
+           *incumbent = *ithSolution;
+        }
+
         for(;iter!=neighbh->end();++iter)
         {
-            ithSolution = *iter;            
-            tabuMemory.registerMove(incumbent,ithSolution); // make the tabu memory record the move used on incumbent to generate ithSolution
-            if(*bestOfTheIteration > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){
-                    delete bestOfTheIteration;
-                    bestOfTheIteration = ithSolution;                
-            }
-            else
+            ithSolution = *iter;
+            tabuMemory.registerMove(incumbent,ithSolution);// make the tabu memory record the move used on incumbent to generate ithSolution
+            if(*incumbent > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar))
             {
-                delete ithSolution;
+                *incumbent = *ithSolution;
             }
-
         }
 
-        if(incumbent!=bestSoFar)
-            delete incumbent;
-
-        incumbent = bestOfTheIteration;
+        delete ithSolution;
         tabuMemory.forbid(incumbent);
     }while(!termcriterion->terminate(bestSoFar,incumbent));
     delete incumbent;
     return bestSoFar;
+
 }
 
 
@@ -542,35 +506,33 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
 {
     termcriterion->reset();
     neighbh->reset();
-    emili::Solution* incumbent = init->generateEmptySolution();
-    *incumbent = *initial;
-    bestSoFar = incumbent;
+    emili::Solution* incumbent = initial->clone();
+    bestSoFar = initial->clone();
+    emili::Solution* ithSolution;
         do{
-            if(bestSoFar != incumbent)
-            {
-                delete bestSoFar;
-            }
-            bestSoFar = incumbent;
-            for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
-            {
-                emili::Solution* ithSolution = *iter;
-                tabuMemory.registerMove(incumbent,ithSolution);
-                if(incumbent->operator >(*ithSolution)&& (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){
-                    if(incumbent!=bestSoFar)
-                    delete incumbent;
+            if(*bestSoFar > *incumbent)
+                *bestSoFar = *incumbent;
 
-                    incumbent = ithSolution;
+            Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
+            if(iter!=neighbh->end())
+            {
+               ithSolution = *iter;
+               *incumbent = *ithSolution;
+            }
+
+            for(;iter!=neighbh->end();++iter)
+            {
+                ithSolution = *iter;
+                tabuMemory.registerMove(incumbent,ithSolution);
+                if(incumbent->operator >(*ithSolution)&& (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){                    
+                    *incumbent = *ithSolution;
                     break;
                 }
-                else
-                {
-                    delete ithSolution;
-                }
-
             }
+         delete ithSolution;
         tabuMemory.forbid(incumbent);
     }while(!termcriterion->terminate(bestSoFar,incumbent));
-
+    delete incumbent;
     return bestSoFar;
 }
 /*

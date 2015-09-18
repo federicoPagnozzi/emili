@@ -335,6 +335,7 @@ public:
 
     virtual std::vector< int >& getJobSchedule();
     virtual std::string getSolutionRepresentation();
+    virtual emili::Solution* clone();
     virtual ~PermutationFlowShopSolution();
 };
 
@@ -612,6 +613,7 @@ protected:
     std::vector < int > current;
     int current_value;
     virtual Solution* computeStep(Solution* value);
+    virtual void reverseLastMove(Solution *step);
 public:
     PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
@@ -745,6 +747,7 @@ protected:
     int ep_iterations;
     int njobs;
     virtual Solution* computeStep(Solution* value);
+    virtual void reverseLastMove(Solution *step);
 public:
     PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
@@ -781,6 +784,7 @@ protected:
     int sp_iterations;
     int njobs;    
     virtual Solution* computeStep(Solution* value);
+    virtual void reverseLastMove(Solution *step);
 public:
     PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),njobs(problem.getNjobs()),sp_iterations(1){}
     virtual void reset();
@@ -988,6 +992,7 @@ protected:
     int njobs;
     int index;
     virtual Solution* computeStep(Solution *step);
+    virtual void reverseLastMove(Solution *step) { }
 public:
     GVNS_RIS_Neighborhood(emili::pfsp::PermutationFlowShop& problem):emili::pfsp::PfspNeighborhood(problem),njobs(problem.getNjobs()),index(1) { }
     void setReference(emili::Solution* ref) {this->reference = ref;}
