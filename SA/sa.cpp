@@ -29,6 +29,7 @@ emili::Solution* SimulatedAnnealing::search() {
 
 emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     emili::Solution* incumbent = init->generateEmptySolution();
+    emili::Solution* accepted;
     *incumbent = *initial;
     bestSoFar  = incumbent;
 
@@ -44,18 +45,19 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
         incumbent = neighbh->random(bestSoFar);
 
-        incumbent = acceptanceCriterion->accept(bestSoFar,
-                                                incumbent);
+        accepted = acceptanceCriterion->accept(bestSoFar,
+                                               incumbent);
 
-        if(bestSoFar->operator > (*incumbent)) {
+        if (accepted == bestSoFar) {
+            delete incumbent;
+        } else {
             delete bestSoFar;
-            bestSoFar = incumbent;
             if (tc_type == MAXBADITERS) {
                 counter = 0;
             }
-        } else if (incumbent != bestSoFar) {
-            delete incumbent;
         }
+
+        bestSoFar = accepted;
 
         temp = coolingScheme->update_cooling(temp);
         acceptanceCriterion->setCurrentTemp(temp);

@@ -5,7 +5,7 @@ aux_source_directory(. SRC_LIST)
 aux_source_directory(./SA SA_SRC_LIST)
 aux_source_directory(./QAP QAP_SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g") # -O3
 #C++ 11 detection
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     execute_process(

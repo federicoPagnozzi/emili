@@ -30,6 +30,11 @@ public:
         sol->setSolutionValue(std::numeric_limits<double>::max());
         return sol;
     }
+
+    std::vector< int > generateEmptyIntVector(void) {
+        std::vector< int > empty(problem.getInstance()->getn());
+        return empty;
+    }
     
 }; // QAPInitialSolution
 
@@ -47,6 +52,13 @@ public:
         QAPSolution* sol = new QAPSolution(rnd);
         double value = problem.evaluateSolution(*sol);
         return sol;
+    }
+
+    std::vector< int > generateRandomPermutation(void) {
+        std::vector< int > rnd(problem.getInstance()->getn());
+        std::iota(rnd.begin(), rnd.end(), 0);
+        std::shuffle(rnd.begin(), rnd.end(), emili::getRandomGenerator());
+        return rnd;
     }
 
 }; // QAPRandomInitialSolution

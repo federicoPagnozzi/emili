@@ -163,4 +163,6 @@ int main(int argc, char *argv[])
     cout << "Found solution: ";
     cout << solution->getSolutionRepresentation() << std::endl;
     cout << endl;
+
+    cerr << solution->getSolutionValue() << endl;
 }

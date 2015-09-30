@@ -249,7 +249,8 @@ emili::Solution* QAPFirst2optNeighborhood::first2opt_symmetric(emili::Solution* 
     
     std::vector< int > q = value->getSolution();
     QAPRandomInitialSolution* initsol = new QAPRandomInitialSolution(probinstance);
-    std::vector< int > x = ((QAPSolution*)initsol->generateSolution())->getSolution();
+    std::vector< int > x = initsol->generateRandomPermutation();
+    delete initsol;
     double best_found = value->getSolutionValue();
     int n = x.size();
 
@@ -294,6 +295,7 @@ emili::Solution* QAPFirst2optNeighborhood::first2opt_symmetric(emili::Solution* 
             }
         }
     }
+
     return newvalue;
 }
 
@@ -314,7 +316,8 @@ emili::Solution* QAPFirst2optNeighborhood::first2opt_asymmetric(emili::Solution*
     
     std::vector< int > q = value->getSolution();
     QAPRandomInitialSolution* initsol = new QAPRandomInitialSolution(probinstance);
-    std::vector< int > x = ((QAPSolution*)initsol->generateSolution())->getSolution();
+    std::vector< int > x = initsol->generateRandomPermutation();
+    delete initsol;
     double best_found = value->getSolutionValue();
     int n = x.size();
 
@@ -366,6 +369,7 @@ emili::Solution* QAPFirst2optNeighborhood::first2opt_asymmetric(emili::Solution*
             }
         }
     }
+
     return newvalue;
 }
 
@@ -471,7 +475,8 @@ emili::Solution* QAPBest2optNeighborhood::best2opt_symmetric(emili::Solution* _v
     
     std::vector< int > q = value->getSolution();
     QAPRandomInitialSolution* initsol = new QAPRandomInitialSolution(probinstance);
-    std::vector< int > x = ((QAPSolution*)initsol->generateSolution())->getSolution();
+    std::vector< int > x = initsol->generateRandomPermutation();
+    delete initsol;
     double best_found = value->getSolutionValue();
     int n = x.size();
 
@@ -570,6 +575,7 @@ emili::Solution* QAPBest2optNeighborhood::best2opt_symmetric(emili::Solution* _v
             s = schosen; /* memorize previously done move */
         }
     }
+
     return newvalue;
 }
 
@@ -592,7 +598,8 @@ emili::Solution* QAPBest2optNeighborhood::best2opt_asymmetric(emili::Solution* _
     
     std::vector< int > q = value->getSolution();
     QAPRandomInitialSolution* initsol = new QAPRandomInitialSolution(probinstance);
-    std::vector< int > x = ((QAPSolution*)initsol->generateSolution())->getSolution();
+    std::vector< int > x = initsol->generateRandomPermutation();
+    delete initsol;
     double best_found = value->getSolutionValue();
     int n = x.size();
 
@@ -701,5 +708,6 @@ emili::Solution* QAPBest2optNeighborhood::best2opt_asymmetric(emili::Solution* _
             s = schosen; /* memorize previously done move */
         }
     }
+
     return newvalue;
 }
