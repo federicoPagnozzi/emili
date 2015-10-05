@@ -9,6 +9,8 @@
 #include "sa_cooling.h"
 #include "sa_termination_criteria.h"
 #include "sa_templength.h"
+#include "sa_exploration.h"
+
 
 #include "../emilibase.h"
 #include "../generalParser.h"
@@ -75,6 +77,11 @@ protected:
 
     emili::InitialSolution* init(prs::TokenManager& tm);
     QAPNeighborhood* neigh(prs::TokenManager& tm);
+
+    SAExploration* EXPLORATION(prs::TokenManager& tm,
+                                        emili::Neighborhood* neigh,
+                                        SAAcceptance *acc,
+                                        SATermination *term);
 
     /**
      * load the instance

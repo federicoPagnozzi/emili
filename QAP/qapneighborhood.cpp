@@ -91,6 +91,13 @@ int QAPExchangeNeighborhood::size(void) {
 }
 
 
+void QAPExchangeNeighborhood::reverseLastMove(emili::Solution *step)
+{
+    std::vector < int >& newsol = ((QAPSolution*)step)->getSolution();
+    std::swap(newsol[start_position],newsol[end_position]);
+}
+
+
 emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolution) {
     std::vector< int > x(((QAPSolution*)currentSolution)->getSolution());
 
@@ -111,7 +118,7 @@ emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolutio
 }
 
 
-double QAPExchangeNeighborhood::computeDelta(int u, int v) {
+double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< matrixEl >& x) {
     double delta = 0.0;
 
     if (!symmetric) {
@@ -161,19 +168,19 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
     first_iter = false;
 
     QAPSolution* _value = (QAPSolution *)value;
-    x = _value->getSolution();
+    vector< matrixEl >& x = _value->getSolution();
 
     matrixEl c = x[start_position];
     x[start_position] = x[end_position];
     x[end_position] = c;
 
-    QAPSolution* newvalue = new QAPSolution(x);
-    newvalue->setSolutionValue(_value->getSolutionValue() +
+    _value->setSolutionValue(_value->getSolutionValue() +
                                computeDelta(start_position,
-                                            end_position));
+                                            end_position,
+                                            x));
 
 
-    return newvalue;
+    return _value;
 }
 
 

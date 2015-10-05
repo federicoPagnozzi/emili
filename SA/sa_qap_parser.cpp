@@ -206,6 +206,23 @@ void SAQAPParser::problem(prs::TokenManager& tm) {
     return;
 }
 
+SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
+                                        emili::Neighborhood* neigh,
+                                        SAAcceptance *acc,
+                                        SATermination *term) {
+
+    if (tm.checkToken(SARANDOMEXPLORATION)) {
+        return new SARandomExploration(neigh, acc, term);
+    } else if (tm.checkToken(SASEQUENTIALEXPLORATION)) {
+        return new SARandomExploration(neigh, acc, term);
+    } else {
+        std::cerr << "SAExploration expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
 
 emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
 
@@ -217,6 +234,7 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     SACooling*       cooling    = COOL(tm);
     SATermination*     term       = TERMINATION(tm); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei);
+    SAExploration* explo = EXPLORATION(tm, nei, acceptance, term);
 
     return new SimulatedAnnealing(initsol,
                                   inittemp,
@@ -224,6 +242,7 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
                                   cooling,
                                   term,
                                   templ,
+                                  explo,
                                   nei);
 
 }

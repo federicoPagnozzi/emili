@@ -24,6 +24,7 @@
 #include <vector>
 #include <functional>
 
+#include "sa_exploration.h"
 #include "sa_constants.h"
 #include "sa_acceptance_criteria.h"
 #include "sa_cooling.h"
@@ -47,6 +48,7 @@ protected:
     SACooling        *coolingScheme;
     SATermination    *terminationCriterion;
     SATempLength     *tempLength;
+    SAExploration    *exploration;
     int               counter;
 
 
@@ -57,11 +59,13 @@ public:
                        SACooling        *coolingScheme,
                        SATermination    *terminationCriterion,
                        SATempLength     *tempLength,
+                       SAExploration    *exploration,
                        emili::Neighborhood     *neighborhood):
                       initialTemperature(initialTemperature),
                       acceptanceCriterion(acceptanceCriterion),
                       coolingScheme(coolingScheme),
                       terminationCriterion(terminationCriterion),
+                      exploration(exploration),
                       tempLength(tempLength),
                       counter(0),
                       emili::LocalSearch(*initialSolutionGenerator,

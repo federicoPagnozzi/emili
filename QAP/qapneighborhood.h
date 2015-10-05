@@ -21,6 +21,7 @@ class QAPNeighborhood: public emili::Neighborhood {
 protected:
     qap::QAP& problem_instance;
     virtual emili::Solution* computeStep(emili::Solution* step)=0;
+    virtual void reverseLastMove(emili::Solution* step)=0;
 
 public:
     QAPNeighborhood(qap::QAP& problem_instance):
@@ -60,6 +61,7 @@ protected:
     std::vector < int > current;
     int current_value;
     virtual emili::Solution* computeStep(emili::Solution* value);
+    virtual void reverseLastMove(emili::Solution* step) { }
 
 public:
     QAPInsertNeighborhood(qap::QAP& problem_instance):
@@ -105,14 +107,15 @@ protected:
     vector< vector< matrixEl > > move_values;
     vector< vector< matrixEl > > d;
     vector< vector< matrixEl > > f;
-    vector< matrixEl > x;
+    //vector< matrixEl >* x;
     int n;
     bool first_iter;
     bool symmetric, make_symmetric;
 
     virtual emili::Solution* computeStep(emili::Solution* value);
+    virtual void reverseLastMove(emili::Solution* step);
 
-    double computeDelta(int u, int v);
+    double computeDelta(int u, int v, vector< matrixEl >& x);
 
 public:
     QAPExchangeNeighborhood(qap::QAP& problem_instance):

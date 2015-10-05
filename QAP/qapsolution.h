@@ -26,7 +26,7 @@ public:
         return solution_value;
     }
 
-    std::vector<int> getSolution(void) {
+    std::vector<int>& getSolution(void) {
         return solution;
     }
 
@@ -43,6 +43,13 @@ public:
     }
    
     virtual std::string getSolutionRepresentation(void);
+    
+    
+    virtual emili::Solution* clone() {
+        emili::Solution* newsol = new QAPSolution(solution);
+        newsol->setSolutionValue(solution_value);
+        return newsol;
+    }
 
 }; // QAPSolution
 
