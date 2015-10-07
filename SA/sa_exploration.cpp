@@ -3,24 +3,24 @@
 emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolution,
                                                            int* counter) {
 
+
+    counter[0]++;
+
     emili::Solution* incumbent = neigh->random(startingSolution);
-    std::cout << startingSolution->getSolutionRepresentation();
-    std::cout << incumbent->getSolutionRepresentation();
+    //std::cout << startingSolution->getSolutionRepresentation();
+    //std::cout << incumbent->getSolutionRepresentation();
     emili::Solution* accepted = acceptance->accept(startingSolution,
                                                    incumbent);
     std::string tc_type = term->getType();
 
-    std::cout << startingSolution << " " << incumbent << " " << accepted << std::endl;
-    std::cout << startingSolution->getSolutionValue() << " " << incumbent->getSolutionValue() << " " << accepted->getSolutionValue() << std::endl;
+    //std::cout << startingSolution << " " << incumbent << " " << accepted << std::endl;
+    //std::cout << startingSolution->getSolutionValue() << " " << incumbent->getSolutionValue() << " " << accepted->getSolutionValue() << std::endl;
 
     if (accepted == startingSolution) {
-        std::cout << "AAA1" << std::endl;
         delete incumbent;
     } else {
-        std::cout << "BBB1" << std::endl;
         delete startingSolution;
         if (tc_type == MAXBADITERS) {
-            std::cout << "HOI" << std::endl;
             counter[0] = 0;
         }
     }
@@ -45,24 +45,23 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
         ++iter) {
 
         incumbent = *iter;
+
+        counter[0]++;
     
-        std::cout << startingSolution->getSolutionRepresentation();
-        std::cout << incumbent->getSolutionRepresentation();
+        //std::cout << startingSolution->getSolutionRepresentation();
+        //std::cout << incumbent->getSolutionRepresentation();
     
         accepted = acceptance->accept(startingSolution,
                                       incumbent);
 
-        std::cout << startingSolution << " " << incumbent << " " << accepted << std::endl;
-        std::cout << startingSolution->getSolutionValue() << " " << incumbent->getSolutionValue() << " " << accepted->getSolutionValue() << std::endl;
+        //std::cout << startingSolution << " " << incumbent << " " << accepted << std::endl;
+        //std::cout << startingSolution->getSolutionValue() << " " << incumbent->getSolutionValue() << " " << accepted->getSolutionValue() << std::endl;
 
         if (accepted == startingSolution) {
-            std::cout << "AAA1" << std::endl;
             delete incumbent;
         } else {
-            std::cout << "BBB1" << std::endl;
             delete startingSolution;
             if (tc_type == MAXBADITERS) {
-                std::cout << "HOI" << std::endl;
                 counter[0] = 0;
             }
             break;
