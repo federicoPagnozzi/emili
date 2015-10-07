@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <cmath>
 
 #include "../emilibase.h"
 
@@ -96,4 +97,63 @@ public:
 
 }; // InitTempFromSolution
 
+
+/**
+ * Do a random walk and take the (absolute value of the) highest gap
+ * as initial temperature
+ */
+class RandomWalkInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    int length;
+
+public:
+
+    RandomWalkInitTemp(emili::InitialSolution* _is,
+                       int _length):
+        is(_is),
+        length(_length) { }
+
+    virtual double set(double value) {
+        int i;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double maxdelta,
+               bestcost = c2;
+
+        solution = s2;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+
+            if (abs(c2 - c1) > maxdelta) {
+                maxdelta = abs(c2 - c1);
+            }
+
+            if (c2 < bestcost) {
+                delete solution;
+                solution = s2;
+                bestcost = c2;
+            } else {
+                delete s1;
+            }
+        }
+
+        if (solution != s2)
+            delete s2;
+
+        return value * maxdelta;
+    }
+
+}; // RandomWalkInitTemp
+
+
 #endif
+

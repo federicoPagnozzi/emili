@@ -140,6 +140,12 @@ SAInitTemp* SAPFSPParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp     = new InitTempFromSolution(is);
         init_temp->set(value);
         return init_temp;
+    } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, length);
+        init_temp->set(value);
+        return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

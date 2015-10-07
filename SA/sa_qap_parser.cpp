@@ -38,7 +38,7 @@
 //using namespace prs;
 
 SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
-                                          emili::InitialSolution *initsol) {
+                                  emili::InitialSolution *initsol) {
 
     if (tm.checkToken(FIXEDINITTEMP)) {
         double             value     = tm.getDecimal();
@@ -49,6 +49,12 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
         double                  value    = tm.getDecimal();
         emili::Solution* is = initsol->generateSolution();
         SAInitTemp* init_temp     = new InitTempFromSolution(is);
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, length);
         init_temp->set(value);
         return init_temp;
     } else {
