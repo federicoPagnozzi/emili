@@ -162,13 +162,14 @@ SAAcceptance* SAPFSPParser::ACCEPTANCE(prs::TokenManager& tm) {
         double ft = tm.getDecimal();
         return new SAMetropolisAcceptance(it, ft);
     } else if (tm.checkToken(BASICACC)) {
-        double it = tm.getDecimal();
-        double ft = tm.getDecimal();
-        return new SABasicAcceptance(it, ft);
+        return new SABasicAcceptance();
     } else if (tm.checkToken(GEOMACC)) {
         double ia = tm.getDecimal();
         double rf = tm.getDecimal();
         return new SAGeometricAcceptance(ia, rf);
+    } else if (tm.checkToken(DETERMINISTICACC)) {
+        double de = tm.getDecimal();
+        return new SADeterministicAcceptance(de);
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

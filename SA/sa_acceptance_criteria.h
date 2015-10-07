@@ -80,11 +80,10 @@ public:
 
 class SABasicAcceptance: public SAAcceptance {
 public:
-    SABasicAcceptance(float initial_temperature,
-                      float final_temperature):
+    SABasicAcceptance(void):
                 SAAcceptance(BASICACC,
-                             initial_temperature,
-                             final_temperature) { }
+                             0,
+                             0) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
@@ -124,5 +123,24 @@ public:
     }
 
 }; // SAGeometricAcceptance
+
+
+
+class SADeterministicAcceptance: public SAAcceptance {
+
+protected:
+    float delta;
+
+public:
+    SADeterministicAcceptance(float _delta):
+                delta(_delta),
+                SAAcceptance(DETERMINISTICACC,
+                             0,
+                             0) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // SADeterministicAcceptance
 
 #endif

@@ -51,3 +51,18 @@ emili::Solution* SAGeometricAcceptance::accept(emili::Solution *current_solution
     return new_solution;
 
 }
+
+
+emili::Solution* SADeterministicAcceptance::accept(emili::Solution *current_solution,
+                                                   emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+    
+    if (ns > cs * (1 + delta)) {
+        return current_solution;
+    }
+
+    return new_solution;
+
+}
