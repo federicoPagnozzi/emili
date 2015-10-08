@@ -9,6 +9,8 @@
 #include "../emilibase.h"
 #include "sa_acceptance_criteria.h"
 #include "sa_termination_criteria.h"
+#include "sa_common.h"
+
 
 
 class SAExploration {
@@ -18,6 +20,7 @@ protected:
     emili::Neighborhood* neigh;
     SAAcceptance* acceptance;
     SATermination* term;
+    std::string tc_type;
 
 public:
     SAExploration(emili::Neighborhood* _neigh,
@@ -27,6 +30,7 @@ public:
         neigh(_neigh),
         acceptance(_acceptance),
         term(_term),
+        tc_type(_term->getType()),
         type(_type) { }
 
     std::string getType(void) {
@@ -34,7 +38,7 @@ public:
     }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          int* counter)=0;
+                                          sa_status* status)=0;
 
 }; // SAExploration
 
@@ -51,7 +55,7 @@ public:
                       SARANDOMEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          int* counter);
+                                          sa_status* status);
 
 }; // SARandomExploration
 
@@ -68,7 +72,7 @@ public:
                       SASEQUENTIALEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          int* counter);
+                                          sa_status* status);
 
 }; // SASequentialExploration
 
@@ -85,7 +89,7 @@ public:
                       SAFIRSTIMPROVEMENTEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          int* counter);
+                                          sa_status* status);
 
 }; // SAFirstImprovementExploration
 
@@ -102,7 +106,7 @@ public:
                       SABESTIMPROVEMENTEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          int* counter);
+                                          sa_status* status);
 
 }; // SABEstImprovementExploration
 

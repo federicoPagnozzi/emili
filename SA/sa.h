@@ -24,6 +24,7 @@
 #include <vector>
 #include <functional>
 
+#include "sa_common.h"
 #include "sa_exploration.h"
 #include "sa_constants.h"
 #include "sa_acceptance_criteria.h"
@@ -35,7 +36,6 @@
 
 #include "../emilibase.h"
 
-#define nullptr NULL
 
 class SimulatedAnnealing: public emili::LocalSearch
 {
@@ -49,7 +49,7 @@ protected:
     SATermination    *terminationCriterion;
     SATempLength     *tempLength;
     SAExploration    *exploration;
-    int               counter;
+    sa_status        *status;
 
 
 public:
@@ -67,10 +67,28 @@ public:
                       terminationCriterion(terminationCriterion),
                       exploration(exploration),
                       tempLength(tempLength),
-                      counter(0),
                       emili::LocalSearch(*initialSolutionGenerator,
                                          *terminationCriterion,
-                                         *neighborhood) { }
+                                         *neighborhood) {
+                        status = (sa_status *)malloc(sizeof(sa_status));
+                        status->counter = 0;
+                        status->total_counter = 0;
+                        status->accepted = 0;
+
+                        if (terminationCriterion->getType() == LASTACCRATETERM) {
+                          status->tenure = terminationCriterion->getTenure();
+                          status->last_accepted = (short *)
+                              malloc(status->tenure * sizeof(short));
+
+                          // try at least status->tenure solutions
+                          // otherwise it will terminate immediately
+                          for (int i = 0 ; i < status->tenure ; i++) {
+                            status->last_accepted[i] = 1;
+                          }
+
+                          status->index = 0;
+                        }
+                      }
 
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
@@ -81,6 +99,10 @@ public:
       delete initialTemperature;
       delete acceptanceCriterion;
       delete coolingScheme;
+      if (terminationCriterion->getType() == LASTACCRATETERM) {
+        free(status->last_accepted);
+      }
+      free (status);
     };
 
 }; // class SimulatedAnnealing

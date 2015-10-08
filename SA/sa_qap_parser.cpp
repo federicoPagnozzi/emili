@@ -100,6 +100,13 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm) {
         return new SAMaxIterTermination(mi);
     } else if (tm.checkToken(NEVERTERM)) {
         return new SAWhileTrueTermination();
+    } else if (tm.checkToken(ACCRATETERM)) {
+        float rate = tm.getDecimal();
+        return new SAAcceptanceRateTermination(rate);
+    } else if (tm.checkToken(LASTACCRATETERM)) {
+        int te = tm.getInteger();
+        float rate = tm.getDecimal();
+        return new SALastAcceptanceRateTermination(te, rate);
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

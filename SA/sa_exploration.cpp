@@ -1,27 +1,35 @@
 #include "sa_exploration.h"
 
 emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolution,
-                                                           int* counter) {
+                                                   sa_status* status) {
 
 
-    counter[0]++;
+    status->counter += 1;
+    status->total_counter += 1;
 
     emili::Solution* incumbent = neigh->random(startingSolution);
     //std::cout << startingSolution->getSolutionRepresentation();
     //std::cout << incumbent->getSolutionRepresentation();
     emili::Solution* accepted = acceptance->accept(startingSolution,
                                                    incumbent);
-    std::string tc_type = term->getType();
 
     //std::cout << startingSolution << " " << incumbent << " " << accepted << std::endl;
     //std::cout << startingSolution->getSolutionValue() << " " << incumbent->getSolutionValue() << " " << accepted->getSolutionValue() << std::endl;
 
     if (accepted == startingSolution) {
         delete incumbent;
+        if (tc_type == LASTACCRATETERM) {
+            status->last_accepted[status->index] = 0;
+            status->index = (status->index + 1) % status->tenure;
+        }
     } else {
         delete startingSolution;
+        status->accepted += 1;
         if (tc_type == MAXBADITERS) {
-            counter[0] = 0;
+            status->counter = 0;
+        } else if (tc_type == LASTACCRATETERM) {
+            status->last_accepted[status->index] = 1;
+            status->index = (status->index + 1) % status->tenure;
         }
     }
     startingSolution = accepted;
@@ -32,10 +40,8 @@ emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolu
 
 
 emili::Solution* SASequentialExploration::nextSolution(emili::Solution *startingSolution,
-                                                           int* counter) {
+                                                       sa_status* status) {
 
-
-    std::string tc_type = term->getType();
 
     emili::Solution* incumbent;
     emili::Solution* accepted;
@@ -46,7 +52,8 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
 
         incumbent = *iter;
 
-        counter[0]++;
+        status->counter += 1;
+        status->total_counter += 1;
     
         //std::cout << startingSolution->getSolutionRepresentation();
         //std::cout << incumbent->getSolutionRepresentation();
@@ -59,10 +66,18 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
 
         if (accepted == startingSolution) {
             delete incumbent;
+            if (tc_type == LASTACCRATETERM) {
+                status->last_accepted[status->index] = 0;
+                status->index = (status->index + 1) % status->tenure;
+            }
         } else {
             delete startingSolution;
+            status->accepted += 1;
             if (tc_type == MAXBADITERS) {
-                counter[0] = 0;
+                status->counter = 0;
+            } else if (tc_type == LASTACCRATETERM) {
+                status->last_accepted[status->index] = 1;
+                status->index = (status->index + 1) % status->tenure;
             }
             break;
         }

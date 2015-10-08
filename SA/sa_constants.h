@@ -47,8 +47,10 @@
 /**
  * termination criteria
  */
-#define MAXBADITERS "MAXBADITERS" 
-#define MAXITERS    "MAXITERS"
-#define NEVERTERM   "NEVERTERM"
+#define MAXBADITERS     "MAXBADITERS" 
+#define MAXITERS        "MAXITERS"
+#define NEVERTERM       "NEVERTERM"
+#define ACCRATETERM     "ACCRATETERM"
+#define LASTACCRATETERM "LASTACCRATETERM"
 
 #endif

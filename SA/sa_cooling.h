@@ -204,7 +204,7 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return (temp - a*temp);
+            return a*temp;
         }
 
         return(temp);

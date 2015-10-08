@@ -1,6 +1,8 @@
 #ifndef SA_TEMPLENGTH_H
 #define SA_TEMPLENGTH_H
 
+#include "sa_common.h"
+
 #include "sa_constants.h"
 #include "../emilibase.h"
 

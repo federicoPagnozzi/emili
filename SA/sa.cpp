@@ -55,7 +55,7 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
             }
         }*/
 
-        bestSoFar = exploration->nextSolution(bestSoFar, &counter);
+        bestSoFar = exploration->nextSolution(bestSoFar, status);
         //std::cout << bestSoFar->getSolutionRepresentation() << std::endl;
 
         // bestSoFar = accepted;
@@ -65,7 +65,7 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
         temp = coolingScheme->update_cooling(temp);
         acceptanceCriterion->setCurrentTemp(temp);
 
-    } while(!terminationCriterion->terminate(counter));
+    } while(!terminationCriterion->terminate(status));
 
     return bestSoFar;
 } // end search

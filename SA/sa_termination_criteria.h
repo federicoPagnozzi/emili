@@ -8,6 +8,8 @@
 
 #include <string>
 
+#include "sa_common.h"
+
 #include "../emilibase.h"
 
 
@@ -23,12 +25,16 @@ public:
     virtual bool terminate(emili::Solution* currentSolution,
                            emili::Solution* newSolution)=0;
 
-    virtual bool terminate(int counter)=0;
+    virtual bool terminate(sa_status *status)=0;
 
     virtual void reset()=0;
 
     std::string getType() {
         return type;
+    }
+
+    virtual int getTenure(void) {
+        return 0;
     }
 
 }; // SATermination
@@ -49,8 +55,8 @@ public:
         return true;
     }
 
-    virtual bool terminate(int counter) {
-        if (counter >= maxBadIterations) return true;
+    virtual bool terminate(sa_status *status) {
+        if (status->counter >= maxBadIterations) return true;
         return false;
     }
 
@@ -76,8 +82,8 @@ public:
         return true;
     }
 
-    virtual bool terminate(int counter) {
-        if (counter >= maxIterations) return true;
+    virtual bool terminate(sa_status *status) {
+        if (status->counter >= maxIterations) return true;
         return false;
     }
 
@@ -91,9 +97,6 @@ public:
 
 class SAWhileTrueTermination: public SATermination {
 
-protected:
-    int maxIterations;
-
 public:
     SAWhileTrueTermination(void):
         SATermination(NEVERTERM) { }
@@ -103,7 +106,7 @@ public:
         return false;
     }
 
-    virtual bool terminate(int counter) {
+    virtual bool terminate(sa_status *status) {
         return false;
     }
 
@@ -113,6 +116,83 @@ public:
     }
 
 }; // SAWhileTrueTermination
+
+
+
+class SAAcceptanceRateTermination: public SATermination {
+
+protected:
+    float rate;
+
+public:
+    SAAcceptanceRateTermination(float _rate):
+        rate(_rate),
+        SATermination(ACCRATETERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(sa_status *status) {
+        if ((1.0 * status->accepted / status->total_counter) < rate)
+            return true;
+        
+        return false;
+    }
+
+    // does nothing
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SAAcceptanceRateTermination
+
+
+
+class SALastAcceptanceRateTermination: public SATermination {
+
+protected:
+    float rate;
+    int   tenure;
+
+    int total_accepted(sa_status *status) {
+        int i, tot = 0;
+        for (i = 0 ; i < status->tenure ; i++) {
+            tot += status->last_accepted[i];
+        }
+        return(tot);
+    }
+
+public:
+    SALastAcceptanceRateTermination(int   _tenure,
+                                    float _rate):
+        tenure(_tenure),
+        rate(_rate),
+        SATermination(LASTACCRATETERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(sa_status *status) {
+        if ((1.0 * total_accepted(status) / status->tenure) < rate)
+            return true;
+        
+        return false;
+    }
+
+    // does nothing
+    virtual void reset() {
+        // counter = 0;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SALastAcceptanceRateTermination
 
 
 #endif
