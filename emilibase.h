@@ -70,10 +70,10 @@ protected:
      * The next version will have an object designed to be a data carrier.
     */
     virtual const void* getRawData()const=0;
-    virtual void setRawData(const void* data)=0;
+    virtual void setRawData(const void* data)=0;    
 public:
     Solution(double value):solution_value(value)    {    }
-    virtual Solution& operator=(const Solution& a);
+    virtual Solution& operator=(const Solution& a);    
     virtual bool operator<(Solution& a);
     virtual bool operator<=(Solution& a);
     virtual bool operator>=(Solution& a);
@@ -205,7 +205,7 @@ public:
            bool operator != (const NeighborhoodIterator& iter);
            NeighborhoodIterator& operator++();
            //NeighborhoodIterator& operator++(int);
-           emili::Solution* operator*();
+           emili::Solution* operator*();           
        private:
            emili::Solution* base_;
            emili::Solution* line_;

@@ -637,6 +637,7 @@ void emili::pfsp::PermutationFlowShopSolution::setRawData(const void *data)
 
 }
 
+
 emili::Solution* emili::pfsp::PermutationFlowShopSolution::clone()
 {
     return new emili::pfsp::PermutationFlowShopSolution(this->solution_value,this->solution);
@@ -4141,7 +4142,7 @@ bool emili::pfsp::TSABMemory::tabu_check(std::pair< int,int > value,std::vector<
         {
             std::pair< int ,int> t = *iter ;
             if(toTest==t)
-            {
+            {               
                 return false;
             }
         }
