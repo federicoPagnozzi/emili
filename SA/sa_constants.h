@@ -45,6 +45,14 @@
 #define NOCOOLING     "NOCOOLING"
 
 /**
+ * temperature restart
+ */
+#define SANOTEMPRESTART "SANOTEMPRESTART"
+#define SADELTATEMPESTART "SADELTATEMPESTART"
+#define SAPERCTEMPESTART "SAPERCTEMPESTART"
+
+
+/**
  * termination criteria
  */
 #define MAXBADITERS     "MAXBADITERS" 

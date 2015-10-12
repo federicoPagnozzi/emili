@@ -228,9 +228,28 @@ SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
     if (tm.checkToken(SARANDOMEXPLORATION)) {
         return new SARandomExploration(neigh, acc, term);
     } else if (tm.checkToken(SASEQUENTIALEXPLORATION)) {
-        return new SARandomExploration(neigh, acc, term);
+        return new SASequentialExploration(neigh, acc, term);
     } else {
         std::cerr << "SAExploration expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
+SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
+                               SAInitTemp *it) {
+
+    if (tm.checkToken(SANOTEMPRESTART)) {
+        return new SANoRestart();
+    } else if (tm.checkToken(SADELTATEMPESTART)) {
+        float va = tm.getDecimal();
+        return new SADeltaRestart(va);
+    } else if (tm.checkToken(SAPERCTEMPESTART)) {
+        float va = tm.getDecimal();
+        return new SAPercRestart(it, va);
+    } else {
+        std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
         exit(1);
     }

@@ -83,6 +83,8 @@ void QAPExchangeNeighborhood::reset(void) {
 emili::Neighborhood::NeighborhoodIterator QAPExchangeNeighborhood::begin(emili::Solution *base) {
     ep_iterations = 1;
     sp_iterations = 1;
+    start_position = 0;
+    end_position = 0;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 

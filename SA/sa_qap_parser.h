@@ -10,6 +10,7 @@
 #include "sa_termination_criteria.h"
 #include "sa_templength.h"
 #include "sa_exploration.h"
+#include "sa_temperature_restart.h"
 
 
 #include "../emilibase.h"
@@ -82,6 +83,9 @@ protected:
                                         emili::Neighborhood* neigh,
                                         SAAcceptance *acc,
                                         SATermination *term);
+
+    SATempRestart *TEMPRESTART(prs::TokenManager& tm,
+                               SAInitTemp *it);
 
     /**
      * load the instance

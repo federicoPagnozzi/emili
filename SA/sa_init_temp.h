@@ -49,6 +49,10 @@ public:
      */
     virtual double set(double value)=0;
 
+    virtual double get(void) {
+        return init_temp;
+    }
+
 }; // class SAInitTemp
 
 
@@ -149,7 +153,12 @@ public:
         if (solution != s2)
             delete s2;
 
-        return value * maxdelta;
+        std::cout << value*maxdelta << std::endl;
+        getchar();
+
+        init_temp = value * maxdelta;
+
+        return init_temp;
     }
 
 }; // RandomWalkInitTemp

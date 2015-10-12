@@ -70,6 +70,10 @@ public:
                       emili::LocalSearch(*initialSolutionGenerator,
                                          *terminationCriterion,
                                          *neighborhood) {
+
+                        init_temp = initialTemperature->get();
+                        temp = init_temp;
+
                         status = (sa_status *)malloc(sizeof(sa_status));
                         status->counter = 0;
                         status->total_counter = 0;
