@@ -74,17 +74,19 @@ emili::Solution* QAPInsertNeighborhood::computeStep(emili::Solution* value) {
 
 void QAPExchangeNeighborhood::reset(void) {
     start_position = 0;
-    end_position = 0;
+    end_position = 1;
     sp_iterations = 1;
     ep_iterations = 1;
+    first_iter = true;
 }
 
 
 emili::Neighborhood::NeighborhoodIterator QAPExchangeNeighborhood::begin(emili::Solution *base) {
     ep_iterations = 1;
     sp_iterations = 1;
-    start_position = 0;
-    end_position = 0;
+    //start_position = 0;
+    //end_position = 1;
+    first_iter = true;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -101,6 +103,8 @@ void QAPExchangeNeighborhood::reverseLastMove(emili::Solution *step)
 
 
 emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolution) {
+    emili::iteration_increment();
+    
     std::vector< int > x(((QAPSolution*)currentSolution)->getSolution());
 
     int a, b;
@@ -158,6 +162,7 @@ double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< matrixEl >& x
 
 
 emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
+    emili::iteration_increment();
     end_position = (end_position + 1) % n;
     if (end_position == 0) {
         start_position = (start_position + 1) % n;
@@ -180,7 +185,6 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
                                computeDelta(start_position,
                                             end_position,
                                             x));
-
 
     return _value;
 }

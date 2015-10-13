@@ -2,6 +2,7 @@
 #define SA_COOLING_H
 
 
+#include "sa_init_temp.h"
 #include "../emilibase.h"
 
 
@@ -18,15 +19,18 @@ protected:
     int maxIterations;
     int counter;
     int step;
+    double reset_threshold;
+    double inittemp;
 
 public:
 
-    SACooling(double a, double b):
+    SACooling(double a, double b, SAInitTemp *it):
         a(a),
         b(b),
         maxIterations(0),
         counter(0),
-        step(1) { }
+        step(1),
+        inittemp(it->get()) { }
 
     /**
      * SA cooling scheme
@@ -49,6 +53,10 @@ public:
         return step;
     }
 
+    void setResetThreshold(float value) {
+        reset_threshold = value;
+    }
+
 }; // SACooling
 
 
@@ -67,8 +75,8 @@ public:
 class GeomCooling: public SACooling {
 public:
 
-    GeomCooling(double a, double b):
-        SACooling(a, b) { }
+    GeomCooling(double a, double b, SAInitTemp *it):
+        SACooling(a, b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -76,7 +84,12 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return (a * std::pow(b, temp));
+            float tmp = a * std::pow(b, temp);
+
+            if (tmp <= reset_threshold)
+                return inittemp;
+
+            return tmp;
         }
 
         return(temp);
@@ -91,8 +104,8 @@ public:
 class MarkovCooling: public SACooling{
 public:
 
-    MarkovCooling(double a, double b):
-        SACooling(a, b) { }
+    MarkovCooling(double a, double b, SAInitTemp *it):
+        SACooling(a, b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -100,7 +113,13 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return (a / (b + std::log(temp)));
+            float tmp = (a / (b + std::log(temp)));
+
+            if (tmp <= reset_threshold)
+                return inittemp;
+
+            return tmp;
+
         }
 
         return(temp);
@@ -114,8 +133,8 @@ public:
 class LogCooling: public SACooling {
 
 public:
-    LogCooling(double a, double b):
-        SACooling(a, b) { }
+    LogCooling(double a, double b, SAInitTemp *it):
+        SACooling(a, b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -123,7 +142,13 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return (a / std::log(temp + b));
+            float tmp = (a / std::log(temp + b));
+
+            if (tmp <= reset_threshold)
+                return inittemp;
+
+            return tmp;
+
         }
 
         return(temp);
@@ -138,8 +163,8 @@ public:
 class ConstantCooling: public SACooling {
 
 public:
-    ConstantCooling(double a, double b):
-        SACooling(a, b) { }
+    ConstantCooling(double a, double b, SAInitTemp *it):
+        SACooling(a, b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -147,7 +172,13 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return (a / (1 + b*temp));
+            float tmp = (a / (1 + b*temp));
+
+            if (tmp <= reset_threshold)
+                return inittemp;
+
+            return tmp;
+
         }
 
         return(temp);
@@ -168,8 +199,8 @@ public:
 class LundyMeesCooling: public SACooling {
 
 public:
-    LundyMeesCooling(double a, double b):
-        SACooling(a, b) { }
+    LundyMeesCooling(double a, double b, SAInitTemp *it):
+        SACooling(a, b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -177,7 +208,13 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return (temp / (a + b*temp));
+            float tmp = (temp / (a + b*temp));
+
+            if (tmp <= reset_threshold)
+                return inittemp;
+
+            return tmp;
+
         }
 
         return(temp);
@@ -195,8 +232,8 @@ public:
 class LinearCooling: public SACooling {
 
 public:
-    LinearCooling(double a):
-        SACooling(a, 0) { }
+    LinearCooling(double a, SAInitTemp *it):
+        SACooling(a, 0, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -204,7 +241,13 @@ public:
         if (counter >= maxIterations) {
             counter = 0;
             step++;
-            return a*temp;
+            float tmp = a*temp;
+
+            if (tmp <= reset_threshold)
+                return inittemp;
+
+            return tmp;
+
         }
 
         return(temp);
@@ -219,8 +262,8 @@ public:
 class NoCooling: public SACooling {
 
 public:
-    NoCooling(void):
-        SACooling(0, 0) { }
+    NoCooling(SAInitTemp *it):
+        SACooling(0, 0, it) { }
 
     virtual double update_cooling(double temp) {
         return temp;

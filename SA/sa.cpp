@@ -39,6 +39,8 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
     acceptanceCriterion->setCurrentTemp(temp);
 
+    neigh->reset();
+
     coolingScheme->setMaxIterations(tempLength->getLength());
 
     do {

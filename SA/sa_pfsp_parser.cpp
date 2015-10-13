@@ -206,33 +206,34 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm) {
 }
 
 
-SACooling* SAPFSPParser::COOL(prs::TokenManager& tm) {
+SACooling* SAPFSPParser::COOL(prs::TokenManager& tm,
+                              SAInitTemp *it) {
 
     if (tm.checkToken(GEOM)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new GeomCooling(a,b);
+        return new GeomCooling(a,b, it);
     } else if (tm.checkToken(MARKOV)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new MarkovCooling(a,b);
+        return new MarkovCooling(a,b, it);
     } else if (tm.checkToken(LOGCOOLING)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new LogCooling(a,b);
+        return new LogCooling(a,b, it);
     } else if (tm.checkToken(CONSTCOOLING)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new ConstantCooling(a,b);
+        return new ConstantCooling(a,b, it);
     } else if (tm.checkToken(LUNDYMEES)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new LundyMeesCooling(a,b);
+        return new LundyMeesCooling(a,b, it);
     } else if (tm.checkToken(LINEARCOOLING)) {
         float a = tm.getDecimal();
-        return new LinearCooling(a);
+        return new LinearCooling(a, it);
     } else if (tm.checkToken(NOCOOLING)) {
-        return new NoCooling();
+        return new NoCooling(it);
     } else {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -519,16 +520,17 @@ SAExploration* SAPFSPParser::EXPLORATION(prs::TokenManager& tm,
 }
 
 SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
-                               SAInitTemp *it) {
+                                         SAInitTemp *it,
+                                         SACooling &cooling) {
 
     if (tm.checkToken(SANOTEMPRESTART)) {
-        return new SANoRestart();
-    } else if (tm.checkToken(SADELTATEMPESTART)) {
+        return new SANoRestart(cooling);
+    } else if (tm.checkToken(SAMINTEMPRESTART)) {
         float va = tm.getDecimal();
-        return new SADeltaRestart(va);
-    } else if (tm.checkToken(SAPERCTEMPESTART)) {
+        return new SAMinRestart(va, cooling);
+    } else if (tm.checkToken(SAPERCTEMPRESTART)) {
         float va = tm.getDecimal();
-        return new SAPercRestart(it, va);
+        return new SAPercRestart(it, va, cooling);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -544,7 +546,8 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol);
     SAAcceptance*    acceptance = ACCEPTANCE(tm);
-    SACooling*       cooling    = COOL(tm);
+    SACooling*       cooling    = COOL(tm, inittemp);
+    SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, *cooling);
     SATermination*     term       = TERMINATION(tm); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, term);

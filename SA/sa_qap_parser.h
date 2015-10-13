@@ -33,7 +33,8 @@ protected:
      * @param  tm TokenManager
      * @return    SACooling object
      */
-    SACooling*       COOL(prs::TokenManager& tm);
+    SACooling*       COOL(prs::TokenManager& tm,
+                              SAInitTemp *it);
 
     /**
      * identify acceptance criterion
@@ -63,7 +64,7 @@ protected:
      * @return         InitTemp object
      */
     SAInitTemp*      INITTEMP(prs::TokenManager&      tm,
-    	                      emili::InitialSolution* initsol);
+                              emili::InitialSolution* initsol);
 
     /**
      * identify initial solution builder
@@ -84,8 +85,9 @@ protected:
                                         SAAcceptance *acc,
                                         SATermination *term);
 
-    SATempRestart *TEMPRESTART(prs::TokenManager& tm,
-                               SAInitTemp *it);
+    SATempRestart* TEMPRESTART(prs::TokenManager& tm,
+                               SAInitTemp *it,
+                               SACooling& cooling);
 
     /**
      * load the instance

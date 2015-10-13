@@ -49,6 +49,7 @@ protected:
     SATermination    *terminationCriterion;
     SATempLength     *tempLength;
     SAExploration    *exploration;
+    emili::Neighborhood *neigh;
     sa_status        *status;
 
 
@@ -70,6 +71,8 @@ public:
                       emili::LocalSearch(*initialSolutionGenerator,
                                          *terminationCriterion,
                                          *neighborhood) {
+
+                        neigh = neighborhood;
 
                         init_temp = initialTemperature->get();
                         temp = init_temp;
@@ -103,6 +106,8 @@ public:
       delete initialTemperature;
       delete acceptanceCriterion;
       delete coolingScheme;
+      delete exploration;
+      delete tempLength;
       if (terminationCriterion->getType() == LASTACCRATETERM) {
         free(status->last_accepted);
       }
