@@ -3,7 +3,6 @@
 
 
 #include "sa_init_temp.h"
-#include "sa_cooling.h"
 
 
 class SATempRestart {
@@ -12,19 +11,9 @@ protected:
     float value;
 
 public:
-    SATempRestart(float _value,
-                  SACooling& cooling):
-        value(_value) {
-            cooling.setResetThreshold(value);
-        }
+    SATempRestart(void) { }
 
-    virtual float restartAt(void) {
-        return value;
-    }
-
-    void setValue(float _value) {
-        value = _value;
-    }
+    virtual float adjust(float temp)=0;
 
 }; // SaTempRestart
 
@@ -32,8 +21,12 @@ public:
 
 class SANoRestart: public SATempRestart {
 public:
-    SANoRestart(SACooling& cooling):
-        SATempRestart(-1, cooling) { }
+    SANoRestart(void):
+        SATempRestart( ) { }
+
+    virtual float adjust(float temp) {
+        return temp;
+    }
 
 }; // SANoRestart
 
@@ -42,10 +35,23 @@ public:
  * temperature restart when reaches a minimum
  */
 class SAMinRestart: public SATempRestart {
+
+protected:
+    float reset_threshold;
+    float init_temp;
+
 public:
-    SAMinRestart(float _value,
-                 SACooling& cooling):
-        SATempRestart(_value, cooling) { }
+    SAMinRestart(SAInitTemp *it,
+                 float _value):
+        reset_threshold(_value),
+        init_temp(it->get()),
+        SATempRestart( ) { }
+
+    virtual float adjust(float temp) {
+        if (temp <= reset_threshold)
+            return init_temp;
+        return temp;
+    }
 
 }; // SADeltaRestart
 
@@ -54,11 +60,21 @@ public:
  * temperature percentage
  */
 class SAPercRestart: public SATempRestart {
+
+protected:
+    float reset_threshold;
+    float init_temp;
+
 public:
     SAPercRestart(SAInitTemp *it,
-                  float _value,
-                  SACooling& cooling):
-        SATempRestart(_value * it->get() / 100.0, cooling) { }
+                  float _value):
+        reset_threshold(_value * it->get() / 100.0),
+        init_temp(it->get()),
+        SATempRestart() { }
+
+    virtual float adjust(float temp) {
+        return value;
+    }
 
 }; // SAPercRestart
 

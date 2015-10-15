@@ -1,9 +1,10 @@
 #ifndef SA_COOLING_H
 #define SA_COOLING_H
 
+#include "../emilibase.h"
 
 #include "sa_init_temp.h"
-#include "../emilibase.h"
+#include "sa_temperature_restart.h"
 
 
 /**
@@ -19,8 +20,9 @@ protected:
     int maxIterations;
     int counter;
     int step;
-    double reset_threshold;
     double inittemp;
+
+    SATempRestart* tempRestart;
 
 public:
 
@@ -53,8 +55,11 @@ public:
         return step;
     }
 
-    void setResetThreshold(float value) {
-        reset_threshold = value;
+    float get_init_temp(void) {
+        return inittemp;
+    }
+    void setTempRestart(SATempRestart* _tempRestart) {
+        tempRestart = _tempRestart;
     }
 
 }; // SACooling
@@ -86,10 +91,7 @@ public:
             step++;
             float tmp = a * std::pow(b, temp);
 
-            if (tmp <= reset_threshold)
-                return inittemp;
-
-            return tmp;
+            return tempRestart->adjust(tmp);
         }
 
         return(temp);
@@ -115,10 +117,7 @@ public:
             step++;
             float tmp = (a / (b + std::log(temp)));
 
-            if (tmp <= reset_threshold)
-                return inittemp;
-
-            return tmp;
+            return tempRestart->adjust(tmp);
 
         }
 
@@ -144,10 +143,7 @@ public:
             step++;
             float tmp = (a / std::log(temp + b));
 
-            if (tmp <= reset_threshold)
-                return inittemp;
-
-            return tmp;
+            return tempRestart->adjust(tmp);
 
         }
 
@@ -174,10 +170,7 @@ public:
             step++;
             float tmp = (a / (1 + b*temp));
 
-            if (tmp <= reset_threshold)
-                return inittemp;
-
-            return tmp;
+            return tempRestart->adjust(tmp);
 
         }
 
@@ -210,10 +203,7 @@ public:
             step++;
             float tmp = (temp / (a + b*temp));
 
-            if (tmp <= reset_threshold)
-                return inittemp;
-
-            return tmp;
+            return tempRestart->adjust(tmp);
 
         }
 
@@ -243,10 +233,7 @@ public:
             step++;
             float tmp = a*temp;
 
-            if (tmp <= reset_threshold)
-                return inittemp;
-
-            return tmp;
+            return tempRestart->adjust(tmp);
 
         }
 

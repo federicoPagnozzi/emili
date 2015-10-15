@@ -86,8 +86,7 @@ protected:
                                         SATermination *term);
 
     SATempRestart* TEMPRESTART(prs::TokenManager& tm,
-                               SAInitTemp *it,
-                               SACooling& cooling);
+                               SAInitTemp *it);
 
     /**
      * load the instance

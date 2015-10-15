@@ -239,17 +239,16 @@ SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
 }
 
 SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
-                                        SAInitTemp *it,
-                                        SACooling& cooling) {
+                                        SAInitTemp *it) {
 
     if (tm.checkToken(SANOTEMPRESTART)) {
-        return new SANoRestart(cooling);
+        return new SANoRestart();
     } else if (tm.checkToken(SAMINTEMPRESTART)) {
         float va = tm.getDecimal();
-        return new SAMinRestart(va, cooling);
+        return new SAMinRestart(it, va);
     } else if (tm.checkToken(SAPERCTEMPRESTART)) {
         float va = tm.getDecimal();
-        return new SAPercRestart(it, va, cooling);
+        return new SAPercRestart(it, va);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -267,7 +266,8 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol);
     SAAcceptance*    acceptance = ACCEPTANCE(tm);
     SACooling*       cooling    = COOL(tm, inittemp);
-    SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, *cooling);
+    SATempRestart*   temprestart = TEMPRESTART(tm, inittemp);
+    cooling->setTempRestart(temprestart);
     SATermination*     term       = TERMINATION(tm); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, term);
