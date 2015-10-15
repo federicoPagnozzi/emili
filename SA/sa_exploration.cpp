@@ -13,19 +13,10 @@ emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolu
 
     if (accepted == startingSolution) {
         delete incumbent;
-        if (tc_type == LASTACCRATETERM) {
-            status.last_accepted[status.index] = 0;
-            status.index = (status.index + 1) % status.tenure;
-        }
+        status.not_accepted_sol();
     } else {
         delete startingSolution;
-        status.accepted += 1;
-        status.counter = 0;
-        
-        if (tc_type == LASTACCRATETERM) {
-            status.last_accepted[status.index] = 1;
-            status.index = (status.index + 1) % status.tenure;
-        }
+        status.accepted_sol();
     }
     startingSolution = accepted;
 
@@ -56,21 +47,11 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
                                       ithSolution);
 
         if (accepted == incumbent) {
-            // delete ithSolution;
-            if (tc_type == LASTACCRATETERM) {
-                status.last_accepted[status.index] = 0;
-                status.index = (status.index + 1) % status.tenure;
-            }
+            status.not_accepted_sol();
         } else {
             delete startingSolution;
             *accepted = *ithSolution;
-            status.accepted += 1;
-            status.counter = 0;
-
-            if (tc_type == LASTACCRATETERM) {
-                status.last_accepted[status.index] = 1;
-                status.index = (status.index + 1) % status.tenure;
-            }
+            status.accepted_sol();
             break;
         }
 

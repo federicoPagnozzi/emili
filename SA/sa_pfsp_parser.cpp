@@ -530,6 +530,22 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
     } else if (tm.checkToken(SAPERCTEMPRESTART)) {
         float va = tm.getDecimal();
         return new SAPercRestart(it, va);
+    } else if (tm.checkToken(SALOWRATERESTART)) {
+        float va = tm.getDecimal();
+        return new SALowRateRestart(it, va);
+    } else if (tm.checkToken(SALASTRATERESTART)) {
+        float te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SALastRateRestart(it, te, va);
+    } else if (tm.checkToken(SALOWRATEREHEAT)) {
+        float th = tm.getDecimal();
+        float va = tm.getDecimal();
+        return new SALowRateReheat(it, th, va);
+    } else if (tm.checkToken(SALASTRATEREHEAT)) {
+        float te = tm.getInteger();
+        float th = tm.getDecimal();
+        float va = tm.getDecimal();
+        return new SALastRateReheat(it, te, th, va);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -556,6 +572,7 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
                                   inittemp,
                                   acceptance,
                                   cooling,
+                                  temprestart,
                                   term,
                                   templ,
                                   explo,

@@ -244,7 +244,7 @@ public:
 
 
 /**
- * No Cooling - contant temperature
+ * No Cooling - constant temperature
  */
 class NoCooling: public SACooling {
 

@@ -15,6 +15,7 @@
 #include "sa_neighborhood.h"
 #include "sa_init_temp.h"
 #include "sa_templength.h"
+#include "sa_temperature_restart.h"
 
 #include "../emilibase.h"
 
@@ -28,6 +29,7 @@ protected:
     SAInitTemp       *initialTemperature;
     SAAcceptance     *acceptanceCriterion;
     SACooling        *coolingScheme;
+    SATempRestart    *temprestart;
     SATermination    *terminationCriterion;
     SATempLength     *tempLength;
     SAExploration    *exploration;
@@ -40,6 +42,7 @@ public:
                        SAInitTemp       *initialTemperature,
                        SAAcceptance     *acceptanceCriterion,
                        SACooling        *coolingScheme,
+                       SATempRestart    *temprestart,
                        SATermination    *terminationCriterion,
                        SATempLength     *tempLength,
                        SAExploration    *exploration,
@@ -47,6 +50,7 @@ public:
                       initialTemperature(initialTemperature),
                       acceptanceCriterion(acceptanceCriterion),
                       coolingScheme(coolingScheme),
+                      temprestart(temprestart),
                       terminationCriterion(terminationCriterion),
                       exploration(exploration),
                       tempLength(tempLength),
@@ -62,29 +66,40 @@ public:
                         //status = (sa_status *)malloc(sizeof(sa_status));
                         status = new SAStatus();
 
+                        status->set_types(terminationCriterion->getType(),
+                                          acceptanceCriterion->getType(),
+                                          tempLength->getType(),
+                                          temprestart->getType());
+
                         /**
                          * initialization of attribute depends on termination criteria
                          * but in sa_termination_criteria.h I have to include sa_common.h
-                         * therefore I have to initialize this here.
+                         * therefore it sucks a bit but I have to initialize this here.
                          */
-                        if (terminationCriterion->getType() == LASTACCRATETERM) {
+                        /**
+                         * dummy values that will never be touched unless needed,
+                         * or unless I fuck up something
+                         */
+                        status->tenure = 1;
+
+                        if (status->tc_type == LASTACCRATETERM) {
                           status->tenure = terminationCriterion->getTenure();
-                          status->last_accepted = (short *)
-                              malloc(status->tenure * sizeof(short));
-
-                          // try at least status->tenure solutions
-                          // otherwise it will terminate immediately
-                          for (int i = 0 ; i < status->tenure ; i++) {
-                            status->last_accepted[i] = 1;
-                          }
-
+                        } else if (status->tr_type == SALASTRATERESTART ||
+                                   status->tr_type == SALASTRATEREHEAT    ) {
+                          status->tenure = temprestart->getTenure();
                         }
 
-                        std::string tc_type = terminationCriterion->getType();
-                        std::string ac_type = acceptanceCriterion->getType();
-                        std::string tl_type = tempLength->getType();
+                        status->last_accepted = (short *)
+                            malloc(status->tenure * sizeof(short));
+
+                        // try at least status->tenure solutions
+                        // otherwise it will terminate immediately
+                        for (int i = 0 ; i < status->tenure ; i++) {
+                          status->last_accepted[i] = 1;
+                        }
 
                         acceptanceCriterion->set_status(status);
+                        temprestart->set_status(status);
                       }
 
     virtual emili::Solution* search(emili::Solution* initial);
@@ -96,11 +111,10 @@ public:
       delete initialTemperature;
       delete acceptanceCriterion;
       delete coolingScheme;
+      delete temprestart;
       delete exploration;
       delete tempLength;
-      if (terminationCriterion->getType() == LASTACCRATETERM) {
-        free(status->last_accepted);
-      }
+      free(status->last_accepted);
       delete (status);
     };
 
