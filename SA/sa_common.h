@@ -2,18 +2,37 @@
 #define SA_COMMON_H
 
 
+#include "../emilibase.h"
+
+#include "sa_constants.h"
+
+
 #define nullptr NULL
 
-typedef struct _sa_status {
 
-  int    counter;
-  int    total_counter;
-  int    accepted;
-  float  rate;
-  short *last_accepted;
-  int    tenure;
-  int    index;
+class SAStatus {
 
-} sa_status;
+public:
+    int    counter;
+    int    total_counter;
+    int    accepted;
+    float  rate;
+    short *last_accepted;
+    int    tenure;
+    int    index;
+
+    emili::Solution *best;
+    float best_cost;
+
+    SAStatus(void) {
+        counter = 0;
+        total_counter = 0;
+        accepted = 0;
+        index = 0;
+        rate = 1.;
+        tenure = 0;
+    }
+
+}; // SAStatus;
 
 #endif

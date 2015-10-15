@@ -63,8 +63,4 @@ public:
 }; // SAPercRestart
 
 
-class SAAcceptanceRestart: public SATempRestart {
-
-}; // SAAcceptanceRestart
-
 #endif

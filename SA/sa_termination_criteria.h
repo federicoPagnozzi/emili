@@ -25,7 +25,7 @@ public:
     virtual bool terminate(emili::Solution* currentSolution,
                            emili::Solution* newSolution)=0;
 
-    virtual bool terminate(sa_status *status)=0;
+    virtual bool terminate(SAStatus& status)=0;
 
     virtual void reset()=0;
 
@@ -55,8 +55,8 @@ public:
         return true;
     }
 
-    virtual bool terminate(sa_status *status) {
-        if (status->counter >= maxBadIterations) return true;
+    virtual bool terminate(SAStatus& status) {
+        if (status.counter >= maxBadIterations) return true;
         return false;
     }
 
@@ -82,8 +82,8 @@ public:
         return true;
     }
 
-    virtual bool terminate(sa_status *status) {
-        if (status->counter >= maxIterations) return true;
+    virtual bool terminate(SAStatus& status) {
+        if (status.total_counter >= maxIterations) return true;
         return false;
     }
 
@@ -106,7 +106,7 @@ public:
         return false;
     }
 
-    virtual bool terminate(sa_status *status) {
+    virtual bool terminate(SAStatus& status) {
         return false;
     }
 
@@ -134,8 +134,8 @@ public:
         return false;
     }
 
-    virtual bool terminate(sa_status *status) {
-        if ((1.0 * status->accepted / status->total_counter) < rate)
+    virtual bool terminate(SAStatus& status) {
+        if ((1.0 * status.accepted / status.total_counter) < rate)
             return true;
         
         return false;
@@ -156,10 +156,10 @@ protected:
     float rate;
     int   tenure;
 
-    int total_accepted(sa_status *status) {
+    int total_accepted(SAStatus& status) {
         int i, tot = 0;
-        for (i = 0 ; i < status->tenure ; i++) {
-            tot += status->last_accepted[i];
+        for (i = 0 ; i < status.tenure ; i++) {
+            tot += status.last_accepted[i];
         }
         return(tot);
     }
@@ -176,8 +176,8 @@ public:
         return false;
     }
 
-    virtual bool terminate(sa_status *status) {
-        if ((1.0 * total_accepted(status) / status->tenure) < rate)
+    virtual bool terminate(SAStatus& status) {
+        if ((1.0 * total_accepted(status) / status.tenure) < rate)
             return true;
         
         return false;

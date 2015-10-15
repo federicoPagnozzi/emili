@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  sa.h
- *
- *    Description:  Simulated Annealing
- *
- *        Version:  1.0
- *        Created:  06/07/2015 16:16:42
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (), 
- *        Company:  
- *
- * =====================================================================================
- */
-
 #ifndef SA_H
 #define SA_H
 
@@ -50,7 +32,7 @@ protected:
     SATempLength     *tempLength;
     SAExploration    *exploration;
     emili::Neighborhood *neigh;
-    sa_status        *status;
+    SAStatus         *status;
 
 
 public:
@@ -77,11 +59,14 @@ public:
                         init_temp = initialTemperature->get();
                         temp = init_temp;
 
-                        status = (sa_status *)malloc(sizeof(sa_status));
-                        status->counter = 0;
-                        status->total_counter = 0;
-                        status->accepted = 0;
+                        //status = (sa_status *)malloc(sizeof(sa_status));
+                        status = new SAStatus();
 
+                        /**
+                         * initialization of attribute depends on termination criteria
+                         * but in sa_termination_criteria.h I have to include sa_common.h
+                         * therefore I have to initialize this here.
+                         */
                         if (terminationCriterion->getType() == LASTACCRATETERM) {
                           status->tenure = terminationCriterion->getTenure();
                           status->last_accepted = (short *)
@@ -93,8 +78,13 @@ public:
                             status->last_accepted[i] = 1;
                           }
 
-                          status->index = 0;
                         }
+
+                        std::string tc_type = terminationCriterion->getType();
+                        std::string ac_type = acceptanceCriterion->getType();
+                        std::string tl_type = tempLength->getType();
+
+                        acceptanceCriterion->set_status(status);
                       }
 
     virtual emili::Solution* search(emili::Solution* initial);
@@ -111,7 +101,7 @@ public:
       if (terminationCriterion->getType() == LASTACCRATETERM) {
         free(status->last_accepted);
       }
-      free (status);
+      delete (status);
     };
 
 }; // class SimulatedAnnealing

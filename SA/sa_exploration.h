@@ -38,7 +38,7 @@ public:
     }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          sa_status* status)=0;
+                                          SAStatus& status)=0;
 
 }; // SAExploration
 
@@ -55,7 +55,7 @@ public:
                       SARANDOMEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          sa_status* status);
+                                          SAStatus& status);
 
 }; // SARandomExploration
 
@@ -72,7 +72,7 @@ public:
                       SASEQUENTIALEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          sa_status* status);
+                                          SAStatus& status);
 
 }; // SASequentialExploration
 
@@ -89,7 +89,7 @@ public:
                       SAFIRSTIMPROVEMENTEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          sa_status* status);
+                                          SAStatus& status);
 
 }; // SAFirstImprovementExploration
 
@@ -106,7 +106,7 @@ public:
                       SABESTIMPROVEMENTEXPLORATION) { }
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          sa_status* status);
+                                          SAStatus& status);
 
 }; // SABEstImprovementExploration
 

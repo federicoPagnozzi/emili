@@ -7,6 +7,8 @@
 #include <functional>
 
 #include "sa_constants.h"
+#include "sa_common.h"
+
 #include "../emilibase.h"
 
 /**
@@ -23,6 +25,8 @@ protected:
 
     std::string type;
 
+    SAStatus* status;
+
 public:
 
     /**
@@ -37,7 +41,8 @@ public:
                 type(type),
                 temperature(initial_temperature),
                 start_temp(initial_temperature),
-                end_temp(final_temperature) { }
+                end_temp(final_temperature),
+                status(nullptr) { }
 
     /**
      * Acceptance method
@@ -59,6 +64,10 @@ public:
 
     std::string getType() {
         return type;
+    }
+
+    void set_status(SAStatus* _status) {
+        status = _status;
     }
 
 }; // class SAAcceptance

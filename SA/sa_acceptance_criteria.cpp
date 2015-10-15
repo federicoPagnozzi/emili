@@ -12,6 +12,10 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
+    } else if (ns < status->best_cost) {
+        delete status->best;
+        status->best = new_solution->clone();
+        status->best_cost = ns;
     }
 
     return new_solution;
@@ -27,6 +31,10 @@ emili::Solution* SABasicAcceptance::accept(emili::Solution *current_solution,
     
     if (ns > cs) {
         return current_solution;
+    } else if (ns < status->best_cost) {
+        delete status->best;
+        status->best = new_solution->clone();
+        status->best_cost = ns;
     }
 
     return new_solution;
@@ -46,6 +54,10 @@ emili::Solution* SAGeometricAcceptance::accept(emili::Solution *current_solution
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
+    } else if (ns < status->best_cost) {
+        delete status->best;
+        status->best = new_solution->clone();
+        status->best_cost = ns;
     }
 
     return new_solution;
@@ -61,6 +73,10 @@ emili::Solution* SADeterministicAcceptance::accept(emili::Solution *current_solu
     
     if (ns > cs * (1 + delta)) {
         return current_solution;
+    } else if (ns < status->best_cost) {
+        delete status->best;
+        status->best = new_solution->clone();
+        status->best_cost = ns;
     }
 
     return new_solution;
