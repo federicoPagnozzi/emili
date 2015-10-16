@@ -113,12 +113,16 @@ emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolutio
     do {
         b = emili::generateRandomNumber() % n;
     } while (a == b);
+
+    float newcost = currentSolution->getSolutionValue() + computeDelta(a, b, x);
+
     int c = x[a];
     x[a] = x[b];
     x[b] = c;
 
     QAPSolution* _cur = new QAPSolution(x);
-    problem_instance.evaluateSolution(*_cur);
+    // problem_instance.evaluateSolution(*_cur);
+    _cur->setSolutionValue(newcost);
 
     return(_cur);
 }
@@ -177,14 +181,18 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
     QAPSolution* _value = (QAPSolution *)value;
     vector< matrixEl >& x = _value->getSolution();
 
+    float newcost = value->getSolutionValue() + computeDelta(start_position, end_position, x);
+
     matrixEl c = x[start_position];
     x[start_position] = x[end_position];
     x[end_position] = c;
 
-    _value->setSolutionValue(_value->getSolutionValue() +
+    /*_value->setSolutionValue(_value->getSolutionValue() +
                                computeDelta(start_position,
                                             end_position,
-                                            x));
+                                            x));*/
+
+    _value->setSolutionValue(newcost);
 
     return _value;
 }
