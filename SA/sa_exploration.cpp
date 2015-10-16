@@ -3,9 +3,7 @@
 emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolution,
                                                    SAStatus& status) {
 
-
-    status.counter += 1;
-    status.total_counter += 1;
+    status.increment_counters();
 
     emili::Solution* incumbent = neigh->random(startingSolution);
     emili::Solution* accepted = acceptance->accept(startingSolution,
@@ -16,7 +14,7 @@ emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolu
         status.not_accepted_sol();
     } else {
         delete startingSolution;
-        status.accepted_sol();
+        status.accepted_sol(accepted->getSolutionValue());
     }
     startingSolution = accepted;
 
@@ -40,8 +38,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
         iter!=neigh->end();
         ++iter) {
 
-        status.counter += 1;
-        status.total_counter += 1;
+        status.increment_counters();
  
         accepted = acceptance->accept(incumbent,
                                       ithSolution);
@@ -51,7 +48,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
         } else {
             delete startingSolution;
             *accepted = *ithSolution;
-            status.accepted_sol();
+            status.accepted_sol(accepted->getSolutionValue());
             break;
         }
 

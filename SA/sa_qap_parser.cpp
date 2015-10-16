@@ -253,7 +253,7 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         return new SALowRateRestart(it, va);
     } else if (tm.checkToken(SALASTRATERESTART)) {
-        float te = tm.getInteger();
+        int   te = tm.getInteger();
         float va = tm.getDecimal();
         return new SALastRateRestart(it, te, va);
     } else if (tm.checkToken(SALOWRATEREHEAT)) {
@@ -261,10 +261,19 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         return new SALowRateReheat(it, th, va);
     } else if (tm.checkToken(SALASTRATEREHEAT)) {
-        float te = tm.getInteger();
+        int   te = tm.getInteger();
         float th = tm.getDecimal();
         float va = tm.getDecimal();
         return new SALastRateReheat(it, te, th, va);
+    } else if (tm.checkToken(SALOCALMINREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SALocalMinReheat(it, te, va);
+    } else if (tm.checkToken(SALOCALMINENHANCEDREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        float ep = tm.getDecimal();
+        return new SALocalMinEnhancedReheat(it, te, va, ep);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

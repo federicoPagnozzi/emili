@@ -84,8 +84,9 @@ public:
 
                         if (status->tc_type == LASTACCRATETERM) {
                           status->tenure = terminationCriterion->getTenure();
-                        } else if (status->tr_type == SALASTRATERESTART ||
-                                   status->tr_type == SALASTRATEREHEAT    ) {
+                        } else if (status->tr_type == SALASTRATERESTART        ||
+                                   status->tr_type == SALASTRATEREHEAT         ||
+                                   status->tr_type == SALOCALMINENHANCEDREHEAT   ) {
                           status->tenure = temprestart->getTenure();
                         }
 

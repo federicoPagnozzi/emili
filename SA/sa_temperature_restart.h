@@ -160,6 +160,7 @@ public:
 
 /**
  * 0 < value < 1
+ * Abramson, Krishnamoorthy, Dand - SA Cooling Schedules for the School Timetabling Problem
  */
 class SALowRateReheat: public SATempRestart {
 
@@ -186,6 +187,7 @@ public:
 
 /**
  * 0 < value < 1
+ * Abramson, Krishnamoorthy, Dand - SA Cooling Schedules for the School Timetabling Problem
  */
 class SALastRateReheat: public SATempRestart {
 
@@ -225,5 +227,76 @@ public:
     }
 
 }; // SALastRateReheat
+
+
+/**
+ * 0 < value < 1
+ * Abramson, Krishnamoorthy, Dand - SA Cooling Schedules for the School Timetabling Problem
+ */
+class SALocalMinReheat: public SATempRestart {
+
+protected:
+    int tenure;
+    float value;
+
+public:
+    SALocalMinReheat(SAInitTemp *it,
+                     int _tenure,
+                     float _value):
+        tenure(_tenure),
+        value(_value),
+        SATempRestart(SALOCALMINREHEAT) { }
+
+    virtual float adjust(float temp) {
+        if (status->not_improved > tenure) {
+            return temp / value;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SALocalMinReheat
+
+
+/**
+ * 0 < value < 1
+ * Abramson, Krishnamoorthy, Dand - SA Cooling Schedules for the School Timetabling Problem
+ *
+ * modified to avoid value to take non-positive values
+ */
+class SALocalMinEnhancedReheat: public SATempRestart {
+
+protected:
+    int tenure;
+    float value;
+    float epsilon;
+
+public:
+    SALocalMinEnhancedReheat(SAInitTemp *it,
+                             int _tenure,
+                             float _value,
+                             float _epsilon):
+        tenure(_tenure),
+        value(_value),
+        epsilon(_epsilon),
+        SATempRestart(SALOCALMINENHANCEDREHEAT) { }
+
+    virtual float adjust(float temp) {
+        if (status->not_improved > tenure) {
+            value = std::max(epsilon, value - epsilon);
+            return temp / value;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SALocalMinEnhancedReheat
+
 
 #endif
