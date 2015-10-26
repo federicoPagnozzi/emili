@@ -32,7 +32,11 @@ public:
         maxIterations(0),
         counter(0),
         step(1),
-        inittemp(it->get()) { }
+        inittemp(it->get()) {
+            if (a < b) {
+                std::swap(a, b);
+            }
+        }
 
     /**
      * SA cooling scheme
@@ -257,5 +261,31 @@ public:
     }
 
 }; // NoCooling
+
+
+
+class SATemperatureBandCooling: public SACooling {
+
+public:
+
+    SATemperatureBandCooling(double a, SAInitTemp *it):
+        SACooling(a * it->get(), it->get(), it) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (counter >= maxIterations) {
+            counter = 0;
+            step++;
+            float tmp = b + emili::generateRealRandomNumber() * std::abs(b - a);
+
+            // return tempRestart->adjust(tmp);
+            return tmp;
+        }
+
+        return(temp);
+    }
+    
+}; // SATemperatureBandCooling
 
 #endif

@@ -146,6 +146,12 @@ SAInitTemp* SAPFSPParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, length);
         init_temp->set(value);
         return init_temp;
+    } else if (tm.checkToken(RANDOMWALKAVGINITTEMP)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkAvgInitTemp(initsol, length);
+        init_temp->set(value);
+        return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -234,6 +240,9 @@ SACooling* SAPFSPParser::COOL(prs::TokenManager& tm,
         return new LinearCooling(a, it);
     } else if (tm.checkToken(NOCOOLING)) {
         return new NoCooling(it);
+    } else if (tm.checkToken(TEMPBANDCOOLING)) {
+        float a = tm.getDecimal();
+        return new SATemperatureBandCooling(a, it);
     } else {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

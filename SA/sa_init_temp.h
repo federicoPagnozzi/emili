@@ -164,5 +164,62 @@ public:
 }; // RandomWalkInitTemp
 
 
+
+/**
+ * Do a random walk and take the average of the (absolute values of the) gaps
+ * as initial temperature
+ */
+class RandomWalkAvgInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    int length;
+
+public:
+
+    RandomWalkAvgInitTemp(emili::InitialSolution* _is,
+                       int _length):
+        is(_is),
+        length(_length) { }
+
+    virtual double set(double value) {
+        int i;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double bestcost = c2,
+               costsum = 0;
+
+        solution = s2;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+            costsum += abs(c2 - c1);
+
+            if (c2 < bestcost) {
+                delete solution;
+                solution = s2;
+                bestcost = c2;
+            } else {
+                delete s1;
+            }
+        }
+
+        if (solution != s2)
+            delete s2;
+
+        init_temp = value * costsum / length;
+
+        return init_temp;
+    }
+
+}; // RandomWalkAvgInitTemp
+
+
 #endif
 

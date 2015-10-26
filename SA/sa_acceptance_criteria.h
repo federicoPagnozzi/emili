@@ -104,6 +104,8 @@ public:
 /**
  * http://www.sciencedirect.com/science/article/pii/030505489090001N#
  *
+ * Ogbu - Smith
+ * 
  * 0 < initial_acceptance < 1
  */
 class SAGeometricAcceptance: public SAAcceptance {
