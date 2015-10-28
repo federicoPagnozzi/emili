@@ -101,6 +101,8 @@ public:
 
                         acceptanceCriterion->set_status(status);
                         temprestart->set_status(status);
+                        tempLength->set_status(status);
+                        coolingScheme->set_status(status);
                       }
 
     virtual emili::Solution* search(emili::Solution* initial);

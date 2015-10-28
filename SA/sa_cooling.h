@@ -3,7 +3,9 @@
 
 #include "../emilibase.h"
 
+#include "sa_common.h"
 #include "sa_init_temp.h"
+#include "sa_templength.h"
 #include "sa_temperature_restart.h"
 
 
@@ -17,21 +19,19 @@ class SACooling {
 protected:
     double a;
     double b;
-    int maxIterations;
     int counter;
-    int step;
     double inittemp;
 
+    SAStatus* status;
     SATempRestart* tempRestart;
+    SATempLength*  tempLength;
 
 public:
 
     SACooling(double a, double b, SAInitTemp *it):
         a(a),
         b(b),
-        maxIterations(0),
         counter(0),
-        step(1),
         inittemp(it->get()) {
             if (a < b) {
                 std::swap(a, b);
@@ -45,25 +45,20 @@ public:
      */
     virtual double update_cooling(double temp)=0;
 
-
-    /**
-     * set the maximum number of iterations to be performed
-     * at the same temperature
-     * @param maxIt maximum number of iterations
-     */
-    void setMaxIterations(int maxIt) {
-        maxIterations = maxIt;
-    }
-
-    int getStep(void) {
-        return step;
+    void set_status(SAStatus* _status) {
+        status = _status;
     }
 
     float get_init_temp(void) {
         return inittemp;
     }
+
     void setTempRestart(SATempRestart* _tempRestart) {
         tempRestart = _tempRestart;
+    }
+
+    void setTempLength(SATempLength* _tempLength) {
+        tempLength = _tempLength;
     }
 
 }; // SACooling
@@ -90,9 +85,9 @@ public:
     virtual double update_cooling(double temp) {
         counter++;
 
-        if (counter >= maxIterations) {
+        if (tempLength->isCoolingTime(counter)) {
             counter = 0;
-            step++;
+            status->step = status->step + 1;
             float tmp = a * std::pow(b, temp);
 
             return tempRestart->adjust(tmp);
@@ -116,9 +111,9 @@ public:
     virtual double update_cooling(double temp) {
         counter++;
 
-        if (counter >= maxIterations) {
+        if (tempLength->isCoolingTime(counter)) {
             counter = 0;
-            step++;
+            status->step = status->step + 1;
             float tmp = (a / (b + std::log(temp)));
 
             return tempRestart->adjust(tmp);
@@ -142,9 +137,9 @@ public:
     virtual double update_cooling(double temp) {
         counter++;
 
-        if (counter >= maxIterations) {
+        if (tempLength->isCoolingTime(counter)) {
             counter = 0;
-            step++;
+            status->step = status->step + 1;
             float tmp = (a / std::log(temp + b));
 
             return tempRestart->adjust(tmp);
@@ -169,9 +164,9 @@ public:
     virtual double update_cooling(double temp) {
         counter++;
 
-        if (counter >= maxIterations) {
+        if (tempLength->isCoolingTime(counter)) {
             counter = 0;
-            step++;
+            status->step = status->step + 1;
             float tmp = (a / (1 + b*temp));
 
             return tempRestart->adjust(tmp);
@@ -202,9 +197,9 @@ public:
     virtual double update_cooling(double temp) {
         counter++;
 
-        if (counter >= maxIterations) {
+        if (tempLength->isCoolingTime(counter)) {
             counter = 0;
-            step++;
+            status->step = status->step + 1;
             float tmp = (temp / (a + b*temp));
 
             return tempRestart->adjust(tmp);
@@ -232,9 +227,9 @@ public:
     virtual double update_cooling(double temp) {
         counter++;
 
-        if (counter >= maxIterations) {
+        if (tempLength->isCoolingTime(counter)) {
             counter = 0;
-            step++;
+            status->step = status->step + 1;
             float tmp = a*temp;
 
             return tempRestart->adjust(tmp);
@@ -245,6 +240,31 @@ public:
     }
 
 }; // LinearCooling
+
+
+class SATemperatureBandCooling: public SACooling {
+
+public:
+
+    SATemperatureBandCooling(double a, SAInitTemp *it):
+        SACooling(a * it->get(), it->get(), it) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+            float tmp = b + emili::generateRealRandomNumber() * std::abs(b - a);
+
+            // return tempRestart->adjust(tmp);
+            return tmp;
+        }
+
+        return(temp);
+    }
+    
+}; // SATemperatureBandCooling
 
 
 /**
@@ -262,30 +282,5 @@ public:
 
 }; // NoCooling
 
-
-
-class SATemperatureBandCooling: public SACooling {
-
-public:
-
-    SATemperatureBandCooling(double a, SAInitTemp *it):
-        SACooling(a * it->get(), it->get(), it) { }
-
-    virtual double update_cooling(double temp) {
-        counter++;
-
-        if (counter >= maxIterations) {
-            counter = 0;
-            step++;
-            float tmp = b + emili::generateRealRandomNumber() * std::abs(b - a);
-
-            // return tempRestart->adjust(tmp);
-            return tmp;
-        }
-
-        return(temp);
-    }
-    
-}; // SATemperatureBandCooling
 
 #endif

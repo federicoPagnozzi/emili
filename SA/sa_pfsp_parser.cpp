@@ -261,6 +261,9 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
         return new NeighSizeTempLength(neigh, a);
+    } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
+        int a = tm.getInteger();
+        return new MaxAcceptedTempLength(a);
     } else {
         std::cerr << "SATempLength expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -584,6 +587,7 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     cooling->setTempRestart(temprestart);
     SATermination*     term       = TERMINATION(tm); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei);
+    cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, term);
 
     return new SimulatedAnnealing(initsol,

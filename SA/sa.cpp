@@ -22,8 +22,6 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
     neigh->reset();
 
-    coolingScheme->setMaxIterations(tempLength->getLength());
-
     do {
 
         bestSoFar = exploration->nextSolution(bestSoFar, *status);

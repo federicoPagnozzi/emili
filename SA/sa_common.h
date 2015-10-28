@@ -16,10 +16,12 @@ public:
     int    counter;
     int    total_counter;
     int    accepted;
+    int    curr_accepted;
     float  rate;
     short *last_accepted;
     int    tenure;
     int    index;
+    int    step;
 
     int    not_improved;
 
@@ -37,10 +39,12 @@ public:
         counter = 0;
         total_counter = 0;
         accepted = 0;
+        curr_accepted = 0;
         index = 0;
         rate = 1.;
         tenure = 0;
         not_improved = 0;
+        step = 0;
 
         keep_last = false;
     }
@@ -82,6 +86,7 @@ public:
 
     void accepted_sol(float cost) {
         accepted += 1;
+        curr_accepted += 1;
         counter = 0;
 
         if (keep_last) {
