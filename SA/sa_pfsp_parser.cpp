@@ -264,6 +264,8 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
         int a = tm.getInteger();
         return new MaxAcceptedTempLength(a);
+    } else if (tm.checkToken(NOTEMPLEN)) {
+        return new NoTempLength();
     } else {
         std::cerr << "SATempLength expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

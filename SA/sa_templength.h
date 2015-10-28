@@ -105,4 +105,20 @@ public:
 }; // MaxAcceptedTempLength
 
 
+/**
+ * No Temp Length option.
+ */
+class NoTempLength: public SATempLength {
+
+public:
+    NoTempLength(void):
+        SATempLength(NOTEMPLEN, 0) { }
+
+    bool isCoolingTime(int counter) {
+        return false;
+    }
+
+}; // NoTempLength
+
+
 #endif
