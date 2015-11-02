@@ -14,9 +14,10 @@ void g2c_info()
     std::cout << "usage in grammar2code mode : \n\tEMILI instance_file_path time random_seed" << std::endl;
     exit(0);
 }
+
 int main(int argc, char *argv[])
 {
-    prs::emili_header();
+prs::emili_header();
     /* initialize random seed: */
     srand ( time(0) );
 

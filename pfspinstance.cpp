@@ -27,6 +27,14 @@
 #include <stdexcept>
 #include "pfspinstance.h"
 
+// #define ENABLE_SSE 10
+
+#ifdef ENABLE_SSE
+#ifdef __SSE__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#endif
+#endif
 
 using namespace std;
 
@@ -129,7 +137,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
         {
             std::string fname(fileName);
             return readDataFromFile(fname);
-        }
+        }        
 		allowMatrixMemory(nbJob, nbMac);
         if(!silence){
             cout << "File " << fileName << " is now open, start to read..." << std::endl;
@@ -355,7 +363,7 @@ bool PfspInstance::readDataFromFile(const string _fileName)
 }
 
 
-
+#ifndef ENABLE_SSE
 inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     long int previousJobEndTime;
@@ -396,6 +404,7 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
 }
 
 /* Compute the weighted tardiness of a given solution */
+
 long int PfspInstance::computeWT(vector< int > & sol)
 {
     int j;
@@ -406,11 +415,112 @@ long int PfspInstance::computeWT(vector< int > & sol)
     computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
 
     wt = 0;
+    /*!!! It could be implemented using SIMD instructions... */
     for ( j = 1; j<= nbJob; ++j )
         wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
 
     return wt;
 }
+#else
+inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
+{
+    long int previousJobEndTime;
+    int j, m;
+    int jobNumber;
+    /* 1st machine : */
+    previousMachineEndTime[0] = 0;
+    int prevmj = 0;
+    for ( j = 1; j <= nbJob; j++ )
+    {
+        prevmj += processingTimesMatrix[sol[j]][1];
+        previousMachineEndTime[j] = prevmj;
+    }
+
+    /* others machines : */
+    for ( m = 2; m <= nbMac; ++m )
+    {
+        previousMachineEndTime[1] +=
+                processingTimesMatrix[sol[1]][m];
+        previousJobEndTime = previousMachineEndTime[1];
+
+
+        for ( j = 2; j <= nbJob; ++j )
+        {
+            jobNumber = sol[j];
+
+            if ( previousMachineEndTime[j] > previousJobEndTime )
+            {
+                previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
+                previousJobEndTime = previousMachineEndTime[j];
+            }
+            else
+            {
+                previousJobEndTime += processingTimesMatrix[jobNumber][m];
+                previousMachineEndTime[j] = previousJobEndTime;
+            }
+        }
+    }
+}
+
+/* Compute the weighted tardiness of a given solution */
+long int PfspInstance::computeWT(vector< int > & sol)
+{
+    int j;
+    long int wt;
+    /* We need end times on previous machine : */
+    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    /* And the end time of the previous job, on the same machine : */
+    computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
+     wt = 0;
+    /* USING FLOATS */
+   __m128 a,b,z,p;
+    z = _mm_setzero_ps();
+    float res[4] __attribute__((aligned(16)));
+
+    for (j=1; j<= nbJob ; j+=4)
+    {
+        //store 4 values in a,b,p
+        a = _mm_set_ps(previousMachineEndTime[j],previousMachineEndTime[j+1],previousMachineEndTime[j+2],previousMachineEndTime[j+3]);
+        b = _mm_set_ps(dueDates[sol[j]],dueDates[sol[j+1]],dueDates[sol[j+2]],dueDates[sol[j+3]]);
+        p = _mm_set_ps(priority[sol[j]],priority[sol[j+1]],priority[sol[j+2]],priority[sol[j+3]]);
+        // completion time - due date
+        a = _mm_sub_ps(a,b);
+        // max( tardiness , zero )
+        a = _mm_max_ps(a,z);
+        // tardiness * priority
+        a = _mm_mul_ps(a,p);
+        // add all 4 values
+        a = _mm_add_ps(a, _mm_movehl_ps(a, a));
+        a = _mm_add_ss(a, _mm_shuffle_ps(a, a, 1));
+        // store on res
+        _mm_store_ss(res,a);
+        //final add
+        wt += res[0];
+    }
+
+   /*
+    __m128i a,b,p;
+    __m128i z = _mm_setzero_si128();
+    long int res[2] __attribute__((aligned(16)));
+    for(j=1;j<=nbJob;j+=2)
+    {
+        a = _mm_loadu_si128(reinterpret_cast< __m128i*> (previousMachineEndTime.data()+j));
+            b = _mm_loadu_si128(reinterpret_cast< __m128i*> (dueDates.data()+j));
+            p = _mm_loadu_si128(reinterpret_cast< __m128i*> (priority.data()+j));
+
+            a = _mm_sub_epi64(a, b);
+            a = _mm_max_epi16(a, z);//This is not the right one and that's why it does not work!
+            a = _mm_mul_epu32(a, p); // this maybe could do it...
+
+            _mm_store_si128(reinterpret_cast<__m128i*> (res), a);
+            wt+=res[0]+res[1];
+    } */
+    for (; j<= nbJob; ++j )
+        wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+    return wt;
+}
+#endif
 
 /*compute partial weighted tardiness*/
 long int PfspInstance::computeWT(vector<int> &sol, int size)

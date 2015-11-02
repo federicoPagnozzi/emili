@@ -665,9 +665,11 @@ public:
 class Natx2Neighborhood: public emili::pfsp::NatxNeighborhood
 {
 protected:
+    int value_wt;
     virtual Solution* computeStep(Solution *value);
 public:
     Natx2Neighborhood(PermutationFlowShop& problem):emili::pfsp::NatxNeighborhood(problem) { }
+    virtual NeighborhoodIterator begin(Solution *base);
 };
 
 class EatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood

@@ -2061,6 +2061,17 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::HeavilyApproximatedTailla
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::Natx2Neighborhood::begin(Solution *base)
+{
+    ep_iterations = 1;
+    sp_iterations = 1;
+    std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
+    sol.erase(sol.begin()+start_position);
+    computeHead(sol);
+    value_wt = base->getSolutionValue();
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::NoIdleAcceleratedInsertNeighborhood::begin(Solution *base)
 {
     ep_iterations = 1;
@@ -2776,59 +2787,45 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
             computeHead(newsol);
-
         }
         end_position = ((end_position)%njobs)+1;
-
         newsol.insert(newsol.begin()+end_position,sol_i);
-        //std::vector< int > ins_pos(nmac+1,0);
-        //int wt=0;
-        long int pre_c_cur = head[nmac][end_position-1];
 
-        int wt = (std::max(pre_c_cur - pis.getDueDate(newsol[end_position-1]), 0L) * pis.getPriority(newsol[end_position-1]));
+        int ins_pos[nmac+1];
+        long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
+        ins_pos[1] = c_cur;
 
-        for (int j = 1; j< end_position-1; ++j )
+        for (int i = 2; i <= nmac; ++i) {
+            int c_pm = head[i][end_position-1];
+            if(c_pm < c_cur)
+            {
+                c_cur = c_cur + pmatrix[sol_i][i];
+            }
+            else
+            {
+                c_cur = c_pm + pmatrix[sol_i][i];
+            }
+           ins_pos[i] =  c_cur;
+
+        }
+        long int pre_c_cur = c_cur;
+        int wt = (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
+
+        for (int j = 1; j< end_position; ++j )
         {
             wt += (std::max((long int)head[nmac][j] - pis.getDueDate(newsol[j]), 0L) * pis.getPriority(newsol[j]));
         }
 
         int pre_wt = wt;
         if(end_position > njobs/2)
+        for(int k=end_position+1; k<= njobs; k++)
         {
-            long int ppre_c_cur = head[nmac-1][end_position-1];
-
-            for(int k=end_position; k<= njobs; k++)
-            {
-                //pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
-                int job = newsol[k];
-                ppre_c_cur = ppre_c_cur+pmatrix[job][nmac-1];
-                pre_c_cur = std::max(pre_c_cur,ppre_c_cur) + pmatrix[job][nmac];
-                wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
-            }
+            pre_c_cur = pre_c_cur + pmatrix[newsol[k]][nmac];
+            wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
         }
-
-        int value_wt = value->getSolutionValue();
 
         if(wt < value_wt)
         {
-            int ins_pos[nmac+1];
-            long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
-            ins_pos[1] = c_cur;
-
-            for (int i = 2; i <= nmac; ++i) {
-                int c_pm = head[i][end_position-1];
-                if(c_pm < c_cur)
-                {
-                    c_cur = c_cur + pmatrix[sol_i][i];
-                }
-                else
-                {
-                    c_cur = c_pm + pmatrix[sol_i][i];
-                }
-               ins_pos[i] =  c_cur;
-
-            }
-            pre_wt += (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
             for(int k=end_position+1; k<= njobs; k++)
             {
                 int job = newsol[k];
