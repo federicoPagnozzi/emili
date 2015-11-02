@@ -1,5 +1,6 @@
 #ifndef EMILIBASE_H
 #define EMILIBASE_H
+#define SHIT
 
 /*
 
