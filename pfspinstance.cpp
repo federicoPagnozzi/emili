@@ -27,7 +27,7 @@
 #include <stdexcept>
 #include "pfspinstance.h"
 
-// #define ENABLE_SSE 10
+#define ENABLE_SSE 10
 
 #ifdef ENABLE_SSE
 #ifdef __SSE__
@@ -422,7 +422,7 @@ long int PfspInstance::computeWT(vector< int > & sol)
     return wt;
 }
 #else
-inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
+inline void computePartialMakespans( vector< int >& sol, vector< long >& previousMachineEndTime,vector< vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     long int previousJobEndTime;
     int j, m;
@@ -468,7 +468,7 @@ long int PfspInstance::computeWT(vector< int > & sol)
     int j;
     long int wt;
     /* We need end times on previous machine : */
-    vector< long int > previousMachineEndTime ( nbJob + 1 );
+    vector< long > previousMachineEndTime ( nbJob + 1 );
     /* And the end time of the previous job, on the same machine : */
     computePartialMakespans(sol, previousMachineEndTime,processingTimesMatrix,nbJob,nbMac);
      wt = 0;
@@ -483,6 +483,7 @@ long int PfspInstance::computeWT(vector< int > & sol)
         a = _mm_set_ps(previousMachineEndTime[j],previousMachineEndTime[j+1],previousMachineEndTime[j+2],previousMachineEndTime[j+3]);
         b = _mm_set_ps(dueDates[sol[j]],dueDates[sol[j+1]],dueDates[sol[j+2]],dueDates[sol[j+3]]);
         p = _mm_set_ps(priority[sol[j]],priority[sol[j+1]],priority[sol[j+2]],priority[sol[j+3]]);
+
         // completion time - due date
         a = _mm_sub_ps(a,b);
         // max( tardiness , zero )
