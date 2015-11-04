@@ -3,7 +3,14 @@
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
+#ifdef _WIN32 OR _WIN64
+
+#define NOSIG 1
+#else
 #include <sys/time.h>
+
+#endif
+
 #include <iostream>
 #include <assert.h>
 #include "permutationflowshop.h"
@@ -75,8 +82,7 @@ clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch;
-struct itimerval timer;
-struct itimerval termination_timer;
+
 
 static void finalise (int _)
 {
@@ -99,8 +105,17 @@ static void finalise (int _)
         std::cout << "No valid solution found!" << std::endl;
     }
     std::cout << std::flush;
+#ifndef NOSIG
     _Exit(EXIT_SUCCESS);
+#else
+    exit(0);
+#endif
 }
+
+
+#ifndef NOSIG
+struct itimerval timer;
+struct itimerval termination_timer;
 
 void timeUp(int _)
 {
@@ -156,9 +171,24 @@ static inline void setTimer(int maxTime)
 static inline void stopTimer()
 {
     std::cout << "timer stopped" << std::endl;
+
     struct itimerval zero_timer = { 0 };
    setitimer(ITIMER_PROF, &zero_timer, &timer);
+
 }
+#else
+
+
+static inline void stopTimer()
+{
+    std::cout << "timer stopped" << std::endl;
+}
+
+static inline void setTimer(int maxTime)
+{
+    //std::cout << "timer set"
+}
+#endif
 
 /*
  * Timer HOOK
@@ -368,6 +398,12 @@ int emili::LocalSearch::getSearchTime()
 
 void emili::LocalSearch::setSearchTime(int time)
 {
+#ifdef NOSIG
+    emili::TimedTermination* tt = new emili::TimedTermination(time);
+    delete termcriterion;
+    termcriterion = tt;
+    std::cout << "timer set " << time << " seconds " << std::endl;
+#endif
     this->seconds = time;
 }
 
@@ -878,6 +914,12 @@ bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *new
 {
     clock_t test = clock();
     float time = (test-start)/ (float)CLOCKS_PER_SEC;
+#ifdef NOSIG
+    if(time > secs)
+    {
+        finalise(2);
+    }
+#endif
     return !(time < secs);
 }
 
@@ -885,14 +927,18 @@ void emili::TimedTermination::reset()
 {
 
     //setTerminationTimer(this->secs);
-    if(secs<0)
+   /* if(secs<0)
     {
     if(max_time > 0)
         secs = (int)max_time*_ratio;
     else
         secs = (int)30*_ratio;
-     }
+     }*/
+    secs = _ratio;
     start = clock();
+#ifdef NOSIG
+    beginTime = start;
+#endif
 }
 
 /*emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)
