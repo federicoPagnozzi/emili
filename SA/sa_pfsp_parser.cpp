@@ -176,6 +176,9 @@ SAAcceptance* SAPFSPParser::ACCEPTANCE(prs::TokenManager& tm) {
     } else if (tm.checkToken(DETERMINISTICACC)) {
         double de = tm.getDecimal();
         return new SADeterministicAcceptance(de);
+    } else if (tm.checkToken(LAHCACC)) {
+        double te = tm.getInteger();
+        return new LAHCAcceptance(te);
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

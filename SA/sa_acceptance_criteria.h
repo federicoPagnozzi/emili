@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <cfloat>
 
 #include "sa_constants.h"
 #include "sa_common.h"
@@ -153,5 +154,36 @@ public:
                                     emili::Solution *new_solution);
 
 }; // SADeterministicAcceptance
+
+
+/**
+ * Burke-Bykov, late acceptance Hill climbing
+ */
+class LAHCAcceptance: public SAAcceptance {
+
+protected:
+    int    tenure;
+    float *cost_list;
+
+public:
+    LAHCAcceptance(int _tenure):
+        tenure(_tenure),
+        SAAcceptance(LAHCACC,
+                     0,
+                     0) {
+            cost_list = (float *)malloc(sizeof(float) * tenure);
+            for (int i = 0 ; i < tenure ; i++) {
+                cost_list[i] = FLT_MAX;
+            }
+        }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+    ~LAHCAcceptance(void) {
+        free(cost_list);
+    }
+
+};  // LAHCAcceptance
 
 #endif

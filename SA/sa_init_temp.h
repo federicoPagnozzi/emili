@@ -7,6 +7,8 @@
 #include <functional>
 #include <cmath>
 
+#include "sa_common.h"
+
 #include "../emilibase.h"
 
 
@@ -219,6 +221,49 @@ public:
     }
 
 }; // RandomWalkAvgInitTemp
+
+
+
+/**
+ * see Moscato-Fontanari, Stochastic vs. deterministic update in SA
+ *
+ * to be considered later...
+ */
+class BestRatioInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution* is;
+    int num_trials;
+    float max_temp,
+          min_temp,
+          target_ratio;
+
+    /*
+    emili::InitialSolution* initsol;
+    emili::Neighborhood*    nei;
+    SAInitTemp*      inittemp;
+    SAAcceptance*    acceptance;
+    SACooling*       cooling;
+    SATempRestart*   temprestart;
+    SATermination*   term;
+    SATempLength*    templ;
+    SAExploration*   explo;
+    */
+
+public:
+    BestRatioInitTemp(emili::InitialSolution* _is,
+                      int   _num_trials,
+                      float _max_temp,
+                      float _min_temp,
+                      float _target_ratio):
+        is(_is),
+        num_trials(_num_trials),
+        max_temp(_max_temp),
+        min_temp(_min_temp),
+        target_ratio(_target_ratio) { }
+
+
+
+}; // BestRatioInitTemp
 
 
 #endif
