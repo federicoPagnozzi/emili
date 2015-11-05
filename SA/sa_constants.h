@@ -19,6 +19,8 @@
 #define GEOMACC    "GEOMACC"
 #define DETERMINISTICACC "DETERMINISTICACC"
 #define LAHCACC    "LAHCACC"
+#define GDAACC     "GDAACC"
+#define RTRACC     "RTRACC"
 
 
 /**

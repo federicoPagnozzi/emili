@@ -76,6 +76,40 @@ emili::Solution* SADeterministicAcceptance::accept(emili::Solution *current_solu
 }
 
 
+emili::Solution* GreatDelugeAcceptance::accept(emili::Solution *current_solution,
+                                               emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+    
+    if (ns > temperature) {
+        return current_solution;
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns);
+    }
+
+    return new_solution;
+
+}
+
+
+emili::Solution* RecordToRecordAcceptance::accept(emili::Solution *current_solution,
+                                                  emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+    
+    if (ns > status->best_cost * (1 + deviation/100.0)) {
+        return current_solution;
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns);
+    }
+
+    return new_solution;
+
+}
+
+
 emili::Solution* LAHCAcceptance::accept(emili::Solution *current_solution,
                                         emili::Solution *new_solution) {
 

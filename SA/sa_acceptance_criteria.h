@@ -157,6 +157,48 @@ public:
 
 
 /**
+ * Dueck - Great deluge
+ */
+class GreatDelugeAcceptance: public SAAcceptance {
+
+public:
+    GreatDelugeAcceptance(void):
+        SAAcceptance(GDAACC,
+                     0,
+                     0) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // GreatDelugeAcceptance
+
+
+/**
+ * Dueck - Record-to-Record travel
+ *
+ * acceptance is based NOT on record + deviation
+ * but on temperature * (1 + deviation/100)
+ * 0 < deviation  <= 100
+ */
+class RecordToRecordAcceptance: public SAAcceptance {
+
+protected:
+    float deviation;
+
+public:
+    RecordToRecordAcceptance(float _deviation):
+        deviation(_deviation),
+        SAAcceptance(RTRACC,
+                     0,
+                     0) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // RecordToRecordAcceptance
+
+
+/**
  * Burke-Bykov, late acceptance Hill climbing
  */
 class LAHCAcceptance: public SAAcceptance {
