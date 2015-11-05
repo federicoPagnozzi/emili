@@ -267,6 +267,47 @@ public:
 }; // SATemperatureBandCooling
 
 
+
+/**
+ * Andersen, Vidal, Iversen
+ * Design of a teleprocessing communication network using SA
+ *
+ * T_f = 0
+ */
+class SAQuadraticCooling: public SACooling {
+protected:
+    float c;
+public:
+    SAQuadraticCooling(SAInitTemp *it):
+        c(it->get()),
+        SACooling(0, 0, it) {
+            a = -inittemp; // T_i - T_f
+            b = 2 * inittemp; // 2 * (T_f - T_i)
+        }
+
+    void setTempLength(SATempLength* _tempLength) {
+        tempLength = _tempLength;
+        a = a / (tempLength->getLength() * tempLength->getLength());
+        b = b / tempLength->getLength();
+    }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+            float tmp = a * (status->step * status->step) + b * status->step + c;
+
+            return tempRestart->adjust(tmp);
+        }
+
+        return(temp);
+    }
+
+}; // SAQuadraticCooling
+
+
 /**
  * No Cooling - constant temperature
  */

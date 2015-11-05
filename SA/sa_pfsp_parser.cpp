@@ -246,6 +246,8 @@ SACooling* SAPFSPParser::COOL(prs::TokenManager& tm,
     } else if (tm.checkToken(TEMPBANDCOOLING)) {
         float a = tm.getDecimal();
         return new SATemperatureBandCooling(a, it);
+    } else if (tm.checkToken(QUADRATICCOOLING)) {
+        return new SAQuadraticCooling(it);
     } else {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
