@@ -3,8 +3,9 @@
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
-#ifdef _WIN32 OR _WIN64
 
+#ifdef _WIN32 OR _WIN64
+//no signals compilation path for windows.
 #define NOSIG 1
 #else
 #include <sys/time.h>
@@ -27,6 +28,7 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
  */
 
 #ifndef NOC11
+
 std::mt19937 generator;
 std::uniform_int_distribution<int> distribution;
 std::uniform_real_distribution<float> realdistr;
@@ -42,7 +44,7 @@ std::mt19937& emili::getRandomGenerator()
 }
 
 #else
-
+//Random generation compilation path for compilers that don't support c++11
 std::tr1::mt19937 generator;
 std::tr1::uniform_int<int> distribution;
 std::tr1::uniform_real<float> realdistr;

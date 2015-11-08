@@ -5,22 +5,26 @@
 #include <iostream>
 #include <cstdlib>
 
-
+/*
+ *
+ *  Permutation Flow shop components for EMILI
+ *
+*/
 namespace emili
 {
 namespace pfsp
 {
-
+/*Permutation Flowshop problem implementation:
+  The class uses the implementation code originally from Jeremie ( see pfspinstance.h)
+*/
 class PermutationFlowShop: public emili::Problem
 {
 protected:
 PfspInstance instance;
 public:
-    PermutationFlowShop(PfspInstance& problemInstance):instance(problemInstance)
-    {
-
-    }
-
+    // Constructor that uses a PfspInstance implementation
+    PermutationFlowShop(PfspInstance& problemInstance):instance(problemInstance) { }
+    //Constructor that loads the instance from file path
     PermutationFlowShop(char* instance_path):instance()
     {
         /* Read data from file */
@@ -28,28 +32,48 @@ public:
             exit(-1);
         }
     }
-
+    //implementation of evaluate solution
     virtual double evaluateSolution(emili::Solution& solution);
+    /* This method returns the number of jobs*/
     int getNjobs();
+    /* This method returns the number of machines*/
     int getNmachines();
+    /* This method returns the due date given the job*/
     int getDueDate(int job);
+    /* This method returns the priority given the job*/
     int getPriority(int job);
+    /* This method returns the due dates for all the jobs*/
     std::vector< long int >& getDueDates();
+    /* This method returns the priorities for all the jobs*/
     std::vector< long int >& getPriorities();
+    /* This method returns the processing time matrix so that it can be used by particular implementations of neighborhoods*/
+    const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
+    /* this method returns the problem size (used by some timed termination criteria)*/
+    virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
+    /* This method returns the pfspinstance object that incapsulate the actual computation of the objective functions*/
+    PfspInstance& getInstance();
+    /*this method computes the makespan for the given solution.
+    * The method is here because there are some heuristics that use it.
+    */
     int computeMS(std::vector< int > & partial_solution);
+    int computeMS(std::vector< int >& partial, int size);
+    /*
+     * The classes that extends this class to implement a PFSP objective
+     * should implement these methods to calculate the objective functions
+    */
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
-    int computeMS(std::vector< int >& partial, int size);
-    int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
-    int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
-    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+
+    /*This methods compute the matrices to implement Taillard's acceleration*/
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+
+    /*Old methods used by some particular and exceptional speed-ups*/
+    int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
-    const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
-    virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
-    PfspInstance& getInstance();
 };
 
 class PFSP_WT: public PermutationFlowShop
@@ -662,13 +686,15 @@ public:
     NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
 };
 
-class Natx2Neighborhood: public emili::pfsp::NatxNeighborhood
+class Natx2Neighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
+    int thresh;
     int value_wt;
     virtual Solution* computeStep(Solution *value);
 public:
-    Natx2Neighborhood(PermutationFlowShop& problem):emili::pfsp::NatxNeighborhood(problem) { }
+    Natx2Neighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),thresh(problem.getNjobs()/2) { }
+    Natx2Neighborhood(PermutationFlowShop& problem, int starting_threshold):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),thresh(starting_threshold) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
@@ -770,6 +796,24 @@ public:
     AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
+
+class HaxtExchange: public emili::pfsp::AxtExchange
+{
+protected:
+    int threshold;
+   virtual Solution* computeStep(Solution *value);
+public:
+HaxtExchange(PermutationFlowShop& problem):emili::pfsp::AxtExchange(problem),threshold(problem.getNjobs()/2) {}
+};
+
+class EaxtExchange: public emili::pfsp::AxtExchange
+{
+protected:
+   virtual Solution* computeStep(Solution *value);
+public:
+EaxtExchange(PermutationFlowShop& problem):emili::pfsp::AxtExchange(problem) {}
+};
+
 
 class OptExchange: public emili::pfsp::AxtExchange
 {
