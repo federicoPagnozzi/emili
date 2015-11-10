@@ -1078,17 +1078,17 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     }
     else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
     {
-        printTab( "Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Delta Evaluation Insert for Weighted Tardiness");
         neigh = new emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {
-        printTab( "Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Approximated Insert with Taillard Acceleration for Weighted Tardiness");
         neigh = new emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATAx_INSERT))
     {
-        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration for Weighted Tardiness");
         neigh = new emili::pfsp::NatxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA2x_INSERT))

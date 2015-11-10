@@ -790,10 +790,11 @@ protected:
     std::vector < std::vector < int > > head;
     const std::vector < std::vector < long int > >& pmatrix;
     const int nmac;
+    int thresh;
     virtual Solution* computeStep(Solution *value);
     virtual void computeHead(std::vector<int>& sol);
 public:
-    AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
+    AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),thresh(problem.getNjobs()/2) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
