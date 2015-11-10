@@ -7,3 +7,9 @@ build
 .paramsparser.cpp.swp
 CMakeLists.txt.user.3.3-pre1
 *.autosave
+EMILI.sdf
+EMILI.opensdf
+EMILI.v12.suo
+EMILI.vcxproj.filters
+EMILI.vcxproj.user
+Debug
