@@ -90,4 +90,6 @@ prs::emili_header();
     cout << "Found solution: ";
     cout << solution->getSolutionRepresentation() << std::endl;
     cout << endl;
+
+	cin.get();
 }

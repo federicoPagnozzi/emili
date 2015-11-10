@@ -719,6 +719,60 @@ int emili::pfsp::PFSP_E::computeObjectiveFunction(std::vector<int> &partial_solu
     return instance.computeE(partial_solution,size);
 }
 
+#pragma region NEWCODE
+
+int emili::pfsp::HFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHMS(partial_solution);
+}
+
+int emili::pfsp::HFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHMS(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHTCT(partial_solution);
+}
+
+int emili::pfsp::HFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHTCT(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHWT(partial_solution);
+}
+
+int emili::pfsp::HFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHWT(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHWE(partial_solution);
+}
+
+int emili::pfsp::HFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHWE(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_WET::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHWET(partial_solution);
+}
+
+int emili::pfsp::HFSP_WET::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHWET(partial_solution, size);
+}
+
+#pragma endregion NEWCODE
+
 int emili::pfsp::PFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeMS(partial_solution);
@@ -2395,7 +2449,8 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
         long int c_max = c_cur+tail[1][end_position];
@@ -2554,7 +2609,8 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -2681,7 +2737,8 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -2791,7 +2848,8 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
         end_position = ((end_position)%njobs)+1;
         newsol.insert(newsol.begin()+end_position,sol_i);
 
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -2901,7 +2959,8 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -3017,8 +3076,10 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
-        int ins_pos_t[nmac+1];
+        //int ins_pos[nmac+1];
+        //int ins_pos_t[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
+		std::vector< int > ins_pos_t(nmac + 1);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
         ins_pos_t[1] = c_cur;
@@ -3212,7 +3273,8 @@ emili::Solution* emili::pfsp::TAxInsertNeighborhood::computeStep(emili::Solution
         newsol.insert(newsol.begin()+end_position,sol_i);
 
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
         for (int i = 2; i <= nmac; ++i) {
@@ -3464,7 +3526,8 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
         int ms_pos = start_position>end_position?end_position:start_position;
         sol_i = newsol[ms_pos];
 
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][ms_pos-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -3584,7 +3647,8 @@ emili::Solution* emili::pfsp::OptExchange::computeStep(emili::Solution *value)
         int ms_pos = start_position>end_position?end_position:start_position;
         sol_i = newsol[ms_pos];
 
-        int ins_pos[nmac+1];
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1);
         long int c_cur = head[1][ms_pos-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 

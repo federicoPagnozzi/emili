@@ -1,3 +1,7 @@
+#define STAGES_IN_TWO_LINES //NEWCODE
+#define PAIR_VECTOR
+#define RELDUE_FIELD
+//#define HORIZONTAL
 /***************************************************************************
  *   Copyright (C) 2012 by Jérémie Dubois-Lacoste   *
  *   jeremie.dl@gmail.com   *
@@ -25,7 +29,9 @@
 #include <cstring>
 #include <exception>
 #include <stdexcept>
+#include <algorithm>
 #include "pfspinstance.h"
+#include <numeric>
 
 // #define ENABLE_SSE 10
 
@@ -68,6 +74,90 @@ void PfspInstance::setNbMac(int machineCount)
     this->nbMac = machineCount;
 }
 
+#pragma region NEWCODE
+
+int PfspInstance::getNbStages()
+{
+	return nbStages;
+}
+
+void PfspInstance::setNbStages(int stagesCount)
+{
+	this->nbStages = stagesCount;
+}
+
+vector<int>& PfspInstance::getStages()
+{
+	return stages;
+}
+
+void PfspInstance::setStages(vector< int > &stages)
+{
+	this->stages = stages;
+}
+
+std::string printVector(vector< int >& vec)
+{
+	std::string result = "";
+	//for (int i = 1; i < vec.size(); i++) result += std::to_string(vec[i]) + " ";
+
+	for (std::vector<int>::iterator it = vec.begin(); it != vec.end(); ++it)
+		result += std::to_string(*it) + " ";
+
+	return result;
+}
+
+std::string printVector(vector< long >& vec)
+{
+	std::string result = "";
+	//for (int i = 1; i < vec.size(); i++) result += std::to_string(vec[i]) + " ";
+	
+	for (std::vector<long>::iterator it = vec.begin(); it != vec.end(); ++it)
+		result += std::to_string(*it) + " ";
+
+	return result;
+}
+
+std::string printJaggedVector(vector< vector < int > >& jaggedVector)
+{
+	string temp = "";
+
+	for (std::vector<vector<int>>::iterator row = jaggedVector.begin(); row != jaggedVector.end(); ++row) {
+		for (std::vector<int>::iterator col = row->begin(); col != row->end(); ++col) 
+			temp += std::to_string(*col) + " ";
+		temp += "\n";
+	}
+
+	/*for (std::vector<vector<int>>::iterator it = jaggedVector.begin(); it != jaggedVector.end(); ++it)
+		for (std::vector<int>::iterator it = it.begin(); it != jaggedVector.end(); ++it)
+			result += std::to_string(*it) + " ";
+			*/
+
+	/*for (int x = 0; x < dim1; x++)
+	{
+		temp += std::to_string(x) + "-> ";
+		for (int y = 0; y < dimensions[x]; y++)
+		{
+			temp += std::to_string(jaggedVector[x][y]) + ", ";
+		}
+		temp += "\n";
+	}*/
+	return temp;
+}
+
+std::string printPairedVector(vector< pair< int, int > >& vec)
+{
+	string temp = "";
+
+	for (std::vector< pair< int, int > >::iterator it = vec.begin(); it != vec.end(); ++it)
+		temp += std::to_string(it-vec.begin()) + "(" + std::to_string(it->first) + "," + std::to_string(it->second) + "), ";
+
+	/*for (int x = 0; x < dim1; x++)
+		temp += "J" + std::to_string(x) + " " + std::to_string(vec[x].first) + "FT: " + std::to_string(vec[x].first) + " ;; ";*/
+	return temp;
+}
+#pragma endregion NEWCODE
+
 void PfspInstance::setSilence(bool s)
 {
     this->silence = s;
@@ -83,6 +173,10 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 
 	dueDates.resize(nbJ+1);
 	priority.resize(nbJ+1);
+#pragma endregion NEWCODE
+	releaseDates.resize(nbJ + 1);
+	weightsE.resize(nbJ + 1);
+#pragma region NEWCODE
 }
 
 
@@ -120,7 +214,8 @@ bool PfspInstance::readDataFromFile(char * fileName)
 	else
 		aux2 += 1;
 
-	strcat(fileNameOK, aux2);
+	//strcat(fileNameOK, aux2);
+	strcat_s(fileNameOK, aux2);
     if(!silence)
     {
 	cout << "name : " << fileNameOK << endl;
@@ -130,7 +225,12 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 	if ( fileIn.is_open() ) {
 
-        fileIn >> nbJob;
+#pragma region NEWCODE
+		fileIn >> str;
+		if (str == "HFSDDW") fileIn >> nbJob;
+		else nbJob = stol(str);
+		//fileIn >> nbJob;
+#pragma endregion NEWCODE
         fileIn >> nbMac;
         fileIn >> readValue;
         if(readValue == 12345)
@@ -138,17 +238,99 @@ bool PfspInstance::readDataFromFile(char * fileName)
             std::string fname(fileName);
             return readDataFromFile(fname);
         }        
-		allowMatrixMemory(nbJob, nbMac);
+
+#pragma region NEWCODE
+		// We have stages  Jobs Machines Stages
+		if (readValue != 0)
+		{
+			nbStages = readValue;
+
+			vector< int > st(nbStages + 1);
+			stages = st;
+
+			fileIn >> readValue;// Just to read first index of the table.  OR next line of Stages.
+
+			if (readValue != 0)
+			{
+				// We read the second line.
+				stages[1] = readValue; 
+				
+				int sum = stages[1];
+				for (int i = 2; i <= nbStages; i++)
+				{
+					fileIn >> stages[i];
+					sum += stages[i];
+				}
+				//If machines in stages doesnt sum the amount of machines in the instance, instance is wrong. 
+				if (sum != nbMac) throw new runtime_error("Instance machines and machines per stage doesn't fit");
+				fileIn >> readValue;// Just to read first index of the table.  
+			}
+			else
+			{
+				// We have first line like 50  15   3   That means a HFS((PM^5)(PM^5)(PM^5)) 50 jobs, 15 machines distributed in 3 stages
+				int machinesPerStage = nbMac / nbStages;
+
+				// If machines is not divisible by stages, instance is wrong. 
+				int mod = nbMac % nbStages;
+				if (mod != 0) throw new runtime_error("Instance machines and machines per stage doesn't fit");
+
+				for (int i = 1; i <= nbStages; i++)
+					stages[i] = machinesPerStage;
+			}
+			stages[0] = 1; // Yes, a ghost stage to keep with Federicos practice. With only one machine. 
+		}
+
+		/*
+		else
+		{
+			if ((readValue > 1) && (readValue < 12345))
+			{
+				nbStages = readValue;
+
+				vector< int > st(nbStages + 1);
+				stages = st;
+
+#ifdef STAGES_IN_TWO_LINES
+				int sum = 0;
+				for (int i = 1; i <= nbStages; i++)
+				{					
+					fileIn >> stages[i];
+					sum += stages[i];
+				}
+
+				//If machines in stages doesnt sum the amount of machines in the instance, instance is wrong. 
+				if (sum != nbMac) throw new runtime_error("Instance machines and machines per stage doesn't fit");
+#else
+				// We have first line like 50  15   3   That means a HFS((PM^5)(PM^5)(PM^5)) 50 jobs, 15 machines distributed in 3 stages
+				int machinesPerStage = nbMac / nbStages;
+
+				// If machines is not divisible by stages, instance is wrong. 
+				int mod = nbMac % nbStages;
+				if (mod != 0) throw new runtime_error("Instance machines and machines per stage doesn't fit");
+				
+				for (int i = 1; i <= nbStages; i++)
+					fileIn >> stages[i];
+#endif
+				stages[0] = 1; // Yes, a ghost stage to keep with Federicos practice. With only one machine. 
+			}
+			fileIn >> readValue;// Just to read first index of the table. 
+		}
+		*/
+		int nbRows = nbMac;
+		if (nbStages > 0) nbRows = nbStages;
+#pragma endregion NEWCODE
+		allowMatrixMemory(nbJob, nbRows);
         if(!silence){
             cout << "File " << fileName << " is now open, start to read..." << std::endl;
             cout << "Number of jobs : " << nbJob << std::endl;
             cout << "Number of machines : " << nbMac << std::endl;
+			cout << "Number of stages : " << nbStages << ". { " << printVector(stages) << " }" << std::endl;
             cout << "Memory allowed." << std::endl;
             cout << "Start to read matrix..." << std::endl;
         }
 		for (j = 1; j <= nbJob; ++j)
 		{
-            for (m = 1; m <= nbMac; ++m)
+            for (m = 1; m <= nbRows; ++m)
 			{
                 if(!(j==1 && m==1))
                 {
@@ -161,6 +343,26 @@ bool PfspInstance::readDataFromFile(char * fileName)
 		}
         fileIn >> str; // this is not read
 
+#pragma region NEWCODE
+		int LBCmax = -1;
+		if (str == "LBCmax:")
+		{
+			fileIn >> LBCmax;
+			fileIn >> str;
+		}
+#ifdef RELDUE_FIELD
+		for (j = 1; j <= nbJob; ++j)
+		{
+			fileIn >> readValue; // Release Date
+			releaseDates[j] = readValue;
+			fileIn >> readValue; // Due Date
+			dueDates[j] = readValue;
+			fileIn >> readValue; // Earliness Weights
+			weightsE[j] = readValue;
+			fileIn >> readValue; // Tardiness Weights
+			priority[j] = readValue;
+		}
+#else
 		for (j = 1; j <= nbJob; ++j)
 		{
 			fileIn >> readValue; // -1
@@ -170,6 +372,8 @@ bool PfspInstance::readDataFromFile(char * fileName)
 			fileIn >> readValue;
             priority[j] = readValue;
 		}
+#endif
+#pragma endregion NEWCODE
         if(!silence)
         cout << "All is read from file." << std::endl;
 		fileIn.close();
@@ -205,7 +409,8 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
     else
         aux2 += 1;
 
-    strcat(fileNameOK, aux2);
+    strcat_s(fileNameOK, aux2);
+    //strcat(fileNameOK, aux2);
     if(!silence)
     {
     cout << "name : " << fileNameOK << endl;
@@ -215,14 +420,63 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 
     if ( fileIn.is_open() ) {
 
-        fileIn >> nbJob;
-        fileIn >> nbMac;
-        fileIn >> readValue;
-        if(readValue == 12345)
-        {
-            std::string fname(fileName);
-            return readDataFromFile(fname);
-        }
+#pragma region NEWCODE
+		fileIn >> str;
+		if (str == "HFSDDW") fileIn >> nbJob;
+		else nbJob = stol(str);
+		//fileIn >> nbJob;
+#pragma endregion NEWCODE
+		fileIn >> nbMac;
+		fileIn >> readValue;
+		if (readValue == 12345)
+		{
+			std::string fname(fileName);
+			return readDataFromFile(fname);
+		}
+#pragma region NEWCODE
+		// We have stages  Jobs Machines Stages
+		if (readValue != 0)
+		{
+			nbStages = readValue;
+			vector< int > st(nbStages + 1);
+			stages = st;
+
+			fileIn >> readValue;// Just to read first index of the table.  OR next line of Stages.
+
+			if (readValue != 0)
+			{
+				// We read the second line.
+				stages[1] = readValue;
+
+				int sum = stages[1];
+				for (int i = 2; i <= nbStages; i++)
+				{
+					fileIn >> stages[i];
+					sum += stages[i];
+				}
+				//If machines in stages doesnt sum the amount of machines in the instance, instance is wrong. 
+				if (sum != nbMac) throw new runtime_error("Instance machines and machines per stage doesn't fit");
+				fileIn >> readValue;// Just to read first index of the table.  
+			}
+			else
+			{
+				// We have first line like 50  15   3   That means a HFS((PM^5)(PM^5)(PM^5)) 50 jobs, 15 machines distributed in 3 stages
+				int machinesPerStage = nbMac / nbStages;
+
+				// If machines is not divisible by stages, instance is wrong. 
+				int mod = nbMac % nbStages;
+				if (mod != 0) throw new runtime_error("Instance machines and machines per stage doesn't fit");
+
+				for (int i = 1; i <= nbStages; i++)
+					stages[i] = machinesPerStage;
+			}
+			stages[0] = 1; // Yes, a ghost stage to keep with Federicos practice. With only one machine. 
+		}
+
+		int nbRows = nbMac;
+		if (nbStages > 0) nbRows = nbStages;
+#pragma endregion NEWCODE
+
         allowMatrixMemory(nbJob, nbMac);
 
         if(!silence){
@@ -279,6 +533,21 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
         fileIn >> str; // this is not read
         if(str.compare("Reldue")==0)
         {
+
+#pragma region NEWCODE
+#ifdef RELDUE_FIELD
+			for (j = 1; j <= nbJob; ++j)
+			{
+				fileIn >> readValue; // Release Date
+				releaseDates[j] = readValue;
+				fileIn >> readValue; // Due Date
+				dueDates[j] = readValue;
+				fileIn >> readValue; // Earliness Weights
+				weightsE[j] = readValue;
+				fileIn >> readValue; // Tardiness Weights
+				priority[j] = readValue;
+			}
+#else
             for (j = 1; j <= nbJob; ++j)
            {
                 fileIn >> readValue; // -1
@@ -288,6 +557,8 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
                 fileIn >> readValue;
                 priority[j] = readValue;
            }
+#endif
+#pragma endregion NEWCODE
         }
         }
         if(!silence)
@@ -306,6 +577,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
     return everythingOK;
 }
 
+// Weird exception to read some weird instances.
 bool PfspInstance::readDataFromFile(const string _fileName)
 {
           std::string buffer;
@@ -364,6 +636,7 @@ bool PfspInstance::readDataFromFile(const string _fileName)
 
 
 #ifndef ENABLE_SSE
+// Compute Partial makespans returns previousMachineEndTime with the completion times of last machine of the flowshop.
 inline void computePartialMakespans( vector< int >& sol, vector< long int >& previousMachineEndTime,vector< vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     long int previousJobEndTime;
@@ -403,8 +676,8 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
     }
 }
 
+//NEWCODE GOOD
 /* Compute the weighted tardiness of a given solution */
-
 long int PfspInstance::computeWT(vector< int > & sol)
 {
     int j;
@@ -555,6 +828,709 @@ long int PfspInstance::getPriority(int job)
 {
     return priority[job];
 }
+
+#pragma region NEWCODE
+
+// Given an array obtains the index of min value 
+int minValue(vector<int> &finishingTimes)
+{
+	//// This gives the min index 
+	//int min_index = std::min_element(finishingTimes.begin() + 1, finishingTimes.end()) - finishingTimes.begin();
+
+	int minValue = 99999;
+	int ID = 0;
+	int size = finishingTimes.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (finishingTimes[i] < minValue)
+		{
+			minValue = finishingTimes[i];
+			ID = i;
+		}
+	}
+	return ID;
+}
+
+// Given an array obtains the index of max value 
+int maxValue(vector<int> &finishingTimes)
+{
+	//// This gives the min index?
+	//int max_index = std::max_element(finishingTimes.begin() + 1, finishingTimes.end()) - finishingTimes.begin();
+
+	int maxValue = -99999;
+	int ID = 0;
+	int size = finishingTimes.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (finishingTimes[i] > maxValue)
+		{
+			maxValue = finishingTimes[i];
+			ID = i;
+		}
+	}
+	return maxValue;
+}
+
+// Given an array and a valueCealing. Obtains the higher value that is under or equal to cealing, if there is none, will just return minimum value.
+int maxLower(vector<int> &finishingTimes, int cealing)
+{
+	int minValue = 99999;
+	int bestSuited = -1;
+	int bestSuitedID = -1;
+	int minID = 0;
+	int size = finishingTimes.size();
+
+	// Browse vector trying to get the ID of the maximum value under (or equal) the cealing  vec[2,4,6,8,10] cealing(7) -> 2 (id for 6 biggest element under 7)
+	for (size_t i = 0; i < size; i++)
+	{
+		int value = finishingTimes[i];
+		if (value < minValue)
+		{
+			minValue = value;
+			minID = i;
+		}
+		if ((value <= cealing) && (value > bestSuited))
+		{
+			bestSuited = value;
+			bestSuitedID = i;			
+		}
+	}
+
+	if (bestSuitedID == -1) bestSuitedID = minID;
+
+	return bestSuitedID;
+}
+
+// Given two arrays, orders both in ascending order based on the values of the second one.
+void orderVectors(vector<int>& pasive, vector<int>& orderer)
+{
+	vector<int> indexes(pasive.size());
+	std::iota(indexes.begin(), indexes.end(), 0);
+#if _DEBUG
+	std::cout << "Ini: Pasive:" << printVector(pasive) << " Ind:" << printVector(indexes) << " Orderer:" << printVector(orderer) << "\n";
+#endif
+	// Order the indexes vector to map pasive positions.
+	std::sort(indexes.begin(), indexes.end(), [pasive](int i1, int i2){return pasive[i1] < pasive[i2]; }); //std::cout << printVector(indexes) << "\n";
+	// Order Pasive according to weights in Orderer using indexes mapping
+	std::sort(pasive.begin(), pasive.end(), [orderer, indexes](int i1, int i2){return orderer[indexes[i1]] < orderer[indexes[i2]]; }); //std::cout << printVector(pasive) << "\n";
+	// simply sort by order Orderer
+	std::sort(orderer.begin(), orderer.end());
+#if _DEBUG
+	std::cout << "End: Pasive:" << printVector(pasive) << " Ind:" << printVector(indexes) << " Orderer:" << printVector(orderer) << "\n";
+#endif
+}
+
+// Given a vector with values {1,2,3,2} returns a jagged vector {0}{0,0}{0,0,0}{0,0}
+vector< vector < int > > createJaggedVector(vector<int> machinesPerStage)
+{
+	vector< vector< int > > machineFreeingTimes_S_M;
+		//= vector< vector< int > >(machinesPerStage.size());
+
+	for (int i = 0; i < machinesPerStage.size(); i++)
+	{
+		vector<int> temp = vector<int>(machinesPerStage[i], 0);
+		machineFreeingTimes_S_M.push_back(temp);
+	}
+
+	return machineFreeingTimes_S_M;
+}
+
+
+/*	Function to compute makespan for a Hybrid Flowshop, right now is just a test that takes 
+all data like is a simple FS and considers 2-3 stages with same data (m machines per stage). */
+long int PfspInstance::computeHMS(vector<int> &sol)
+{
+	return PfspInstance::computeHMS(sol, nbJob);
+}
+
+/* Compute the Total Completion Time of a given solution */
+long int PfspInstance::computeHTCT(vector< int > & sol)
+{
+	return computeHTCT(sol, nbJob);
+}
+
+/* Compute the weighted tardiness of a given solution */
+long int PfspInstance::computeHWT(vector< int > & sol)
+{
+	return computeHWT(sol, nbJob);
+}
+
+/* Compute the weighted earliness of a given solution */
+long int PfspInstance::computeHWE(vector< int > & sol)
+{
+	return computeHWE(sol, nbJob);
+}
+
+/* Compute the weighted earliness tardines of a given solution */
+long int PfspInstance::computeHWET(vector< int > & sol)
+{
+	return computeHWET(sol, nbJob);
+}
+
+#ifdef HORIZONTAL
+/*	Function to compute makespan (PARTIAL SOLUTION) for a Hybrid Flowshop */
+long int PfspInstance::computeHMS(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	//// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	//// This JaggedVector will have a ghost stage 0 never used... To keep things like other people.
+	//vector< int > machinesLine(nbMac, 0);
+	//// Jagged Vector with the finishing times of all machines. 
+	//vector< vector< int > > machineFreeingTimes_S_M;
+	//machineFreeingTimes_S_M = vector< vector< int > >(stages + 1, machinesLine);
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int PT; // Processing Time
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime; 
+
+	for (j = 1; j <= permSize; ++j)
+	{
+		jobNumber = sol[j];
+		previousTaskFT = 0;
+
+		for (i = 1; i <= stages; i++)
+		{
+			//// Get First Available Machine and Finishing time.
+			//FAM_ID = minValue(machineFreeingTimes_S_M[i]);
+
+			// Get First Available Machine improved to reduce idle times 
+			//(If there are some machines that end before job can start, we take the one that gives less idle time)
+			FAM_ID = maxLower(machineFreeingTimes_S_M[i], previousTaskFT);
+
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID];
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+			previousTaskFT = endingTime;
+		}
+	}
+
+	string x = printJaggedVector(machineFreeingTimes_S_M);// , stages + 1, machinesPerStage);
+	// Makespan
+	return maxValue(machineFreeingTimes_S_M[stages]);// Makespan
+}
+
+/*compute partial weighted tardiness*/
+long int PfspInstance::computeHWT(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int PT; // Processing Time
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+
+	int wT = 0;
+	for (j = 1; j <= permSize; ++j)
+	{
+		jobNumber = sol[j];
+		previousTaskFT = 0;
+#ifdef _DEBUG
+		string xxx = "J" + std::to_string(j) + "(" + std::to_string(jobNumber) + ") PT:" + printVector(processingTimesMatrix[jobNumber]) + "\n";
+		xxx += "S0:" + printJaggedVector(machineFreeingTimes_S_M, stages + 1, machinesPerStage) + "\n";
+#endif
+		// for all stages but last one.
+		for (i = 1; i < stages; i++)
+		{
+			// Get First Available Machine improved to reduce idle times 
+			FAM_ID = maxLower(machineFreeingTimes_S_M[i], previousTaskFT);
+
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID];
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+			previousTaskFT = endingTime;
+		}
+		// For last stage (has been acumultated already in for (i++).
+		// Get First Available Machine improved to reduce idle times 
+		FAM_ID = maxLower(machineFreeingTimes_S_M[i], previousTaskFT);
+
+		previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID];
+
+		// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+		startingTime = std::max(previousMachineFT, previousTaskFT);
+		endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+		// Increase finishing times
+		machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+		previousTaskFT = endingTime;
+#ifdef _DEBUG
+		xxx += "S" + std::to_string(i) + ":\n" + printJaggedVector(machineFreeingTimes_S_M, stages + 1, machinesPerStage) + "\n";
+		xxx += "Objective: " + std::to_string(wT) + " + max(" + std::to_string(endingTime) + " - "
+			+ std::to_string(dueDates[jobNumber]) + ", 0) * " + std::to_string(priority[jobNumber]);
+		printf((xxx + "\n****************************************\n").c_str());
+#endif
+		wT += (std::max(endingTime - dueDates[jobNumber], 0L) * priority[jobNumber]);
+	}
+	// Weighted Tardiness
+	return wT;
+}
+#else
+// OLD VERSION WITH OPTION TO USE 2 VECTORS (PERMUTATION and FINISHING TIMES)
+/*	Function to compute makespan (PARTIAL SOLUTION) for a Hybrid Flowshop 
+long int PfspInstance::computeHMS(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+#ifdef PAIR_VECTOR
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+#else
+	// Previous task finishing times. 
+	vector< int > PTFT = vector< int >(sol.size(), 0);
+	// New deep copy of the permutation, so we can play with it
+	vector< int > perm = vector< int >(sol);
+#endif
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int PT; // Processing Time
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		for (j = 1; j <= permSize; ++j)
+		{
+#ifdef PAIR_VECTOR
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+#else
+			jobNumber = perm[j]; // Get Job number
+			previousTaskFT = PTFT[j]; // Get previous task finishing time
+#endif
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+#ifdef PAIR_VECTOR
+			jobAndFT[j].second = endingTime;
+#else
+			PTFT[j] = endingTime;
+#endif
+		}
+#ifdef PAIR_VECTOR
+		// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+		std::sort(jobAndFT.begin(), jobAndFT.end(),
+			[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+			return left.second < right.second; });
+#else
+		// Rearrange both vectors (permu and finishing times) according to finishing times values. That way for 
+		// next stage the permutation will be different, and will be ordered by realease times  in previous stage.
+		orderVectors(perm, PTFT);
+#endif		
+	}
+#ifdef _DEBUG
+	string x = printJaggedVector(machineFreeingTimes_S_M);
+#endif
+	// Makespan
+	return maxValue(machineFreeingTimes_S_M[stages]);// Makespan
+}*/
+
+/*	Function to compute makespan (PARTIAL SOLUTION) for a Hybrid Flowshop */
+long int PfspInstance::computeHMS(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+		}
+		// Sounds crazy but doesnt improve... if (i != stages)
+		// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+		std::sort(jobAndFT.begin(), jobAndFT.end(),
+			[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+			return left.second < right.second; });
+	}
+#ifdef _DEBUG
+	string x = printJaggedVector(machineFreeingTimes_S_M);
+#endif
+	// Makespan
+	return maxValue(machineFreeingTimes_S_M[stages]);// Makespan
+}
+
+/*	Function to compute Total Completion Time (PARTIAL SOLUTION) for a Hybrid Flowshop */
+long int PfspInstance::computeHTCT(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+		}
+		// Sounds crazy but doesnt improve... if (i != stages)
+		// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+		std::sort(jobAndFT.begin(), jobAndFT.end(),
+			[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+			return left.second < right.second; });
+	}
+
+	int TCT = 0;
+	for (std::vector< pair< int, int > >::iterator it = jobAndFT.begin(); it != jobAndFT.end(); ++it)
+		TCT += it->second;
+
+#ifdef _DEBUG
+	string x = printJaggedVector(machineFreeingTimes_S_M);
+#endif
+	// Makespan
+	return TCT;// Makespan
+}
+
+/*compute partial weighted tardiness*/
+long int PfspInstance::computeHWT(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+	long int wT = 0;
+	bool lastStage = false;
+	//string tmp = "";
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		if (i == stages) lastStage = true;
+#ifdef _DEBUG
+		string tmp = printPairedVector(jobAndFT) + "\n";
+		tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+#ifdef _DEBUG
+			tmp += "J" + std::to_string(j) + "(" + std::to_string(jobNumber) + ") PTFT: " + std::to_string(previousTaskFT) + " PT:" + std::to_string(processingTimesMatrix[jobNumber][i]) + "\n";
+#endif
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+			if (lastStage) wT += (std::max(endingTime - dueDates[jobNumber], 0L) * priority[jobNumber]);
+#ifdef _DEBUG
+			tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		}
+		if (!lastStage){
+			// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+			std::sort(jobAndFT.begin(), jobAndFT.end(),
+				[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+				return left.second < right.second; });
+		}
+	}
+	// Weighted Tardiness
+	return wT;
+}
+
+/*compute partial weighted earliness*/
+long int PfspInstance::computeHWE(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+	long int wE = 0;
+	bool lastStage = false;
+	//string tmp = "";
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		if (i == stages) lastStage = true;
+#ifdef _DEBUG
+		string tmp = printPairedVector(jobAndFT) + "\n";
+		tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+#ifdef _DEBUG
+			tmp += "J" + std::to_string(j) + "(" + std::to_string(jobNumber) + ") PTFT: " + std::to_string(previousTaskFT) + " PT:" + std::to_string(processingTimesMatrix[jobNumber][i]) + "\n";
+#endif
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+			if (lastStage) wE += (std::max(dueDates[jobNumber] - endingTime, 0L) * weightsE[jobNumber]);
+#ifdef _DEBUG
+			tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		}
+		if (!lastStage){
+			// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+			std::sort(jobAndFT.begin(), jobAndFT.end(),
+				[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+				return left.second < right.second; });
+		}
+	}
+	// Weighted Earliness
+	return wE;
+}
+
+/*compute partial weighted earliness tardiness*/
+long int PfspInstance::computeHWET(vector<int> &sol, int size)
+{
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+	long int wET = 0;
+	bool lastStage = false;
+	//string tmp = "";
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		if (i == stages) lastStage = true;
+#ifdef _DEBUG
+		string tmp = printPairedVector(jobAndFT) + "\n";
+		tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+#ifdef _DEBUG
+			tmp += "J" + std::to_string(j) + "(" + std::to_string(jobNumber) + ") PTFT: " + std::to_string(previousTaskFT) + " PT:" + std::to_string(processingTimesMatrix[jobNumber][i]) + "\n";
+#endif
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+			if (lastStage)
+			{
+				wET += (std::max(dueDates[jobNumber] - endingTime, 0L) * weightsE[jobNumber]); // Earliness
+				wET += (std::max(endingTime - dueDates[jobNumber], 0L) * priority[jobNumber]); // Tardiness
+			}
+#ifdef _DEBUG
+			tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		}
+		if (!lastStage){
+			// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+			std::sort(jobAndFT.begin(), jobAndFT.end(),
+				[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+				return left.second < right.second; });
+		}
+	}
+	// Weighted Earliness Tardiness
+	return wET;
+}
+#endif
+
+/*
+long int PfspInstance::computeHWT(vector<int> &sol, int size)
+{
+	int j;
+	long int wt;
+	// We need end times on previous machine : 
+	vector< long int > previousMachineEndTime(nbJob + 1, 0);
+
+	// Returns the Complition time of all jobs in the vector previousMachineEndTime 
+	computePartialMakespans(sol, previousMachineEndTime, processingTimesMatrix, size, nbMac);
+
+	wt = 0;
+	for (j = 1; j <= size; ++j)
+		wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+	return wt;
+}*/
+
+#pragma endregion NEWCODE
 
 long int PfspInstance::computeMS(vector<int> &sol)
 {
@@ -1400,7 +2376,8 @@ long int PfspInstance::computeNWWT(vector< int > &sol)
     {
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
-    }
+	}
+	return wt;
 }
 
 long int PfspInstance::computeNWWT(vector< int > &sol, int size)
@@ -1416,7 +2393,8 @@ long int PfspInstance::computeNWWT(vector< int > &sol, int size)
     {
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
-    }
+	}
+	return wt;
 }
 
 /*No wait weighted earliness*/

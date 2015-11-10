@@ -578,7 +578,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
     neighbh->reset();
     emili::Solution* incumbent = initial->clone();
     bestSoFar = initial->clone();
-    emili::Solution* ithSolution;
+    emili::Solution* ithSolution = nullptr;
         do{
             if(*bestSoFar > *incumbent)
                 *bestSoFar = *incumbent;

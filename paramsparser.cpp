@@ -50,6 +50,14 @@
 #define PROBLEM_PFS_WCT "PFSP_WCT"
 #define PROBLEM_PFS_MS "PFSP_MS"
 
+#pragma region NEWCODE
+#define PROBLEM_HFS_MS "HFSP_MS"
+#define PROBLEM_HFS_TCT "HFSP_TCT"
+#define PROBLEM_HFS_WT "HFSP_WT"
+#define PROBLEM_HFS_WE "HFSP_WE"
+#define PROBLEM_HFS_WET "HFSP_WET"
+#pragma endregion NEWCODE
+
 /* no wait permutation flowshop*/
 #define PROBLEM_NWPFS_MS "NWPFSP_MS"
 #define PROBLEM_NWPFS_WT "NWPFSP_WT"
@@ -293,6 +301,33 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
         prs::printTab("Sequence dependent setup times weighted completion time");
         prob = new emili::pfsp::SDSTFSP_WCT(i);
     }
+#pragma region NEWCODE
+	else if (strcmp(t, PROBLEM_HFS_MS) == 0)
+	{
+		prs::printTab("Hybrid Flowshop makespan");
+		prob = new emili::pfsp::HFSP_MS(i);
+	}
+	else if (strcmp(t, PROBLEM_HFS_TCT) == 0)
+	{
+		prs::printTab("Hybrid Flowshop Total Completion Time");
+		prob = new emili::pfsp::HFSP_TCT(i);
+	}
+	else if (strcmp(t, PROBLEM_HFS_WT) == 0)
+	{
+		prs::printTab("Hybrid Flowshop weighted Tardiness");
+		prob = new emili::pfsp::HFSP_WT(i);
+	}
+	else if (strcmp(t, PROBLEM_HFS_WE) == 0)
+	{
+		prs::printTab("Hybrid Flowshop weighted Earliness");
+		prob = new emili::pfsp::HFSP_WE(i);
+	}
+	else if (strcmp(t, PROBLEM_HFS_WET) == 0)
+	{
+		prs::printTab("Hybrid Flowshop weighted Earliness Tardiness");
+		prob = new emili::pfsp::HFSP_WET(i);
+	}
+#pragma endregion NEWCODE
     else
     {
         std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
@@ -1340,6 +1375,28 @@ bool prs::ParamsParser::isParsable(string &problem)
     {
         return true;
     }
+#pragma region NEWCODE
+	else if (strcmp(problem.c_str(), PROBLEM_HFS_MS) == 0)
+	{
+		return true;
+	}
+	else if (strcmp(problem.c_str(), PROBLEM_HFS_TCT) == 0)
+	{
+		return true;
+	}
+	else if (strcmp(problem.c_str(), PROBLEM_HFS_WT) == 0)
+	{
+		return true;
+	}
+	else if (strcmp(problem.c_str(), PROBLEM_HFS_WE) == 0)
+	{
+		return true;
+	}
+	else if (strcmp(problem.c_str(), PROBLEM_HFS_WET) == 0)
+	{
+		return true;
+	}
+#pragma endregion NEWCODE
     else
     {
         return false;

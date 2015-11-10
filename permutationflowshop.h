@@ -52,6 +52,55 @@ public:
     PfspInstance& getInstance();
 };
 
+#pragma region NEWCODE
+
+class HFSP_MS : public PermutationFlowShop
+{
+public:
+	HFSP_MS(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_MS(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_TCT : public PermutationFlowShop
+{
+public:
+	HFSP_TCT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_TCT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_WT : public PermutationFlowShop
+{
+public:
+	HFSP_WT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_WT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_WE : public PermutationFlowShop
+{
+public:
+	HFSP_WE(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_WE(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_WET : public PermutationFlowShop
+{
+public:
+	HFSP_WET(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_WET(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+
+#pragma endregion NEWCODE
 class PFSP_WT: public PermutationFlowShop
 {
 public:
@@ -628,7 +677,8 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < int > > tail;
     const std::vector < std::vector < long int > >& pmatrix;
-    const int nmac;
+    //const int nmac;
+	int nmac;
     void computeTAmatrices(std::vector<int>& sol);
     virtual Solution* computeStep(Solution *value);
 public:
@@ -705,7 +755,8 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < std::vector < int > > > tails;
     const std::vector < std::vector < long int > >& pmatrix;
-    const int nmac;
+    //const int nmac;
+	int nmac;
 
     virtual Solution* computeStep(Solution *value);
 public:
@@ -763,10 +814,11 @@ class AxtExchange: public emili::pfsp::PfspExchangeNeighborhood
 protected:
     std::vector < std::vector < int > > head;
     const std::vector < std::vector < long int > >& pmatrix;
-    const int nmac;
+    //const int nmac;
     virtual Solution* computeStep(Solution *value);
     virtual void computeHead(std::vector<int>& sol);
 public:
+	int nmac;
     AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };

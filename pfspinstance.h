@@ -31,6 +31,12 @@ class PfspInstance{
   private:
     int nbJob;
     int nbMac;
+#pragma region NEWCODE
+	int nbStages;
+	std::vector< int > stages;
+	std::vector< long int > weightsE;
+	std::vector< long int > releaseDates;
+#pragma endregion NEWCODE
     std::vector< long int > dueDates;
     std::vector< long int > priority;
     bool silence;
@@ -42,6 +48,12 @@ class PfspInstance{
     {
         this->nbJob = is.getNbJob();
         this->nbMac = is.getNbMac();
+#pragma region NEWCODE
+		this->stages = is.getStages();
+		this->nbStages = is.getNbStages();
+		this->weightsE = is.getWeightsE();
+		this->releaseDates = is.getReleaseDates();
+#pragma endregion NEWCODE
         this->dueDates = is.getDueDates();
         this->priority = is.getPriorities();
         this->processingTimesMatrix = is.getProcessingTimesMatrix();
@@ -55,6 +67,31 @@ class PfspInstance{
     /* Read write privates attributes : */
     int getNbJob();
     void setNbJob(int jobCount);
+
+#pragma region NEWCODE
+	int getNbStages();
+	void setNbStages(int stagesCount);
+
+	vector< int >& getStages();
+	void setStages(vector< int > &stages);
+
+	long int getWeightsE(int job);
+	void setWeightsE(int job, int value);
+
+	std::vector< long int >& getWeightsE()
+	{
+		return weightsE;
+	}
+
+	long int getReleaseDates(int job);
+	void setReleaseDates(int job, int value);
+
+	std::vector< long int >& getReleaseDates()
+	{
+		return releaseDates;
+	}
+
+#pragma endregion NEWCODE
 
     int getNbMac();
     void setNbMac(int machienCount);
@@ -91,6 +128,34 @@ class PfspInstance{
     /* Read Data from sequence dependent setup times file*/
     bool readSeqDepDataFromFile(char* filename);
 
+#pragma region NEWCODE
+
+	/* Compute Hybrid Flowshop MakeSpan */
+	long int computeHMS(vector<int> & sol);
+	/* Compute partial Hybrid Flowshop MakeSpan*/
+	long int computeHMS(vector<int> &sol, int size);
+
+	/* Compute Hybrid Flowshop Total Completion Time */
+	long int computeHTCT(vector<int> & sol);
+	/* Compute partial Hybrid Flowshop Total Completion Time*/
+	long int computeHTCT(vector<int> &sol, int size);
+
+	/* Compute Hybrid Flowshop Weighted Tardiness */
+	long int computeHWT(vector<int> & sol);
+	/* Compute partial Hybrid Flowshop Weighted Tardiness*/
+	long int computeHWT(vector<int> &sol, int size);
+
+	/* Compute Hybrid Flowshop Weighted Earliness */
+	long int computeHWE(vector<int> & sol);
+	/* Compute partial Hybrid Flowshop Weighted Earliness*/
+	long int computeHWE(vector<int> &sol, int size);
+
+	/* Compute Hybrid Flowshop Weighted Earliness Tardiness */
+	long int computeHWET(vector<int> & sol);
+	/* Compute partial Hybrid Flowshop Weighted Earliness Tardiness */
+	long int computeHWET(vector<int> &sol, int size);
+
+#pragma endregion NEWCODE
     /*Compute weighted tardiness*/
     long int computeWT (vector< int > & sol);
     /*Compute partial weighted tardiness*/
