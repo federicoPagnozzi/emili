@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
-#ifdef _WIN32 OR _WIN64
+#if defined( _WIN32) || defined( _WIN64)
 
 #define NOSIG 1
 #else
@@ -399,10 +399,13 @@ int emili::LocalSearch::getSearchTime()
 void emili::LocalSearch::setSearchTime(int time)
 {
 #ifdef NOSIG
+    if(time > 0)
+    {
     emili::TimedTermination* tt = new emili::TimedTermination(time);
     delete termcriterion;
     termcriterion = tt;
     std::cout << "timer set " << time << " seconds " << std::endl;
+    }
 #endif
     this->seconds = time;
 }
