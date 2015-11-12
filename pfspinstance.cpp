@@ -215,7 +215,11 @@ bool PfspInstance::readDataFromFile(char * fileName)
 		aux2 += 1;
 
 	//strcat(fileNameOK, aux2);
+#if defined(_WIN32) || defined(_WIN64)
 	strcat_s(fileNameOK, aux2);
+#else
+        strcat(fileNameOK, aux2);
+#endif
     if(!silence)
     {
 	cout << "name : " << fileNameOK << endl;
@@ -409,8 +413,13 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
     else
         aux2 += 1;
 
-    strcat_s(fileNameOK, aux2);
+    //strcat_s(fileNameOK, aux2);
     //strcat(fileNameOK, aux2);
+#if defined(_WIN32) || defined(_WIN64)
+	strcat_s(fileNameOK, aux2);
+#else
+        strcat(fileNameOK, aux2);
+#endif
     if(!silence)
     {
     cout << "name : " << fileNameOK << endl;
