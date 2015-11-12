@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EMILI", "EMILI.vcxproj", "{0DCB7E83-DA5E-44F6-8B20-43EDA6A02BF7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "..\Test\Test.vcxproj", "{441DE2AD-7FAA-41EF-81D2-DE665C01C5B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -15,6 +17,10 @@ Global
 		{0DCB7E83-DA5E-44F6-8B20-43EDA6A02BF7}.Debug|Win32.Build.0 = Debug|Win32
 		{0DCB7E83-DA5E-44F6-8B20-43EDA6A02BF7}.Release|Win32.ActiveCfg = Release|Win32
 		{0DCB7E83-DA5E-44F6-8B20-43EDA6A02BF7}.Release|Win32.Build.0 = Release|Win32
+		{441DE2AD-7FAA-41EF-81D2-DE665C01C5B6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{441DE2AD-7FAA-41EF-81D2-DE665C01C5B6}.Debug|Win32.Build.0 = Debug|Win32
+		{441DE2AD-7FAA-41EF-81D2-DE665C01C5B6}.Release|Win32.ActiveCfg = Release|Win32
+		{441DE2AD-7FAA-41EF-81D2-DE665C01C5B6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

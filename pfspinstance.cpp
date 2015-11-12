@@ -1,6 +1,5 @@
-#define STAGES_IN_TWO_LINES //NEWCODE
-#define PAIR_VECTOR
-#define RELDUE_FIELD
+//#define RELDUE_FIELD
+//#define TWO_VECTORS
 //#define HORIZONTAL
 /***************************************************************************
  *   Copyright (C) 2012 by Jérémie Dubois-Lacoste   *
@@ -284,42 +283,6 @@ bool PfspInstance::readDataFromFile(char * fileName)
 			stages[0] = 1; // Yes, a ghost stage to keep with Federicos practice. With only one machine. 
 		}
 
-		/*
-		else
-		{
-			if ((readValue > 1) && (readValue < 12345))
-			{
-				nbStages = readValue;
-
-				vector< int > st(nbStages + 1);
-				stages = st;
-
-#ifdef STAGES_IN_TWO_LINES
-				int sum = 0;
-				for (int i = 1; i <= nbStages; i++)
-				{					
-					fileIn >> stages[i];
-					sum += stages[i];
-				}
-
-				//If machines in stages doesnt sum the amount of machines in the instance, instance is wrong. 
-				if (sum != nbMac) throw new runtime_error("Instance machines and machines per stage doesn't fit");
-#else
-				// We have first line like 50  15   3   That means a HFS((PM^5)(PM^5)(PM^5)) 50 jobs, 15 machines distributed in 3 stages
-				int machinesPerStage = nbMac / nbStages;
-
-				// If machines is not divisible by stages, instance is wrong. 
-				int mod = nbMac % nbStages;
-				if (mod != 0) throw new runtime_error("Instance machines and machines per stage doesn't fit");
-				
-				for (int i = 1; i <= nbStages; i++)
-					fileIn >> stages[i];
-#endif
-				stages[0] = 1; // Yes, a ghost stage to keep with Federicos practice. With only one machine. 
-			}
-			fileIn >> readValue;// Just to read first index of the table. 
-		}
-		*/
 		int nbRows = nbMac;
 		if (nbStages > 0) nbRows = nbStages;
 #pragma endregion NEWCODE
@@ -349,34 +312,30 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 #pragma region NEWCODE
 		int LBCmax = -1;
-		if (str == "LBCmax:")
+		if (str.compare("LBCmax:") == 0)
 		{
 			fileIn >> LBCmax;
 			fileIn >> str;
 		}
-#ifdef RELDUE_FIELD
-		for (j = 1; j <= nbJob; ++j)
+		// While str is not Reldue and not end of file... Ignore everything... 
+		while ((str.compare("Reldue") != 0) && (!fileIn.eof()))
 		{
-			fileIn >> readValue; // Release Date
-			releaseDates[j] = readValue;
-			fileIn >> readValue; // Due Date
-			dueDates[j] = readValue;
-			fileIn >> readValue; // Earliness Weights
-			weightsE[j] = readValue;
-			fileIn >> readValue; // Tardiness Weights
-			priority[j] = readValue;
+			fileIn >> str;
 		}
-#else
-		for (j = 1; j <= nbJob; ++j)
+		if (str.compare("Reldue") == 0)
 		{
-			fileIn >> readValue; // -1
-			fileIn >> readValue;
-			dueDates[j] = readValue;
-			fileIn >> readValue; // -1
-			fileIn >> readValue;
-            priority[j] = readValue;
+			for (j = 1; j <= nbJob; ++j)
+			{
+				fileIn >> readValue; // Release Date
+				releaseDates[j] = readValue;
+				fileIn >> readValue; // Due Date
+				dueDates[j] = readValue;
+				fileIn >> readValue; // Earliness Weights
+				weightsE[j] = readValue;
+				fileIn >> readValue; // Tardiness Weights
+				priority[j] = readValue;
+			}
 		}
-#endif
 #pragma endregion NEWCODE
         if(!silence)
         cout << "All is read from file." << std::endl;
@@ -486,18 +445,19 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 		if (nbStages > 0) nbRows = nbStages;
 #pragma endregion NEWCODE
 
-        allowMatrixMemory(nbJob, nbMac);
+        allowMatrixMemory(nbJob, nbRows);
 
         if(!silence){
             cout << "File " << fileName << " is now open, start to read..." << std::endl;
             cout << "Number of jobs : " << nbJob << std::endl;
-            cout << "Number of machines : " << nbMac << std::endl;
+			cout << "Number of machines : " << nbMac << std::endl;
+			cout << "Number of stages : " << nbStages << ". { " << printVector(stages) << " }" << std::endl;
             cout << "Memory allowed." << std::endl;
             cout << "Start to read matrix..." << std::endl;
         }
         for (j = 1; j <= nbJob; ++j)
         {
-            for (m = 1; m <= nbMac; ++m)
+			for (m = 1; m <= nbRows; ++m)
             {
                 if(!(j==1 && m==1))
                 {
@@ -511,8 +471,8 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
         fileIn >> str; // this is not read
         if(str.compare("SSD")==0)
         {
-            setUpTimes.resize(nbMac+1);
-            for(int i=0;i<nbMac+1;i++){
+			setUpTimes.resize(nbRows + 1);
+			for (int i = 0; i<nbRows + 1; i++){
                 setUpTimes[i].resize(nbJob+1);
                 for(int j=0;j<nbJob+1;j++)
                 {
@@ -520,7 +480,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
                 }
             }
 
-            for(int i=1; i< nbMac+1 ; i++)
+			for (int i = 1; i< nbRows + 1; i++)
             {
                 fileIn >> str; // this is not read
                 for(int j=1;j<nbJob+1;j++)
@@ -542,9 +502,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
         fileIn >> str; // this is not read
         if(str.compare("Reldue")==0)
         {
-
 #pragma region NEWCODE
-#ifdef RELDUE_FIELD
 			for (j = 1; j <= nbJob; ++j)
 			{
 				fileIn >> readValue; // Release Date
@@ -556,17 +514,6 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 				fileIn >> readValue; // Tardiness Weights
 				priority[j] = readValue;
 			}
-#else
-            for (j = 1; j <= nbJob; ++j)
-           {
-                fileIn >> readValue; // -1
-                fileIn >> readValue;
-                dueDates[j] = readValue;
-                fileIn >> readValue; // -1
-                fileIn >> readValue;
-                priority[j] = readValue;
-           }
-#endif
 #pragma endregion NEWCODE
         }
         }
@@ -1114,7 +1061,7 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
 	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
 
-#ifdef PAIR_VECTOR
+#ifdef TWO_VECTORS
 	// With the pair (jobId, PreviousStageFinishingTimes);
 	vector< pair< int, int > > jobAndFT;
 	for (int j = 0; j <= permSize; j++)
@@ -1139,7 +1086,7 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 	{
 		for (j = 1; j <= permSize; ++j)
 		{
-#ifdef PAIR_VECTOR
+#ifdef TWO_VECTORS
 			jobNumber = jobAndFT[j].first; // Get Job number
 			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
 #else
@@ -1156,13 +1103,13 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 
 			// Increase finishing times
 			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
-#ifdef PAIR_VECTOR
+#ifdef TWO_VECTORS
 			jobAndFT[j].second = endingTime;
 #else
 			PTFT[j] = endingTime;
 #endif
 		}
-#ifdef PAIR_VECTOR
+#ifdef TWO_VECTORS
 		// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
 		std::sort(jobAndFT.begin(), jobAndFT.end(),
 			[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
