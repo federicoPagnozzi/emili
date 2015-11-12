@@ -677,8 +677,8 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < int > > tail;
     const std::vector < std::vector < long int > >& pmatrix;
-    //const int nmac;
-	int nmac;
+    const int nmac;
+	//int nmac;
     void computeTAmatrices(std::vector<int>& sol);
     virtual Solution* computeStep(Solution *value);
 public:

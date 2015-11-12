@@ -108,6 +108,9 @@ static void finalise (int _)
 #ifndef NOSIG
     _Exit(EXIT_SUCCESS);
 #else
+	cout << "Found solution: ";
+	cout << s_cap->getSolutionRepresentation() << std::endl;
+	cin.get();
     exit(0);
 #endif
 }
