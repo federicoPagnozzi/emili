@@ -95,6 +95,13 @@ void PfspInstance::setStages(vector< int > &stages)
 	this->stages = stages;
 }
 
+std::string newToLower(string taget)
+{
+	string temp = taget;
+	std::transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
+	return temp;
+}
+
 std::string printVector(vector< int >& vec)
 {
 	std::string result = "";
@@ -312,17 +319,17 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 #pragma region NEWCODE
 		int LBCmax = -1;
-		if (str.compare("LBCmax:") == 0)
+		if ((newToLower(str).compare("lbcmax:") == 0))
 		{
 			fileIn >> LBCmax;
 			fileIn >> str;
 		}
 		// While str is not Reldue and not end of file... Ignore everything... 
-		while ((str.compare("Reldue") != 0) && (!fileIn.eof()))
+		while ((newToLower(str).compare("reldue") != 0) && (!fileIn.eof()))
 		{
 			fileIn >> str;
 		}
-		if (str.compare("Reldue") == 0)
+		if (newToLower(str).compare("reldue") == 0)
 		{
 			for (j = 1; j <= nbJob; ++j)
 			{
@@ -500,7 +507,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
         if(!fileIn.eof())
         {
         fileIn >> str; // this is not read
-        if(str.compare("Reldue")==0)
+		if (newToLower(str).compare("reldue") == 0)
         {
 #pragma region NEWCODE
 			for (j = 1; j <= nbJob; ++j)

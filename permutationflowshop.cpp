@@ -741,6 +741,16 @@ int emili::pfsp::HFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_so
 	return instance.computeHTCT(partial_solution, size);
 }
 
+int emili::pfsp::HFSP_WT::computeMS(std::vector<int> &partial_solution)
+{
+	return instance.computeHMS(partial_solution);
+}
+
+int emili::pfsp::HFSP_WT::computeMS(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHMS(partial_solution, size);
+}
+
 int emili::pfsp::HFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
 	return instance.computeHWT(partial_solution);

@@ -36,10 +36,10 @@ public:
     int getPriority(int job);
     std::vector< long int >& getDueDates();
     std::vector< long int >& getPriorities();
-    int computeMS(std::vector< int > & partial_solution);
+	virtual int computeMS(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
-    int computeMS(std::vector< int >& partial, int size);
+	virtual int computeMS(std::vector< int >& partial, int size);
     int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
@@ -77,6 +77,8 @@ class HFSP_WT : public PermutationFlowShop
 public:
 	HFSP_WT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
 	HFSP_WT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeMS(std::vector< int > & partial_solution);
+	virtual int computeMS(std::vector< int > & partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
