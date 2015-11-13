@@ -147,8 +147,8 @@
 #define ACCEPTANCE_TEST "testacc"
 #define ACCEPTANCE_SOA "soaacc"
 #define ACCEPTANCE_ALWAYS "always"
-#define INTENSIFY "intensify"
-#define DIVERSIFY "diversify"
+#define ACCEPTANCE_INTENSIFY "intensify"
+#define ACCEPTANCE_DIVERSIFY "diversify"
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
@@ -614,19 +614,19 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
 
         emili::accept_candidates accc;
         char* t1;
-        if(tm.checkToken(INTENSIFY))
+        if(tm.checkToken(ACCEPTANCE_INTENSIFY))
         {
             accc = emili::ACC_INTENSIFICATION;
-            t1 = INTENSIFY;
+            t1 = ACCEPTANCE_INTENSIFY;
         }
-        else if(tm.checkToken(DIVERSIFY))
+        else if(tm.checkToken(ACCEPTANCE_DIVERSIFY))
         {
-            t1 = DIVERSIFY;
+            t1 = ACCEPTANCE_DIVERSIFY;
             accc = emili::ACC_DIVERSIFICATION;
         }
         else
         {
-            std::cerr<< "'" << *tm << "' -> ERROR " << INTENSIFY << " or " << DIVERSIFY <<" was expected! " << std::endl;
+            std::cerr<< "'" << *tm << "' -> ERROR " << ACCEPTANCE_INTENSIFY << " or " << ACCEPTANCE_DIVERSIFY <<" was expected! " << std::endl;
             std::cout << info() << std::endl;
         exit(-1);
         }

@@ -2401,15 +2401,12 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
         long int c_max = c_cur+tail[1][end_position];
         for (int i = 2; i <= nmac; ++i) {
             int c_pm = head[i][end_position-1];
-            if(c_pm < c_cur)
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
-           ins_pos[i] =  c_cur;
+            c_cur += pmatrix[sol_i][i];
+            ins_pos[i] =  c_cur;
             long int c_can = (c_cur+tail[i][end_position]);
             c_max = c_max>c_can?c_max:c_can;
         }
@@ -2448,14 +2445,11 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -2559,7 +2553,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
         ins_pos[1] = c_cur;
 
         for (int i = 2; i <= nmac; ++i) {
-            int c_pm = head[i][end_position-1];
+           /* int c_pm = head[i][end_position-1];
             if(c_pm < c_cur)
             {
                 c_cur = c_cur + pmatrix[sol_i][i];
@@ -2567,7 +2561,13 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
             else
             {
                 c_cur = c_pm + pmatrix[sol_i][i];
+            }*/
+            int c_pm = head[i][end_position-1];
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
             }
+            c_cur += pmatrix[sol_i][i];
            ins_pos[i] =  c_cur;
 
         }
@@ -2603,14 +2603,11 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -2687,14 +2684,11 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
 
         for (int i = 2; i <= nmac; ++i) {
             int c_pm = head[i][end_position-1];
-            if(c_pm < c_cur)
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
            ins_pos[i] =  c_cur;
 
         }
@@ -2728,14 +2722,11 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -2761,7 +2752,9 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
 
 emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *value)
 {
+
     emili::iteration_increment();
+
     if(sp_iterations >= njobs)
     {
         return nullptr;
@@ -2797,16 +2790,12 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
 
         for (int i = 2; i <= nmac; ++i) {
             int c_pm = head[i][end_position-1];
-            if(c_pm < c_cur)
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
            ins_pos[i] =  c_cur;
-
         }
         long int pre_c_cur = c_cur;
         int wt = (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
@@ -2831,30 +2820,32 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             {
                 thresh++;
             }
-
             for(int k=end_position+1; k<= njobs; k++)
             {
                 int job = newsol[k];
                 pre_c_cur = ins_pos[1] + pmatrix[job][1];
                 ins_pos[1] = pre_c_cur;
+                //std::cout << "start critico " << std::endl;
                 for(int m=2; m <= nmac ; m++)
-                {
+                {                  
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
+            //    std::cout << "end critico " << std::endl;
+
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(job), 0L) * pis.getPriority(job));
               if(pre_wt > value_wt)
                 {
-                   value->setSolutionValue(pre_wt);
-                   return value;
+                  // value->setSolutionValue(pre_wt);
+                 //  double t = ((double)clock()-s)/CLOCKS_PER_SEC;
+                 // std::cout << "natx2 : " << t << std::endl;
+                  // return value;
+                  break;
                 }
 
             }
@@ -2915,14 +2906,11 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
 
         for (int i = 2; i <= nmac; ++i) {
             int c_pm = head[i][end_position-1];
-            if(c_pm < c_cur)
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
            ins_pos[i] =  c_cur;
 
         }
@@ -2959,14 +2947,11 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -3032,14 +3017,11 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
         ins_pos_t[1] = c_cur;
         for (int i = 2; i <= nmac; ++i) {
             int c_pm = head[i][end_position-1];
-            if(c_pm < c_cur)
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
            ins_pos[i] =  c_cur;
            ins_pos_t[i] = c_cur;
         }
@@ -3063,14 +3045,11 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
             for(int m=aplev+1; m <= nmac ; m++)
             {
                 int c_pm = ins_pos_t[m];
-                if(c_pm < pre_c_cur)
+                if(c_pm > pre_c_cur)
                 {
-                    pre_c_cur += pmatrix[job][m];
+                    pre_c_cur = c_pm;
                 }
-                else
-                {
-                    pre_c_cur = c_pm + pmatrix[job][m];
-                }
+                pre_c_cur += pmatrix[job][m];
                 ins_pos_t[m] = pre_c_cur;
             }
             wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -3089,14 +3068,11 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -3478,14 +3454,11 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
 
         for (int i = 2; i <= nmac; ++i) {
             int c_pm = head[i][ms_pos-1];
-            if(c_pm < c_cur)
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
             ins_pos[i] =  c_cur;
 
         }
@@ -3530,14 +3503,11 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < c_cur)
+                    if(c_pm > c_cur)
                     {
-                        c_cur += pmatrix[job][m];
+                        c_cur = c_pm;
                     }
-                    else
-                    {
-                        c_cur = c_pm + pmatrix[job][m];
-                    }
+                    c_cur += pmatrix[job][m];
                     ins_pos[m] = c_cur;
                 }
                 pre_wt += (std::max(c_cur - pis.getDueDate(job), 0L) * pis.getPriority(job));
@@ -3605,15 +3575,12 @@ emili::Solution* emili::pfsp::HaxtExchange::computeStep(emili::Solution *value)
         ins_pos[1] = c_cur;
 
         for (int i = 2; i <= nmac; ++i) {
-            int c_pm = head[i][ms_pos-1];
-            if(c_pm < c_cur)
+            int c_pm = head[i][end_position-1];
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
             ins_pos[i] =  c_cur;
 
         }
@@ -3657,14 +3624,11 @@ emili::Solution* emili::pfsp::HaxtExchange::computeStep(emili::Solution *value)
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -3730,15 +3694,12 @@ emili::Solution* emili::pfsp::EaxtExchange::computeStep(emili::Solution *value)
         ins_pos[1] = c_cur;
 
         for (int i = 2; i <= nmac; ++i) {
-            int c_pm = head[i][ms_pos-1];
-            if(c_pm < c_cur)
+            int c_pm = head[i][end_position-1];
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+            c_cur += pmatrix[sol_i][i];
             ins_pos[i] =  c_cur;
 
         }
@@ -3779,14 +3740,11 @@ emili::Solution* emili::pfsp::EaxtExchange::computeStep(emili::Solution *value)
                 for(int m=2; m <= nmac ; m++)
                 {
                     int c_pm = ins_pos[m];
-                    if(c_pm < pre_c_cur)
+                    if(c_pm > pre_c_cur)
                     {
-                        pre_c_cur += pmatrix[job][m];
+                        pre_c_cur = c_pm;
                     }
-                    else
-                    {
-                        pre_c_cur = c_pm + pmatrix[job][m];
-                    }
+                    pre_c_cur += pmatrix[job][m];
                     ins_pos[m] = pre_c_cur;
                 }
                 pre_wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
@@ -3882,14 +3840,11 @@ emili::Solution* emili::pfsp::OptExchange::computeStep(emili::Solution *value)
             for(int m=2; m <= nmac ; m++)
             {
                 int c_pm = ins_pos[m];
-                if(c_pm < pre_c_cur)
+                if(c_pm > pre_c_cur)
                 {
-                    pre_c_cur += pmatrix[job][m];
+                    pre_c_cur = c_pm;
                 }
-                else
-                {
-                    pre_c_cur = c_pm + pmatrix[job][m];
-                }
+                pre_c_cur += pmatrix[job][m];
                 ins_pos[m] = pre_c_cur;
             }
             wt += (std::max(pre_c_cur - pis.getDueDate(newsol[k]), 0L) * pis.getPriority(newsol[k]));
