@@ -2333,14 +2333,14 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
         long int c_max = c_cur+tail[1][end_position];
         for (int i = 2; i <= pis.getNmachines(); ++i) {
             int c_pm = head[i][end_position-1];
-            if(c_pm < c_cur)
+
+            if(c_pm > c_cur)
             {
-                c_cur = c_cur + pmatrix[sol_i][i];
+                c_cur = c_pm;
             }
-            else
-            {
-                c_cur = c_pm + pmatrix[sol_i][i];
-            }
+
+            c_cur = c_cur + pmatrix[sol_i][i];
+
             long int c_can = (c_cur+tail[i][end_position]);
 
             if(c_can>value->getSolutionValue())
