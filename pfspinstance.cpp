@@ -27,7 +27,7 @@
 #include <stdexcept>
 #include "pfspinstance.h"
 
-#define ENABLE_SSE 10
+//#define ENABLE_SSE 10
 
 #ifdef ENABLE_SSE
 #ifdef __SSE__
@@ -477,8 +477,9 @@ long int PfspInstance::computeWT(vector< int > & sol)
     z = _mm_setzero_ps();
     float res[4] __attribute__((aligned(16)));
 
-    for (j=1; j<= nbJob ; j+=4)
+    for (j=1; j< (nbJob-2) ; j+=4)
     {
+
         //store 4 values in a,b,p
         a = _mm_set_ps(previousMachineEndTime[j],previousMachineEndTime[j+1],previousMachineEndTime[j+2],previousMachineEndTime[j+3]);
         b = _mm_set_ps(dueDates[sol[j]],dueDates[sol[j+1]],dueDates[sol[j+2]],dueDates[sol[j+3]]);
@@ -498,6 +499,8 @@ long int PfspInstance::computeWT(vector< int > & sol)
         //final add
         wt += res[0];
     }
+
+
 
    /*
     __m128i a,b,p;
