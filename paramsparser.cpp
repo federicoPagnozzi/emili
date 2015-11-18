@@ -315,6 +315,10 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
 	else if (strcmp(t, PROBLEM_HFS_WT) == 0)
 	{
 		prs::printTab("Hybrid Flowshop weighted Tardiness");
+		//prob = static_cast<emili::pfsp::PermutationFlowShop*>(static_cast<emili::pfsp::HybridFlowShop*>(new emili::pfsp::HFSP_WT(i)));
+		/*emili::pfsp::HybridFlowShop* temp;
+		temp = new emili::pfsp::HFSP_WT(i);
+		prob = static_cast<emili temp;*/
 		prob = new emili::pfsp::HFSP_WT(i);
 	}
 	else if (strcmp(t, PROBLEM_HFS_WE) == 0)

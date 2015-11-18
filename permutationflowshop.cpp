@@ -721,6 +721,27 @@ int emili::pfsp::PFSP_E::computeObjectiveFunction(std::vector<int> &partial_solu
 
 #pragma region NEWCODE
 
+
+int emili::pfsp::HybridFlowShop::getNmachines()
+{
+	return instance.getNbStages();
+}
+
+std::vector<int> emili::pfsp::HybridFlowShop::getStages()
+{
+	return instance.getStages();
+}
+
+int emili::pfsp::HybridFlowShop::computeMS(std::vector< int > & partial_solution)
+{
+	return instance.computeHMS(partial_solution);
+}
+
+int emili::pfsp::HybridFlowShop::computeMS(std::vector< int > & partial_solution, int size)
+{
+	return instance.computeHMS(partial_solution, size);
+}
+
 int emili::pfsp::HFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
 	return instance.computeHMS(partial_solution);
@@ -780,7 +801,70 @@ int emili::pfsp::HFSP_WET::computeObjectiveFunction(std::vector<int> &partial_so
 {
 	return instance.computeHWET(partial_solution, size);
 }
+/*
+#pragma region SSD
 
+int emili::pfsp::HFSP_SDST_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHSDSTMS(partial_solution);
+}
+
+int emili::pfsp::HFSP_SDST_MS::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHSDSTMS(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_SDST_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHSDSTTCT(partial_solution);
+}
+
+int emili::pfsp::HFSP_SDST_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHSDSTTCT(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_SDST_WT::computeMS(std::vector<int> &partial_solution)
+{
+	return instance.computeHSDSTMS(partial_solution);
+}
+
+int emili::pfsp::HFSP_SDST_WT::computeMS(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHSDSTMS(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_SDST_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHSDSTWT(partial_solution);
+}
+
+int emili::pfsp::HFSP_SDST_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHSDSTWT(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_SDST_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHSDSTWE(partial_solution);
+}
+
+int emili::pfsp::HFSP_SDST_WE::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHSDSTWE(partial_solution, size);
+}
+
+int emili::pfsp::HFSP_SDST_WET::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHSDSTWET(partial_solution);
+}
+
+int emili::pfsp::HFSP_SDST_WET::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHSDSTWET(partial_solution, size);
+}
+#pragma endregion SSD
+*/
 #pragma endregion NEWCODE
 
 int emili::pfsp::PFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)

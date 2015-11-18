@@ -31,7 +31,7 @@ public:
 
     virtual double evaluateSolution(emili::Solution& solution);
     int getNjobs();
-    int getNmachines();
+    virtual int getNmachines();
     int getDueDate(int job);
     int getPriority(int job);
     std::vector< long int >& getDueDates();
@@ -49,10 +49,23 @@ public:
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
     virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
-    PfspInstance& getInstance();
+    virtual PfspInstance& getInstance();
 };
 
 #pragma region NEWCODE
+
+class HybridFlowShop : public PermutationFlowShop
+{
+public:
+	HybridFlowShop(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HybridFlowShop(char* instance_path) :PermutationFlowShop(instance_path) { }
+	int getNmachines();
+	virtual vector<int> getStages();
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size) = 0;
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution) = 0;
+	virtual int computeMS(std::vector< int > & partial_solution);
+	virtual int computeMS(std::vector< int >& partial, int size);
+};
 
 class HFSP_MS : public PermutationFlowShop
 {
@@ -72,11 +85,11 @@ public:
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
-class HFSP_WT : public PermutationFlowShop
+class HFSP_WT : public HybridFlowShop
 {
 public:
-	HFSP_WT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
-	HFSP_WT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	HFSP_WT(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
+	HFSP_WT(char* instance_path) :HybridFlowShop(instance_path) { }
 	virtual int computeMS(std::vector< int > & partial_solution);
 	virtual int computeMS(std::vector< int > & partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
@@ -100,8 +113,58 @@ public:
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
+/*
+#pragma region SDST
 
+class HFSP_SDST_MS : public PermutationFlowShop
+{
+public:
+	HFSP_SDST_MS(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_SDST_MS(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
 
+class HFSP_SDST_TCT : public PermutationFlowShop
+{
+public:
+	HFSP_SDST_TCT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_SDST_TCT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_SDST_WT : public PermutationFlowShop
+{
+public:
+	HFSP_SDST_WT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_SDST_WT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeMS(std::vector< int > & partial_solution);
+	virtual int computeMS(std::vector< int > & partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_SDST_WE : public PermutationFlowShop
+{
+public:
+	HFSP_SDST_WE(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_SDST_WE(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+class HFSP_SDST_WET : public PermutationFlowShop
+{
+public:
+	HFSP_SDST_WET(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
+	HFSP_SDST_WET(char* instance_path) :PermutationFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
+
+#pragma endregion SDST
+*/
 #pragma endregion NEWCODE
 class PFSP_WT: public PermutationFlowShop
 {
