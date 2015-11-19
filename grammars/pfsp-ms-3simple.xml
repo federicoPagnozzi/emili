@@ -262,7 +262,7 @@
 		<or/>
 		<pfsp:gls/>
 		<or/>
-		<pfsp:tabuf/>
+		<pfsp:stabuf/>
 	</pfsp:algos>
 
 	<pfsp:main>
