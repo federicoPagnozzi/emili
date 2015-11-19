@@ -81,10 +81,12 @@ prs::emili_header();
 #else
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
-#endif    
+#endif
+    solution = ls->getBestSoFar();    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     cout << "time : " << time_elapsed << std::endl;
     cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+    cerr << solution->getSolutionValue() << std::endl;
     //cerr << time_elapsed << " ";    
     cout << "Objective function value: " << solution->getSolutionValue() << endl;
     cout << "Found solution: ";
