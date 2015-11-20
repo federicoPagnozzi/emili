@@ -6,7 +6,9 @@
 #if defined( _WIN32) || defined( _WIN64)
 
 #define NOSIG 1
+#ifdef TIMER
 #include <Windows.h>
+#endif
 #else
 #include <sys/time.h>
 
@@ -107,11 +109,13 @@ static void finalise (int _)
     }
     std::cout << std::flush;
 #ifndef NOSIG
-    _Exit(EXIT_SUCCESS);
+	_Exit(EXIT_SUCCESS);
 #else
-//	cout << "Found solution: ";
-//	cout << s_cap->getSolutionRepresentation() << std::endl;
-//	cin.get();
+#ifndef TIMER
+	cout << "Found solution: ";
+	cout << s_cap->getSolutionRepresentation() << std::endl;
+	cin.get();
+#endif
     exit(0);
 #endif
 }
@@ -188,6 +192,7 @@ static inline void stopTimer()
     std::cout << "timer stopped" << std::endl;
 }
 
+#ifdef TIMER
 /*Callback function of the timer*/
 VOID CALLBACK timerCallBack(
   _In_opt_ LPVOID lpArgToCompletionRoutine,
@@ -203,7 +208,7 @@ VOID CALLBACK timerCallBack(
 //the thread that creates the timer and must wait for its signal
 DWORD WINAPI timerThread( LPVOID lpParam )
 {
-	HANDLE timer = CreateWaitableTimer(NULL,FALSE,"timer");
+	HANDLE timer = CreateWaitableTimer(NULL,FALSE,TEXT("timer"));
 	LARGE_INTEGER liDueTime;
 	__int64 qwDueTime;
 
@@ -247,6 +252,12 @@ static inline void setTimer(int maxTime)
 	}
     //std::cout << "timer set"
 }
+#else
+static inline void setTimer(int maxTime)
+{
+
+}
+#endif
 #endif
 
 /*
@@ -457,7 +468,7 @@ int emili::LocalSearch::getSearchTime()
 
 void emili::LocalSearch::setSearchTime(int time)
 {
-/*#ifdef NOSIG
+#if defined(NOSIG) && !defined(TIMER)
     if(time > 0)
     {
     emili::TimedTermination* tt = new emili::TimedTermination(time);
@@ -465,7 +476,7 @@ void emili::LocalSearch::setSearchTime(int time)
     termcriterion = tt;
     std::cout << "timer set " << time << " seconds " << std::endl;
     }
-#endif*/
+#endif
     this->seconds = time;
 }
 
@@ -976,12 +987,12 @@ bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *new
 {
     clock_t test = clock();
     float time = (test-start)/ (float)CLOCKS_PER_SEC;
-/*#ifdef NOSIG
+#if defined(NOSIG) && !defined(TIMER)
     if(time > secs)
     {
         finalise(2);
     }
-#endif*/
+#endif
     return !(time < secs);
 }
 
@@ -998,9 +1009,9 @@ void emili::TimedTermination::reset()
      }*/
     secs = _ratio;
     start = clock();
-/*#ifdef NOSIG
+#if defined(NOSIG) && !defined(TIMER)
     beginTime = start;
-#endif*/
+#endif
 }
 
 /*emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)
