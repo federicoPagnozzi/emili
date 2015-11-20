@@ -54,6 +54,8 @@ public:
 
 #pragma region NEWCODE
 
+// Due to the behaviour of normal Flowshop modules, we override getNmachines to get 
+// the number of stages. That in their internal behaviour will be what is expected. 
 class HybridFlowShop : public PermutationFlowShop
 {
 public:
@@ -67,20 +69,20 @@ public:
 	virtual int computeMS(std::vector< int >& partial, int size);
 };
 
-class HFSP_MS : public PermutationFlowShop
+class HFSP_MS : public HybridFlowShop
 {
 public:
-	HFSP_MS(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
-	HFSP_MS(char* instance_path) :PermutationFlowShop(instance_path) { }
+	HFSP_MS(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
+	HFSP_MS(char* instance_path) :HybridFlowShop(instance_path) { }
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
-class HFSP_TCT : public PermutationFlowShop
+class HFSP_TCT : public HybridFlowShop
 {
 public:
-	HFSP_TCT(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
-	HFSP_TCT(char* instance_path) :PermutationFlowShop(instance_path) { }
+	HFSP_TCT(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
+	HFSP_TCT(char* instance_path) :HybridFlowShop(instance_path) { }
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
@@ -90,26 +92,24 @@ class HFSP_WT : public HybridFlowShop
 public:
 	HFSP_WT(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
 	HFSP_WT(char* instance_path) :HybridFlowShop(instance_path) { }
-	virtual int computeMS(std::vector< int > & partial_solution);
-	virtual int computeMS(std::vector< int > & partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
-class HFSP_WE : public PermutationFlowShop
+class HFSP_WE : public HybridFlowShop
 {
 public:
-	HFSP_WE(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
-	HFSP_WE(char* instance_path) :PermutationFlowShop(instance_path) { }
+	HFSP_WE(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
+	HFSP_WE(char* instance_path) :HybridFlowShop(instance_path) { }
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
-class HFSP_WET : public PermutationFlowShop
+class HFSP_WET : public HybridFlowShop
 {
 public:
-	HFSP_WET(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
-	HFSP_WET(char* instance_path) :PermutationFlowShop(instance_path) { }
+	HFSP_WET(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
+	HFSP_WET(char* instance_path) :HybridFlowShop(instance_path) { }
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };

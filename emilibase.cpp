@@ -588,14 +588,14 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
         do{
             if(*bestSoFar > *incumbent)
                 *bestSoFar = *incumbent;
-
+		
             Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
             if(iter!=neighbh->end())
             {
                ithSolution = *iter;
                *incumbent = *ithSolution;
             }
-
+			
             for(;iter!=neighbh->end();++iter)
             {
                 ithSolution = *iter;

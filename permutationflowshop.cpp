@@ -721,7 +721,8 @@ int emili::pfsp::PFSP_E::computeObjectiveFunction(std::vector<int> &partial_solu
 
 #pragma region NEWCODE
 
-
+// Due to the behaviour of normal Flowshop modules, we override getNmachines to get 
+// the number of stages. That in their internal behaviour will be what is expected. 
 int emili::pfsp::HybridFlowShop::getNmachines()
 {
 	return instance.getNbStages();
@@ -760,16 +761,6 @@ int emili::pfsp::HFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_so
 int emili::pfsp::HFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
 	return instance.computeHTCT(partial_solution, size);
-}
-
-int emili::pfsp::HFSP_WT::computeMS(std::vector<int> &partial_solution)
-{
-	return instance.computeHMS(partial_solution);
-}
-
-int emili::pfsp::HFSP_WT::computeMS(std::vector<int> &partial_solution, int size)
-{
-	return instance.computeHMS(partial_solution, size);
 }
 
 int emili::pfsp::HFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
@@ -2262,7 +2253,7 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::AxtExchange::begin(Soluti
 
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspTransposeNeighborhood::begin(emili::Solution *base)
 {    
-    //sp_iterations = 1;
+    sp_iterations = 1;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -3818,10 +3809,9 @@ void emili::pfsp::PfspExchangeNeighborhood::reset()
 
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solution* value)
 {
-
     emili::iteration_increment();
     if(sp_iterations >= njobs)
-    {
+    {		
         return nullptr;
     }
     else
@@ -3829,10 +3819,10 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solu
         sp_iterations++;
         start_position = (start_position%njobs)+1;
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
-        int endpos = start_position<njobs?start_position+1:1;     
+        int endpos = start_position<njobs?start_position+1:1;   	
         std::swap(newsol[start_position],newsol[endpos]);        
         long int new_value = pis.computeObjectiveFunction(newsol);        
-        value->setSolutionValue(new_value);
+        value->setSolutionValue(new_value);		
         return value;
     }
 }
