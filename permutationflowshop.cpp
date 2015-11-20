@@ -1619,8 +1619,7 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-    int sizePartial;
-    int sops = solPartial.size()-1;
+    int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
         //std::cout << index << " " ;//<< std::endl;
@@ -1634,25 +1633,24 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
         sops--;
     }
 
-    sizePartial = solPartial.size();
     for(int l=0;l<removed.size();l++){
         k=removed[l];
         min = std::numeric_limits<int>::max();
 
-        for(int r=1; r<sizePartial; r++){
+        for(int r=1; r<sops; r++){
             if(std::find(tblist[k].begin(),tblist[k].end(),solPartial[r]) == tblist[k].end())
             {
             for(int h=1; h<r; h++)
                 solTMP[h]=solPartial[h];
             solTMP[r]=k;
-            for(int h=r+1; h<=sizePartial; h++)
+            for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
 
             //tmp=compute_total_wt(solTMP,sizePartial+1);
             //                  std::cout << "start perturb" << std::endl;
             //check why plus 1
-            tmp = instance.computeObjectiveFunction(solTMP,sizePartial);
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
 
             if(tmp<min){
                 min=tmp;
@@ -1661,7 +1659,7 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
             }
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sizePartial++;
+        sops++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -1684,7 +1682,6 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-    int sizePartial;
     int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
@@ -1694,7 +1691,6 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
         sops--;
     }
 
-    sizePartial = solPartial.size();
     //
     // Local search on partial
     //
@@ -1702,19 +1698,19 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
         k=removed[l];
         min = std::numeric_limits<int>::max();
 
-        for(int r=1; r<sizePartial; r++){
+        for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
                 solTMP[h]=solPartial[h];
             solTMP[r]=k;
-            for(int h=r+1; h<=sizePartial; h++)
+            for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
 
             //tmp=compute_total_wt(solTMP,sizePartial+1);
             //                  std::cout << "start perturb" << std::endl;
             //check why plus 1
-            tmp = instance.computeObjectiveFunction(solTMP,sizePartial);
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
 
             if(tmp<min){
                 min=tmp;
@@ -1723,7 +1719,7 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sizePartial++;
+        sops++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -1749,7 +1745,6 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-    int sizePartial;
     int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
@@ -1759,7 +1754,6 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
         sops--;
     }
 
-    sizePartial = solPartial.size();
 
 
     for(int l=0;l<removed.size();l++){
@@ -1767,14 +1761,14 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 
         min = std::numeric_limits<int>::max();
 
-        instance.computeTAmatrices(solPartial,head,tail,sizePartial);
+        instance.computeTAmatrices(solPartial,head,tail,sops+1);
 
-        for(int r=1; r<sizePartial; r++){
+        for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
                 solTMP[h]=solPartial[h];
             solTMP[r]=k;
-            for(int h=r+1; h<=sizePartial; h++)
+            for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
 
@@ -1807,7 +1801,7 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sizePartial++;
+        sops++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -1828,7 +1822,6 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-    int sizePartial;
     int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
@@ -1838,7 +1831,6 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
         sops--;
     }
 
-    sizePartial = solPartial.size();
 
 
     for(int l=0;l<removed.size();l++){
@@ -1846,14 +1838,14 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
 
         min = std::numeric_limits<int>::max();
 
-        instance.computeTAmatrices(solPartial,head,tail,sizePartial);
+        instance.computeTAmatrices(solPartial,head,tail,sops+1);
          std::vector< int >  ptb;
-        for(int r=1; r<sizePartial; r++){
+        for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
                 solTMP[h]=solPartial[h];
             solTMP[r]=k;
-            for(int h=r+1; h<=sizePartial; h++)
+            for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
 
@@ -1892,7 +1884,7 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
         /*TIE BREAKING FF*/
         int tb = ptb.size();
 
-            if(tb > 1 && l<sizePartial)
+            if(tb > 1 && l<sops)
             {
                 //tie breaker!
                 int bp = ptb[0];
@@ -1932,7 +1924,7 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
             }
         /*END TIE BREAKING*/
         solPartial.insert(solPartial.begin()+ind,k);
-        sizePartial++;
+        sops++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -1955,7 +1947,6 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-    int sizePartial;
     int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
@@ -1965,12 +1956,11 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
         sops--;
     }
 
-    sizePartial = solPartial.size();
     //
     // Local search on partial
     //
       emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sizePartial));
+      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
       s =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
       solPartial = s->getJobSchedule();
 
@@ -1978,19 +1968,19 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
         k=removed[l];
         min = std::numeric_limits<int>::max();
 
-        for(int r=1; r<sizePartial; r++){
+        for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
                 solTMP[h]=solPartial[h];
             solTMP[r]=k;
-            for(int h=r+1; h<=sizePartial; h++)
+            for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
 
             //tmp=compute_total_wt(solTMP,sizePartial+1);
             //                  std::cout << "start perturb" << std::endl;
             //check why plus 1
-            tmp = instance.computeObjectiveFunction(solTMP,sizePartial);
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
 
             if(tmp<min){
                 min=tmp;
@@ -1999,7 +1989,7 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sizePartial++;
+        sops++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -2022,7 +2012,6 @@ emili::Solution* emili::pfsp::RSLSPertubation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-    int sizePartial;
     int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
@@ -2032,25 +2021,24 @@ emili::Solution* emili::pfsp::RSLSPertubation::perturb(Solution *solution)
         sops--;
     }
 
-    sizePartial = solPartial.size();
     //
     // Local search on partial
     //
       emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sizePartial));
+      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
       s =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
       solPartial = s->getJobSchedule();
 
     for(int l=0;l<removed.size();l++){
         k=removed[l];
         min = std::numeric_limits<int>::max();
-        instance.computeTAmatrices(solPartial,head,tail,sizePartial);
-        for(int r=1; r<sizePartial; r++){
+        instance.computeTAmatrices(solPartial,head,tail,sops+1);
+        for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
                 solTMP[h]=solPartial[h];
             solTMP[r]=k;
-            for(int h=r+1; h<=sizePartial; h++)
+            for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
 
@@ -2082,7 +2070,7 @@ emili::Solution* emili::pfsp::RSLSPertubation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sizePartial++;
+        sops++;
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
