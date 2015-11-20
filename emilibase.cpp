@@ -188,6 +188,7 @@ static inline void stopTimer()
     std::cout << "timer stopped" << std::endl;
 }
 
+/*Callback function of the timer*/
 VOID CALLBACK timerCallBack(
   _In_opt_ LPVOID lpArgToCompletionRoutine,
   _In_     DWORD  dwTimerLowValue,
@@ -197,20 +198,23 @@ VOID CALLBACK timerCallBack(
 	finalise(2);
 }
 
-#define _SECOND 10000000
+#define _SECOND 10000000 // the timer on windows is set using 100 ns ticks
 
+//the thread that creates the timer and must wait for its signal
 DWORD WINAPI timerThread( LPVOID lpParam )
 {
 	HANDLE timer = CreateWaitableTimer(NULL,FALSE,"timer");
 	LARGE_INTEGER liDueTime;
 	__int64 qwDueTime;
 
-	qwDueTime = -max_time * _SECOND;
-	
+	/*
+		The time must be set or as the absolute time (UTC) since 01/01/1601 01:01 	
+		or as a negative value in 100 ns ticks and it must be stored in a 64bit variable.
+	*/
+	qwDueTime = -max_time * _SECOND;	
 	liDueTime.LowPart = (DWORD) ( qwDueTime & 0xFFFFFFFF );
 	liDueTime.HighPart = (LONG) ( qwDueTime >> 32 );
 	
-
 	if(SetWaitableTimer(timer,&liDueTime,0,timerCallBack,NULL,FALSE))
 	{
 
@@ -225,6 +229,7 @@ DWORD WINAPI timerThread( LPVOID lpParam )
 	return 1;
 }
 
+//creates and run the thread
 static inline void setTimer(int maxTime)
 {
 	max_time = maxTime;
