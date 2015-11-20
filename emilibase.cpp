@@ -6,6 +6,7 @@
 #if defined( _WIN32) || defined( _WIN64)
 
 #define NOSIG 1
+#include <Windows.h>
 #else
 #include <sys/time.h>
 
@@ -108,14 +109,14 @@ static void finalise (int _)
 #ifndef NOSIG
     _Exit(EXIT_SUCCESS);
 #else
-	cout << "Found solution: ";
-	cout << s_cap->getSolutionRepresentation() << std::endl;
-	cin.get();
+//	cout << "Found solution: ";
+//	cout << s_cap->getSolutionRepresentation() << std::endl;
+//	cin.get();
     exit(0);
 #endif
 }
 
-
+int max_time = -1 ;
 #ifndef NOSIG
 struct itimerval timer;
 struct itimerval termination_timer;
@@ -151,7 +152,7 @@ static inline bool isTimerUp()
               current_timer.it_value.tv_usec != 0);
 
 }
-int max_time = -1 ;
+
 static inline void setTimer(int maxTime)
 {
     keep_going = true;
@@ -187,8 +188,58 @@ static inline void stopTimer()
     std::cout << "timer stopped" << std::endl;
 }
 
+VOID CALLBACK timerCallBack(
+  _In_opt_ LPVOID lpArgToCompletionRoutine,
+  _In_     DWORD  dwTimerLowValue,
+  _In_     DWORD  dwTimerHighValue
+)
+{
+	finalise(2);
+}
+
+#define _SECOND 10000000
+
+DWORD WINAPI timerThread( LPVOID lpParam )
+{
+	HANDLE timer = CreateWaitableTimer(NULL,FALSE,"timer");
+	LARGE_INTEGER liDueTime;
+	__int64 qwDueTime;
+
+	qwDueTime = -max_time * _SECOND;
+	
+	liDueTime.LowPart = (DWORD) ( qwDueTime & 0xFFFFFFFF );
+	liDueTime.HighPart = (LONG) ( qwDueTime >> 32 );
+	
+
+	if(SetWaitableTimer(timer,&liDueTime,0,timerCallBack,NULL,FALSE))
+	{
+
+		keep_going = true;
+		std::cout << "timer set " << max_time << std::endl;
+		SleepEx(INFINITE,TRUE);
+	}
+	else
+	{
+		std::cout << "timer error" << std::endl;
+	}
+	return 1;
+}
+
 static inline void setTimer(int maxTime)
 {
+	max_time = maxTime;
+	emili::iteration_counter_zero();
+	DWORD thid;
+	HANDLE timer = CreateThread(NULL,0,timerThread,NULL,0,&thid);
+
+	if(timer != NULL)
+	{
+		std::cout << "Thread " << thid << " created" << std::endl;
+	}
+	else
+	{
+		std::cout << "Thread error" << std::endl;
+	}
     //std::cout << "timer set"
 }
 #endif
@@ -401,7 +452,7 @@ int emili::LocalSearch::getSearchTime()
 
 void emili::LocalSearch::setSearchTime(int time)
 {
-#ifdef NOSIG
+/*#ifdef NOSIG
     if(time > 0)
     {
     emili::TimedTermination* tt = new emili::TimedTermination(time);
@@ -409,7 +460,7 @@ void emili::LocalSearch::setSearchTime(int time)
     termcriterion = tt;
     std::cout << "timer set " << time << " seconds " << std::endl;
     }
-#endif
+#endif*/
     this->seconds = time;
 }
 
@@ -920,12 +971,12 @@ bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *new
 {
     clock_t test = clock();
     float time = (test-start)/ (float)CLOCKS_PER_SEC;
-#ifdef NOSIG
+/*#ifdef NOSIG
     if(time > secs)
     {
         finalise(2);
     }
-#endif
+#endif*/
     return !(time < secs);
 }
 
@@ -942,9 +993,9 @@ void emili::TimedTermination::reset()
      }*/
     secs = _ratio;
     start = clock();
-#ifdef NOSIG
+/*#ifdef NOSIG
     beginTime = start;
-#endif
+#endif*/
 }
 
 /*emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)
