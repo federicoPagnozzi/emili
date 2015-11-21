@@ -1474,7 +1474,7 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
     //std::cout << "partial size " << solPartial.size() << std::endl;
@@ -1526,7 +1526,6 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
-
     emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     //instance.evaluateSolution(*s);
     return s;
@@ -1538,7 +1537,7 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1602,7 +1601,7 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 {
     int index;
     int min;
-    int k,tmp=0,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1677,7 +1676,7 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
 {
     int index;
     int min;
-    int k,tmp=0,ind;
+    int k,tmp=0,ind=1;
     int nmac = instance.getNmachines();
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1801,7 +1800,7 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1867,7 +1866,7 @@ emili::Solution* emili::pfsp::RSLSPertubation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
