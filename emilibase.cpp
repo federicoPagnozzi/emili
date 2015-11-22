@@ -558,7 +558,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
         {
            ithSolution = *iter;
            *incumbent = *ithSolution;
-        }
+
 
         for(;iter!=neighbh->end();++iter)
         {
@@ -572,6 +572,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
 
         delete ithSolution;
         tabuMemory.forbid(incumbent);
+        }
     }while(!termcriterion->terminate(bestSoFar,incumbent));
     delete incumbent;
     return bestSoFar;
@@ -595,7 +596,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
             {
                ithSolution = *iter;
                *incumbent = *ithSolution;
-            }
+
 
             for(;iter!=neighbh->end();++iter)
             {
@@ -606,8 +607,9 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
                     break;
                 }
             }
-         delete ithSolution;
+         delete ithSolution;         
         tabuMemory.forbid(incumbent);
+        }
     }while(!termcriterion->terminate(bestSoFar,incumbent));
     delete incumbent;
     return bestSoFar;

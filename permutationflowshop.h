@@ -75,7 +75,8 @@ public:
     void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
 };
-
+/* CLASSIC PERMUTATION FLOW SHOP*/
+/*Weighted Tardiness*/
 class PFSP_WT: public PermutationFlowShop
 {
 public:
@@ -84,7 +85,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Weighted completion time*/
 class PFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -93,7 +94,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Total completion time*/
 class PFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -102,7 +103,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Weighted Earliness*/
 class PFSP_WE: public PermutationFlowShop
 {
 public:
@@ -111,7 +112,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Tardiness*/
 class PFSP_T: public PermutationFlowShop
 {
 public:
@@ -120,7 +121,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Earliness*/
 class PFSP_E: public PermutationFlowShop
 {
 public:
@@ -129,7 +130,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Make span*/
 class PFSP_MS: public PermutationFlowShop
 {
 public:
@@ -139,6 +140,10 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
+
+/* NO WAIT PERMUTATION FLOW SHOP*/
+
+/*Make span*/
 class NWPFSP_MS: public PermutationFlowShop
 {
 public:
@@ -147,7 +152,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Weighted Tardiness*/
 class NWPFSP_WT: public PermutationFlowShop
 {
 public:
@@ -156,7 +161,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Weighted Earliness*/
 class NWPFSP_WE: public PermutationFlowShop
 {
 public:
@@ -165,7 +170,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Tardiness*/
 class NWPFSP_T: public PermutationFlowShop
 {
 public:
@@ -174,7 +179,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Earliness*/
 class NWPFSP_E: public PermutationFlowShop
 {
 public:
@@ -183,7 +188,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Weighted completion time*/
 class NWPFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -192,7 +197,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Total completion time*/
 class NWPFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -202,6 +207,9 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
+/* NO IDLE PERMUTATION FLOW SHOP*/
+
+/*Make span*/
 class NIPFSP_MS: public PermutationFlowShop
 {
 public:
@@ -210,7 +218,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Make span with accelerations*/
 class NI_A_PFSP_MS: public PermutationFlowShop
 {
 protected:
@@ -222,7 +230,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Tardiness*/
 class NIPFSP_WT: public PermutationFlowShop
 {
 public:
@@ -231,7 +239,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Earliness*/
 class NIPFSP_WE: public PermutationFlowShop
 {
 public:
@@ -240,7 +248,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Tardiness*/
 class NIPFSP_T: public PermutationFlowShop
 {
 public:
@@ -249,7 +257,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Earliness*/
 class NIPFSP_E: public PermutationFlowShop
 {
 public:
@@ -258,7 +266,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted completion time*/
 class NIPFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -267,7 +275,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Total completion time*/
 class NIPFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -277,6 +285,9 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
 
+/*Sequence dependent setup times Permutation flowshop*/
+
+/*Make span*/
 class SDSTFSP_MS: public PermutationFlowShop
 {
 public:
@@ -285,7 +296,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Tardiness*/
 class SDSTFSP_WT: public PermutationFlowShop
 {
 public:
@@ -294,7 +305,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Earliness*/
 class SDSTFSP_WE: public PermutationFlowShop
 {
 public:
@@ -303,7 +314,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Tardiness*/
 class SDSTFSP_T: public PermutationFlowShop
 {
 public:
@@ -312,7 +323,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Earliness*/
 class SDSTFSP_E: public PermutationFlowShop
 {
 public:
@@ -321,7 +332,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Total completion time*/
 class SDSTFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -330,7 +341,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted completion time*/
 class SDSTFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -340,6 +351,10 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
 
+
+/*This class implements the Solution for the Permutation FlowShop problem
+  It uses a vector of ints for storing the job sequence.
+*/
 class PermutationFlowShopSolution: public emili::Solution
 {
 protected:
@@ -356,9 +371,11 @@ public:
 
     PermutationFlowShopSolution(double p_value,std::vector< int >& solution):emili::Solution(p_value),solution(solution)
     {}
-
+    /*Returns the job sequence that rapresents this solution*/
     virtual std::vector< int >& getJobSchedule();
+    /*Returns a printable version of the job sequence*/
     virtual std::string getSolutionRepresentation();
+    /*Implements the clone method of emili::Solution*/
     virtual emili::Solution* clone();
     virtual ~PermutationFlowShopSolution();
 };
@@ -371,7 +388,8 @@ protected:
 public:
     PfspInitialSolution(PermutationFlowShop& problem_instance):emili::InitialSolution(problem_instance),pis(problem_instance) { }
     virtual Solution* generateSolution();
-    /*The em*/
+    /*This method generates a new empty solution by instantiating an empty vector of int of the correct size
+    and setting the solution value to the biggest double number*/
     virtual Solution* generateEmptySolution();
 
 };
