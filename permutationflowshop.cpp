@@ -2137,13 +2137,13 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili:
 
         }
         end_position = ((end_position)%njobs)+1;
-        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
-
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
         long int new_value = pis.computeObjectiveFunction(newsol);
-        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+        value->setSolutionValue(new_value);
+        return value;
     }
 }
 
@@ -2170,15 +2170,14 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
             end_position = start_position;
 
         }
-        end_position = ((end_position)%njobs)+1;     
-        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
+        end_position = ((end_position)%njobs)+1;
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
         long int new_value = pis.computeObjectiveFunction(newsol);
-
-
-        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+        value->setSolutionValue(new_value);
+        return value;
     }
 
 }
