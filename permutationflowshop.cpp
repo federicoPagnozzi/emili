@@ -1593,7 +1593,7 @@ emili::Solution* emili::pfsp::NRZPertubation::perturb(Solution *solution)
 
     int sops = solPartial.size()-1;
     for(int k = 0; k < d; k++) {
-        int index = (emili::generateRandomNumber()%sops)+1;
+		int index = (emili::generateRandomNumber()%sops)+1;
         removed.push_back(solPartial[index]);
         solPartial.erase(solPartial.begin() + index);
         sops--;
