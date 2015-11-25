@@ -1613,7 +1613,7 @@ emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
     //std::cout << "partial size " << solPartial.size() << std::endl;
@@ -1675,7 +1675,7 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1738,7 +1738,7 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 {
     int index;
     int min;
-    int k,tmp=0,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1815,7 +1815,7 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
 {
     int index;
     int min;
-    int k,tmp=0,ind;
+    int k,tmp=0,ind=1;
     int nmac = instance.getNmachines();
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -1940,7 +1940,7 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -2005,7 +2005,7 @@ emili::Solution* emili::pfsp::RSLSPertubation::perturb(Solution *solution)
 
     int index;
     int min;
-    int k,tmp,ind;
+    int k,tmp=0,ind=1;
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
@@ -2275,13 +2275,13 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili:
 
         }
         end_position = ((end_position)%njobs)+1;
-        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
-
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
         long int new_value = pis.computeObjectiveFunction(newsol);
-        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+        value->setSolutionValue(new_value);
+    	return value;
     }
 }
 
@@ -2309,15 +2309,14 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
 
         }
         end_position = ((end_position)%njobs)+1;     
-        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule());
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
         long int new_value = pis.computeObjectiveFunction(newsol);
-
-
-        return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
-    }
+        value->setSolutionValue(new_value);
+    	return value;
+	}
 
 }
 
