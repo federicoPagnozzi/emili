@@ -97,7 +97,7 @@ std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& pro
 std::vector< int > inline rz_seed_sequence(std::vector< int > partial, std::vector< int > removed,emili::pfsp::PermutationFlowShop& prob)
 {
     std::vector< int > best(removed);
-    std:vector< int > best_sol(partial);
+    std::vector< int > best_sol(partial);
     best_sol.insert(best_sol.end(),removed.begin(),removed.end());
     int wbest = prob.computeObjectiveFunction(best_sol);
     int machines = prob.getNmachines();
@@ -355,8 +355,8 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
                     for(int i=2 ; i <= m; i++)
                     {
                         fil = std::max(head[i][ptbl-1],fil) + pmatrix[kk][i];
-                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]+pmatrix[sptbl][i]+max(filp-fil,0);
-                        //itdd += fil-head[i][ptbl-1]+pmatrix[sptbl][i]+max(filp-fil,0);
+                        itdd += fil-head[i][ptbl-1]-pmatrix[kk][i]+pmatrix[sptbl][i]+std::max(filp-fil,0);
+                        //itdd += fil-head[i][ptbl-1]+pmatrix[sptbl][i]+std::max(filp-fil,0);
                         filp = std::max(fil,filp) + pmatrix[sptbl][i];
                     }
                 }
@@ -385,7 +385,7 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
 std::vector< int > inline slack_construct(std::vector< int >& partial, int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
     int Ci = pis.computeMS(partial);
-    vector<bool> assigned(nbJobs+1, false);
+   std::vector<bool> assigned(nbJobs+1, false);
     for(std::vector< int >::const_iterator iter = partial.begin();iter !=  partial.end();++iter)
     {
         assigned[*iter] = true;
@@ -575,17 +575,17 @@ int emili::pfsp::PermutationFlowShop::computeMS(std::vector< int > & partial_sol
 
 
 
-int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime)
 {
     return instance.computeWT(sol,prevJob,job,previousMachineEndTime);
 }
 
-int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(vector<int> &sol, vector<vector<int> > &previousMachineEndTimeMatrix, int start_i, int end_i)
+int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> &sol,std::vector<std::vector<int> > &previousMachineEndTimeMatrix, int start_i, int end_i)
 {
     return instance.computeWT(sol,previousMachineEndTimeMatrix,start_i,end_i);
 }
 
-void emili::pfsp::PermutationFlowShop::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+void emili::pfsp::PermutationFlowShop::computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime)
 {
    return instance.computeWTs(sol,prevJob,job,previousMachineEndTime);
 }
@@ -974,8 +974,8 @@ emili::Solution* emili::pfsp::PfspRandomInitialSolution::generate()
 {
     int nbJobs = pis.getNjobs();
     std::vector< int >   sol(nbJobs+1, 0);
-  vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
-  vector<int > choosenNumber(nbJobs+1, 0);
+ std::vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
+ std::vector<int > choosenNumber(nbJobs+1, 0);
 
   int nbj;
   int rnd, i, j, nbFalse;
@@ -1009,8 +1009,8 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-    vector<bool> assigned(nbJobs+1, false);
-    vector<int> partial(nbJobs+1,0);
+   std::vector<bool> assigned(nbJobs+1, false);
+   std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1043,8 +1043,8 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
     int nbJobs = pis.getNjobs(); // number of jobs in the problem
     std::vector< int >  sol(nbJobs+1, 0); //vector that contains the solution
     int Ci  = 0;
-    vector<bool> assigned(nbJobs+1, false); // vector that indicates if a job it's already assigned to the partial solution
-    vector<int> partial(nbJobs+1,0); // partial solution
+   std::vector<bool> assigned(nbJobs+1, false); //std::vector that indicates if a job it's already assigned to the partial solution
+   std::vector<int> partial(nbJobs+1,0); // partial solution
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1063,7 +1063,7 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
             }
         }
         partial[var+1] = minJ; // updates the partial solution inserting at the end the job with the minimum earliness
-        assigned[minJ] = true; // updates the assigned vector
+        assigned[minJ] = true; // updates the assignedstd::vector
     }
     //int partial_w = pis.computeWT(partial);
     sol = neh2(partial,nbJobs,pis);
@@ -1135,7 +1135,7 @@ emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
     std::vector< int >  sol(nbJobs+1, 0);
     std::vector< int >&  p = ((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule();
     int Ci = pis.computeMS(p);
-    vector<bool> assigned(nbJobs+1, false);
+   std::vector<bool> assigned(nbJobs+1, false);
     for(std::vector< int >::const_iterator iter = p.begin();iter !=  p.end();++iter)
     {
         assigned[*iter] = true;
@@ -1209,8 +1209,8 @@ emili::Solution* emili::pfsp::SlackConstructor::constructFull()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-    vector<bool> assigned(nbJobs+1, false);
-    vector<int> partial(nbJobs+1,0);
+   std::vector<bool> assigned(nbJobs+1, false);
+   std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1380,8 +1380,8 @@ emili::Solution* emili::pfsp::NEHSlackConstructor::constructFull()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-    vector<bool> assigned(nbJobs+1, false);
-    vector<int> partial(nbJobs+1,0);
+   std::vector<bool> assigned(nbJobs+1, false);
+   std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1770,7 +1770,7 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
                         for(int i=2 ; i <= nmac; i++)
                         {
                             fil = std::max(head[i][ptbl-1],fil) + pmatrix[k][i];
-                            itdd += fil-head[i][ptbl-1]-pmatrix[k][i]+pmatrix[sptbl][i]+max(filp-fil,0);
+                            itdd += fil-head[i][ptbl-1]-pmatrix[k][i]+pmatrix[sptbl][i]+std::max(filp-fil,0);
                             filp = std::max(fil,filp) + pmatrix[sptbl][i];
                         }
                     }
@@ -1981,8 +1981,8 @@ void emili::pfsp::PfspSlackInitialSolution::slackInitial(std::vector<int> & sol)
 {
     int noj = pis.getNjobs();
     int Ci  = 0;
-    vector<bool> assigned(noj+1, false);
-    vector<int> partial(noj+1,0);
+   std::vector<bool> assigned(noj+1, false);
+   std::vector<int> partial(noj+1,0);
     for (int var = 0; var < noj; ++var) {
         int minJ = 0 ;
         int minE = 4*10e9;

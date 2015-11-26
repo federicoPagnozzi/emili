@@ -70,9 +70,9 @@ public:
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
 
     /*Old methods used by some particular and exceptional speed-ups*/
-    int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
-    int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
-    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    int computeObjectiveFunction(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
+    int computeObjectiveFunction(std::vector< int > & sol,std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+    void computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
 };
 /* CLASSIC PERMUTATION FLOW SHOP*/
@@ -353,7 +353,7 @@ public:
 
 
 /*This class implements the Solution for the Permutation FlowShop problem
-  It uses a vector of ints for storing the job sequence.
+  It uses astd::vector of ints for storing the job sequence.
 */
 class PermutationFlowShopSolution: public emili::Solution
 {
@@ -388,7 +388,7 @@ protected:
 public:
     PfspInitialSolution(PermutationFlowShop& problem_instance):emili::InitialSolution(problem_instance),pis(problem_instance) { }
     virtual Solution* generateSolution();
-    /*This method generates a new empty solution by instantiating an empty vector of int of the correct size
+    /*This method generates a new empty solution by instantiating an emptystd::vector of int of the correct size
     and setting the solution value to the biggest double number*/
     virtual Solution* generateEmptySolution();
 

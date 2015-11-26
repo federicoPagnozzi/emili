@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+//using namespace std;
 
 class PfspInstance{
   private:
@@ -92,112 +92,112 @@ class PfspInstance{
     bool readSeqDepDataFromFile(char* filename);
 
     /*Compute weighted tardiness*/
-    long int computeWT (vector< int > & sol);
+    long int computeWT (std::vector< int > & sol);
     /*Compute partial weighted tardiness*/
-    long int computeWT (vector< int > & sol, int size);
+    long int computeWT (std::vector< int > & sol, int size);
     /* Compute MakeSpan */
-    long int computeMS (vector<int> & sol);
+    long int computeMS (std::vector<int> & sol);
     /* Compute FlowTime*/
-    long int computeFT(vector<int> & sol);
-    long int computeFT(vector<int> &sol, int size);
+    long int computeFT(std::vector<int> & sol);
+    long int computeFT(std::vector<int> &sol, int size);
     /*Compute weighted completion times*/    
-    long int computeWCT (vector< int > & sol);
+    long int computeWCT (std::vector< int > & sol);
     /*Compute partial weighted completion times*/    
-    long int computeWCT (vector< int > & sol, int size);
+    long int computeWCT (std::vector< int > & sol, int size);
     /* Compute partial MakeSpan*/
-    long int computeMS(vector<int> &sol,int size);
+    long int computeMS(std::vector<int> &sol,int size);
     /*Compute weighted earliness*/
-    long int computeWE (vector< int > & sol);
+    long int computeWE (std::vector< int > & sol);
     /*Compute partial weighted earliness*/
-    long int computeWE (vector< int > & sol, int size);
+    long int computeWE (std::vector< int > & sol, int size);
     /*Compute tardiness*/
-    long int computeT(vector< int > & sol);
+    long int computeT(std::vector< int > & sol);
     /*Compute partial tardiness*/
-    long int computeT(vector< int > & sol, int size);
+    long int computeT(std::vector< int > & sol, int size);
     /*Compute earliness*/
-    long int computeE (vector< int > & sol);
+    long int computeE (std::vector< int > & sol);
     /*Compute partial earliness*/
-    long int computeE (vector< int > & sol, int size);
+    long int computeE (std::vector< int > & sol, int size);
     /*Compute total completion time*/
-    long int computeTCT(vector< int > &sol);
-    long int computeTCT(vector< int > &sol,int size);
+    long int computeTCT(std::vector< int > &sol);
+    long int computeTCT(std::vector< int > &sol,int size);
 
     /*Compute no wait make span*/
-    long int computeNWMS(vector< int > & sol);
+    long int computeNWMS(std::vector< int > & sol);
     /*Compute partial no wait make span*/
-    long int computeNWMS(vector<int> & sol, int size);
+    long int computeNWMS(std::vector<int> & sol, int size);
     /*Compute no wait weighted tardiness*/
-    long int computeNWWT(vector<int> &sol);
-    long int computeNWWT(vector<int> &sol,int size);
+    long int computeNWWT(std::vector<int> &sol);
+    long int computeNWWT(std::vector<int> &sol,int size);
     /*Compute no wait weighted earliness*/
-    long int computeNWWE(vector<int> &sol);
-    long int computeNWWE(vector<int> &sol,int size);
+    long int computeNWWE(std::vector<int> &sol);
+    long int computeNWWE(std::vector<int> &sol,int size);
     /*Compute no wait earliness*/
-    long int computeNWE(vector<int> &sol);
-    long int computeNWE(vector<int> &sol,int size);
+    long int computeNWE(std::vector<int> &sol);
+    long int computeNWE(std::vector<int> &sol,int size);
     /*Compute no wait tardiness*/
-    long int computeNWT(vector<int> &sol);
-    long int computeNWT(vector<int> &sol,int size);
+    long int computeNWT(std::vector<int> &sol);
+    long int computeNWT(std::vector<int> &sol,int size);
     /*Compute no wait total completion time*/
-    long int computeNWTCT(vector< int > &sol);
-    long int computeNWTCT(vector< int > &sol,int size);
-    long int computeNWWCT(vector< int > &sol);
-    long int computeNWWCT(vector< int > &sol,int size);
+    long int computeNWTCT(std::vector< int > &sol);
+    long int computeNWTCT(std::vector< int > &sol,int size);
+    long int computeNWWCT(std::vector< int > &sol);
+    long int computeNWWCT(std::vector< int > &sol,int size);
 
     /*Compute no idle make span*/
-    long int computeNIMS(vector<int> & sol);
+    long int computeNIMS(std::vector<int> & sol);
     /*Compute no idle partial make span*/
-    long int computeNIMS(vector<int> &sol, int size);
+    long int computeNIMS(std::vector<int> &sol, int size);
     /*Compute no idle make span iwthout computing the sums of machine 1 processing times*/
-    long int computeNIMS(vector<int> &sol, long int nims);
+    long int computeNIMS(std::vector<int> &sol, long int nims);
     /*Compute no idle weighted tardiness*/
-    long int computeNIWT(vector<int> &sol);
-    long int computeNIWT(vector<int> &sol,int size);
+    long int computeNIWT(std::vector<int> &sol);
+    long int computeNIWT(std::vector<int> &sol,int size);
     /*Compute no idle weighted earliness*/
-    long int computeNIWE(vector<int> &sol);
-    long int computeNIWE(vector<int> &sol,int size);
+    long int computeNIWE(std::vector<int> &sol);
+    long int computeNIWE(std::vector<int> &sol,int size);
     /*Compute no idle earliness*/
-    long int computeNIE(vector<int> &sol);
-    long int computeNIE(vector<int> &sol,int size);
+    long int computeNIE(std::vector<int> &sol);
+    long int computeNIE(std::vector<int> &sol,int size);
     /*Compute no idle tardiness*/
-    long int computeNIT(vector<int> &sol);
-    long int computeNIT(vector<int> &sol,int size);
+    long int computeNIT(std::vector<int> &sol);
+    long int computeNIT(std::vector<int> &sol,int size);
     /*Compute no idle total completion time*/
-    long int computeNITCT(vector< int > &sol);
-    long int computeNITCT(vector< int > &sol,int size);
-    long int computeNIWCT(vector< int > &sol);
-    long int computeNIWCT(vector< int > &sol,int size);
+    long int computeNITCT(std::vector< int > &sol);
+    long int computeNITCT(std::vector< int > &sol,int size);
+    long int computeNIWCT(std::vector< int > &sol);
+    long int computeNIWCT(std::vector< int > &sol,int size);
 
 
     /*Compute Make Span with sequence depedent setup times*/
-    long int computeSDSTMS(vector< int > &sol);
-    long int computeSDSTMS(vector< int > &sol,int size);
+    long int computeSDSTMS(std::vector< int > &sol);
+    long int computeSDSTMS(std::vector< int > &sol,int size);
     /*Compute sequence depedent setup times weighted earliness*/
-    long int computeSDSTWT(vector<int> &sol);
-    long int computeSDSTWT(vector<int> &sol,int size);
+    long int computeSDSTWT(std::vector<int> &sol);
+    long int computeSDSTWT(std::vector<int> &sol,int size);
     /*Compute sequence depedent setup times weighted earliness*/
-    long int computeSDSTWE(vector<int> &sol);
-    long int computeSDSTWE(vector<int> &sol,int size);
+    long int computeSDSTWE(std::vector<int> &sol);
+    long int computeSDSTWE(std::vector<int> &sol,int size);
     /*Compute sequence depedent setup times earliness*/
-    long int computeSDSTE(vector<int> &sol);
-    long int computeSDSTE(vector<int> &sol,int size);
+    long int computeSDSTE(std::vector<int> &sol);
+    long int computeSDSTE(std::vector<int> &sol,int size);
     /*Compute sequence depedent setup times tardiness*/
-    long int computeSDSTT(vector<int> &sol);
-    long int computeSDSTT(vector<int> &sol,int size);
+    long int computeSDSTT(std::vector<int> &sol);
+    long int computeSDSTT(std::vector<int> &sol,int size);
     /*Compute sequence depedent setup times total completion time*/
-    long int computeSDSTTCT(vector< int > &sol);
-    long int computeSDSTTCT(vector< int > &sol,int size);
+    long int computeSDSTTCT(std::vector< int > &sol);
+    long int computeSDSTTCT(std::vector< int > &sol,int size);
     /*Compute sequence depedent setup times weighted completion time*/
-    long int computeSDSTWCT(vector< int > &sol);
-    long int computeSDSTWCT(vector< int > &sol,int size);
+    long int computeSDSTWCT(std::vector< int > &sol);
+    long int computeSDSTWCT(std::vector< int > &sol,int size);
 
 
     /* Compute weighted tardines starting from an index*/
-    long int computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+    long int computeWT(std::vector< int > & sol, std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
 
-    long int computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    long int computeWT(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     //to compute WT and save the values for the job job
-    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    void computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     void setSilence(bool s);
 
     //Compute the earliest completion time starting from the beginning and starting from the end in order to apply taillard acceleration...
@@ -206,7 +206,7 @@ class PfspInstance{
     void computeTails(std::vector<int> &sol, std::vector < std::vector< std::vector< int > > >& tails);
 
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
-    int computeIdleTimeCoeff(vector<int>& prevJob, int job);
+    int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
 
