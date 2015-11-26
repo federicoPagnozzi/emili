@@ -72,18 +72,21 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
 }
 
 
-SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm) {
+SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
+                                      SAInitTemp *inittemp) {
 
     if (tm.checkToken(METROPOLIS)) {
-        double it = tm.getDecimal();
-        double ft = tm.getDecimal();
-        return new SAMetropolisAcceptance(it, ft);
+        return new SAMetropolisAcceptance(inittemp->get());
     } else if (tm.checkToken(BASICACC)) {
         return new SABasicAcceptance();
+    } else if (tm.checkToken(APPROXEXPACC)) {
+        return new SAApproxExpAcceptance(inittemp->get());
     } else if (tm.checkToken(GEOMACC)) {
-        double ia = tm.getDecimal();
         double rf = tm.getDecimal();
-        return new SAGeometricAcceptance(ia, rf);
+        return new SAGeometricAcceptance(inittemp->get(), rf);
+    } else if (tm.checkToken(GENSAACC)) {
+        double g = tm.getDecimal();
+        return new GeneralizedSAAcceptance(inittemp->get(), g);
     } else if (tm.checkToken(DETERMINISTICACC)) {
         double de = tm.getDecimal();
         return new SADeterministicAcceptance(de);
@@ -138,13 +141,11 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
         float b = tm.getDecimal();
         return new GeomCooling(a,b, it);
     } else if (tm.checkToken(MARKOV)) {
-        float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new MarkovCooling(a,b, it);
+        return new MarkovCooling(b, it);
     } else if (tm.checkToken(LOGCOOLING)) {
-        float a = tm.getDecimal();
         float b = tm.getDecimal();
-        return new LogCooling(a,b, it);
+        return new LogCooling(b, it);
     } else if (tm.checkToken(CONSTCOOLING)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();
@@ -184,6 +185,22 @@ SATempLength* SAQAPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
         int a = tm.getInteger();
         return new MaxAcceptedTempLength(a);
+    } else if (tm.checkToken(ARITMTEMPLEN)) {
+        int a = tm.getInteger();
+        int b = tm.getInteger();
+        return new ArithmeticTempLength(a, b);
+    } else if (tm.checkToken(GEOMTEMPLEN)) {
+        int a = tm.getInteger();
+        float b = tm.getDecimal();
+        return new GeomTempLength(a, b);
+    } else if (tm.checkToken(LOGTEMPLEN)) {
+        int a = tm.getInteger();
+        int b = tm.getInteger();
+        return new LogTempLength(a, b);
+    } else if (tm.checkToken(EXPTEMPLEN)) {
+        int a = tm.getInteger();
+        float b = tm.getDecimal();
+        return new ExpTempLength(a, b);
     } else if (tm.checkToken(NOTEMPLEN)) {
         return new NoTempLength();
     } else {
@@ -314,7 +331,7 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     emili::InitialSolution* initsol    = init(tm);
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol);
-    SAAcceptance*    acceptance = ACCEPTANCE(tm);
+    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
     SACooling*       cooling    = COOL(tm, inittemp);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp);
     cooling->setTempRestart(temprestart);

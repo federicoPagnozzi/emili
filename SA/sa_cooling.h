@@ -105,8 +105,8 @@ public:
 class MarkovCooling: public SACooling{
 public:
 
-    MarkovCooling(double a, double b, SAInitTemp *it):
-        SACooling(a, b, it) { }
+    MarkovCooling(double b, SAInitTemp *it):
+        SACooling(it->get(), b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -114,7 +114,7 @@ public:
         if (tempLength->isCoolingTime(counter)) {
             counter = 0;
             status->step = status->step + 1;
-            float tmp = (a / (b + std::log(temp)));
+            float tmp = (a / (b + std::log(status->step)));// instead of log(temp) + b
 
             return tempRestart->adjust(tmp);
 
@@ -131,8 +131,8 @@ public:
 class LogCooling: public SACooling {
 
 public:
-    LogCooling(double a, double b, SAInitTemp *it):
-        SACooling(a, b, it) { }
+    LogCooling(double b, SAInitTemp *it):
+        SACooling(it->get(), b, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -140,7 +140,7 @@ public:
         if (tempLength->isCoolingTime(counter)) {
             counter = 0;
             status->step = status->step + 1;
-            float tmp = (a / std::log(temp + b));
+            float tmp = (a / std::log(status->step + b)); // instead of temp + b
 
             return tempRestart->adjust(tmp);
 
@@ -153,7 +153,9 @@ public:
 
 
 /**
- * http://www.sciencedirect.com/science/article/pii/037722179090301Q#
+ * NO... http://www.sciencedirect.com/science/article/pii/037722179090301Q#
+ *
+ * Szu, Hartley - fast simulated annealing
  */
 class ConstantCooling: public SACooling {
 

@@ -40,7 +40,8 @@ protected:
      * @param  tm TokenManager
      * @return    SAAcceptance object
      */
-    SAAcceptance*    ACCEPTANCE(prs::TokenManager& tm);
+    SAAcceptance*    ACCEPTANCE(prs::TokenManager& tm,
+                                SAInitTemp *inittemp);
 
     /**
      * identify termination criterion

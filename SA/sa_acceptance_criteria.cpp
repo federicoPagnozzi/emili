@@ -1,7 +1,7 @@
 #include "sa_acceptance_criteria.h"
 
 emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solution,
-	                                            emili::Solution *new_solution) {
+                                                emili::Solution *new_solution) {
 
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
@@ -21,8 +21,50 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
 }
 
 
+emili::Solution* SAApproxExpAcceptance::accept(emili::Solution *current_solution,
+                                                emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+    
+    if (ns > cs) {
+        double prob = 1 - ((cs-ns) / temperature);
+
+        if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+            return current_solution;
+        }
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns);
+    }
+
+    return new_solution;
+
+}
+
+
+emili::Solution* GeneralizedSAAcceptance::accept(emili::Solution *current_solution,
+                                                 emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+    
+    if (ns > cs) {
+        double prob = std::exp(std::pow(std::abs(cs), g) * (cs-ns) / temperature);
+
+        if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+            return current_solution;
+        }
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns);
+    }
+
+    return new_solution;
+
+}
+
+
 emili::Solution* SABasicAcceptance::accept(emili::Solution *current_solution,
-	                                       emili::Solution *new_solution) {
+                                           emili::Solution *new_solution) {
 
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();

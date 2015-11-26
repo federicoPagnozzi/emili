@@ -106,6 +106,98 @@ public:
 
 
 /**
+ * @article{rose1990temperature,
+  title={Temperature measurement and equilibrium dynamics of simulated annealing placements},
+  author={Rose, Jonathan and Klebsch, Wolfgang and Wolf, Jurgen},
+  journal={Computer-Aided Design of Integrated Circuits and Systems, IEEE Transactions on},
+  volume={9},
+  number={3},
+  pages={253--259},
+  year={1990},
+  publisher={IEEE}
+}
+
+ */
+class ArithmeticTempLength: public SATempLength {
+
+protected:
+    int inc;
+
+public:
+    ArithmeticTempLength(int length, int _inc):
+        inc(_inc),
+        SATempLength(ARITMTEMPLEN, length) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length) {
+            length += inc;
+            return true;
+        }
+        return false;
+
+}; // ArithmeticTempLength
+
+
+class GeomTempLength: public SATempLength {
+
+protected:
+    float c;
+
+public:
+    GeomTempLength(int length, float _c):
+        c(_c),
+        SATempLength(GEOMTEMPLEN, length) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length) {
+            length  = length / c;
+            return true;
+        }
+        return false;
+
+}; // GeomTempLength
+
+
+class LogTempLength: public SATempLength {
+
+protected:
+    int c;
+
+public:
+    LogTempLength(int length, int _c):
+        c(_c),
+        SATempLength(LOGTEMPLEN, length) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length) {
+            length  = c / log(status->step);
+            return true;
+        }
+        return false;
+
+}; // LogTempLength
+
+
+class ExpTempLength: public SATempLength {
+
+protected:
+    float c;
+
+public:
+    ExpTempLength(int length, float _c):
+        c(_c),
+        SATempLength(EXPTEMPLEN, length) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length) {
+            length  = std::pow(length, 1/c);
+            return true;
+        }
+        return false;
+
+}; // ExpTempLength
+
+/**
  * No Temp Length option.
  */
 class NoTempLength: public SATempLength {

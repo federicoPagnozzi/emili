@@ -22,7 +22,6 @@ protected:
 
     float temperature;
     float start_temp;
-    float end_temp;
 
     std::string type;
 
@@ -37,12 +36,10 @@ public:
      * @param  final_temperature   final_temperature
      */
     SAAcceptance(std::string type,
-                 float initial_temperature,
-                 float final_temperature):
+                 float initial_temperature):
                 type(type),
                 temperature(initial_temperature),
                 start_temp(initial_temperature),
-                end_temp(final_temperature),
                 status(nullptr) { }
 
     /**
@@ -76,11 +73,9 @@ public:
 
 class SAMetropolisAcceptance: public SAAcceptance {
 public:
-    SAMetropolisAcceptance(float initial_temperature,
-                           float final_temperature):
+    SAMetropolisAcceptance(float initial_temperature):
                 SAAcceptance(METROPOLIS,
-                             initial_temperature,
-                             final_temperature) { }
+                             initial_temperature) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
@@ -88,11 +83,22 @@ public:
 }; // SAMetropolisAcceptance
 
 
+class SAApproxExpAcceptance: public SAAcceptance {
+public:
+    SAApproxExpAcceptance(float initial_temperature):
+                SAAcceptance(APPROXEXPACC,
+                             initial_temperature) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // SAApproxExpAcceptance
+
+
 class SABasicAcceptance: public SAAcceptance {
 public:
     SABasicAcceptance(void):
                 SAAcceptance(BASICACC,
-                             0,
                              0) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
@@ -100,6 +106,25 @@ public:
     
 }; // SABasicAcceptance
 
+
+/**
+ * Bohachevsky-Johnson-Stein, Generalized Simulated Annealing for function optimization
+ */
+class GeneralizedSAAcceptance: public SAAcceptance {
+
+protected:
+    float g;
+
+public:
+    GeneralizedSAAcceptance(float initial_temperature,
+                            float g):
+                SAAcceptance(GENSAACC,
+                             initial_temperature) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // GeneralizedSAAcceptance
 
 
 /**
@@ -120,8 +145,7 @@ public:
                           float reducing_factor):
                 rate(reducing_factor),
                 SAAcceptance(GEOMACC,
-                             initial_acceptance,
-                             0) { }
+                             initial_acceptance) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
@@ -147,7 +171,6 @@ public:
     SADeterministicAcceptance(float _delta):
                 delta(_delta),
                 SAAcceptance(DETERMINISTICACC,
-                             0,
                              0) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
@@ -164,7 +187,6 @@ class GreatDelugeAcceptance: public SAAcceptance {
 public:
     GreatDelugeAcceptance(void):
         SAAcceptance(GDAACC,
-                     0,
                      0) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
@@ -189,7 +211,6 @@ public:
     RecordToRecordAcceptance(float _deviation):
         deviation(_deviation),
         SAAcceptance(RTRACC,
-                     0,
                      0) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
@@ -211,7 +232,6 @@ public:
     LAHCAcceptance(int _tenure):
         tenure(_tenure),
         SAAcceptance(LAHCACC,
-                     0,
                      0) {
             cost_list = (float *)malloc(sizeof(float) * tenure);
             for (int i = 0 ; i < tenure ; i++) {
