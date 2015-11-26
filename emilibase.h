@@ -211,8 +211,11 @@ public:
            emili::Solution* line_;
            emili::Neighborhood* n;
        };
-       virtual NeighborhoodIterator begin(emili::Solution* base);
-       virtual NeighborhoodIterator end();
+
+     /*this method needs to be overidden if there are things that a neighborhood has to do or reset when begin is called*/
+     virtual NeighborhoodIterator begin(emili::Solution* base);
+
+     virtual NeighborhoodIterator end();
     /*this method returns a solution in the decided neighborhood
      * of the currentSolution */
     virtual Solution* step(Solution* currentSolution)=0;
