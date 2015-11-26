@@ -109,6 +109,8 @@
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
+#define NEIGHBORHOOD_HATX_EXCHANGE "hatxexchange"
+#define NEIGHBORHOOD_EATX_EXCHANGE "eatxexchange"
 #define NEIGHBORHOOD_OPT_EXCHANGE "oexchange"
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
@@ -145,8 +147,8 @@
 #define ACCEPTANCE_TEST "testacc"
 #define ACCEPTANCE_SOA "soaacc"
 #define ACCEPTANCE_ALWAYS "always"
-#define INTENSIFY "intensify"
-#define DIVERSIFY "diversify"
+#define ACCEPTANCE_INTENSIFY "intensify"
+#define ACCEPTANCE_DIVERSIFY "diversify"
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
@@ -612,19 +614,19 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
 
         emili::accept_candidates accc;
         char* t1;
-        if(tm.checkToken(INTENSIFY))
+        if(tm.checkToken(ACCEPTANCE_INTENSIFY))
         {
             accc = emili::ACC_INTENSIFICATION;
-            t1 = INTENSIFY;
+            t1 = ACCEPTANCE_INTENSIFY;
         }
-        else if(tm.checkToken(DIVERSIFY))
+        else if(tm.checkToken(ACCEPTANCE_DIVERSIFY))
         {
-            t1 = DIVERSIFY;
+            t1 = ACCEPTANCE_DIVERSIFY;
             accc = emili::ACC_DIVERSIFICATION;
         }
         else
         {
-            std::cerr<< "'" << *tm << "' -> ERROR " << INTENSIFY << " or " << DIVERSIFY <<" was expected! " << std::endl;
+            std::cerr<< "'" << *tm << "' -> ERROR " << ACCEPTANCE_INTENSIFY << " or " << ACCEPTANCE_DIVERSIFY <<" was expected! " << std::endl;
             std::cout << info() << std::endl;
         exit(-1);
         }
@@ -1039,6 +1041,16 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
         printTab( "Exchange neighborhood");
         neigh = new emili::pfsp::OptExchange(*istance);
     }
+    else if(tm.checkToken(NEIGHBORHOOD_HATX_EXCHANGE))
+       {
+           printTab( "Exchange neighborhood");
+           neigh = new emili::pfsp::HaxtExchange(*istance);
+       }
+       else if(tm.checkToken(NEIGHBORHOOD_EATX_EXCHANGE))
+       {
+           printTab( "Exchange neighborhood");
+           neigh = new emili::pfsp::EaxtExchange(*istance);
+       }
     else if(tm.checkToken(NEIGHBORHOOD_TRANSPOSE))
     {
         printTab( "Transpose neighborhood");
@@ -1066,17 +1078,17 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     }
     else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
     {
-        printTab( "Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Delta Evaluation Insert for Weighted Tardiness");
         neigh = new emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {
-        printTab( "Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Approximated Insert with Taillard Acceleration for Weighted Tardiness");
         neigh = new emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATAx_INSERT))
     {
-        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration for Weighted Tardiness");
         neigh = new emili::pfsp::NatxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA2x_INSERT))

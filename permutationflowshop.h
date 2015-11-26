@@ -5,22 +5,26 @@
 #include <iostream>
 #include <cstdlib>
 
-
+/*
+ *
+ *  Permutation Flow shop components for EMILI
+ *
+*/
 namespace emili
 {
 namespace pfsp
 {
-
+/*Permutation Flowshop problem implementation:
+  The class uses the implementation code originally from Jeremie ( see pfspinstance.h)
+*/
 class PermutationFlowShop: public emili::Problem
 {
 protected:
 PfspInstance instance;
 public:
-    PermutationFlowShop(PfspInstance& problemInstance):instance(problemInstance)
-    {
-
-    }
-
+    // Constructor that uses a PfspInstance implementation
+    PermutationFlowShop(PfspInstance& problemInstance):instance(problemInstance) { }
+    //Constructor that loads the instance from file path
     PermutationFlowShop(char* instance_path):instance()
     {
         /* Read data from file */
@@ -28,30 +32,51 @@ public:
             exit(-1);
         }
     }
-
+    //implementation of evaluate solution
     virtual double evaluateSolution(emili::Solution& solution);
+    /* This method returns the number of jobs*/
     int getNjobs();
+    /* This method returns the number of machines*/
     int getNmachines();
+    /* This method returns the due date given the job*/
     int getDueDate(int job);
+    /* This method returns the priority given the job*/
     int getPriority(int job);
+    /* This method returns the due dates for all the jobs*/
     std::vector< long int >& getDueDates();
+    /* This method returns the priorities for all the jobs*/
     std::vector< long int >& getPriorities();
+    /* This method returns the processing time matrix so that it can be used by particular implementations of neighborhoods*/
+    const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
+    /* this method returns the problem size (used by some timed termination criteria)*/
+    virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
+    /* This method returns the pfspinstance object that incapsulate the actual computation of the objective functions*/
+    PfspInstance& getInstance();
+    /*this method computes the makespan for the given solution.
+    * The method is here because there are some heuristics that use it.
+    */
     int computeMS(std::vector< int > & partial_solution);
+    int computeMS(std::vector< int >& partial, int size);
+    /*
+     * The classes that extends this class to implement a PFSP objective
+     * should implement these methods to calculate the objective functions
+    */
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
-    int computeMS(std::vector< int >& partial, int size);
-    int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
-    int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
-    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+
+    /*This methods compute the matrices to implement Taillard's acceleration*/
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
-    void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
-    const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
-    virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
-    PfspInstance& getInstance();
-};
 
+    /*Old methods used by some particular and exceptional speed-ups*/
+    int computeObjectiveFunction(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    int computeObjectiveFunction(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+    void computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime);
+    void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
+};
+/* CLASSIC PERMUTATION FLOW SHOP*/
+/*Weighted Tardiness*/
 class PFSP_WT: public PermutationFlowShop
 {
 public:
@@ -60,7 +85,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Weighted completion time*/
 class PFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -69,7 +94,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Total completion time*/
 class PFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -78,7 +103,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Weighted Earliness*/
 class PFSP_WE: public PermutationFlowShop
 {
 public:
@@ -87,7 +112,7 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 };
-
+/*Tardiness*/
 class PFSP_T: public PermutationFlowShop
 {
 public:
@@ -96,7 +121,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Earliness*/
 class PFSP_E: public PermutationFlowShop
 {
 public:
@@ -105,7 +130,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Make span*/
 class PFSP_MS: public PermutationFlowShop
 {
 public:
@@ -115,6 +140,10 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
+
+/* NO WAIT PERMUTATION FLOW SHOP*/
+
+/*Make span*/
 class NWPFSP_MS: public PermutationFlowShop
 {
 public:
@@ -123,7 +152,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Weighted Tardiness*/
 class NWPFSP_WT: public PermutationFlowShop
 {
 public:
@@ -132,7 +161,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Weighted Earliness*/
 class NWPFSP_WE: public PermutationFlowShop
 {
 public:
@@ -141,7 +170,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Tardiness*/
 class NWPFSP_T: public PermutationFlowShop
 {
 public:
@@ -150,7 +179,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Earliness*/
 class NWPFSP_E: public PermutationFlowShop
 {
 public:
@@ -159,7 +188,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Weighted completion time*/
 class NWPFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -168,7 +197,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
-
+/*Total completion time*/
 class NWPFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -178,6 +207,9 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
 
+/* NO IDLE PERMUTATION FLOW SHOP*/
+
+/*Make span*/
 class NIPFSP_MS: public PermutationFlowShop
 {
 public:
@@ -186,7 +218,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Make span with accelerations*/
 class NI_A_PFSP_MS: public PermutationFlowShop
 {
 protected:
@@ -198,7 +230,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Tardiness*/
 class NIPFSP_WT: public PermutationFlowShop
 {
 public:
@@ -207,7 +239,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Earliness*/
 class NIPFSP_WE: public PermutationFlowShop
 {
 public:
@@ -216,7 +248,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Tardiness*/
 class NIPFSP_T: public PermutationFlowShop
 {
 public:
@@ -225,7 +257,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Earliness*/
 class NIPFSP_E: public PermutationFlowShop
 {
 public:
@@ -234,7 +266,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted completion time*/
 class NIPFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -243,7 +275,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Total completion time*/
 class NIPFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -253,6 +285,9 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
 
+/*Sequence dependent setup times Permutation flowshop*/
+
+/*Make span*/
 class SDSTFSP_MS: public PermutationFlowShop
 {
 public:
@@ -261,7 +296,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Tardiness*/
 class SDSTFSP_WT: public PermutationFlowShop
 {
 public:
@@ -270,7 +305,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted Earliness*/
 class SDSTFSP_WE: public PermutationFlowShop
 {
 public:
@@ -279,7 +314,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Tardiness*/
 class SDSTFSP_T: public PermutationFlowShop
 {
 public:
@@ -288,7 +323,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Earliness*/
 class SDSTFSP_E: public PermutationFlowShop
 {
 public:
@@ -297,7 +332,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Total completion time*/
 class SDSTFSP_TCT: public PermutationFlowShop
 {
 public:
@@ -306,7 +341,7 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
-
+/*Weighted completion time*/
 class SDSTFSP_WCT: public PermutationFlowShop
 {
 public:
@@ -316,6 +351,10 @@ public:
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
 };
 
+
+/*This class implements the Solution for the Permutation FlowShop problem
+  It uses a vector of ints for storing the job sequence.
+*/
 class PermutationFlowShopSolution: public emili::Solution
 {
 protected:
@@ -332,9 +371,11 @@ public:
 
     PermutationFlowShopSolution(double p_value,std::vector< int >& solution):emili::Solution(p_value),solution(solution)
     {}
-
+    /*Returns the job sequence that rapresents this solution*/
     virtual std::vector< int >& getJobSchedule();
+    /*Returns a printable version of the job sequence*/
     virtual std::string getSolutionRepresentation();
+    /*Implements the clone method of emili::Solution*/
     virtual emili::Solution* clone();
     virtual ~PermutationFlowShopSolution();
 };
@@ -347,7 +388,8 @@ protected:
 public:
     PfspInitialSolution(PermutationFlowShop& problem_instance):emili::InitialSolution(problem_instance),pis(problem_instance) { }
     virtual Solution* generateSolution();
-    /*The em*/
+    /*This method generates a new empty solution by instantiating an empty vector of int of the correct size
+    and setting the solution value to the biggest double number*/
     virtual Solution* generateEmptySolution();
 
 };
@@ -662,13 +704,15 @@ public:
     NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
 };
 
-class Natx2Neighborhood: public emili::pfsp::NatxNeighborhood
+class Natx2Neighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
+    int thresh;
     int value_wt;
     virtual Solution* computeStep(Solution *value);
 public:
-    Natx2Neighborhood(PermutationFlowShop& problem):emili::pfsp::NatxNeighborhood(problem) { }
+    Natx2Neighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),thresh(problem.getNjobs()/2) { }
+    Natx2Neighborhood(PermutationFlowShop& problem, int starting_threshold):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),thresh(starting_threshold) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
@@ -764,12 +808,31 @@ protected:
     std::vector < std::vector < int > > head;
     const std::vector < std::vector < long int > >& pmatrix;
     const int nmac;
+    int thresh;
     virtual Solution* computeStep(Solution *value);
     virtual void computeHead(std::vector<int>& sol);
 public:
-    AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
+    AxtExchange(PermutationFlowShop& problem):emili::pfsp::PfspExchangeNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),thresh(problem.getNjobs()/2) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
+
+class HaxtExchange: public emili::pfsp::AxtExchange
+{
+protected:
+    int threshold;
+   virtual Solution* computeStep(Solution *value);
+public:
+HaxtExchange(PermutationFlowShop& problem):emili::pfsp::AxtExchange(problem),threshold(problem.getNjobs()/2) {}
+};
+
+class EaxtExchange: public emili::pfsp::AxtExchange
+{
+protected:
+   virtual Solution* computeStep(Solution *value);
+public:
+EaxtExchange(PermutationFlowShop& problem):emili::pfsp::AxtExchange(problem) {}
+};
+
 
 class OptExchange: public emili::pfsp::AxtExchange
 {

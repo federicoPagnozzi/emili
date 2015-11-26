@@ -3,10 +3,12 @@
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
-#ifdef _WIN32 OR _WIN64
 
+#if defined(_WIN32) || defined(_WIN64)
+//no signals compilation path for windows.
 #define NOSIG 1
 #else
+
 #include <sys/time.h>
 
 #endif
@@ -27,6 +29,7 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
  */
 
 #ifndef NOC11
+
 std::mt19937 generator;
 std::uniform_int_distribution<int> distribution;
 std::uniform_real_distribution<float> realdistr;
@@ -42,7 +45,7 @@ std::mt19937& emili::getRandomGenerator()
 }
 
 #else
-
+//Random generation compilation path for compilers that don't support c++11
 std::tr1::mt19937 generator;
 std::tr1::uniform_int<int> distribution;
 std::tr1::uniform_real<float> realdistr;
@@ -285,7 +288,7 @@ bool emili::Neighborhood::NeighborhoodIterator::operator !=(const emili::Neighbo
 }
 
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator++()
-{    
+{
     n->reverseLastMove(line_);
     line_->setSolutionValue(this->base_->getSolutionValue());
     this->line_ = n->computeStep(this->line_);
@@ -399,10 +402,13 @@ int emili::LocalSearch::getSearchTime()
 void emili::LocalSearch::setSearchTime(int time)
 {
 #ifdef NOSIG
+    if(time > 0)
+    {
     emili::TimedTermination* tt = new emili::TimedTermination(time);
     delete termcriterion;
     termcriterion = tt;
     std::cout << "timer set " << time << " seconds " << std::endl;
+    }
 #endif
     this->seconds = time;
 }
@@ -472,14 +478,15 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 
             *bestSoFar = *incumbent;
             Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
-            ithSolution = *iter;
+            ithSolution = *iter;            
+
             for(;iter!=end;++iter)
-            {
+            {               
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
                     break;
-                }                
-            } 
+                }                                
+            }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
         delete incumbent;
@@ -551,7 +558,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
         {
            ithSolution = *iter;
            *incumbent = *ithSolution;
-        }
+
 
         for(;iter!=neighbh->end();++iter)
         {
@@ -565,6 +572,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
 
         delete ithSolution;
         tabuMemory.forbid(incumbent);
+        }
     }while(!termcriterion->terminate(bestSoFar,incumbent));
     delete incumbent;
     return bestSoFar;
@@ -588,7 +596,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
             {
                ithSolution = *iter;
                *incumbent = *ithSolution;
-            }
+
 
             for(;iter!=neighbh->end();++iter)
             {
@@ -599,8 +607,9 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
                     break;
                 }
             }
-         delete ithSolution;
+         delete ithSolution;         
         tabuMemory.forbid(incumbent);
+        }
     }while(!termcriterion->terminate(bestSoFar,incumbent));
     delete incumbent;
     return bestSoFar;
@@ -670,7 +679,7 @@ emili::Solution* emili::VNRandomMovePertubation::perturb(Solution *solution)
         delete temp;
     }
 
-    if(!currentIteration <= numberOfIterations)
+    if(!(currentIteration <= numberOfIterations))
     {
         currentIteration=0;
         currentExplorer = (currentExplorer+1)%explorers.size();
