@@ -134,6 +134,7 @@ public:
             return true;
         }
         return false;
+    }
 
 }; // ArithmeticTempLength
 
@@ -154,6 +155,7 @@ public:
             return true;
         }
         return false;
+    }
 
 }; // GeomTempLength
 
@@ -174,6 +176,7 @@ public:
             return true;
         }
         return false;
+    }
 
 }; // LogTempLength
 
@@ -194,6 +197,7 @@ public:
             return true;
         }
         return false;
+    }
 
 }; // ExpTempLength
 

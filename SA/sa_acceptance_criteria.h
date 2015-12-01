@@ -83,6 +83,19 @@ public:
 }; // SAMetropolisAcceptance
 
 
+// connolly paper
+class SAMetropolisWithForcedAcceptance: public SAAcceptance {
+public:
+    SAMetropolisWithForcedAcceptance(float initial_temperature):
+                SAAcceptance(METROPOLISWFORCED,
+                             initial_temperature) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+}; // SAMetropolisWithForcedAcceptance
+
+
 class SAApproxExpAcceptance: public SAAcceptance {
 public:
     SAApproxExpAcceptance(float initial_temperature):

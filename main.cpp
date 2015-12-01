@@ -101,4 +101,6 @@ prs::emili_header();
     cout << endl;
 
     cerr << solution->getSolutionValue() << endl;
+
+    return 0;
 }

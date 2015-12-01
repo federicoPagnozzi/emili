@@ -27,8 +27,10 @@ public:
 
     emili::Solution *best;
     float best_cost;
+    float best_temp;
 
     bool keep_last;
+    bool force_accept;
 
     std::string tc_type; // termination criterion
     std::string ac_type; // acceptance criterion
@@ -45,8 +47,10 @@ public:
         tenure = 0;
         not_improved = 0;
         step = 0;
+        best_temp = 0;
 
         keep_last = false;
+        force_accept = false;
     }
 
 
@@ -76,10 +80,12 @@ public:
     }
 
 
-    void new_best_solution(emili::Solution* sol, float cost) {
+    void new_best_solution(emili::Solution* sol, float cost, float temp) {
         delete best;
         best = sol->clone();
         best_cost = cost;
+        best_temp = temp;
+        std::cout << cost << " " << best->getSolutionRepresentation() << std::endl;
         not_improved = 0;
     }
 

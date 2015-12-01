@@ -77,6 +77,8 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
 
     if (tm.checkToken(METROPOLIS)) {
         return new SAMetropolisAcceptance(inittemp->get());
+    } else if (tm.checkToken(METROPOLISWFORCED)) {
+        return new SAMetropolisWithForcedAcceptance(inittemp->get());
     } else if (tm.checkToken(BASICACC)) {
         return new SABasicAcceptance();
     } else if (tm.checkToken(APPROXEXPACC)) {
@@ -154,6 +156,11 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
         float a = tm.getDecimal();
         float b = tm.getDecimal();
         return new LundyMeesCooling(a,b, it);
+    } else if (tm.checkToken(Q87COOLING)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        int   m = tm.getInteger();
+        return new Q87Cooling(a, b, m, it);
     } else if (tm.checkToken(LINEARCOOLING)) {
         float a = tm.getDecimal();
         return new LinearCooling(a, it);
@@ -310,6 +317,12 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         int   te = tm.getInteger();
         float va = tm.getDecimal();
         return new SALocalMinReheat(it, te, va);
+    } else if (tm.checkToken(SALOWRATERESTARTBEST)) {
+        float va = tm.getDecimal();
+        return new SALowRateRestartToBest(it, va);
+    } else if (tm.checkToken(SALOCALMINRESTARTBEST)) {
+        int   te = tm.getInteger();
+        return new SALocalMinRestartToBest(it, te);
     } else if (tm.checkToken(SALOCALMINENHANCEDREHEAT)) {
         int   te = tm.getInteger();
         float va = tm.getDecimal();
@@ -352,7 +365,7 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
 
 }
 
-bool SAQAPParser::isParsable(string &problem)
+bool SAQAPParser::isParsable(std::string &problem)
 {
     /*if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_MS)==0)
     {*/
@@ -366,7 +379,7 @@ bool SAQAPParser::isParsable(string &problem)
 
 std::string SAQAPParser::info()
 {
-    ostringstream oss;
+    std::ostringstream oss;
     oss << "Usage:\n\n";
     oss << "EMILI INSTANCE_FILE_PATH PFS_PROBLEM <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]\n\n";
     /*oss << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_PFS_TCT<< " " <<PROBLEM_PFS_MS

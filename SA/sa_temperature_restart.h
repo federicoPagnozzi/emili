@@ -119,6 +119,28 @@ public:
 }; // SALowRateRestart
 
 
+class SALowRateRestartToBest: public SATempRestart {
+
+protected:
+    float rate_threshold;
+    float init_temp;
+
+public:
+    SALowRateRestartToBest(SAInitTemp *it,
+                           float _value):
+        rate_threshold(_value),
+        init_temp(it->get()),
+        SATempRestart(SALOWRATERESTARTBEST) { }
+
+    virtual float adjust(float temp) {
+        if ((1.0 * status->accepted / status->total_counter) < rate_threshold)
+            return status->best_temp;
+        return temp;
+    }
+
+}; // SALowRateRestartToBest
+
+
 class SALastRateRestart: public SATempRestart {
 
 protected:
@@ -259,6 +281,31 @@ public:
     }
 
 }; // SALocalMinReheat
+
+
+class SALocalMinRestartToBest: public SATempRestart {
+
+protected:
+    int tenure;
+
+public:
+    SALocalMinRestartToBest(SAInitTemp *it,
+                            int _tenure):
+        tenure(_tenure),
+        SATempRestart(SALOCALMINRESTARTBEST) { }
+
+    virtual float adjust(float temp) {
+        if (status->not_improved > tenure) {
+            return status->best_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SALocalMinRestartToBest
 
 
 /**

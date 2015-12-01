@@ -110,6 +110,8 @@ public:
 
     virtual void reset();
 
+    virtual emili::Solution* getBestSoFar() { return status->best;}
+
     virtual ~SimulatedAnnealing() {
       delete initialTemperature;
       delete acceptanceCriterion;

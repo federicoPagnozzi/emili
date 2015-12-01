@@ -61,6 +61,14 @@ public:
         tempLength = _tempLength;
     }
 
+    void setA(double _a) {
+        a = _a;
+    }
+
+    void setB(double _b) {
+        b = _b;
+    }
+
 }; // SACooling
 
 
@@ -324,6 +332,52 @@ public:
     }
 
 }; // NoCooling
+
+
+// connolly paper
+class Q87Cooling: public SACooling {
+
+protected:
+    int max_reject;
+    bool in_fixed_temp_state;
+
+public:
+    Q87Cooling(double a, double b, int _max_reject, SAInitTemp *it):
+        max_reject(_max_reject),
+        in_fixed_temp_state(false),
+        SACooling(a, b, it) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (status->force_accept) {
+            status->force_accept = false;
+        }
+
+        if (!in_fixed_temp_state              &&
+            tempLength->isCoolingTime(counter)  ) {
+
+            if (status->not_improved > max_reject) {
+                // stop cooling
+                status->force_accept = true;
+                setA(1);
+                setB(0);
+                in_fixed_temp_state = true;
+                return status->best_temp;
+            }
+
+            counter = 0;
+            status->step = status->step + 1;
+            float tmp = (temp / (a + b*temp));
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // Q87Cooling
 
 
 #endif
