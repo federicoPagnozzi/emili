@@ -225,6 +225,66 @@ public:
 
 
 /**
+ * t = avg(delta) / ln(desired init prob9)
+ */
+class RandomWalkInitProb: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    float init_prob;
+    int length;
+
+public:
+
+    RandomWalkInitProb(emili::InitialSolution* _is,
+                       float _init_prob,
+                       int _length):
+        is(_is),
+        init_prob(_init_prob),
+        length(_length) { }
+
+    virtual double set(double value) {
+        int i;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double bestcost = c2,
+               costsum = 0;
+
+        solution = s2;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+            costsum += abs(c2 - c1);
+
+            if (c2 < bestcost) {
+                delete solution;
+                solution = s2;
+                bestcost = c2;
+            } else {
+                delete s1;
+            }
+        }
+
+        if (solution != s2)
+            delete s2;
+
+        init_temp = value * (costsum / length) / std::log(init_prob);
+
+        return init_temp;
+    }
+
+}; // RandomWalkInitProb
+
+
+
+
+/**
  * see Moscato-Fontanari, Stochastic vs. deterministic update in SA
  *
  * to be considered later...

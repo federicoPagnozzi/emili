@@ -63,6 +63,13 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new RandomWalkAvgInitTemp(initsol, length);
         init_temp->set(value);
         return init_temp;
+    } else if (tm.checkToken(RANDOMWALKINITPROB)) {
+        float ip = tm.getDecimal();
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkInitProb(initsol, ip, length);
+        init_temp->set(value);
+        return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
