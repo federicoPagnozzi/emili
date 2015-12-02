@@ -7,6 +7,7 @@
 #include "generalParser.h"
 #include "setup.h"
 
+#include "irp.h"
 
 void g2c_info()
 {
@@ -14,8 +15,22 @@ void g2c_info()
     exit(0);
 }
 
+void test(){
+
+    emili::irp::InventoryRoutingProblem irp = emili::irp::InventoryRoutingProblem("Instance_V_1.1.xml");
+    irpSolution s = irp.getIrpInstance().backTrackingRandomSolution();
+    irp.getIrpInstance().checkFeasibility(s);
+    s.saveSolution("Solution_V_1.1.xml");
+
+}
+
 int main(int argc, char *argv[])
 {
+
+    test();
+    if(true==2)
+        cout<<"ciaooo";
+
 prs::emili_header();
     /* initialize random seed: */
     srand ( time(0) );
