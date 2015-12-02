@@ -6,7 +6,7 @@
 #include <algorithm>
 #include "generalParser.h"
 #include "setup.h"
-
+#include "irpparser.h"
 
 void g2c_info()
 {
@@ -60,7 +60,8 @@ prs::emili_header();
 
     //prs::ParamsParser p;
     //ps.registerBuilder(&p);
-
+    prs::irp::IrpParser p;
+    ps.registerBuilder(&p);
 
     ls = ps.parseParams();
    // testHeuritstic(ps.getInstance());
