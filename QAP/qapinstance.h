@@ -120,6 +120,11 @@ public:
         return make_symmetric_flag;
     }
 
+    void read_line(ifstream& s) {
+        char tmp[10000];
+        s.getline(tmp, sizeof(tmp));
+    }
+
 }; // QAPInstance
 
 #endif

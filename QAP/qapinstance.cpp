@@ -18,7 +18,8 @@ QAPInstance::QAPInstance(string QAPLibFile) {
     int count = 0, i = 0, j = 0;
     int tmp;
     string line;
-    ifstream infile(QAPLibFile);
+    ifstream infile;
+    infile.open(QAPLibFile);
 
     vector < string > str(1);
 
@@ -27,65 +28,27 @@ QAPInstance::QAPInstance(string QAPLibFile) {
 
 
     if (infile) {
-
-        while (getline(infile, line)) {
-
-            if (line.length() == 0) {
-                continue;
-            } else {
-                if (!is_n_set) {
-                    // reading n
-                    // also check if the best known value if present
-                    int firstrowcounter = 0, tmp;
-                    istringstream stream(line);
-                    while (stream >> tmp) {
-                        if (firstrowcounter == 0) {
-                            _n = tmp;
-                            is_n_set = true;
-                            _A.resize(_n);
-                            _B.resize(_n);
-                            str.resize(_n, "0");
-                            firstrowcounter = 1;
-                        } else if (firstrowcounter == 1) {
-                            _bkv = 1.0 * tmp;
-                            firstrowcounter = 2;
-                        }
-                    }
-                } else if(!is_a_set) {
-                    // reading A
-                    str[count++] = line;
-                    if (count == _n) {
-                        for (i = 0 ; i < _n ; i++) {
-                            istringstream stream(str[i]);
-                            for (j = 0 ; j < _n ; j++) {
-                                stream >> tmp;
-                                _A[i].push_back(tmp);
-                            }
-                        }
-                        is_a_set = true;
-                        count = 0;
-                        str.resize(1, "0");
-                        str.resize(_n, "0");
-                    }
-                } else {
-                    // reading B
-                    str[count++] = line;
-                    if (count == _n) {
-                        for (i = 0 ; i < _n ; i++) {
-                            istringstream stream(str[i]);
-                            for (j = 0 ; j < _n ; j++) {
-                                stream >> tmp;
-                                _B[i].push_back(tmp);
-                            }
-                        }
-                        count = 0;
-                    }
-                }
-            } // end if line.length == 0
-
-        } // end while (getline(...))
-
+        infile >> _n;
+        std::cout << _n << std::endl;
+        _A.resize(_n, vector< matrixEl >(_n));
+        _B.resize(_n, vector< matrixEl >(_n));
+        read_line(infile);
+        for (i = 0; i < _n; i++) {
+            for (j = 0; j < _n; j++) {
+                infile >> _A[i][j];
+            }
+        }
+        for (i = 0; i < _n; i++) {
+            for (j = 0; j < _n; j++) {
+                infile >> _B[i][j];
+            }
+        }
+    } else {
+        std::cout << "file missing or corrupted, cannot open, exiting" << std::endl;
+        exit(1);
     } // end if (infile)
+
+    infile.close();
 
     n = _n;
     bestKnownValue = _bkv;
