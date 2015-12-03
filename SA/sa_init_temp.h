@@ -131,8 +131,6 @@ public:
         double maxdelta,
                bestcost = c2;
 
-        solution = s2;
-
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
             s2 = is->generateSolution();
@@ -143,17 +141,10 @@ public:
                 maxdelta = abs(c2 - c1);
             }
 
-            if (c2 < bestcost) {
-                delete solution;
-                solution = s2;
-                bestcost = c2;
-            } else {
-                delete s1;
-            }
+            delete s1;
         }
 
-        if (solution != s2)
-            delete s2;
+        delete s2;
 
         std::cout << value*maxdelta << std::endl;
         getchar();
@@ -194,8 +185,6 @@ public:
         double bestcost = c2,
                costsum = 0;
 
-        solution = s2;
-
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
             s2 = is->generateSolution();
@@ -203,17 +192,10 @@ public:
             c2 = s2->getSolutionValue();
             costsum += abs(c2 - c1);
 
-            if (c2 < bestcost) {
-                delete solution;
-                solution = s2;
-                bestcost = c2;
-            } else {
-                delete s1;
-            }
+            delete s1;
         }
 
-        if (solution != s2)
-            delete s2;
+        delete s2;
 
         init_temp = value * costsum / length;
 
@@ -253,8 +235,6 @@ public:
         double bestcost = c2,
                costsum = 0;
 
-        solution = s2;
-
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
             s2 = is->generateSolution();
@@ -262,17 +242,10 @@ public:
             c2 = s2->getSolutionValue();
             costsum += abs(c2 - c1);
 
-            if (c2 < bestcost) {
-                delete solution;
-                solution = s2;
-                bestcost = c2;
-            } else {
-                delete s1;
-            }
+            delete s1;
         }
 
-        if (solution != s2)
-            delete s2;
+        delete s2;
 
         init_temp = value * (costsum / length) / std::log(init_prob);
 
