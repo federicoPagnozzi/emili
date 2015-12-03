@@ -168,7 +168,7 @@ float prs::TokenManager::getDecimal()
     char* t = peek();
     check(t,"A DECIMAL NUMBER WAS EXPECTED!");
     std::string num(t);
-    if(!std::none_of(num.begin(),num.end(),::isalpha))
+    if(std::none_of(num.begin(),num.end(),::isdigit))
         check(nullptr,"A DECIMAL NUMBER WAS EXPECTED!");
 
     float k = atof(t);
