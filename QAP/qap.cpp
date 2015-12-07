@@ -8,12 +8,12 @@ double qap::QAP::evaluateSolution(emili::Solution& solution) {
     return p;
 }
 
-int qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution) {
+double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution) {
     int i, j, n = this->getInstance()->getn();
-    float value = 0.0;
+    double value = 0.0;
 
-    std::vector<std::vector< int > > A = this->getInstance()->getA(); 
-    std::vector<std::vector< int > > B = this->getInstance()->getB();
+    std::vector<std::vector< long > > A = this->getInstance()->getA(); 
+    std::vector<std::vector< long > > B = this->getInstance()->getB();
 
     for (i = 0 ; i < n ; i++) {
         for (j = 0 ; j < n ; j++) {
@@ -27,6 +27,6 @@ int qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution) {
     return value;
 }
 
-int qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution, int size) {
+double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution, int size) {
     return this->computeObjectiveFunction(partial_solution);
 }

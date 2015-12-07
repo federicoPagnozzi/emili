@@ -114,22 +114,21 @@ emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolutio
         b = emili::generateRandomNumber() % n;
     } while (a == b);
 
-    float newcost = currentSolution->getSolutionValue() + computeDelta(a, b, x);
-
+    double newcost = currentSolution->getSolutionValue() + computeDelta(a, b, x);
     int c = x[a];
     x[a] = x[b];
     x[b] = c;
 
     QAPSolution* _cur = new QAPSolution(x);
-    // problem_instance.evaluateSolution(*_cur);
+    // double dddd = problem_instance.evaluateSolution(*_cur);
     _cur->setSolutionValue(newcost);
 
     return(_cur);
 }
 
 
-double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< matrixEl >& x) {
-    double delta = 0.0;
+double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< int >& x) {
+    double delta = 0;
 
     if (!symmetric) {
         /**
@@ -154,13 +153,14 @@ double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< matrixEl >& x
         for ( int k = 0 ; k < n ; k++ ) {
             if ( (k != u) && (k != v) ) {
                 delta += ( d[k][u] - d[k][v] ) * ( f[x[k]][x[v]] - f[x[k]][x[u]] );
-            }    
+            }
+        }
+
+        if ( !make_symmetric ) {
+            delta = delta * 2;
         }
     }
 
-    if ( !make_symmetric )
-        return delta * 2;
-    
     return delta;
 }
 
@@ -179,11 +179,11 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
     first_iter = false;
 
     QAPSolution* _value = (QAPSolution *)value;
-    vector< matrixEl >& x = _value->getSolution();
+    vector< int >& x = _value->getSolution();
 
-    float newcost = value->getSolutionValue() + computeDelta(start_position, end_position, x);
+    double newcost = value->getSolutionValue() + computeDelta(start_position, end_position, x);
 
-    matrixEl c = x[start_position];
+    int c = x[start_position];
     x[start_position] = x[end_position];
     x[end_position] = c;
 

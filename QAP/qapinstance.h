@@ -17,7 +17,7 @@ using namespace std;
 #define XOR(x,y) ((x && !y) || (!x && y))
 
 
-typedef int matrixEl;
+typedef long matrixEl;
 
 /**
  * QAPInstance
@@ -102,7 +102,7 @@ public:
 
     string toString(void);
 
-    float computeObjectiveFunction(QAPSolution* _solution);
+    double computeObjectiveFunction(QAPSolution* _solution);
 
     bool is_null_diagonal(void) {
         return null_diagonal_flag;

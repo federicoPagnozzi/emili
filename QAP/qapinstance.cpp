@@ -16,7 +16,7 @@ QAPInstance::QAPInstance(string QAPLibFile) {
     vector< vector< matrixEl > > _B;
 
     int count = 0, i = 0, j = 0;
-    int tmp;
+    long tmp;
     string line;
     ifstream infile;
     infile.open(QAPLibFile);
@@ -58,6 +58,8 @@ QAPInstance::QAPInstance(string QAPLibFile) {
     d_symmetric_flag = check_symmetry(_A);
     f_symmetric_flag = check_symmetry(_B);
 
+    std::cout << d_symmetric_flag << " " << f_symmetric_flag << std::endl;
+
     null_diagonal_flag = check_null_diagonal(_A);
     /* if one matrix has already null diagonal we need not check the other */
     if (!null_diagonal_flag)
@@ -76,9 +78,10 @@ QAPInstance::QAPInstance(string QAPLibFile) {
         }
    }
 
-    //A.resize(n);
+   bool dd_symmetric_flag = check_symmetry(_A);
+   bool  ff_symmetric_flag = check_symmetry(_B);
+
     A = _A;
-    //B.resize(n);
     B = _B;
 
 } // QAPInstance::QAPInstance(string QAPLibFile)
@@ -97,9 +100,11 @@ string QAPInstance::toString(void) {
 
     for (i = 0; i < this->n ; i++) {
         for (j = 0; j < this->n ; j++) {
-            stra.append(to_string(this->A_orig[i][j]));
+            //stra.append(to_string(this->A_orig[i][j]));
+            stra.append(to_string(this->A[i][j]));
             stra.append(" ");
-            strb.append(to_string(this->B_orig[i][j]));
+            //strb.append(to_string(this->B_orig[i][j]));
+            strb.append(to_string(this->B[i][j]));
             strb.append(" ");
         }
         stra.append("\n");
@@ -128,7 +133,7 @@ bool QAPInstance::check_null_diagonal(vector< vector< matrixEl > > matrix) {
           OUTPUT:        TRUE if null diagonal, otherwise FALSE
           (SIDE)EFFECTS: none
     */
-    int   i;
+    long int   i;
   
     for ( i = 0 ; i < n ; i++ ) {
         if( matrix[i][i] != 0 ) {
@@ -159,7 +164,7 @@ bool QAPInstance::check_symmetry(vector< vector< matrixEl > > matrix) {
 
 
 vector< vector< matrixEl > > QAPInstance::make_matrix_symmetric(vector< vector< matrixEl > > matrix) {
-    int i, j, help;
+    long int i, j, help;
 
     vector< vector< matrixEl > > m2 = matrix;
 
@@ -175,10 +180,10 @@ vector< vector< matrixEl > > QAPInstance::make_matrix_symmetric(vector< vector< 
 }
 
 
-float QAPInstance::computeObjectiveFunction(QAPSolution* solution) {
+double QAPInstance::computeObjectiveFunction(QAPSolution* solution) {
 
     int i, j;
-    float value = 0.0;
+    double value = 0.0;
     vector< int > sol = solution->getSolution();
 
     for (i = 0 ; i < this->n ; i++) {

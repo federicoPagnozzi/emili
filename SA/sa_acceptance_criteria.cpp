@@ -5,6 +5,7 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
 
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
+
     
     if (ns > cs) {
         double prob = std::exp((cs-ns) / temperature);

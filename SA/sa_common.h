@@ -17,7 +17,7 @@ public:
     int    total_counter;
     int    accepted;
     int    curr_accepted;
-    float  rate;
+    double  rate;
     short *last_accepted;
     int    tenure;
     int    index;
@@ -26,8 +26,8 @@ public:
     int    not_improved;
 
     emili::Solution *best;
-    float best_cost;
-    float best_temp;
+    double best_cost;
+    double best_temp;
 
     bool keep_last;
     bool force_accept;
@@ -80,17 +80,17 @@ public:
     }
 
 
-    void new_best_solution(emili::Solution* sol, float cost, float temp) {
+    void new_best_solution(emili::Solution* sol, double cost, double temp) {
         delete best;
         best = sol->clone();
         best_cost = cost;
         best_temp = temp;
-        std::cout << cost << " " << best->getSolutionRepresentation() << std::endl;
+        std::cout << std::fixed << cost << " " << best->getSolutionRepresentation() << std::endl;
         not_improved = 0;
     }
 
 
-    void accepted_sol(float cost) {
+    void accepted_sol(double cost) {
         accepted += 1;
         curr_accepted += 1;
         counter = 0;

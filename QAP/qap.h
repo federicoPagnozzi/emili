@@ -29,8 +29,8 @@ public:
     }
 
     virtual double evaluateSolution(emili::Solution& solution);
-    virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
-    virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
+    virtual double computeObjectiveFunction(std::vector< int > & partial_solution);
+    virtual double computeObjectiveFunction(std::vector< int > & partial_solution, int size);
 
 }; // QAP
 

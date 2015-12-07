@@ -99,7 +99,7 @@ protected:
     int sp_iterations;
     int ep_iterations;
     std::vector < int > current;
-    int current_value;
+    double current_value;
 
     QAPInstance* instance;
 
@@ -115,7 +115,7 @@ protected:
     virtual emili::Solution* computeStep(emili::Solution* value);
     virtual void reverseLastMove(emili::Solution* step);
 
-    double computeDelta(int u, int v, vector< matrixEl >& x);
+    double computeDelta(int u, int v, vector< int >& x);
 
 public:
     QAPExchangeNeighborhood(qap::QAP& problem_instance):

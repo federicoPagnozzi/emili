@@ -146,9 +146,6 @@ public:
 
         delete s2;
 
-        std::cout << value*maxdelta << std::endl;
-        getchar();
-
         init_temp = value * maxdelta;
 
         return init_temp;
