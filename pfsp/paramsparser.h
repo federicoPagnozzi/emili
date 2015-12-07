@@ -1,6 +1,6 @@
 #ifndef PARAMSPARSER_H
 #define PARAMSPARSER_H
-#include "generalParser.h"
+#include "../generalParser.h"
 #include "permutationflowshop.h"
 namespace prs
 {

@@ -318,7 +318,7 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
 
 std::string prs::ParamsParser::info()
 {
-    ostringstream oss;
+    std::ostringstream oss;
     oss << "Usage:\n\n";
     oss << "EMILI INSTANCE_FILE_PATH PFS_PROBLEM <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]\n\n";
     oss << "PROBLEM               = "<<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_PFS_TCT<< " " <<PROBLEM_PFS_MS
@@ -1109,7 +1109,7 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
         if(app_grade >= istance->getNmachines())
         {
             app_grade = istance->getNmachines() - 1 ;
-            ostringstream oss;
+            std::ostringstream oss;
             oss << "WARNING: the level of approximation cannot be greater or equal the number of machines. the level is set to: " << app_grade;
             printTab(oss.str().c_str());
         }
@@ -1220,7 +1220,7 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
     std::string pro(problem_type);
     std::string sdst("SDSTPFS");
 
-    if(pro.find(sdst) != string::npos)
+    if(pro.find(sdst) != std::string::npos)
     {
         ok = i.readSeqDepDataFromFile(tm.tokenAt(1));
     }
@@ -1249,7 +1249,7 @@ emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
     return local;
 }
 
-bool prs::ParamsParser::isParsable(string &problem)
+bool prs::ParamsParser::isParsable(std::string &problem)
 {
     if(strcmp(problem.c_str(),PROBLEM_PFS_WT)==0)
     {
@@ -1360,7 +1360,7 @@ bool prs::ParamsParser::isParsable(string &problem)
 
 std::string prs::ParamsParser::availableProblems() const
 {
-    ostringstream oss;
+    std::ostringstream oss;
     oss <<PROBLEM_PFS_WT<< " " <<PROBLEM_PFS_WE<< " " <<PROBLEM_PFS_TCT<< " " <<PROBLEM_PFS_MS
        << " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " "<<PROBLEM_NWPFS_WT<< " " <<PROBLEM_NWPFS_WE
        << " " <<PROBLEM_NWPFS_TCT<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_NWPFS_T<< " " <<PROBLEM_NWPFS_E

@@ -1,6 +1,6 @@
 #ifndef PERMUTATIONFLOWSHOP_H
 #define PERMUTATIONFLOWSHOP_H
-#include "emilibase.h"
+#include "../emilibase.h"
 #include "pfspinstance.h"
 #include <iostream>
 #include <cstdlib>

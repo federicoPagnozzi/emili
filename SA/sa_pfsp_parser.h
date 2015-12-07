@@ -15,12 +15,78 @@
 
 #include "../emilibase.h"
 #include "../generalParser.h"
-#include "../permutationflowshop.h"
+#include "../pfsp/permutationflowshop.h"
+
+/* Permutation flowshop*/
+#define PROBLEM_PFS_WT "PFSP_WT"
+#define PROBLEM_PFS_WE "PFSP_WE"
+#define PROBLEM_PFS_TCT "PFSP_TCT"
+#define PROBLEM_PFS_T "PFSP_T"
+#define PROBLEM_PFS_E "PFSP_E"
+#define PROBLEM_PFS_WCT "PFSP_WCT"
+#define PROBLEM_PFS_MS "PFSP_MS"
+
+/* no wait permutation flowshop*/
+#define PROBLEM_NWPFS_MS "NWPFSP_MS"
+#define PROBLEM_NWPFS_WT "NWPFSP_WT"
+#define PROBLEM_NWPFS_WE "NWPFSP_WE"
+#define PROBLEM_NWPFS_TCT "NWPFSP_TCT"
+#define PROBLEM_NWPFS_T "NWPFSP_T"
+#define PROBLEM_NWPFS_E "NWPFSP_E"
+
+/* no idle permutation flowshop*/
+#define PROBLEM_NIPFS_MS "NIPFSP_MS"
+#define PROBLEM_NIPFS_WT "NIPFSP_WT"
+#define PROBLEM_NIPFS_WE "NIPFSP_WE"
+#define PROBLEM_NIPFS_TCT "NIPFSP_TCT"
+#define PROBLEM_NIPFS_T "NIPFSP_T"
+#define PROBLEM_NIPFS_E "NIPFSP_E"
+
+/* Sequence dependent setup times */
+#define PROBLEM_SDSTPFS_MS "SDSTPFS_MS"
+
+
+/* initial solution heuristics */
+#define INITIAL_RANDOM "random"
+#define INITIAL_SLACK "slack"
+#define INITIAL_LIT "lit"
+#define INITIAL_RZ "rz"
+#define INITIAL_NRZ "nrz"
+#define INITIAL_NRZ2 "nrz2"
+#define INITIAL_LR "lr"
+#define INITIAL_NLR "nlr"
+#define INITIAL_MNEH "mneh"
+#define INITIAL_WNSLACK "nwslack"
+
+/* Termination criteria*/
+#define TERMINATION_MAXSTEPS "maxstep"
+#define TERMINATION_TIME "time"
+#define TERMINATION_LOCMIN "locmin"
+#define TERMINATION_ITERA "iteration"
+#define TERMINATION_WTRUE "true"
+#define TERMINATION_SOA "soater"
+
+/* permutation flowshop neighborhoods*/
+#define NEIGHBORHOOD_INSERT "insert"
+#define NEIGHBORHOOD_BACK_INSERT "binsert"
+#define NEIGHBORHOOD_FORW_INSERT "finsert"
+#define NEIGHBORHOOD_TWO_INSERT "tinsert"
+#define NEIGHBORHOOD_TRANSPOSE "transpose"
+#define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
+#define NEIGHBORHOOD_EXCHANGE "exchange"
+#define NEIGHBORHOOD_TA_INSERT "tainsert"
+#define NEIGHBORHOOD_TAx_INSERT "txinsert"
+#define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
+#define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
+#define NEIGHBORHOOD_NITA_INSERT "ntainsert"
+
 
 
 class SAPFSPParser: public prs::AlgoBuilder {
 
 protected:
+
+    emili::pfsp::PermutationFlowShop* instantiateSAPFSPProblem(char* t, PfspInstance i);
 
     /**
      * an instance of PFS problem

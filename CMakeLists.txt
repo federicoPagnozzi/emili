@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./SA SA_SRC_LIST)
 aux_source_directory(./QAP QAP_SRC_LIST)
+aux_source_directory(./pfsp PFSP_SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g") # -O3
 #C++ 11 detection
@@ -26,5 +27,5 @@ else ()
     #message(FATAL_ERROR "Your C++ compiler does not support C++11.")
 endif ()
 
-add_executable(${PROJECT_NAME} emilibase.cpp permutationflowshop.cpp pfspinstance.cpp generalParser.cpp main.cpp ${SA_SRC_LIST} ${QAP_SRC_LIST})
+add_executable(${PROJECT_NAME} emilibase.cpp ${PFSP_SRC_LIST} generalParser.cpp main.cpp ${SA_SRC_LIST} ${QAP_SRC_LIST})
 

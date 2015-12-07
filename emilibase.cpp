@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <assert.h>
-#include "permutationflowshop.h"
+#include "pfsp/permutationflowshop.h"
 /*
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
