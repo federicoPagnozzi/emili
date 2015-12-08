@@ -272,6 +272,7 @@ QAPNeighborhood* SAQAPParser::neigh(prs::TokenManager& tm)
 
 
 void SAQAPParser::problem(prs::TokenManager& tm) {
+    tm.nextToken();
     instance = new qap::QAP(tm.tokenAt(1));
     return;
 }
@@ -374,14 +375,14 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
 
 bool SAQAPParser::isParsable(std::string &problem)
 {
-    /*if(strcmp(problem.c_str(),PROBLEM_SDSTPFS_MS)==0)
-    {*/
+    if(strcmp(problem.c_str(),QAPPROBLEMNAME)==0)
+    {
         return true;
-    /*}
+    }
     else
     {
         return false;
-    }*/
+    }
 }
 
 std::string SAQAPParser::info()

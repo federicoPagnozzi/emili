@@ -15,16 +15,16 @@
 /**
  * acceptance criteria
  */
-#define METROPOLIS "METROPOLIS"
+#define METROPOLIS        "METROPOLIS"
 #define METROPOLISWFORCED "METROPOLISWFORCED"
-#define BASICACC   "BASICACC"
-#define GEOMACC    "GEOMACC"
-#define DETERMINISTICACC "DETERMINISTICACC"
-#define LAHCACC    "LAHCACC"
-#define GDAACC     "GDAACC"
-#define RTRACC     "RTRACC"
-#define APPROXEXPACC "APPROXEXPACC"
-#define GENSAACC   "GENSAACC"
+#define BASICACC          "BASICACC"
+#define GEOMACC           "GEOMACC"
+#define DETERMINISTICACC  "DETERMINISTICACC"
+#define LAHCACC           "LAHCACC"
+#define GDAACC            "GDAACC"
+#define RTRACC            "RTRACC"
+#define APPROXEXPACC      "APPROXEXPACC"
+#define GENSAACC          "GENSAACC"
 
 
 /**

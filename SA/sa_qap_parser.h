@@ -19,6 +19,9 @@
 #include "../QAP/qap.h"
 
 
+#define QAPPROBLEMNAME "QAP"
+
+
 class SAQAPParser: public prs::AlgoBuilder {
 
 protected:
