@@ -1134,6 +1134,28 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 	return maxValue(machineFreeingTimes_S_M[stages]);// Makespan
 }*/
 
+inline void sortPairVector(vector< pair< int, int > > &jobAndFT)
+{
+	std::sort(jobAndFT.begin(), jobAndFT.end(),
+		[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+		return left.second < right.second; });
+}
+
+inline void sortPairVectorSlackTieBreak(vector< pair< int, int > > &jobAndFT, std::vector< long int > &dueDates)
+{
+
+	// Cant make it work. 
+	/*
+	std::sort(jobAndFT.begin(), jobAndFT.end(),
+		[](const std::pair<int, int> &left, const std::pair<int, int> &right, std::vector< long int > &dueDates)
+	{
+		
+		if (left.second == right.second)
+			return (dueDates[left.first] - left.second) < (dueDates[right.first] - right.second);
+		return left.second < right.second; 
+	});*/
+}
+
 /*	Function to compute makespan (PARTIAL SOLUTION) for a Hybrid Flowshop */
 long int PfspInstance::computeHMS(vector<int> &sol, int size)
 {
@@ -1185,6 +1207,7 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 		std::sort(jobAndFT.begin(), jobAndFT.end(),
 			[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
 			return left.second < right.second; });
+			
 	}
 #ifdef _DEBUG
 	string x = printJaggedVector(machineFreeingTimes_S_M);
