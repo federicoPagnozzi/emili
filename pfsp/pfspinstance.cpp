@@ -421,6 +421,153 @@ long int PfspInstance::computeWT(std::vector< int > & sol)
     return wt;
 }
 #else
+
+
+
+inline void buildLambda(std::vector<int>& sol,std::vector< long >& previousMachineEndTime, std::vector<std::vector< long> >& pmat,int nbJob, int nbMac)
+{
+    int lambda_number =  nbJob%4==0?nbJob/4:(nbJob/4+1); // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
+    int j=1;
+    int iterations = nbJob/4;
+    float L[nbMac];
+    float res[4] __attribute__((aligned(16)));
+    int* k = (int*)res;
+        k[0] = 0xffffffff;
+        k[1] = 0xffffffff;
+        k[2] = 0xffffffff;
+        k[3] = 0;
+    __m128 mask1110 = _mm_load_ps(res);
+    k[0] = 0xffffffff;
+    k[1] = 0xffffffff;
+    k[2] = 0;
+    k[3] = 0;
+    __m128 mask1100 = _mm_load_ps(res);
+    k[0] = 0xffffffff;
+    k[1] = 0;
+    k[2] = 0;
+    k[3] = 0;
+    __m128 mask1000 = _mm_load_ps(res);
+    k[0] = 0;
+    k[1] = 0xffffffff;
+    k[2] = 0xffffffff;
+    k[3] = 0xffffffff;
+    __m128 mask0111 = _mm_load_ps(res);
+    k[0] = 0;
+    k[1] = 0;
+    k[2] = 0xffffffff;
+    k[3] = 0xffffffff;
+    __m128 mask0011 = _mm_load_ps(res);
+    k[0] = 0;
+    k[1] = 0;
+    k[2] = 0;
+    k[3] = 0xffffffff;
+    __m128 mask0001 = _mm_load_ps(res);
+    __m128 K = _mm_setzero_ps();
+    for(int l = 0 ; l < iterations ; l++)
+    {
+        //Initializations
+        int j1 = sol[j],j2=sol[j+1],j3=sol[j+2];j4=sol[j+4];
+        __m128 makespan, mc,mcw;
+        makespan = _mm_set_ps(pmat[j1][1],pmat[j2][1],pmat[j3][1],pmat[j4][1]); // load the values in the registers
+        mc = makespan; // copy the value in another register
+
+        /*First machine
+         *
+         * */
+        // first add
+        mc = _mm_shuffle_ps(mc,mc,0x93);      // a3,a0,a1,a2
+        mc = _mm_and_ps(mc,mask0111);         // 0,a0,a1,a2
+        makespan = _mm_add_ps(makespan,mc);   // a0,a0+a1,a2+a1,a2+a3
+        // Second add
+        mc = _mm_shuffle_ps(mc,mc,0x93);      // a2,0,a0,a1
+        mc = _mm_and_ps(mc,mask0111);         // 0,0,a0,a1
+        makespan = _mm_add_ps(makespan,mc);   // a0,a0+a1,a2+a1+a0,a2+a3+a1
+        // Third add
+        mc = _mm_shuffle_ps(mc,mc,0x93);      // a1,0,0,a0
+        mc = _mm_and_ps(mc,mask0111);         // 0,0,0,a0
+        makespan = _mm_add_ps(makespan,mc);   // a0,a0+a1,a2+a1+a0,a2+a3+a1+a0
+        makespan = _mm_add_ps(makespan,K);
+
+        K = _mm_shuffle_ps(makespan,makespan,0xFF);
+
+        int m=2;
+        // first row
+        pmat[j][m];
+
+        // second row
+        current_l[1][0] = pmat[j][m+1];
+        current_l[1][1] = pmat[j+1][m];
+        // third row
+        current_l[2][0] = pmat[j][m+2];
+        current_l[2][1] = pmat[j+1][m+1];
+        current_l[2][2] = pmat[j+2][m];
+        //other rows
+        for(m = 3; m < nbMac ; m++)
+        {
+
+            for(int k=0; k<4 ; k++)
+            {
+                //c_slice[k] = {pmat[j][m+1],pmat[j+1][m],pmat[j+2][m-1],pmat[j+3][m-2]};
+            }
+        }
+        // m - 3
+        m = nbMac;
+        current_l[m][1] = pmat[j+1][m];
+        current_l[m][2] = pmat[j+2][m-1];
+        current_l[m][3] = pmat[j+3][m-2];
+        // m - 2
+        current_l[m+1][2] = pmat[j+2][m];
+        current_l[m+1][3] = pmat[j+3][m-1];
+        //m - 1
+        current_l[m+2][3] = pmat[j+3][m];
+        j+=4;
+    }
+
+    if(iterations<lambda_number)
+    {
+        int jobs[4];
+            int i = 0;
+        for(;j<nbJob;j++)
+        {
+           jobs[i] = j;
+        }
+        std::vector < std::vector < int > >& current_l = lbd[l];
+        int m=2;
+        // first row
+        current_l[0][0] = pmat[j][m];
+        // second row
+        current_l[1][0] = pmat[j][m+1];
+        current_l[1][1] = pmat[j+1][m];
+        // third row
+        current_l[2][0] = pmat[j][m+2];
+        current_l[2][1] = pmat[j+1][m+1];
+        current_l[2][2] = pmat[j+2][m];
+        //other rows
+        for(m = 3; m < nbMac ; m++)
+        {
+            std::vector < int >& c_slice = current_l[m];
+            for(int k=0; k<4 ; k++)
+            {
+                c_slice[k] = {pmat[j][m+1],pmat[j+1][m],pmat[j+2][m-1],pmat[j+3][m-2]};
+            }
+        }
+        // m - 3
+        m = nbMac;
+        current_l[m][1] = pmat[j+1][m];
+        current_l[m][2] = pmat[j+2][m-1];
+        current_l[m][3] = pmat[j+3][m-2];
+        // m - 2
+        current_l[m+1][2] = pmat[j+2][m];
+        current_l[m+1][3] = pmat[j+3][m-1];
+        //m - 1
+        current_l[m+2][3] = pmat[j+3][m];
+
+    }
+
+}
+
+
+
 inline void computePartialMakespans(std::vector< int >& sol,std::vector< long >& previousMachineEndTime,std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     long int previousJobEndTime;

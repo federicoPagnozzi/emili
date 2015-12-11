@@ -200,7 +200,7 @@ static inline void setTimer(int maxTime)
 /*
  * Iteration counter
  */
-static int iteration_counter_ ;
+static unsigned long iteration_counter_ ;
 
 void emili::iteration_counter_zero()
 {

@@ -150,7 +150,7 @@ std::vector< int > inline rz_seed_sequence(std::vector< int > partial, std::vect
 std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emili::pfsp::PermutationFlowShop& prob)
 {
     int jobs = prob.getNjobs();
-    std::vector < int > res;
+    std::vector < int > res(start_seq);
     int wres = prob.computeObjectiveFunction(start_seq);
     for(int i = 1; i <= jobs; i++ )
     {
