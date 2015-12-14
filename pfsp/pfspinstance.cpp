@@ -27,9 +27,6 @@
 #include <stdexcept>
 #include "pfspinstance.h"
 
-
-#define ENABLE_SSE 10
-
 #ifdef ENABLE_SSE
 
 #ifdef __SSE__
@@ -411,6 +408,9 @@ inline void computePartialMakespans( std::vector< int >& sol, std::vector< long 
 
 inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& previousMachineEndTime, std::vector<std::vector< long> >& pmat,int nbJob, int nbMac)
 {
+    /* Permutation flowshop makespan computation using SSE instructions
+     **/
+    // Each sse register can contain 4 float so the computation is divided in groups of 4 jobs
     int r4 = nbJob%4;
     int lambda_number =  r4==0?nbJob/4:(nbJob/4+1); // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
     if(r4>0)
@@ -422,7 +422,7 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
         }
     }
     int j=1;    
-    std::vector<float> L(nbMac+1,0);
+    std::vector<float> L(nbMac+1,0); // the makespan for each machine of the fourth job in the last group ( at the beginning is zero)
     float res[4] __attribute__((aligned(16)));
     int* k = (int*)res;
         k[0] = 0xffffffff;
@@ -467,6 +467,8 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
         .. ..   ..   ..   ..
         LM T1,M T2,M T3,M T4,M
 
+        res[ 0 , 0 , 0 , 0]
+
         */
         //Initializations
         int j1 = sol[j],j2=sol[j+1],j3=sol[j+2],j4=sol[j+3];
@@ -493,12 +495,15 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
 
         K = _mm_shuffle_ps(makespan,makespan,0xFF);        
 
+        /*The other machines
+         *
+         **/
         int m=2;
-                                                        //makespan -> [ C1,1, C2,1 , C3,1 , C4,1]
+                                                                //makespan -> [ C1,1, C2,1 , C3,1 , C4,1]
         // first row
         mcw = _mm_set_ps(0,0,0,L[2]);                           // mcw -> [L2 ,0,0,0]
         makespan = _mm_max_ps(mcw,makespan);                    // makespan -> [ max(L2,C1,1),C2,1 , C3,1 , C4,1]
-        mcw = _mm_set_ps(0,0,0,pmat[j1][m]);                     // mcw -> [T1,2,0,0,0]
+        mcw = _mm_set_ps(0,0,0,pmat[j1][m]);                    // mcw -> [T1,2,0,0,0]
         makespan = _mm_add_ps(makespan,mcw);                    // Tjm + max(Cj,m-1 , Cj-1,m)
                                                                 //makespan -> [ C1,2, C2,1 , C3,1 , C4,1]
 
@@ -529,21 +534,21 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
         for(m = 5; m <= nbMac ; m++)
         {
             // m row
-            mcw = _mm_set_ps(0,0,0,L[m]);                           // setup vec for compares
+            mcw = _mm_set_ps(0,0,0,L[m]);                       // setup vec for compares
             mc = makespan;
-            mc = _mm_and_ps(mc,mask1110);                           // mc -> [C1,m-1 , C2,m-2, C3,m-3, 0 ]
-            mc = _mm_shuffle_ps(mc,mc,0x93);                        // mc -> [ 0, C1,m-1 , C2,m-2, C3,m-3]
-            mcw = _mm_add_ps(mcw,mc);                               // mcw ->[Lm, C1,m-1 , C2,m-2, C3,m-3]
+            mc = _mm_and_ps(mc,mask1110);                       // mc -> [C1,m-1 , C2,m-2, C3,m-3, 0 ]
+            mc = _mm_shuffle_ps(mc,mc,0x93);                    // mc -> [ 0, C1,m-1 , C2,m-2, C3,m-3]
+            mcw = _mm_add_ps(mcw,mc);                           // mcw ->[Lm, C1,m-1 , C2,m-2, C3,m-3]
 
-            makespan = _mm_max_ps(mcw,makespan);                    // makespan -> [ max(Lm,C1,m-1),max(C1,m-1 , C2,m-2) , max( C2,m-2, C3,m-3 ) , max(C3,m-3, C4,m-4) ]
+            makespan = _mm_max_ps(mcw,makespan);                // makespan -> [ max(Lm,C1,m-1),max(C1,m-1 , C2,m-2) , max( C2,m-2, C3,m-3 ) , max(C3,m-3, C4,m-4) ]
             mcw = _mm_set_ps(pmat[j4][m-3],pmat[j3][m-2],
-                               pmat[j2][m-1],pmat[j1][m]);        // mcw -> [ T1,m, T2,m-1 , T3,m-2,T4,m-3]
-            makespan = _mm_add_ps(makespan,mcw);                    // Tjm + max(Cj,m-1 , Cj-1,m)
-                                                                    //makespan -> [ C1,m, C2,m-1, C3,m-2, C4,m-3]
+                               pmat[j2][m-1],pmat[j1][m]);      // mcw -> [ T1,m, T2,m-1 , T3,m-2,T4,m-3]
+            makespan = _mm_add_ps(makespan,mcw);                // Tjm + max(Cj,m-1 , Cj-1,m)
+                                                                //makespan -> [ C1,m, C2,m-1, C3,m-2, C4,m-3]
             _mm_store_ps(res,makespan);
             L[m-3] = res[3];
         }
-        //makespan -> [C1,M , C2,M-1, C3,M-2, C4,M-3]
+                                                                //makespan -> [C1,M , C2,M-1, C3,M-2, C4,M-3]
         // m - 3
         m = nbMac;
         mc = makespan;
@@ -581,6 +586,18 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
         previousMachineEndTime[j+2] = res[2];
         previousMachineEndTime[j+3] = res[3];
         j+=4;
+
+        /* At the end
+         * J1   J2   J3   J4
+           T1,1 T2,1 T3,1 T4,1  K
+           T1,2 T2,2 T3,2 T4,2  L2
+           T1,3 T2,3 T3,3 T4,3  L3
+           ..   ..   ..   ..    ..
+           T1,M T2,M T3,M T4,M  LM
+
+        res[ C1,M , C2,M , C3,M , C4,M]
+
+        */
     }
     if(r4>0)
     {

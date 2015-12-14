@@ -1600,6 +1600,58 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     return s;
 }
 
+inline void orderJobs(std::vector< int >& ordered,emili::pfsp::PermutationFlowShop& instance)
+{
+    int size = instance.getNjobs();
+
+    for(int i=0; i<= size; i++)
+    {
+        //
+    }
+}
+
+emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int k,tmp=0,ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    orderJobs(removed,instance);
+
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        k=removed[l];
+        min = std::numeric_limits<int>::max();
+        for(int r=1; r<sops; r++){
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    return s;
+}
+
 emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
 {
     int index;

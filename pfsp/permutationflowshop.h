@@ -569,6 +569,16 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class IGIOPerturbation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop& instance;
+public:
+    IGIOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class RSPertubation: public emili::Perturbation
 {
 protected:
