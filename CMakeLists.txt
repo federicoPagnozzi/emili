@@ -4,14 +4,23 @@ cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./pfsp SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
+option(USE_SSE "Use SSE compile path if available" OFF)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g")
+
+#SSE
+if(USE_SSE)
+	message(STATUS "Using sse compile path") 
+	add_definitions(-DENABLE_SSE)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
+endif(USE_SSE)
+
 #C++ 11 detection
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     execute_process(
         COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
     if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
            add_definitions(-DNOC11)
-           message(WARNING, "Your gcc does not support c++11, switched to c++0x support.")
+           message(WARNING "Your gcc does not support c++11, switched to c++0x support.")
            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
     else ()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
