@@ -5,7 +5,7 @@
 #include <cstring>
 #include <algorithm>
 #include "generalParser.h"
-#include "pfsp/paramsparser.h"
+#include "examtt/examttparser.h"
 #include "setup.h"
 
 
@@ -16,7 +16,7 @@ void g2c_info()
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 prs::emili_header();
     /* initialize random seed: */
@@ -51,7 +51,7 @@ prs::emili_header();
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE
     std::cout << "searching..." << std::endl;
-    prs::ParamsParser p;
+    prs::ExamTT::ExamTTParser p;
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
     ls = ps.parseParams();

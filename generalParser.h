@@ -6,7 +6,7 @@ namespace prs
 {
 void emili_header();
 void info();
-void check(char* t,const char* message);
+void check(const char *t, const char* message);
 void printTab(const char* string);
 void incrementTabLevel();
 void decrementTabLevel();
@@ -14,24 +14,23 @@ void decrementTabLevel();
 class TokenManager
 {
 protected:
-    char** tokens;
+    const char** tokens;
     int numberOfTokens;
     int currentToken;
 public:
-    TokenManager(char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(0) { }
-    char* nextToken();
-    char* peek();
+    TokenManager(const char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(0) { }
+    const char *nextToken();
+    const char *peek();
     // same as peek
-    char* operator *();
+    const char *operator *();
     void next();
     // same as next
     void operator ++(int);
     int getInteger();
     float getDecimal();
-    bool checkToken(std::string& token);
+    bool checkToken(const std::string &token);
     bool checkToken(const char* );
-    char* tokenAt(int i);
-
+    const char* tokenAt(int i);
 };
 
 class AlgoBuilder
@@ -51,7 +50,7 @@ protected:
     std::vector< AlgoBuilder* > builders;
     TokenManager tm;
 public:        
-    GeneralParser(char** tokens,int numberOfTokens):tm(tokens,numberOfTokens) { }
+    GeneralParser(const char** tokens, int numberOfTokens):tm(tokens,numberOfTokens) { }
     GeneralParser(TokenManager tokenmanager):tm(tokenmanager) { }
     virtual emili::LocalSearch* parseParams();
     virtual void registerBuilder(AlgoBuilder* builder);

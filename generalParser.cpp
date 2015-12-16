@@ -37,7 +37,7 @@ void prs::incrementTabLevel()
 void prs::decrementTabLevel()
 {
     tab_level--;
-    tab_level= tab_level<0?0:tab_level;
+    tab_level= tab_level < 0 ? 0 : tab_level;
 }
 
 void prs::emili_header()
@@ -60,7 +60,7 @@ void prs::info()
 }
 
 
-void prs::check(char* t,const char* message)
+void prs::check(const char* t, const char* message)
 {
     if(t==nullptr)
     {
@@ -70,11 +70,11 @@ void prs::check(char* t,const char* message)
     }
 }
 
-char* prs::TokenManager::nextToken()
+const char* prs::TokenManager::nextToken()
 {
     if(currentToken < numberOfTokens)
     {
-        char* token = tokens[currentToken];
+        const char* token = tokens[currentToken];
         currentToken++;
         return token;
     }
@@ -84,11 +84,11 @@ char* prs::TokenManager::nextToken()
     }
 }
 
-char* prs::TokenManager::peek()
+const char* prs::TokenManager::peek()
 {
     if(currentToken < numberOfTokens)
     {
-        char* token = tokens[currentToken];
+        const char* token = tokens[currentToken];
      //   currentToken++;
         return token;
     }
@@ -98,7 +98,7 @@ char* prs::TokenManager::peek()
     }
 }
 
-char* prs::TokenManager::operator *()
+const char* prs::TokenManager::operator *()
 {
     return peek();
 }
@@ -116,7 +116,7 @@ void prs::TokenManager::operator ++(int k)
     next();
 }
 
-char* prs::TokenManager::tokenAt(int i)
+const char* prs::TokenManager::tokenAt(int i)
 {
     if(i < numberOfTokens)
     {
@@ -125,35 +125,35 @@ char* prs::TokenManager::tokenAt(int i)
     return nullptr;
 }
 
-bool prs::TokenManager::checkToken(std::string &token)
+bool prs::TokenManager::checkToken(std::string const& token)
 {
     if(currentToken < numberOfTokens)
     {
-        if(strcmp(tokens[currentToken],token.c_str())==0)
+        if(tokens[currentToken] == token)
         {
             currentToken++;
             return true;
         }
     }
-        return false;
+    return false;
 }
 
 bool prs::TokenManager::checkToken(const char* token)
 {
     if(currentToken < numberOfTokens)
     {
-        if(strcmp(tokens[currentToken],token)==0)
+        if(strcmp(tokens[currentToken], token)==0)
         {
             currentToken++;
             return true;
         }
     }
-        return false;
+    return false;
 }
 
 int prs::TokenManager::getInteger()
 {
-    char* t = peek();
+    const char* t = peek();
     check(t,"A NUMBER WAS EXPECTED!");
     std::string num(t);
     if( !std::all_of(num.begin(),num.end(),::isdigit))
@@ -167,7 +167,7 @@ int prs::TokenManager::getInteger()
 
 float prs::TokenManager::getDecimal()
 {
-    char* t = peek();
+    const char* t = peek();
     check(t,"A DECIMAL NUMBER WAS EXPECTED!");
     std::string num(t);
 
@@ -233,28 +233,29 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
 {
     tm++;
     tm++;
-    char* p = tm.peek();
+    const char* p = tm.peek();
     if(p != nullptr)
     {
-    std::string prob(p);
-    for(std::vector< AlgoBuilder*> ::iterator iter= builders.begin(); iter!=builders.end(); ++iter)
-    {
-        AlgoBuilder* bld = *iter;
-        if(bld->isParsable(prob))
+        std::string prob(p);
+        // Is the project c++11 ? Should we put for(AlgoBuilder* bld : builders) ?
+        for(std::vector< AlgoBuilder*> ::iterator iter= builders.begin(); iter!=builders.end(); ++iter)
         {
-            emili::LocalSearch* ls = bld->buildAlgo(tm);
-            ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
-            emili::initializeRandom(getSeed(tm));
-            return ls;
+            AlgoBuilder* bld = *iter;
+            if(bld->isParsable(prob))
+            {
+                emili::LocalSearch* ls = bld->buildAlgo(tm);
+                ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+                emili::initializeRandom(getSeed(tm));
+                return ls;
+            }
         }
+        std::cout << "------" << std::endl;
+        std::cout << "No parser for "<< p << " available" << std::endl;
     }
-    std::cout << "------" << std::endl;
-    std::cout << "No parser for "<< p << " available" << std::endl;
-   }
     std::cerr << "A problem was expected!" << std::endl;
     // info
     prs::info();
- return nullptr;
+    return nullptr;
 }
 
 void prs::GeneralParser::registerBuilder(AlgoBuilder* builder)

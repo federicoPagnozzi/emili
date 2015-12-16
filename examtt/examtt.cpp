@@ -2,6 +2,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -472,11 +473,14 @@ Two<Period const&> ExamTT::periodsOf(PeriodId a, PeriodId b) const {
 
 ExamTT::ExamTT(char* instance_path) {
     InstanceParser parser(instance_path);
-    parser.parse(*this);
+    if(parser.file)
+        parser.parse(*this);
+    else
+        throw invalid_argument(string(instance_path) + " does not exist !");
 }
 
 double ExamTT::evaluateSolution(Solution & raw_solution) {
-    double hardWeight = 1.0;
+    const double hardWeight = 1.0;
 
     ExamTTSolution & sol = (ExamTTSolution&) raw_solution;
     sol.computeCost(*this);
