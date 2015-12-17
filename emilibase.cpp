@@ -62,6 +62,20 @@ std::tr1::mt19937& emili::getRandomGenerator()
 
 #endif
 
+int emili::generateRandRange(int n)
+{
+    return generateRandomNumber() % n; // TODO : use c++11
+}
+
+int emili::generateRandRange(int from, int to)
+{
+    return from + generateRandRange(to - from);
+}
+
+int emili::generateRandInt(int from, int to)
+{
+    return generateRandRange(from, to + 1);
+}
 
 int emili::generateRandomNumber()
 {

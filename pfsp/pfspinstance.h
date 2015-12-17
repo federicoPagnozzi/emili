@@ -89,7 +89,7 @@ class PfspInstance{
     bool readDataFromFile(const std::string _filename);
 
     /* Read Data from sequence dependent setup times file*/
-    bool readSeqDepDataFromFile(char* filename);
+    bool readSeqDepDataFromFile(const char* filename);
 
     /*Compute weighted tardiness*/
     long int computeWT (std::vector< int > & sol);

@@ -2,11 +2,12 @@ SET(CMAKE_BUILD_TYPE Debug)
 project(EMILI)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
-#aux_source_directory(./pfsp SRC_LIST)
+aux_source_directory(./pfsp SRC_LIST)
 aux_source_directory(./examtt SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -g") # remove O3 to debug easily !
 
 #SSE
 if(USE_SSE)

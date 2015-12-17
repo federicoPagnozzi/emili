@@ -8,8 +8,14 @@ void emili_header();
 void info();
 void check(const char *t, const char* message);
 void printTab(const char* string);
+void printTab(const std::string& string);
 void incrementTabLevel();
 void decrementTabLevel();
+
+struct TabLevel {
+    TabLevel() { incrementTabLevel(); }
+    ~TabLevel() { decrementTabLevel(); }
+};
 
 class TokenManager
 {
@@ -38,7 +44,7 @@ class AlgoBuilder
 protected:
     virtual std::string availableProblems() const{ return std::string("Iamabstract!");}
 public:
-    virtual bool isParsable(std::string& problem)=0 ;
+    virtual bool isParsable(std::string& problem)=0 ; // should be const std::string &
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm) {return nullptr;}
     virtual std::string info() {return std::string("Iamabstract!");}
     virtual bool operator ==(const AlgoBuilder& b);

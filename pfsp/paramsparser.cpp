@@ -153,9 +153,7 @@
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
 
-char* problem_type;
-
-emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
+emili::pfsp::PermutationFlowShop* instantiateProblem(const char* t, PfspInstance i)
 {
     emili::pfsp::PermutationFlowShop* prob;
     if(strcmp(t,PROBLEM_PFS_WT)==0)

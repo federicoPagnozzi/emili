@@ -408,6 +408,9 @@ void ExamTT::compute() {
 
         meta.conflictsComponentsDensities.push_back(float(c) / (currentComponent.size() * currentComponent.size()));
     }
+
+    // will be featured based, now it's just a constant
+    hardWeight = 1000.0;
 }
 
 bool ExamTT::periodsSorted() const {
@@ -480,8 +483,6 @@ ExamTT::ExamTT(char* instance_path) {
 }
 
 double ExamTT::evaluateSolution(Solution & raw_solution) {
-    const double hardWeight = 1.0;
-
     ExamTTSolution & sol = (ExamTTSolution&) raw_solution;
     sol.computeCost(*this);
     sol.setSolutionValue(sol.costs.total(hardWeight));
@@ -503,7 +504,7 @@ std::ostream& operator <<(std::ostream& out, HardCostComponents::Printer printer
                 << "   periodConstraint " << setw(10) << hard.periodConstraint() <<
                    " = AF(" << hard.periodConstraintAfter << ")"
                    " + EX(" << hard.periodConstraintExclusion << ")"
-                   " + CO(" << hard.periodConstraintCoincidence << ")" << " exams" << endl
+                   " + CO(" << hard.periodConstraintCoincidence << ")" << " pairs of exams" << endl
                 << "  simultaneousExams " << setw(10) << hard.simultaneousExams << " students" << endl
                 << "       overCapacity " << setw(10) << hard.overCapacity << " students" << endl;
 }
@@ -529,7 +530,7 @@ std::ostream& operator <<(std::ostream& out, SoftCostComponents::Printer printer
                     << setw(5) << instance.institutionalWeightings.frontload.penalty << " soft cost / big exam too late" << endl
                << "     mixedDuration " << setw(10) << soft.mixedDuration << " = "
                     << setw(5) << soft.mixedDuration / instance.institutionalWeightings.nonMixedDurations << "x"
-                    << setw(5) << instance.institutionalWeightings.nonMixedDurations << endl;
+                    << setw(5) << instance.institutionalWeightings.nonMixedDurations << " soft cost / period / room " << endl;
 }
 
 std::ostream& operator <<(std::ostream& out, CostComponents::Printer printer) {
@@ -971,6 +972,9 @@ void InstanceParser::parse(ExamTT &i) {
 
     if(i.institutionalWeightings.periodSpread > i.periods.size())
         throw invalid_argument("Period Spread longer then the number of periods");
+
+    i.compute();
+    i.buildStructures();
 }
 
 void InstanceParser::parse(ExamTT const& instance, ExamTTSolution &sol)
@@ -1057,7 +1061,6 @@ void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
     int E = instance.exams.size();
     int P = instance.periods.size();
     int R = instance.rooms.size();
-
     periods.resize(E);
     rooms.resize(E);
 
@@ -1082,7 +1085,9 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
     PeriodId prevP = periods[e];
     RoomId prevR = rooms[e];
 
-    updateMove(instance, e, nextP, nextR, this->costs);
+    // TODO Delta evaluation
+    // updateMove(instance, e, nextP, nextR, this->costs);
+    // setSolutionValue(costs.total(instance.hardWeight));
 
     examsByPeriods[prevP].erase(examsByPeriodsIterators[e]);
     examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
@@ -1091,6 +1096,9 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
 
     periods[e] = nextP;
     rooms[e] = nextR;
+
+    // TODO Delta
+    computeCost(instance);
 }
 
 void ExamTTSolution::swap(ExamTT const& instance, ExamId e1, ExamId e2) {
@@ -1108,6 +1116,7 @@ CostComponents ExamTTSolution::computeAndGetCost(ExamTT const& instance) const {
 
 void ExamTTSolution::computeCost(ExamTT const& instance) {
     computeCost(instance, costs);
+    setSolutionValue(costs.total(instance.hardWeight));
 }
 
 void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) const {
@@ -1264,8 +1273,6 @@ void test() {
     }
 
     parser.parse(inst);
-    inst.compute();
-    inst.buildStructures();
 
     int E = inst.exams.size(),
         P = inst.periods.size(),
@@ -1359,9 +1366,6 @@ void test() {
     InstanceParser parser2("../my-solutions/exam_comp_set1-seed-89-crand.sol"); // ("../my-solutions/art000-seed-89-crand.sol");
     parser2.parse(sol);
     */
-
-    sol.computeCost(inst);
-    sol.buildStructures(inst);
 
     log << endl << "* Solution" << endl;
 
@@ -1633,7 +1637,28 @@ const void* ExamTTSolution::getRawData() const {
 
 void ExamTTSolution::setRawData(const void *data) {
     ExamTTSolution const * other = (ExamTTSolution const *) data;
-    // TODO
+
+    setSolutionValue(const_cast<ExamTTSolution*>(other)->getSolutionValue());
+
+    costs = other->costs;
+    periods = other->periods;
+    rooms = other->rooms;
+
+    examsByPeriodsIterators.resize(periods.size());
+    examsByRoomsIterators.resize(rooms.size());
+
+    // Using inner copy
+
+    examsByPeriods = other->examsByPeriods;
+    examsByRooms = other->examsByRooms;
+
+    for(set<ExamId>& S : examsByPeriods)
+        for(auto it = S.begin() ; it != S.end(); ++it)
+            examsByPeriodsIterators[*it] = it;
+
+    for(set<ExamId>& S : examsByRooms)
+        for(auto it = S.begin() ; it != S.end(); ++it)
+            examsByRoomsIterators[*it] = it;
 }
 
 Solution* ExamTTSolution::clone() {
@@ -1643,19 +1668,41 @@ Solution* ExamTTSolution::clone() {
     other->periods = periods;
     other->rooms = rooms;
 
-    other->examsByPeriods.resize(periods.size());
-    other->examsByRooms.resize(rooms.size());
     other->examsByPeriodsIterators.resize(periods.size());
     other->examsByRoomsIterators.resize(rooms.size());
 
-    for(size_t e = 0; e < periods.size(); e++) {
-        PeriodId p = periods[e];
-        RoomId r = rooms[e];
-        other->examsByPeriodsIterators[e] = other->examsByPeriods[p].insert(e).first;
-        other->examsByRoomsIterators[e] = other->examsByRooms[r].insert(e).first;
-    }
+    other->examsByPeriods = examsByPeriods;
+    other->examsByRooms = examsByRooms;
+
+    for(set<ExamId>& S : other->examsByPeriods)
+        for(auto it = S.begin(); it != S.end(); ++it)
+            other->examsByPeriodsIterators[*it] = it;
+
+    for(set<ExamId>& S : other->examsByRooms)
+        for(auto it = S.begin(); it != S.end(); ++it)
+            other->examsByRoomsIterators[*it] = it;
 
     return other;
+}
+
+string ExamTTSolution::getSolutionRepresentation() {
+    ostringstream oss;
+
+    oss << "assign = [";
+
+    if(periods.size() && rooms.size()) {
+        auto it1 = periods.begin();
+        auto it2 = rooms.begin();
+        oss << "[" << *it1++ << ", " << *it2++ << "]";
+        while(it1 != periods.end() && it2 != rooms.end())
+            oss << ", [" << *it1++ << ", " << *it2++ << "]";
+    }
+
+    oss << "]";
+
+    oss << "; hard = " << costs.hard.make_tuple() << "; soft = " << costs.soft.make_tuple() << endl;
+
+    return oss.str();
 }
 
 /*
@@ -1664,23 +1711,21 @@ Solution* ExamTTSolution::clone() {
 
 void ExamTTSolution::buildStructures(InstanceRef instance)
 {
-   // structures are empty
+    int P = instance.periods.size();
+    int E = instance.exams.size();
+    int R = instance.rooms.size();
 
-   int P = instance.periods.size();
-   int E = instance.exams.size();
-   int R = instance.rooms.size();
+    examsByPeriodsIterators.resize(E);
+    examsByRoomsIterators.resize(E);
+    examsByPeriods.assign(P, set<ExamId>());
+    examsByRooms.assign(R, set<ExamId>());
 
-   examsByPeriodsIterators.resize(E);
-   examsByRoomsIterators.resize(E);
-   examsByPeriods.resize(P);
-   examsByRooms.resize(R);
+    // O(n log n)
 
-   for(ExamId e = 0; e < E; e++) {
-       PeriodId p = periods[e];
-       RoomId r = rooms[e];
-       examsByPeriodsIterators[e] = examsByPeriods[p].insert(e).first;
-       examsByRoomsIterators[e] = examsByRooms[r].insert(e).first;
-   }
+    for(ExamId e = 0; e < E; e++) {
+        examsByPeriodsIterators[e] = examsByPeriods[periods[e]].insert(e).first;
+        examsByRoomsIterators[e] = examsByRooms[rooms[e]].insert(e).first;
+    }
 }
 
 CostComponents ExamTTSolution::differenceCostMove(Instance const& instance, ExamId ex, PeriodId nextP, RoomId nextR) const
@@ -1999,6 +2044,139 @@ ostream &operator <<(ostream &out, const InstitutionalWeightings &w){
 
 ostream &operator <<(ostream &out, const FrontLoadParams &w){
     return out << w.largestExams << "e " << w.time << "p " << w.penalty << "$";
+}
+
+Solution *MoveNeighborhood::computeStep(Solution *rawStep) {
+    emili::iteration_increment();
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    int E = instance.exams.size();
+
+    if(exam == E)
+        return nullptr;
+
+    bperiod = sol->periods[exam];
+    broom = sol->rooms[exam];
+
+    sol->move(instance, exam, period, room);
+
+    return sol;
+}
+
+void MoveNeighborhood::reverseLastMove(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    int R = instance.rooms.size();
+    int P = instance.periods.size();
+
+    sol->move(instance, exam, bperiod, broom);
+
+    if(++room == R) {
+        room = 0;
+        if(++period == P) {
+            period = 0;
+            ++exam;
+        }
+    }
+}
+
+MoveNeighborhood::MoveNeighborhood(const ExamTT &instance_)
+    : instance(instance_)
+{
+    reset();
+}
+
+Neighborhood::NeighborhoodIterator MoveNeighborhood::begin(Solution *base) {
+    return emili::Neighborhood::begin(base);
+}
+
+Solution *MoveNeighborhood::step(Solution *currentSolution) {
+    return this->computeStep(currentSolution);
+}
+
+void MoveNeighborhood::reset() {
+    exam = 0;
+    period = 0;
+    room = 0;
+}
+
+int MoveNeighborhood::size() {
+    int E = instance.exams.size();
+    int R = instance.rooms.size();
+    int P = instance.periods.size();
+
+    return E * P * R;
+}
+
+Solution *MoveNeighborhood::random(Solution *currentSolution) {
+    // must return a new Solution
+    return nullptr; // TODO
+}
+
+Solution *RandomInitialSolution::generateSolution()
+{
+    ExamTT const& instance = (ExamTT const&) this->instance;
+
+    ExamTTSolution* sol = new ExamTTSolution;
+
+    sol->initRandom(instance, random);
+
+    cout << "Initial solution " << sol->getSolutionRepresentation() << endl;
+
+    return sol;
+}
+
+Solution *RandomInitialSolution::generateEmptySolution()
+{
+    return new ExamTTSolution;
+}
+
+Solution *SwapNeighborhood::computeStep(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+    int E = instance.students.size();
+
+    if(e1 == E)
+        return nullptr;
+
+    sol->swap(instance, e1, e2);
+
+    return sol;
+}
+
+void SwapNeighborhood::reverseLastMove(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+    int E = instance.students.size();
+
+    sol->swap(instance, e1, e2);
+
+    if(++e2 == E)
+        e2 = ++e1 + 1;
+}
+
+SwapNeighborhood::SwapNeighborhood(const ExamTT &instance_)
+    : instance(instance_)
+{
+    reset();
+}
+
+Solution *SwapNeighborhood::step(Solution *currentSolution)
+{
+    return computeStep(currentSolution);
+}
+
+void SwapNeighborhood::reset() {
+    e1 = 0;
+    e2 = 0;
+}
+
+int SwapNeighborhood::size() {
+    int E = instance.students.size();
+    return E * (E-1) / 2;
+}
+
+Solution *SwapNeighborhood::random(Solution *currentSolution) {
+    // TODO
+    return nullptr;
 }
 
 }

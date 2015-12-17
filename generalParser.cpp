@@ -19,12 +19,14 @@
 
 int tab_level = 0;
 
+void prs::printTab(const std::string& string) {
+    printTab(string.c_str());
+}
+
 void prs::printTab(const char* string)
 {
     for(int i=0;i<tab_level; i++)
-    {
         std::cout << "  ";
-    }
 
     std::cout << string << std::endl;
 }

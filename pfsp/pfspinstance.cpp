@@ -185,7 +185,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 }
 
 
-bool PfspInstance::readSeqDepDataFromFile(char* fileName)
+bool PfspInstance::readSeqDepDataFromFile(const char* fileName)
 {
     bool everythingOK = true;
     int j, m; // iterators
@@ -193,10 +193,10 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
     std::string str;
     std::ifstream fileIn;
 
-    char * aux2;
+    const char * aux2;
     char fileNameOK[100] = "";
 
-    aux2 = (strrchr(fileName, '/'));
+    aux2 = strrchr(fileName, '/');
 
     if (aux2 == NULL)
         aux2 = fileName;

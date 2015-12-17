@@ -588,8 +588,24 @@ std::tr1::mt19937& getRandomGenerator();
 #else
 std::mt19937& getRandomGenerator();
 #endif
+
 int generateRandomNumber();
 float generateRealRandomNumber();
+
+/**
+ * return x uniformly in 0 ... n-1
+ */
+int generateRandRange(int n);
+
+/**
+ * return x uniformly in from ... to-1
+ */
+int generateRandRange(int from, int to);
+
+/**
+ * return x uniformly in from ... to
+ */
+int generateRandInt(int from, int to);
 
 /*
  * Metropolis acceptance criterion implementation (fixed temperature)

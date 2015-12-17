@@ -66,20 +66,20 @@ struct VectorExclusivePair {
 
 struct Random {
 
-    void seed(long i) {
-        srand(i);
+    void seed(long s) {
+       emili::initializeRandom(s);
     }
 
     int randrange(int N) {
-        return rand() % N;
+        return emili::generateRandRange(N);
     }
 
     int randrange(int a, int b) {
-        return a + randrange(b,a);
+        return emili::generateRandRange(a,b);
     }
 
     int randint(int a, int b) {
-        return randrange(a, b+1);
+        return emili::generateRandInt(a,b);
     }
 };
 
@@ -239,6 +239,9 @@ public:
     // Weights of institution
     InstitutionalWeightings institutionalWeightings;
 
+    // will be featured based, now it's just a constant
+    double hardWeight = 0;
+
     // Quick numbers of information
     MetaInfo meta;
     std::set<StudentId> students;
@@ -330,13 +333,13 @@ public:
 typedef ExamTT Instance;
 
 struct HardCostComponents {
-    HCost roomConstraint ,
-        excessiveDuration ,
-        periodConstraintAfter ,
-        periodConstraintCoincidence ,
-        periodConstraintExclusion ,
-        simultaneousExams ,
-        overCapacity ;
+    HCost roomConstraint, // exams
+        excessiveDuration, // exams
+        periodConstraintAfter, // pairs
+        periodConstraintCoincidence, // pairs
+        periodConstraintExclusion, // pairs
+        simultaneousExams, // students
+        overCapacity; // students (seats)
 
     static HardCostComponents zero() {
         return {0,0,0,0,0,0,0};
@@ -348,6 +351,10 @@ struct HardCostComponents {
 
     HCost sum() const {
         return roomConstraint + excessiveDuration + periodConstraint() + simultaneousExams + overCapacity;
+    }
+
+    std::tuple<HCost, HCost, HCost, HCost, HCost> small_tuple() const {
+        return std::make_tuple(roomConstraint, excessiveDuration, periodConstraint(), simultaneousExams, overCapacity);
     }
 
     std::tuple<HCost, HCost, HCost, HCost, HCost, HCost, HCost> make_tuple() const {
@@ -395,6 +402,10 @@ struct SoftCostComponents {
 
     SCost sum() const {
         return periodsPenalty + roomsPenalty + twoExamsInARow + twoExamsInADay + periodSpread + frontload + mixedDuration;
+    }
+
+    std::tuple<SCost, SCost, SCost, SCost> small_tuple() const {
+        return std::make_tuple(periodsPenalty + roomsPenalty, twoExamsInARow + twoExamsInADay + periodSpread, frontload, mixedDuration);
     }
 
     std::tuple<SCost, SCost, SCost, SCost, SCost, SCost, SCost> make_tuple() const {
@@ -552,8 +563,7 @@ public:
     ExamTTSolution(double solution_value = 0):emili::Solution(solution_value) { }
     virtual Solution* clone();
 
-    /*Methods needed for the Internal use of the Solution
-     * ( how the solution is seen by Neighborhoods, Perturbations, Initial Solution generators... etc)*/
+    std::string getSolutionRepresentation() override;
 };
 
 struct InstanceParser {
@@ -579,6 +589,56 @@ struct InstanceParser {
 
 std::ostream& operator <<(std::ostream&, ExamTTSolution::Printer);
 std::ostream& operator <<(std::ostream&, ExamTTSolution::Writer);
+
+struct MoveNeighborhood : emili::Neighborhood {
+protected:
+    ExamTT const& instance;
+
+    ExamId exam;
+    PeriodId bperiod, period;
+    RoomId broom, room;
+
+    Solution* computeStep(Solution *step) override;
+    void reverseLastMove(Solution *step) override;
+public:
+    MoveNeighborhood(ExamTT const& instance);
+
+    NeighborhoodIterator begin(emili::Solution* base) override;
+    Solution* step(Solution *currentSolution) override;
+    void reset() override;
+    int size() override;
+
+    Solution* random(Solution *currentSolution) override;
+};
+
+struct SwapNeighborhood : emili::Neighborhood {
+protected:
+    ExamTT const& instance;
+
+    ExamId e1;
+    ExamId e2;
+
+    Solution* computeStep(Solution *rawStep) override;
+    void reverseLastMove(Solution *rawStep) override;
+
+public:
+    SwapNeighborhood(ExamTT const& instance);
+
+    Solution* step(Solution *currentSolution) override;
+    void reset() override;
+    int size() override;
+
+    Solution* random(Solution *currentSolution) override;
+};
+
+struct RandomInitialSolution : emili::InitialSolution {
+    Random random;
+
+    RandomInitialSolution(ExamTT& inst) : emili::InitialSolution(inst) {}
+
+    Solution* generateSolution() override;
+    Solution* generateEmptySolution() override;
+};
 
 }
 }

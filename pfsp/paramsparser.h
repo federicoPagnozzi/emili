@@ -9,7 +9,9 @@ void info();
 
 class ParamsParser: public AlgoBuilder
 {
-protected:    
+protected:
+    const char* problem_type = nullptr;
+
     emili::pfsp::PermutationFlowShop* istance;
     emili::LocalSearch* eparams(prs::TokenManager& tm);
     emili::LocalSearch* search(prs::TokenManager& tm);
