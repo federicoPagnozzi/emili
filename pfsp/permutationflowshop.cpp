@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <limits>
+#include "sse_functions.h"
 
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
@@ -2094,7 +2095,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::TaillardAcceleratedInsert
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-    computeTAmatrices(sol);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+#else
+            computeTAmatrices(sol);
+#endif
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2284,7 +2289,7 @@ void emili::pfsp::PfspInsertNeighborhood::reverseLastMove(Solution *step)
 }
 
 void emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeTAmatrices(std::vector<int> &sol)
-{
+{     
     int j,m;
     int jobNumber;
     int end_i = njobs-1;
@@ -2298,8 +2303,8 @@ void emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeTAmatrices(std::
         jobNumber = sol[j];
         prevj = prevj + pmatrix[jobNumber][1];
         postj = postj + pmatrix[sol[k]][nmac];
-        head[1][j] = prevj;
-        tail[nmac][k] = postj;
+        head[1][j] = prevj;        
+        tail[nmac][k] = postj;        
     }
 
       for ( j = 1; j <= end_i; ++j )
@@ -2332,8 +2337,7 @@ void emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeTAmatrices(std::
             else
             {
                 tail[n][k] = postJobEndTime + pmatrix[sol[k]][n];
-            }
-
+            }            
             previousJobEndTime = head[m][j];
             postJobEndTime = tail[n][k];
         }
@@ -2367,8 +2371,11 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#else
             computeTAmatrices(newsol);
-
+#endif
         }
         end_position = ((end_position)%njobs)+1;
 
