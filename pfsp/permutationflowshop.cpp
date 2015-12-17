@@ -2109,7 +2109,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::HeavilyApproximatedTailla
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#else
     computeHead(sol);    
+#endif
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2119,7 +2123,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::Natx2Neighborhood::begin(
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#else
     computeHead(sol);
+#endif
     value_wt = base->getSolutionValue();
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
@@ -2722,7 +2730,11 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
 
         }
         end_position = ((end_position)%njobs)+1;
@@ -2832,7 +2844,11 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
         }
         end_position = ((end_position)%njobs)+1;
         newsol.insert(newsol.begin()+end_position,sol_i);

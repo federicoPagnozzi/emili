@@ -27,7 +27,7 @@
 #include <stdexcept>
 #include "pfspinstance.h"
 
-#define ENABLE_SSE
+//#define ENABLE_SSE
 
 #ifdef ENABLE_SSE
 
