@@ -508,7 +508,7 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
     int lambda_number =  r4==0?nbJob/4:(nbJob/4+1); // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
     if(r4>0)
     {
-        for(int i=0;i<r4;i++)
+        for(int i=0;i<(4-r4);i++)
         {
             sol.push_back(0);
             previousMachineEndTime.push_back(0);
@@ -694,7 +694,7 @@ inline void computePartialMakespans(std::vector<int>& sol,std::vector< long >& p
     }
     if(r4>0)
     {
-        for(int i=0;i<r4;i++)
+        for(int i=0;i<(4-r4);i++)
         {
             sol.pop_back();
             previousMachineEndTime.pop_back();
@@ -718,7 +718,7 @@ long int PfspInstance::computeMS(std::vector<int> &sol, int size)
     int lambda_number =  r4==0?size/4:(size/4+1); // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
     if(r4>0)
     {
-        for(int i=0;i<r4;i++)
+        for(int i=0;i<(4-r4);i++)
         {
             sol.push_back(0);
         }
@@ -910,7 +910,7 @@ long int PfspInstance::computeMS(std::vector<int> &sol, int size)
     long int result = res[3];
     if(r4>0)
     {
-        for(int i=0;i<r4;i++)
+        for(int i=0;i<(4-r4);i++)
         {
             sol.pop_back();
 
