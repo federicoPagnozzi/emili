@@ -92,16 +92,16 @@ prs::emili_header();
 #endif
     solution = ls->getBestSoFar();    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-    cout << "time : " << time_elapsed << std::endl;
-    cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-    cerr << solution->getSolutionValue() << std::endl;
+    std::cout << "time : " << time_elapsed << std::endl;
+    std::cout << "iteration counter : " << std::fixed << emili::iteration_counter()<< std::endl;
+    std::cerr << std::fixed << solution->getSolutionValue() << std::endl;
     //cerr << time_elapsed << " ";    
-    cout << "Objective function value: " << solution->getSolutionValue() << endl;
-    cout << "Found solution: ";
-    cout << solution->getSolutionRepresentation() << std::endl;
-    cout << endl;
+    std::cout << "Objective function value: " << std::fixed << solution->getSolutionValue() << std::endl;
+    std::cout << "Found solution: ";
+    std::cout << std::fixed << solution->getSolutionRepresentation() << std::endl;
+    std::cout << std::endl;
 
-    cerr << solution->getSolutionValue() << endl;
+    // std::cerr << std::fixed << solution->getSolutionValue() << endl;
 
     return 0;
 }

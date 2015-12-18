@@ -150,7 +150,7 @@ std::vector< int > inline rz_seed_sequence(std::vector< int > partial, std::vect
 std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emili::pfsp::PermutationFlowShop& prob)
 {
     int jobs = prob.getNjobs();
-    std::vector < int > res;
+    std::vector < int > res(start_seq);
     int wres = prob.computeObjectiveFunction(start_seq);
     for(int i = 1; i <= jobs; i++ )
     {
@@ -385,7 +385,7 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
 std::vector< int > inline slack_construct(std::vector< int >& partial, int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
     int Ci = pis.computeMS(partial);
-   std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<bool> assigned(nbJobs+1, false);
     for(std::vector< int >::const_iterator iter = partial.begin();iter !=  partial.end();++iter)
     {
         assigned[*iter] = true;
@@ -974,8 +974,8 @@ emili::Solution* emili::pfsp::PfspRandomInitialSolution::generate()
 {
     int nbJobs = pis.getNjobs();
     std::vector< int >   sol(nbJobs+1, 0);
- std::vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
- std::vector<int > choosenNumber(nbJobs+1, 0);
+  std::vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
+  std::vector<int > choosenNumber(nbJobs+1, 0);
 
   int nbj;
   int rnd, i, j, nbFalse;
@@ -1009,8 +1009,8 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false);
-   std::vector<int> partial(nbJobs+1,0);
+    std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1043,8 +1043,8 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
     int nbJobs = pis.getNjobs(); // number of jobs in the problem
     std::vector< int >  sol(nbJobs+1, 0); //vector that contains the solution
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false); //std::vector that indicates if a job it's already assigned to the partial solution
-   std::vector<int> partial(nbJobs+1,0); // partial solution
+    std::vector<bool> assigned(nbJobs+1, false); // std::vector that indicates if a job it's already assigned to the partial solution
+    std::vector<int> partial(nbJobs+1,0); // partial solution
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1135,7 +1135,7 @@ emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
     std::vector< int >  sol(nbJobs+1, 0);
     std::vector< int >&  p = ((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule();
     int Ci = pis.computeMS(p);
-   std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<bool> assigned(nbJobs+1, false);
     for(std::vector< int >::const_iterator iter = p.begin();iter !=  p.end();++iter)
     {
         assigned[*iter] = true;
@@ -1209,8 +1209,8 @@ emili::Solution* emili::pfsp::SlackConstructor::constructFull()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false);
-   std::vector<int> partial(nbJobs+1,0);
+    std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1380,8 +1380,8 @@ emili::Solution* emili::pfsp::NEHSlackConstructor::constructFull()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false);
-   std::vector<int> partial(nbJobs+1,0);
+    std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1987,8 +1987,8 @@ void emili::pfsp::PfspSlackInitialSolution::slackInitial(std::vector<int> & sol)
 {
     int noj = pis.getNjobs();
     int Ci  = 0;
-   std::vector<bool> assigned(noj+1, false);
-   std::vector<int> partial(noj+1,0);
+    std::vector<bool> assigned(noj+1, false);
+    std::vector<int> partial(noj+1,0);
     for (int var = 0; var < noj; ++var) {
         int minJ = 0 ;
         int minE = 4*10e9;

@@ -100,7 +100,7 @@ static void finalise (int _)
         std::cout << sol_val << std::endl;
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
-        std::cerr << sol_val << std::endl;
+        std::cerr << std::fixed << sol_val << std::endl;
         std::cerr << std::flush;
     }
     else
@@ -200,7 +200,7 @@ static inline void setTimer(int maxTime)
 /*
  * Iteration counter
  */
-static int iteration_counter_ ;
+static unsigned long iteration_counter_ ;
 
 void emili::iteration_counter_zero()
 {
