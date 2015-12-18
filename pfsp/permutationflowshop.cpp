@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <limits>
+#include "sse_functions.h"
 
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
@@ -150,7 +151,7 @@ std::vector< int > inline rz_seed_sequence(std::vector< int > partial, std::vect
 std::vector< int > inline rz_improvement_phase(std::vector<int>& start_seq, emili::pfsp::PermutationFlowShop& prob)
 {
     int jobs = prob.getNjobs();
-    std::vector < int > res;
+    std::vector < int > res(start_seq);
     int wres = prob.computeObjectiveFunction(start_seq);
     for(int i = 1; i <= jobs; i++ )
     {
@@ -385,7 +386,7 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
 std::vector< int > inline slack_construct(std::vector< int >& partial, int nbJobs,emili::pfsp::PermutationFlowShop& pis)
 {
     int Ci = pis.computeMS(partial);
-   std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<bool> assigned(nbJobs+1, false);
     for(std::vector< int >::const_iterator iter = partial.begin();iter !=  partial.end();++iter)
     {
         assigned[*iter] = true;
@@ -974,8 +975,8 @@ emili::Solution* emili::pfsp::PfspRandomInitialSolution::generate()
 {
     int nbJobs = pis.getNjobs();
     std::vector< int >   sol(nbJobs+1, 0);
- std::vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
- std::vector<int > choosenNumber(nbJobs+1, 0);
+  std::vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
+  std::vector<int > choosenNumber(nbJobs+1, 0);
 
   int nbj;
   int rnd, i, j, nbFalse;
@@ -1009,8 +1010,8 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false);
-   std::vector<int> partial(nbJobs+1,0);
+    std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1043,8 +1044,8 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
     int nbJobs = pis.getNjobs(); // number of jobs in the problem
     std::vector< int >  sol(nbJobs+1, 0); //vector that contains the solution
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false); //std::vector that indicates if a job it's already assigned to the partial solution
-   std::vector<int> partial(nbJobs+1,0); // partial solution
+    std::vector<bool> assigned(nbJobs+1, false); // std::vector that indicates if a job it's already assigned to the partial solution
+    std::vector<int> partial(nbJobs+1,0); // partial solution
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1135,7 +1136,7 @@ emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
     std::vector< int >  sol(nbJobs+1, 0);
     std::vector< int >&  p = ((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule();
     int Ci = pis.computeMS(p);
-   std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<bool> assigned(nbJobs+1, false);
     for(std::vector< int >::const_iterator iter = p.begin();iter !=  p.end();++iter)
     {
         assigned[*iter] = true;
@@ -1209,8 +1210,8 @@ emili::Solution* emili::pfsp::SlackConstructor::constructFull()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false);
-   std::vector<int> partial(nbJobs+1,0);
+    std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1380,8 +1381,8 @@ emili::Solution* emili::pfsp::NEHSlackConstructor::constructFull()
     int nbJobs = pis.getNjobs();
     std::vector< int >  sol(nbJobs+1, 0);
     int Ci  = 0;
-   std::vector<bool> assigned(nbJobs+1, false);
-   std::vector<int> partial(nbJobs+1,0);
+    std::vector<bool> assigned(nbJobs+1, false);
+    std::vector<int> partial(nbJobs+1,0);
     for (int var = 0; var < nbJobs; ++var) {
         int minJ = 0 ;
         int minE = INT_MAX;
@@ -1597,6 +1598,58 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     //int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
 
     //s->setSolutionValue(new_value);
+    return s;
+}
+
+inline void orderJobs(std::vector< int >& ordered,emili::pfsp::PermutationFlowShop& instance)
+{
+    int size = instance.getNjobs();
+
+    for(int i=0; i<= size; i++)
+    {
+        //
+    }
+}
+
+emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int k,tmp=0,ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    orderJobs(removed,instance);
+
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        k=removed[l];
+        min = std::numeric_limits<int>::max();
+        for(int r=1; r<sops; r++){
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     return s;
 }
 
@@ -1987,8 +2040,8 @@ void emili::pfsp::PfspSlackInitialSolution::slackInitial(std::vector<int> & sol)
 {
     int noj = pis.getNjobs();
     int Ci  = 0;
-   std::vector<bool> assigned(noj+1, false);
-   std::vector<int> partial(noj+1,0);
+    std::vector<bool> assigned(noj+1, false);
+    std::vector<int> partial(noj+1,0);
     for (int var = 0; var < noj; ++var) {
         int minJ = 0 ;
         int minE = 4*10e9;
@@ -2042,7 +2095,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::TaillardAcceleratedInsert
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-    computeTAmatrices(sol);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+#else
+            computeTAmatrices(sol);
+#endif
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2052,7 +2109,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::HeavilyApproximatedTailla
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#else
     computeHead(sol);    
+#endif
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2062,7 +2123,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::Natx2Neighborhood::begin(
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#else
     computeHead(sol);
+#endif
     value_wt = base->getSolutionValue();
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
@@ -2232,7 +2297,7 @@ void emili::pfsp::PfspInsertNeighborhood::reverseLastMove(Solution *step)
 }
 
 void emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeTAmatrices(std::vector<int> &sol)
-{
+{     
     int j,m;
     int jobNumber;
     int end_i = njobs-1;
@@ -2246,8 +2311,8 @@ void emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeTAmatrices(std::
         jobNumber = sol[j];
         prevj = prevj + pmatrix[jobNumber][1];
         postj = postj + pmatrix[sol[k]][nmac];
-        head[1][j] = prevj;
-        tail[nmac][k] = postj;
+        head[1][j] = prevj;        
+        tail[nmac][k] = postj;        
     }
 
       for ( j = 1; j <= end_i; ++j )
@@ -2280,8 +2345,7 @@ void emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeTAmatrices(std::
             else
             {
                 tail[n][k] = postJobEndTime + pmatrix[sol[k]][n];
-            }
-
+            }            
             previousJobEndTime = head[m][j];
             postJobEndTime = tail[n][k];
         }
@@ -2315,8 +2379,11 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#else
             computeTAmatrices(newsol);
-
+#endif
         }
         end_position = ((end_position)%njobs)+1;
 
@@ -2663,7 +2730,11 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
 
         }
         end_position = ((end_position)%njobs)+1;
@@ -2773,7 +2844,11 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
         }
         end_position = ((end_position)%njobs)+1;
         newsol.insert(newsol.begin()+end_position,sol_i);

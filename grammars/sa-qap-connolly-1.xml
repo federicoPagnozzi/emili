@@ -13,25 +13,8 @@
 <qap:term_acceptancerate type="real" min="0.0" max="1.0" stepIfEnumerated="0.01"/>
 <qap:lastaccrate_tenure type="int" min="10" max="1000000" stepIfEnumerated="1"/>
 
-       <qap:geomacc_reducing_factor type="real" min="0.01" max="1.0" stepIfEnumerated="0.01"/>
-       <qap:gensaacc_pf type="real" min="0.01" max="1.0" stepIfEnumerated="0.01"/>
-       <qap:deterministicacc_threshold type="real" min="0.01" max="1.0" stepIfEnumerated="0.01"/>
-       <qap:rtracc_deviation_factor type="int" min="1" max="100" stepIfEnumerated="1"/>
-<qap:lahcacc_tenure min="10" max="1000000" stepIfEnumerate="1"/>
-
-<qap:geomcooling_a type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-<qap:geomcooling_b type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
         <qap:lundymees_a type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
         <qap:lundymees_b type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-        <qap:markovcooling_coeff type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-<qap:constcooling_a type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-<qap:constcooling_b type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-<qap:linearcooling_factor type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-        <qap:logcooling_a type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-        <qap:logcooling_b type="real" min="0.01" max="1" stepIfEnumerated="0.01"/>
-<qap:tempbandcooling_factor type="real" min="0.01" max="2.00" stepIfEnumerated="0.01"/>
-<qap:q87_max_reject type="int" min="1" max="1000000" stepIfEnumerated="1"/>
-
 
 <qap:templength_value type="int" min="1" max="1000000" stepIfEnumerated="1"/>
 <qap:templength_nscoeff type="int" min="1" max="1000" stepIfEnumerated="1"/>
@@ -83,46 +66,10 @@
 
 <qap:acceptance>
 <![CDATA[METROPOLIS ]]><![CDATA[ ]]>
-<or/>
-<![CDATA[METROPOLISWFORCED ]]><![CDATA[ ]]>
-                <or/>
-<![CDATA[BASICACC ]]><![CDATA[ ]]>
-                <or/>
-<![CDATA[GEOMACC ]]><qap:geomacc_reducing_factor/><![CDATA[ ]]>
-<or/>
-<![CDATA[APPROXEXPACC ]]><![CDATA[ ]]>
-<or/>
-<![CDATA[GENSAACC ]]><qap:gensaacc_pf/><![CDATA[ ]]>
-<or/>
-<![CDATA[DETERMINISTICACC ]]><qap:deterministicacc_threshold/><![CDATA[ ]]>
-<or/>
-<![CDATA[GDAACC ]]><![CDATA[ ]]>
-                <or/>
-<![CDATA[RTRACC ]]><qap:rtracc_deviation_factor/><![CDATA[ ]]>
-<or/>
-<![CDATA[LAHCACC]]><qap:lahcacc_tenure/><![CDATA[ ]]>
 </qap:acceptance>	
 
 <qap:cooling_scheme>
-                <![CDATA[GEOM ]]><qap:geomcooling_a/><![CDATA[ ]]><qap:geomcooling_b/><![CDATA[ ]]>
-                <or/>
-                <![CDATA[MARKOV ]]><qap:markovcooling_coeff/><![CDATA[ ]]>
-                <or/>
-                <![CDATA[CONSTCOOLING ]]><qap:constcooling_a/><![CDATA[ ]]><qap:constcooling_b/><![CDATA[ ]]>
-                <or/>
                 <![CDATA[LUNDYMEES ]]><qap:lundymees_a/><![CDATA[ ]]><qap:lundymees_b/><![CDATA[ ]]>
-                <or/>
-                <![CDATA[LINEARCOOLING ]]><qap:linearcooling_factor/><![CDATA[ ]]>
-                <or/>
-                <![CDATA[NOCOOLING ]]><![CDATA[ ]]>
-                <or/>
-                <![CDATA[LOGCOOLING ]]><qap:logcooling_a/><![CDATA[ ]]><qap:logcooling_b/><![CDATA[ ]]>
-		<or/>
-		<![CDATA[Q87COOLING ]]><qap:lundymees_a/><![CDATA[ ]]><qap:lundymees_b/><![CDATA[ ]]><qap:q87_max_reject/><![CDATA[ ]]>
-		<or/>
-		<![CDATA[TEMPBANDCOOLING ]]><qap:tempbandcooling_factor/><![CDATA[ ]]>
-		<or/>
-		<![CDATA[QUADRATICCOOLING]]><![CDATA[ ]]>
         </qap:cooling_scheme>
 
  	<qap:temperature_length>
@@ -157,8 +104,6 @@
 
 	<qap:exploration>
 		<![CDATA[SARANDOMEXPLORATION ]]><![CDATA[ ]]>
-		<or/>
-		<![CDATA[SASEQUENTIALEXPLORATION ]]><![CDATA[ ]]>
 	</qap:exploration>
 
 	<qap:temprestart>
