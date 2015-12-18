@@ -13,17 +13,17 @@
 class SAStatus {
 
 public:
-    int    counter;
-    int    total_counter;
-    int    accepted;
-    int    curr_accepted;
+    long   counter;
+    long   total_counter;
+    long   accepted;
+    long   curr_accepted;
     double  rate;
     short *last_accepted;
-    int    tenure;
-    int    index;
-    int    step;
+    long   tenure;
+    long   index;
+    long   step;
 
-    int    not_improved;
+    long   not_improved;
 
     emili::Solution *best;
     double best_cost;
@@ -85,8 +85,8 @@ public:
         best = sol->clone();
         best_cost = cost;
         best_temp = temp;
-        std::cout << std::fixed << cost << " " << best->getSolutionRepresentation();
-        std::cout << " count at iteration " << total_counter << std::endl;
+        std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
+        std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
         not_improved = 0;
     }
 
