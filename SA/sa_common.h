@@ -85,7 +85,8 @@ public:
         best = sol->clone();
         best_cost = cost;
         best_temp = temp;
-        std::cout << std::fixed << cost << " " << best->getSolutionRepresentation() << std::endl;
+        std::cout << std::fixed << cost << " " << best->getSolutionRepresentation();
+        std::cout << " count at iteration " << total_counter << std::endl;
         not_improved = 0;
     }
 

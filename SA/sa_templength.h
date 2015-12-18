@@ -86,6 +86,34 @@ public:
 
 
 /**
+ * Length dependant on the size of the neighborhood:
+ * From COnnolly Paper
+ * 1/2 * |neigh|^2
+ */
+class ConnollyNeighSizeTempLength: public SATempLength {
+
+protected:
+    emili::Neighborhood* neigh;
+    float alpha;
+
+public:
+    ConnollyNeighSizeTempLength(emili::Neighborhood* neigh,
+                       float alpha):
+        neigh(neigh),
+        alpha(alpha),
+        SATempLength(CONNOLLYNEIGHSIZETEMPLEN,
+                     (int)std::lrint(alpha * neigh->size() * neigh->size())) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length)
+            return true;
+        return false;
+    }
+
+}; // ConnollyNeighSizeTempLength
+
+
+/**
  * Length based on a maximum number of accepted solutions.
  */
 class MaxAcceptedTempLength: public SATempLength {

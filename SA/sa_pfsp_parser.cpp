@@ -221,6 +221,9 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
         return new NeighSizeTempLength(neigh, a);
+    } else if (tm.checkToken(CONNOLLYNEIGHSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new ConnollyNeighSizeTempLength(neigh, a);
     } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
         int a = tm.getInteger();
         return new MaxAcceptedTempLength(a);
