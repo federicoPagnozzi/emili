@@ -305,12 +305,13 @@ class EmptyLocalSearch: public emili::LocalSearch
 {
 public:
     EmptyLocalSearch(InitialSolution& in):emili::LocalSearch() {
+        this->init = &in;
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
         }
-    virtual Solution* search(Solution* initial) { return initial;}
-    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial;}
-    virtual Solution* timedSearch(Solution* initial) {return initial;}
+    virtual Solution* search(Solution* initial) { return initial->clone();}
+    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
+    virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
 };
 
 /*
@@ -352,7 +353,7 @@ class Perturbation
  * NO pertubation
  */
 
-class NoPertubation: public emili::Perturbation
+class NoPerturbation: public emili::Perturbation
 {
 public:
     virtual Solution* perturb(Solution *solution) { return solution;}
@@ -361,17 +362,17 @@ public:
 /*
     Performs a series of random steps in the given neighborhood.
 */
-class RandomMovePertubation : public emili::Perturbation
+class RandomMovePerturbation : public emili::Perturbation
 {
 protected:
     Neighborhood& explorer;
     int numberOfSteps;
 public:
-    RandomMovePertubation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
+    RandomMovePerturbation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
     virtual Solution* perturb(Solution* solution);
 };
 
-class VNRandomMovePertubation : public emili::Perturbation
+class VNRandomMovePerturbation : public emili::Perturbation
 {
 protected:
   std::vector< Neighborhood* > explorers;
@@ -380,7 +381,7 @@ protected:
   int currentIteration;
   int currentExplorer;
 public:
-  VNRandomMovePertubation(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations):explorers(neighborhoods),numberOfSteps(number_of_steps),numberOfIterations(number_of_iterations),currentIteration(0),currentExplorer(0) { }
+  VNRandomMovePerturbation(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations):explorers(neighborhoods),numberOfSteps(number_of_steps),numberOfIterations(number_of_iterations),currentIteration(0),currentExplorer(0) { }
   virtual Solution* perturb(Solution *solution);
 };
 

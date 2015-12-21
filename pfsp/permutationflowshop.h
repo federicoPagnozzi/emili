@@ -537,17 +537,17 @@ public:
     virtual emili::Solution* destruct(Solution *solutioon);
 };
 
-class NRZPertubation: public emili::Perturbation
+class NRZPerturbation: public emili::Perturbation
 {
 protected:
     int d;
     emili::pfsp::PermutationFlowShop& prob;
 public:
-    NRZPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),prob(problem) { }
+    NRZPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),prob(problem) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class TMIIGPertubation: public emili::Perturbation
+class TMIIGPerturbation: public emili::Perturbation
 {
 protected:
     int d;
@@ -555,7 +555,7 @@ protected:
     emili::pfsp::PermutationFlowShop& instance;
     std::vector< std::vector < int > > tblist;
 public:
-    TMIIGPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem,int tabu_list_size):d(d_parameter),instance(problem),tbsize(tabu_list_size),tblist(problem.getNjobs()+1 ) { }
+    TMIIGPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem,int tabu_list_size):d(d_parameter),instance(problem),tbsize(tabu_list_size),tblist(problem.getNjobs()+1 ) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -573,13 +573,15 @@ class IGIOPerturbation: public emili::Perturbation
 {
 protected:
     int d;
+    std::vector< int > weights;
     emili::pfsp::PermutationFlowShop& instance;
+    void updateWeights();
 public:
-    IGIOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem) { }
+    IGIOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem),weights(problem.getNjobs()+1,0) { updateWeights();}
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class RSPertubation: public emili::Perturbation
+class RSPerturbation: public emili::Perturbation
 {
 protected:
     int d;
@@ -589,11 +591,11 @@ protected:
     const std::vector < std::vector < long int > >& pmatrix;
 
 public:
-    RSPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    RSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class RSffPertubation: public emili::Perturbation
+class RSffPerturbation: public emili::Perturbation
 {
 protected:
     int d;
@@ -603,20 +605,20 @@ protected:
     const std::vector < std::vector < long int > >& pmatrix;
 
 public:
-    RSffPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    RSffPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class IgLsPertubation: public emili::pfsp::IGPerturbation
+class IgLsPerturbation: public emili::pfsp::IGPerturbation
 {
 protected:
     emili::LocalSearch* ls;
 public:
-    IgLsPertubation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::IGPerturbation(d_parameter,problem),ls(ls) {/*   */}
+    IgLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::IGPerturbation(d_parameter,problem),ls(ls) {/*   */}
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class RSLSPertubation: public emili::Perturbation
+class RSLSPerturbation: public emili::Perturbation
 {
 protected:
     int d;
@@ -626,7 +628,7 @@ protected:
     const std::vector < std::vector < long int > >& pmatrix;
     emili::LocalSearch* ls;
 public:
-    RSLSPertubation(int d_param, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ls(ls) { }
+    RSLSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ls(ls) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -688,13 +690,6 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
-class ApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
-{
-protected:
-    virtual Solution* computeStep(Solution *value);
-public:
-    ApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
-};
 
 class HeavilyApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
@@ -704,6 +699,17 @@ protected:
 public:
     HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
     virtual NeighborhoodIterator begin(Solution *base);
+};
+
+/* This Insert recomputes the objective function value only for the modified parts of the solution
+ *
+ * */
+class OptInsert: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    OptInsert(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
 };
 
 class NatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood

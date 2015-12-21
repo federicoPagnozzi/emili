@@ -252,7 +252,7 @@ bool emili::Solution::operator>(emili::Solution& a)
 }
 
 double emili::Solution::getSolutionValue()
-{
+{    
     return solution_value;
 }
 
@@ -656,7 +656,7 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 
 */
 
-emili::Solution* emili::RandomMovePertubation::perturb(Solution *solution)
+emili::Solution* emili::RandomMovePerturbation::perturb(Solution *solution)
 {
     Solution* ret = explorer.random(solution);
 
@@ -669,7 +669,7 @@ emili::Solution* emili::RandomMovePertubation::perturb(Solution *solution)
     return ret;
 }
 
-emili::Solution* emili::VNRandomMovePertubation::perturb(Solution *solution)
+emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
 {
 
     Solution* ret = explorers[currentExplorer]->random(solution);
@@ -774,7 +774,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     //initialization done
     do{
 
-        //Pertubation step
+        //Perturbation step
         emili::Solution* s_p = pert.perturb(s);
         //local search on s_p
         if(s!=s_s && s_s != nullptr)
@@ -816,7 +816,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         //initialization done
         do{
             //iteration_increment();
-            //Pertubation step
+            //Perturbation step
             emili::Solution* s_p = pert.perturb(s);
            // std::cout << s_p->getSolutionValue() << std::endl;
             //local search on s_p
@@ -864,7 +864,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         //initialization done
         do{
 
-            //Pertubation step
+            //Perturbation step
             emili::Solution* s_p = pert.perturb(s);
             //local search on s_p
             s_s = ls.search(s_p);
@@ -1111,7 +1111,7 @@ emili::Solution* emili::GVNS::search(Solution* initial)
         //initialization done
         do{
 
-            //Pertubation step
+            //Perturbation step
             emili::Solution* s_p = perturbations[k]->perturb(s);
 
             //local search on s_p
