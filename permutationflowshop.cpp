@@ -1695,34 +1695,37 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     //
     // Local search on partial
     //
-    for(int l=0;l<removed.size();l++){
-        k=removed[l];
-        min = std::numeric_limits<int>::max();
+  
+	for (int l = 0; l<removed.size(); l++){
+		sops++;
+		k = removed[l];
+		min = std::numeric_limits<int>::max();
 
-        for(int r=1; r<sops; r++){
+		for (int r = 1; r<sops; r++){
 
-            for(int h=1; h<r; h++)
-                solTMP[h]=solPartial[h];
-            solTMP[r]=k;
-            for(int h=r+1; h<=sops; h++)
-                solTMP[h]=solPartial[h-1];
+			for (int h = 1; h<r; h++)
+				solTMP[h] = solPartial[h];
+			solTMP[r] = k;
+			for (int h = r + 1; h <= sops; h++)
+				solTMP[h] = solPartial[h - 1];
 
 
-            //tmp=compute_total_wt(solTMP,sizePartial+1);
-            //                  std::cout << "start perturb" << std::endl;
-            //check why plus 1
-            tmp = instance.computeObjectiveFunction(solTMP,sops);
+			//tmp=compute_total_wt(solTMP,sizePartial+1);
+			//                  std::cout << "start perturb" << std::endl;
+			//check why plus 1
+			tmp = instance.computeObjectiveFunction(solTMP, sops);
 
-            if(tmp<min){
-                min=tmp;
-                ind=r;
-            }
+			if (tmp<min){
+				min = tmp;
+				ind = r;
+			}
 
-        }
-        solPartial.insert(solPartial.begin()+ind,k);
-        sops++;
-        //std::cout << "end insert " << solPartial.size() << std::endl;
-    }
+		}
+		solPartial.insert(solPartial.begin() + ind, k);
+
+		//std::cout << "end insert " << solPartial.size() << std::endl;
+	}
+
 
 
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);

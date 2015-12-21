@@ -255,7 +255,7 @@ static inline void setTimer(int maxTime)
 #else
 static inline void setTimer(int maxTime)
 {
-
+	keep_going = true;
 }
 #endif
 #endif

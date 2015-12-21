@@ -385,9 +385,15 @@ std::vector< emili::Neighborhood*> nes;
 
 emili::LocalSearch* prs::ParamsParser::eparams(prs::TokenManager& tm)
 {
-    prs::incrementTabLevel();
-    emili::LocalSearch* ls;
-    if(tm.checkToken(ILS))
+	prs::incrementTabLevel();
+	emili::LocalSearch* ls;
+	//std::vector< int > sol ={0, 39, 29, 10, 50, 33, 25, 41, 28, 48, 8, 2, 22, 15, 31, 18, 43, 12, 30, 17, 13, 20, 34, 46, 27, 44, 37, 1, 40, 19, 9, 35, 49, 24, 42, 32, 36, 16, 6, 45, 14, 23, 21, 47, 26, 5, 3, 4, 11, 38, 7 };
+	////std::vector< int > sol = {0, 29, 33, 10, 39, 44, 13, 41, 47, 31, 27, 9, 25, 30, 19, 37, 43, 4, 18, 20, 2, 5, 8, 22, 42, 1, 50, 6, 36, 23, 34, 14, 48, 35, 15, 45, 40, 46, 12, 24, 16, 32, 17, 49, 11, 3, 26, 28, 21, 7, 38 };
+	//PfspInstance& p = istance->getInstance();
+	//std::cout << p.computeHMS(sol) << std::endl;
+	//cin.get();
+	//exit(-1);
+	if(tm.checkToken(ILS))
     {
         printTab("ILS");
         ls = ils(tm);
