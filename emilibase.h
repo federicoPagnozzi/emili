@@ -34,7 +34,7 @@ Neighborhood and Perturbation.
 #endif
 #include <functional>
 
-
+#include "ROADF/solution.h"
 
 namespace emili{
 
@@ -370,7 +370,7 @@ protected:
     Neighborhood& explorer;
     int numberOfSteps;
 public:
-    RandomMovePertubation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
+    RandomMovePertubation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { ;}
     virtual Solution* perturb(Solution* solution);
 };
 

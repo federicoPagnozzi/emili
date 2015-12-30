@@ -7,7 +7,7 @@
 #include "generalParser.h"
 #include "setup.h"
 
-#include "irp.h"
+#include "irpparser.h"
 
 void g2c_info()
 {
@@ -17,19 +17,24 @@ void g2c_info()
 
 void test(){
 
-    emili::irp::InventoryRoutingProblem irp = emili::irp::InventoryRoutingProblem("Instance_V_1.1.xml");
-    irpSolution s = irp.getIrpInstance().backTrackingRandomSolution();
-    irp.getIrpInstance().checkFeasibility(s);
-    s.saveSolution("Solution_V_1.1.xml");
+    emili::irp::InventoryRoutingProblem *irp = new emili::irp::InventoryRoutingProblem("Instance_V_1.1.xml");
+    irpSolution s = irp->getIrpInstance().backTrackingRandomSolution(1.0, 1.0, 1);
+    emili::irp::InventoryRoutingSolution *irs = new emili::irp::InventoryRoutingSolution(s);
+    if(irp->getIrpInstance().checkFeasibility(irs->getIrpSolution(), false))
+        cout<<"\nNOT FEASIBLE! \n";
+    else
+        cout<<"\nFEASIBLE! \n";
+    cout<<"CIAOOO";
+//    irs->getIrpSolution().saveSolution("Solution_V_1.1.xml");
+//    emili::irp::irpPerturbation perturbation = emili::irp::irpPerturbation();
+//    perturbation.perturb(irs);
 
 }
 
 int main(int argc, char *argv[])
 {
 
-    test();
-    if(true==2)
-        cout<<"ciaooo";
+ //   test();
 
 prs::emili_header();
     /* initialize random seed: */
@@ -75,7 +80,8 @@ prs::emili_header();
 
     //prs::ParamsParser p;
     //ps.registerBuilder(&p);
-
+    prs::irp::IrpParser p;
+    ps.registerBuilder(&p);
 
     ls = ps.parseParams();
    // testHeuritstic(ps.getInstance());

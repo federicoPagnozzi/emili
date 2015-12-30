@@ -1,46 +1,151 @@
 #ifndef IRP_H
-#include "emilibase.h"
 #define IRP_H
+#include "emilibase.h"
+#include "ROADF/instance.h"
 
 namespace emili
 {
 namespace irp
 {
 
-class InvetoryRoutingProblem: public emili::Problem
+class InventoryRoutingProblem: public emili::Problem
 {
 protected:
     /*Internal structure of the invetory routing problem*/
+    Instance irpInstance;
 public:
-    InvetoryRoutingProblem(char* instance_path);
+    InventoryRoutingProblem(char* instance_path);
     /*implement this method to get the objective Function value*/
     virtual double evaluateSolution(Solution & solution);
 
     /*Methods that are needed  for IRP */
+    Instance getIrpInstance();
 };
 
-class InvetoryRoutingSolution: public emili::Solution
+class InventoryRoutingSolution: public emili::Solution
 {
 protected:
+    irpSolution irps;
     /*Implement these methods to make the copy constructor works*/
-    virtual const void* getRawData()const=0;
-    virtual void setRawData(const void* data)=0;
+    virtual const void* getRawData()const;
+    virtual void setRawData(const void* data);
+
 
     /*Internal structure of the Solution*/
 
 public:
     /*Base constructor*/
-    InvetoryRoutingSolution(double solution_value):emili::Solution(solution_value) { }
+    InventoryRoutingSolution(double solution_value):emili::Solution(solution_value) { }
+    InventoryRoutingSolution(irpSolution irps):emili::Solution(DBL_MAX) {this->irps = irps;}
     /*This method must build a clone of the Solution on the heap and returns the pointer to it*/
     virtual Solution* clone();
 
     /*Methods needed for the Internal use of the Solution
      * ( how the solution is seen by Neighborhoods, Perturbations, Initial Solution generators... etc)*/
+    irpSolution &getIrpSolution();
 
+    virtual std::string getSolutionRepresentation();
+};
+
+class GreedyInitialSolution : public emili::InitialSolution
+{
+public:
+    GreedyInitialSolution(Problem& instance):emili::InitialSolution(instance){}
+    virtual Solution* generateSolution();
+    virtual Solution* generateEmptySolution();
 };
 
 
+/*
+    The class models a neighborhood of a solution
 
+*/
+class irpTwoExchangeNeighborhood : public emili::Neighborhood
+{
+protected:
+    InventoryRoutingProblem irp;
+    Solution * currentNeighboringSolution;
+    int operation1;
+    int operation2;
+    int numberOfOperations1;
+    int numberOfOperations2;
+    int numberFeasibleSolutions; //in a neighborhood
+    double bestValueFound;
+    virtual Solution* computeStep(Solution* step);
+    virtual void reverseLastMove(Solution* step);
+public:
+
+     /*
+      * Initialize shift and operation size, 4 indexes
+      * this method needs to be overidden if there are things that a neighborhood has to do or reset when begin is called*/
+     virtual NeighborhoodIterator begin(emili::Solution* base);
+
+    /*this method returns a solution in the decided neighborhood
+     * of the currentSolution */
+    virtual Solution* step(Solution* currentSolution);
+    /*
+     * The state of the Neighborhood object may need to be restored to
+     * initial conditions between local search calls
+     * (e.g. first improvement strategies for permutation flow shop).
+     */
+    virtual void reset();
+    /*
+     * A method that returns a random solution in the neighborhood has to be provided
+     */
+    virtual Solution* random(Solution* currentSolution);
+    /*
+     * This method returns the size of the neighborhood
+    */
+    virtual int size();
+
+    irpTwoExchangeNeighborhood(InventoryRoutingProblem &i):irp(i){this->numberFeasibleSolutions=0;}
+};
+
+
+class irpRefuelNeighborhood : public emili::Neighborhood
+{
+protected:
+    InventoryRoutingProblem irp;
+    Solution * currentNeighboringSolution;
+    double refuelRatio;
+    double refuelStep;
+    double deliveredQuantityRatio;
+    double deliveredQuantityStep;
+    int numberFeasibleSolutions; //in a neighborhood
+    double bestValueFound;
+    virtual Solution* computeStep(Solution* step);
+    virtual void reverseLastMove(Solution* step);
+
+public:
+     virtual NeighborhoodIterator begin(emili::Solution* base);
+
+    /*this method returns a solution in the decided neighborhood
+     * of the currentSolution */
+    virtual Solution* step(Solution* currentSolution);
+    /*
+     * The state of the Neighborhood object may need to be restored to
+     * initial conditions between local search calls
+     * (e.g. first improvement strategies for permutation flow shop).
+     */
+    virtual void reset();
+    /*
+     * A method that returns a random solution in the neighborhood has to be provided
+     */
+    virtual Solution* random(Solution* currentSolution);
+    /*
+     * This method returns the size of the neighborhood
+    */
+    virtual int size();
+
+    irpRefuelNeighborhood(InventoryRoutingProblem &i):irp(i){this->numberFeasibleSolutions=0;this->bestValueFound=DBL_MAX;}
+};
+
+class irpPerturbation : public emili::Perturbation
+{
+public:
+  virtual Solution* perturb(Solution* solution);
+
+};
 
 }
 }

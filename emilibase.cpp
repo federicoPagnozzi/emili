@@ -15,7 +15,6 @@
 
 #include <iostream>
 #include <assert.h>
-#include "permutationflowshop.h"
 /*
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
@@ -1155,4 +1154,5 @@ emili::Solution* emili::GVNS::getBestSoFar()
     }
     return bestSoFar;
 }
+
 

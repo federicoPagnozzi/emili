@@ -1,9 +1,9 @@
 #include "irp.h"
 
-#define FEASIBILITY_PENALTY 1
+#define FEASIBILITY_PENALTY 10
 #define POINT_INITIAL_VALUE 0
 #define REFUEL_INITIAL_VALUE 0.0
-#define REFUEL_STEP 0.5
+#define REFUEL_STEP 0.1
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
 
@@ -21,7 +21,6 @@ std::string emili::irp::InventoryRoutingSolution::getSolutionRepresentation(){
     repr<<"\nSOLUTION REPRESENTATION: ";
     for(int s=0; s<this->irps.getShifts().size(); s++)
         for(int o=0; o<this->irps.getShifts()[s].getOperations().size(); o++)
-//            if(this->irps.getShifts()[s].getOperations()[o].getPoint()!=1)
             repr <<this->irps.getShifts()[s].getOperations()[o].getPoint()<<" ";
     repr<<"\n";
     return repr.str();
@@ -37,14 +36,8 @@ double emili::irp::InventoryRoutingProblem::evaluateSolution(Solution & solution
 
    InventoryRoutingSolution& s = dynamic_cast<InventoryRoutingSolution&> (solution);
    double p = this->irpInstance.computeObjective(s.getIrpSolution());
-   double feas = this->irpInstance.checkFeasibility(s.getIrpSolution(), false);
-//   cout<<"FEAS: "<<feas<<" "; int a;cin>>a;
-   if(feas){
-       double factor = feas/(this->irpInstance.getHorizon()*60 * (this->irpInstance.getCustomers().size()-2));
-//       cout<<"PENALTY: "<<p<<" "<<feas<<" "<<factor<<" ";
-       p /=  (factor * FEASIBILITY_PENALTY);
-//       cout<<p<<"\n";
-//       int a;cin>>a;
+   if(this->irpInstance.checkFeasibility(s.getIrpSolution())){
+       p *= FEASIBILITY_PENALTY;
   //     cout<<"NOT FEASIBLE! "<<p<<"\n";
    }
    else{
@@ -63,73 +56,56 @@ Instance emili::irp::InventoryRoutingProblem::getIrpInstance(){
 emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
 
     InventoryRoutingProblem& irp = dynamic_cast<InventoryRoutingProblem&> (this->instance);
-    InventoryRoutingSolution *irs, *bestIrs;
     irpSolution irps;
+    InventoryRoutingSolution *irs;
     unsigned int feasibleOriginalCounter = 0;
+    for(double tw=0.0; tw<=1.0; tw+=0.02){
+        for(double qw=0.0; qw<=1.0; qw+=0.02){
 
-//    irps = irp.getIrpInstance().backTrackingRandomSolution(0.0, 0.0, 0);
-    bestIrs = new InventoryRoutingSolution(irps);
-    bool bf = false;
-    double bestValue = DBL_MAX;
-    for(double tw=0.1; tw<=1.0; tw+=0.1){
-        for(double qw=0.1; qw<=1.0; qw+=0.1){
-            for(int t=-1; t<=1; t++){
-                irps = irp.getIrpInstance().backTrackingRandomSolution(0.4,0.1,1/*tw, qw, t*/);
+            irps = irp.getIrpInstance().backTrackingRandomSolution(tw, qw);
+        //    irpSolution irps = irp.getIrpInstance().GreedySolution();
 
-                irs = new InventoryRoutingSolution(irps);
-                instance.evaluateSolution(*irs);
+            irs = new InventoryRoutingSolution(irps);
 
-                if(irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false)){
-                    cout<<"\nORIGINAL NOT FEASIBLE!\n";
-            //        irs->getIrpSolution().saveSolution("OriginalSolution.xml");
-                }
-                else if(irs->getSolutionValue() < bestValue){
-                    cout<<"\nORIGINAL FEASIBLE!\n";
-                    bestIrs = new InventoryRoutingSolution(irps);
-                    instance.evaluateSolution(*bestIrs);
-                    bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
-                    bestValue = bestIrs->getSolutionValue();
-                    string filepath;
-                    filepath.append("./Neighborhood/");
-                    filepath.append(to_string(feasibleOriginalCounter));
-                    filepath.append("OriginalSolution.xml");
-                    irs->getIrpSolution().saveSolution(filepath);
-                    feasibleOriginalCounter++;
-
-                        cout<<bestIrs->getSolutionRepresentation();
-                        cout<<"    "<<irps.getShifts()[0].getOperations()[0].getPoint();
-                    cout<<"\nORIGINAL OBJ VALUE: "<<irs->getSolutionValue()<<"\n";
-                    cout<<"\nVALUES: "<<tw<<" "<<qw<<" "<<t<<"\n";
-                    int b;cin>>b;
-                    bf = true;break;
-                }
-                if(bf)break;
+            if(irp.getIrpInstance().checkFeasibility(irs->getIrpSolution())){
+                cout<<"\nORIGINAL NOT FEASIBLE!\n";
+        //        irs->getIrpSolution().saveSolution("OriginalSolution.xml");
             }
-            if(bf)break;
+            else{
+                cout<<"\nORIGINAL FEASIBLE!\n";
+                string filepath;
+                filepath.append("./Neighborhood/");
+                filepath.append(to_string(feasibleOriginalCounter));
+                filepath.append("OriginalSolution.xml");
+                irs->getIrpSolution().saveSolution(filepath);
+                feasibleOriginalCounter++;
+                instance.evaluateSolution(*irs);
+                cout<<"\nORIGINAL OBJ VALUE: "<<irs->getSolutionValue()<<"\n";
+//                int a;cin>>a;
+            }
         }
-        if(bf)break;
     }
 
 
+//    irp.getIrpInstance().compute(irs->getIrpSolution());
     vector<unsigned int> representation;
 
-    InventoryRoutingSolution *rirs;
-    irpSolution rebuiltSolution = irp.getIrpInstance().rebuildSolution(bestIrs->getIrpSolution(),bestIrs->getIrpSolution().getRepresentation(), 0.0, 0.0);
-    rirs = new InventoryRoutingSolution(rebuiltSolution);
-    rirs->getIrpSolution().fromSolutionToRepresentation(rirs->getIrpSolution());
-    instance.evaluateSolution(*rirs);
-    cout<<rirs->getSolutionRepresentation();
-    if(irp.getIrpInstance().checkFeasibility(rirs->getIrpSolution(), false)){
+    irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
+    irpSolution rebuiltSolution = irp.getIrpInstance().rebuildSolution(irs->getIrpSolution(),irs->getIrpSolution().getRepresentation(), 0.0, 0.0);
+    if(irp.getIrpInstance().checkFeasibility(rebuiltSolution)){
         cout<<"\nRECOSTRUCTION NOT FEASIBLE!\n";
-        rirs->getIrpSolution().saveSolution(*new string("RebuiltSolution.xml"));
-        cout<<"OBJ VALUE: "<<rirs->getSolutionValue()<<"\n\n";
     }
     else{
         cout<<"\nRECOSTRUCTION FEASIBLE!\n";
-        cout<<"OBJ VALUE: "<<rirs->getSolutionValue()<<"\n\n";
+        rebuiltSolution.saveSolution(*new string("RebuiltSolution.xml"));
     }
 
-    return rirs;
+    instance.evaluateSolution(*irs);
+    irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
+    cout<<"\n\nINITIAL OBJ VALUE: "<<irs->getSolutionValue()<<"\n\n";
+    int a; cin>>a;
+
+    return irs;
 
 }
 
@@ -160,8 +136,9 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpTwoExchangeNeighborhood
     irpStartSolution->getIrpSolution().fromSolutionToRepresentation(irpStartSolution->getIrpSolution());
     irp.evaluateSolution(*irpStartSolution);
 
-    this->numberOfOperations1 = irpStartSolution->getIrpSolution().getRepresentation().size();
-    this->numberOfOperations2 = irpStartSolution->getIrpSolution().getRepresentation().size();
+    this->numberOfOperations1 = irpStartSolution->getIrpSolution().getRepresentation().size()/*irpStartSolution->getIrpSolution().getShifts()[this->shift1].getOperations().size()*/;
+    this->numberOfOperations2 = irpStartSolution->getIrpSolution().getRepresentation().size()/*irpStartSolution->getIrpSolution().getShifts()[this->shift2].getOperations().size()*/;
+    this->numberFeasibleSolutions = 0;
     cout<<"INITIAL BEGIN: "<<this->numberOfOperations1<<" "<<this->numberOfOperations2<<"\n";
         int a;cin>>a;
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
@@ -179,8 +156,6 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 
     InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
     InventoryRoutingSolution *irs;
-
-    this->currentNeighboringSolution = currentSolution;
 
 //    cout<<"INITIAL: "<<this->numberOfShifts1<<" "<<this->numberOfOperations1<<" "<<this->numberOfShifts2<<" "<<this->numberOfOperations2<<"\n";
 
@@ -200,27 +175,29 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
     unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1];
     unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2];
 //    if(  not(  (o1==o2) or (point1==point2)    )  ){
-        cout<<"\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2;
+        cout<<"\n\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2<<" "<<this->numberOfOperations1<<" "<<this->numberOfOperations2<<"\n\n";
+//           cin>>o2;
 
         neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
         vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
+        cout<<"REPRESENTATION SIZE: "<<representation.size()<<"\n\n";
         representation[o1] = point2;
         representation[o2] = point1;
         irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, 0.0, 0.0);
         irps.fromSolutionToRepresentation(irps);
         irs = new InventoryRoutingSolution(irps);
-        this->irp.evaluateSolution(*irs);
 
 
-        this->numberOfOperations1 = irs->getIrpSolution().getRepresentation().size();
-        this->numberOfOperations2 = irs->getIrpSolution().getRepresentation().size();
+        this->numberOfOperations1 = irs->getIrpSolution().getRepresentation().size()/*irpStartSolution->getIrpSolution().getShifts()[this->shift1].getOperations().size()*/;
+        this->numberOfOperations2 = irs->getIrpSolution().getRepresentation().size()/*irpStartSolution->getIrpSolution().getShifts()[this->shift2].getOperations().size()*/;
 
+        irp.evaluateSolution(*irs);
 
-        cout<<"\nVALUE: "<<irs->getSolutionValue();
-//
-        if(irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false))
+        cout<<"\n\nVALUE: "<<irs->getSolutionValue()<<"\n\n";
+//        int a; cin>>a;
+        if(irp.getIrpInstance().checkFeasibility(irs->getIrpSolution()))
             cout<<"\nNEIGH NOT FEASIBLE!\n";
-        else if(irs->getSolutionValue() < neighboringSolution->getSolutionValue()){
+        else{
             cout<<"\nNEIGH FEASIBLE!\n";
             this->numberFeasibleSolutions++;
             string filepath;
@@ -228,11 +205,9 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
             filepath.append(to_string(this->numberFeasibleSolutions));
             filepath.append("NeighSolution.xml");
             irs->getIrpSolution().saveSolution(filepath);
-
         }
 //    }
-    cout<<irs->getSolutionRepresentation();
-    int a; cin>>a;
+
     return dynamic_cast<Solution *> (irs);
 
 }
@@ -244,12 +219,10 @@ void emili::irp::irpTwoExchangeNeighborhood::reset(){
     this->operation2 = POINT_INITIAL_VALUE;
     this->numberOfOperations1 = POINT_INITIAL_VALUE;
     this->numberOfOperations2 = POINT_INITIAL_VALUE;
-//    this->numberFeasibleSolutions = 0;
+    this->numberFeasibleSolutions = 0;
 }
 
 emili::Solution* emili::irp::irpTwoExchangeNeighborhood::random(Solution* currentSolution){
-
-        cout<<"\nTOWEXC RANDOM\n";int a;cin>>a;
 
     InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
     InventoryRoutingSolution *irs;
@@ -270,19 +243,18 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::random(Solution* curren
         irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
 
     }
-
     return dynamic_cast<Solution *> (irs);
 }
 
 void emili::irp::irpTwoExchangeNeighborhood::reverseLastMove(Solution * step){
-/*
+
     //invert last operation: apply move without updating indexes
-    cout<<"TWOEXC REVERSE";
+
     int o1 = this->operation1;
     int o2 = this->operation2;
     InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (step);
-    unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1];
-    unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2];
+    unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1]/*neighboringSolution->getIrpSolution().getShifts()[s1].getOperations()[o1].getPoint()*/;
+    unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2]/*neighboringSolution->getIrpSolution().getShifts()[s2].getOperations()[o2].getPoint()*/;
     if(  not(  (o1==o2) or (point1==point2)  )  ){
 
         neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
@@ -295,16 +267,7 @@ void emili::irp::irpTwoExchangeNeighborhood::reverseLastMove(Solution * step){
 
 //        this->numberFeasibleSolutions--;
     }
-*/
-    cout<<"////////";
-    cout<<"\nTWO EXC RATIO: "<<this->operation1<<" "<<this->operation2;
 
-
-    step = this->currentNeighboringSolution;
-    this->irp.evaluateSolution(*step);
-    cout<<step->getSolutionRepresentation();
-    cout<<"\nREVERSE VALUE: "<<step->getSolutionValue();
-    cout<<"///////\n\n\n\n\n";
 }
 
 int emili::irp::irpTwoExchangeNeighborhood::size()
@@ -318,19 +281,18 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::beg
     InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
     this->refuelRatio = REFUEL_INITIAL_VALUE;
     this->refuelStep = REFUEL_STEP;
-    this->deliveredQuantityRatio = REFUEL_INITIAL_VALUE;
+    this->deliveredQuantityRatio = /*REFUEL_INITIAL_VALUE*/-REFUEL_STEP;
     this->deliveredQuantityStep = REFUEL_STEP;
     this->numberFeasibleSolutions = 0;
-    this->bestValueFound = DBL_MAX;
 
     irpStartSolution->getIrpSolution().fromSolutionToRepresentation(irpStartSolution->getIrpSolution());
     irp.evaluateSolution(*irpStartSolution);
 
     cout<<"BEGIN INITIAL: "<<this->refuelRatio<<" "<<this->refuelStep<<" \n";
-    int a;cin>>a;
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
 
 }
+
 
 emili::Solution* emili::irp::irpRefuelNeighborhood::step(Solution* currentSolution){
 
@@ -339,10 +301,19 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::step(Solution* currentSoluti
 
 emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* currentSolution){
 
-    this->currentNeighboringSolution = currentSolution;
-
     InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
     InventoryRoutingSolution *irs;
+
+    if(this->deliveredQuantityRatio <= 1.0-this->deliveredQuantityStep and this->refuelRatio <= 1.0){
+        this->deliveredQuantityRatio += this->deliveredQuantityStep;
+    }
+    else if(this->refuelRatio <= 1.0-this->refuelStep){
+        this->deliveredQuantityRatio = REFUEL_INITIAL_VALUE;
+        this->refuelRatio += this->refuelStep;
+    }
+    else
+        return nullptr;
+
     if(this->deliveredQuantityRatio <= 1.0-this->deliveredQuantityStep and this->refuelRatio <= 1.0){
         this->deliveredQuantityRatio += this->deliveredQuantityStep;
     }
@@ -354,22 +325,25 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         return nullptr;
 
     cout<<"\nPERTURB RATIO: "<<this->deliveredQuantityRatio<<" "<<this->refuelRatio;
+//      int b;cin>>b;
+
 
         neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
-        irp.evaluateSolution(*neighboringSolution);
         vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
 
         irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, this->refuelRatio, this->deliveredQuantityRatio);
+        irps.fromSolutionToRepresentation(irps);
         irs = new InventoryRoutingSolution(irps);
-        irs->getIrpSolution().fromSolutionToRepresentation(irps);
+
+
         irp.evaluateSolution(*irs);
 
-        if(irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false))
+        cout<<"\n\nVALUE: "<<irs->getSolutionValue()<<"\n\n";
+        if(irp.getIrpInstance().checkFeasibility(irs->getIrpSolution()))
             cout<<"\nNEIGH NOT FEASIBLE!\n";
-        else if(irs->getSolutionValue() < this->bestValueFound){
+        else{
             cout<<"\nNEIGH FEASIBLE!\n";
             this->numberFeasibleSolutions++;
-            this->bestValueFound = irs->getSolutionValue();
             string filepath;
             filepath.append("./Neighborhood/");
             filepath.append(to_string(this->numberFeasibleSolutions));
@@ -377,10 +351,6 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
             irs->getIrpSolution().saveSolution(filepath);
         }
 
-       cout<<irs->getSolutionValue()<<"\n";
-    cout<<irs->getSolutionRepresentation();
-
-    int a;cin>>a;
     return dynamic_cast<Solution *> (irs);
 
     //if neighborhood is over return nullptr, else apply step
@@ -393,14 +363,10 @@ void emili::irp::irpRefuelNeighborhood::reset(){
     this->refuelStep = REFUEL_STEP;
     this->deliveredQuantityRatio = REFUEL_INITIAL_VALUE;
     this->deliveredQuantityStep = REFUEL_STEP;
-    cout<<"\nRESET\n";int a;cin>>a;
-//    this->numberFeasibleSolutions = 0;
-    this->bestValueFound = DBL_MAX;
+    this->numberFeasibleSolutions = 0;
 }
 
 emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolution){
-
-    cout<<"\nREF RANDOM\n";int a;cin>>a;
 
     InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
     InventoryRoutingSolution *irs;
@@ -412,6 +378,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolu
     vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
     irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, randomRefuel, randomDeliveredQuantity);
     irs = new InventoryRoutingSolution(irps);
+//    irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
 
     return dynamic_cast<Solution *> (irs);
 }
@@ -419,32 +386,23 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolu
 void emili::irp::irpRefuelNeighborhood::reverseLastMove(Solution * step){
 
     //invert last operation: apply move without updating indexes
-/*
-    InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (step);
-    neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
-    irp.evaluateSolution(*neighboringSolution);
-*/
-    cout<<"\n/////";
 
-    double rr,dqr;
-    dqr = this->deliveredQuantityRatio;
-    rr = this->refuelRatio;
+    InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (step);
+
     if(this->deliveredQuantityRatio > REFUEL_INITIAL_VALUE){
-        dqr -= this->deliveredQuantityStep;
+        this->deliveredQuantityRatio -= this->deliveredQuantityStep;
     }
     else if(this->refuelRatio > REFUEL_INITIAL_VALUE){
-        dqr = 1.0;
-        rr -= this->refuelStep;
+        this->deliveredQuantityRatio = 1.0;
+        this->refuelRatio -= this->refuelStep;
     }
 
-    cout<<"\nREVERSE PERTURB RATIO: "<<dqr<<" "<<rr;
+    neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
+    vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
+    irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, this->refuelRatio, this->deliveredQuantityRatio);
+    InventoryRoutingSolution *irs = new InventoryRoutingSolution(irps);
 
 
-    step = this->currentNeighboringSolution;
-    cout<<step->getSolutionRepresentation();
-    this->irp.evaluateSolution(*step);
-    cout<<"\nREVERSE VALUE: "<<step->getSolutionValue();
-    cout<<"\n/////";
 }
 
 int emili::irp::irpRefuelNeighborhood::size()
@@ -460,8 +418,4 @@ emili::Solution* emili::irp::irpPerturbation::perturb(Solution* solution){
 
 // /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP stin random
 // /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP best random locmin twoExc
-// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.3.xml IRP ils first random locmin ref true always intensify rndmv twoExc 300 diversify -it 300
-// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.3.xml IRP ils best random locmin ref true always intensify rndmv improve twoExc 1 -it 300
-
-                                  //                                            IRP ils best random locmin ref true always intensify -it 300
-///home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.3.xml IRP ils best random locmin ref true improve -it 3000
+// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP ILS first random locmin twoExc true rndmv twoExc 300 improve -it 300
