@@ -22,6 +22,7 @@ class SAInitTemp {
 protected:
     emili::Solution  *solution;
     double            init_temp;
+    SAStatus         *status;
 
 public:
 
@@ -53,6 +54,14 @@ public:
 
     virtual double get(void) {
         return init_temp;
+    }
+
+    void set_status(SAStatus* _status) {
+        status = _status;
+    }
+
+    double getMinTemp(void) {
+        return 0;
     }
 
 }; // class SAInitTemp
@@ -107,11 +116,13 @@ public:
 /**
  * Do a random walk and take the (absolute value of the) highest gap
  * as initial temperature
+ * Minimum temperature is the smallest non-zero gap.
  */
 class RandomWalkInitTemp: public SAInitTemp {
 protected:
     emili::InitialSolution *is;
     int length;
+    double mindelta;
 
 public:
 
@@ -128,8 +139,10 @@ public:
         
         double c1,
                c2 = s2->getSolutionValue();
-        double maxdelta,
+        double maxdelta = 0,
                bestcost = c2;
+
+        mindelta = c2;
 
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
@@ -139,6 +152,8 @@ public:
 
             if (abs(c2 - c1) > maxdelta) {
                 maxdelta = abs(c2 - c1);
+            } else if (abs(c2 - c1) > 0 && abs(c2 - c1) < mindelta) {
+                mindelta = abs(c2 - c1);
             }
 
             delete s1;
@@ -149,6 +164,10 @@ public:
         init_temp = value * maxdelta;
 
         return init_temp;
+    }
+
+    double getMinTemp(void) {
+        return mindelta;
     }
 
 }; // RandomWalkInitTemp

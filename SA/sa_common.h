@@ -23,11 +23,16 @@ public:
     long   index;
     long   step;
 
+    long   neigh_size;
+
     long   not_improved;
 
     emili::Solution *best;
     double best_cost;
     double best_temp;
+
+    double init_temp;
+    double final_temp;
 
     bool keep_last;
     bool force_accept;
@@ -48,6 +53,7 @@ public:
         not_improved = 0;
         step = 0;
         best_temp = 0;
+        neigh_size = 0;
 
         keep_last = false;
         force_accept = false;

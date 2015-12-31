@@ -163,6 +163,8 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
         float a = tm.getDecimal();
         float b = tm.getDecimal();
         return new LundyMeesCooling(a,b, it);
+    } else if (tm.checkToken(LUNDYMEESCONNOLLY)) {
+        return new LundyMeesConnollyCooling(it);
     } else if (tm.checkToken(Q87COOLING)) {
         float a = tm.getDecimal();
         float b = tm.getDecimal();

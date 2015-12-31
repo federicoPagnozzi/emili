@@ -26,6 +26,7 @@ class SimulatedAnnealing: public emili::LocalSearch
 protected:
     double            temp;
     double            init_temp;
+    double            final_temp;
     SAInitTemp       *initialTemperature;
     SAAcceptance     *acceptanceCriterion;
     SACooling        *coolingScheme;
@@ -70,15 +71,13 @@ public:
                                           acceptanceCriterion->getType(),
                                           tempLength->getType(),
                                           temprestart->getType());
+                        status->init_temp = init_temp;
+                        status->final_temp = 0;
 
                         /**
                          * initialization of attribute depends on termination criteria
                          * but in sa_termination_criteria.h I have to include sa_common.h
                          * therefore it sucks a bit but I have to initialize this here.
-                         */
-                        /**
-                         * dummy values that will never be touched unless needed,
-                         * or unless I fuck up something
                          */
                         status->tenure = 1;
 
@@ -99,10 +98,14 @@ public:
                           status->last_accepted[i] = 1;
                         }
 
+                        status->final_temp = initialTemperature->getMinTemp();
+                        status->neigh_size = neighborhood->size();
+
                         acceptanceCriterion->set_status(status);
                         temprestart->set_status(status);
                         tempLength->set_status(status);
                         coolingScheme->set_status(status);
+                        initialTemperature->set_status(status);
                       }
 
     virtual emili::Solution* search(emili::Solution* initial);

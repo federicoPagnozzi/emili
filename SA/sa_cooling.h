@@ -223,10 +223,42 @@ public:
 
 
 /**
+ * for testing Connolly settings
+ * 
+ */
+class LundyMeesConnollyCooling: public SACooling {
+
+
+public:
+    LundyMeesConnollyCooling(SAInitTemp *it):
+        SACooling(0, 0, it) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        b = (status->init_temp - status->final_temp) /
+                (status->neigh_size * 50 * status->init_temp * status->final_temp);
+
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+            float tmp = (temp / (1 + b*temp));
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // LundyMeesConnollyCooling
+
+
+/**
  * Linear cooling
  * 0 < a < 1
  *
- * equal to b*temp, where b = 1 - a
+ * temp' = a*temp
  */
 class LinearCooling: public SACooling {
 
