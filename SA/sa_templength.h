@@ -102,7 +102,7 @@ public:
         neigh(neigh),
         alpha(alpha),
         SATempLength(BRNEIGHSIZETEMPLEN,
-                     (int)std::ceil(alpha * neigh->size() * neigh->size())) { }
+                     (int)alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size()))) { }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)

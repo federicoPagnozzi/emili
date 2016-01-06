@@ -1,3 +1,8 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
 #include "permutationflowshop.h"
 #include <cstdlib>
 #include <climits>
@@ -1447,7 +1452,7 @@ emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
     return s;
 }
 
-emili::Solution* emili::pfsp::NRZPertubation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::NRZPerturbation::perturb(Solution *solution)
 {
 
     std::vector< int > removed;
@@ -1469,7 +1474,7 @@ emili::Solution* emili::pfsp::NRZPertubation::perturb(Solution *solution)
     return s;
 }
 
-emili::Solution* emili::pfsp::TMIIGPertubation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::TMIIGPerturbation::perturb(Solution *solution)
 {
     //emili::iteration_increment();
 
@@ -1601,13 +1606,20 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     return s;
 }
 
-inline void orderJobs(std::vector< int >& ordered,emili::pfsp::PermutationFlowShop& instance)
-{
-    int size = instance.getNjobs();
 
-    for(int i=0; i<= size; i++)
+void emili::pfsp::IGIOPerturbation::updateWeights()
+{
+    const std::vector < std::vector < long > >& pmat = instance.getProcessingTimesMatrix();
+    int nmac = instance.getNmachines();
+    int nj = instance.getNjobs();
+    for(int i=1; i<= nj; i++)
     {
         //
+        weights[i] = pmat[i][1];
+        for(int m=2;m<=nmac;m++)
+        {
+            weights[i] += pmat[i][m];
+        }
     }
 }
 
@@ -1628,7 +1640,8 @@ emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
         sops--;
     }
 
-    orderJobs(removed,instance);
+    std::vector < int >& w = this->weights;
+    std::sort(removed.begin(),removed.end(),[w](int i1,int i2){ return w[i1] > w[i2];});
 
     for(int l=0;l<removed.size();l++){
         sops++;
@@ -1649,11 +1662,12 @@ emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
         }
         solPartial.insert(solPartial.begin()+ind,k);
     }
+
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     return s;
 }
 
-emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
 {
     int index;
     int min;
@@ -1728,7 +1742,7 @@ emili::Solution* emili::pfsp::RSPertubation::perturb(Solution *solution)
     return s;
 }
 
-emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
 {
     int index;
     int min;
@@ -1850,7 +1864,7 @@ emili::Solution* emili::pfsp::RSffPertubation::perturb(Solution *solution)
     return s;
 }
 
-emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
 {
     //emili::iteration_increment();
 
@@ -1917,7 +1931,7 @@ emili::Solution* emili::pfsp::IgLsPertubation::perturb(Solution *solution)
     return s;
 }
 
-emili::Solution* emili::pfsp::RSLSPertubation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
 {
     //emili::iteration_increment();
 
@@ -2168,7 +2182,11 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::AxtExchange::begin(Soluti
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#else
     computeHead(sol);
+#endif
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2282,7 +2300,7 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
         newsol.insert(newsol.begin()+end_position,sol_i);
-        long int new_value = pis.computeObjectiveFunction(newsol);
+        long int new_value = pis.computeObjectiveFunction(newsol);    
         value->setSolutionValue(new_value);
         return value;
     }
@@ -2420,7 +2438,7 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
     }
 }
 
-emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
+emili::Solution* emili::pfsp::OptInsert::computeStep(emili::Solution *value)
 {
     emili::iteration_increment();
     if(sp_iterations >= njobs)
@@ -2447,7 +2465,11 @@ emili::Solution* emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood:
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#else
             computeTAmatrices(newsol);
+#endif
 
         }
         end_position = ((end_position)%njobs)+1;
@@ -2960,7 +2982,11 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
 
         }
         end_position = ((end_position)%njobs)+1;
@@ -3506,7 +3532,11 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
             newsol.insert(newsol.begin()+start_position,sol_i);
         }
         end_position = ((end_position)%njobs)+1;
@@ -3628,7 +3658,11 @@ emili::Solution* emili::pfsp::HaxtExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
             newsol.insert(newsol.begin()+start_position,sol_i);
         }
         end_position = ((end_position)%njobs)+1;
@@ -3747,7 +3781,11 @@ emili::Solution* emili::pfsp::EaxtExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
             newsol.insert(newsol.begin()+start_position,sol_i);
         }
         end_position = ((end_position)%njobs)+1;
@@ -3864,7 +3902,11 @@ emili::Solution* emili::pfsp::OptExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
             computeHead(newsol);
+#endif
             newsol.insert(newsol.begin()+start_position,sol_i);
         }
         end_position = ((end_position)%njobs)+1;
@@ -4189,12 +4231,12 @@ void emili::pfsp::PfspTabuHashMemory::forbid(Solution *solution)
 std::string emili::pfsp::PermutationFlowShopSolution::getSolutionRepresentation()
 {
     std::ostringstream oss;
-    oss << "[ ";
+    oss << "{ ";
 
     for (int i = 1; i < solution.size(); ++i)
-      oss << solution[i] << " " ;
+      oss << solution[i] << ", " ;
 
-    oss << " ]";
+    oss << " }";
     return oss.str();
 }
 

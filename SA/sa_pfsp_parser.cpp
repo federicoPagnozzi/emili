@@ -453,7 +453,7 @@ emili::pfsp::PfspNeighborhood* SAPFSPParser::neigh(prs::TokenManager& tm)
     else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
     {
         prs::printTab( "Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
-        neigh = new emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood(*instance);
+        neigh = new emili::pfsp::OptInsert(*instance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {
