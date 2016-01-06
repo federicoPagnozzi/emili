@@ -80,20 +80,16 @@
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
-		<!-- <![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
-	  	<or/> -->
+		<![CDATA[igio ]]><pfsp:sp_impact/><![CDATA[ ]]>
+	  	<or/>
 		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>
-		<!--	![CDATA[testper ]]> --> 
 		<or/>
-		<!--<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>-->
 		<![CDATA[rndmv ]]><pfsp:neighborhood/><pfsp:random_moves/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[noper ]]>
 		<or/>
-		<!-- <![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/> -->
 	 	<![CDATA[nrzper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<or/>
-		<!-- <![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>-->
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
