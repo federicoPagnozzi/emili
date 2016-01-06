@@ -1,6 +1,11 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
+
 #ifndef EMILIBASE_H
 #define EMILIBASE_H
-
 /*
 
                                  ______ __  __ _____ _      _____
