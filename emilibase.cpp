@@ -86,6 +86,10 @@ clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch;
 
+double emili::getCurrentExecutionTime()
+{
+    return (double)((clock()-beginTime)/ (double)CLOCKS_PER_SEC);
+}
 
 static void finalise (int _)
 {

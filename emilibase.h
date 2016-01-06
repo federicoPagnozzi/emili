@@ -182,7 +182,14 @@ public:
 class Neighborhood
 {
 protected:
+    /*
+     * Takes step wich is a pointer to the base solution of the neighborhood
+     * and applies the move.
+     */
     virtual Solution* computeStep(Solution* step)=0;
+    /*
+     * Takes a solution and undoes the last move
+     */
     virtual void reverseLastMove(Solution* step)=0;
 public:
     //unsigned long num();
@@ -591,6 +598,11 @@ std::mt19937& getRandomGenerator();
 #endif
 int generateRandomNumber();
 float generateRealRandomNumber();
+
+/*TIME RELATED STUFF */
+// this function returns the time from the beginning of the execution in seconds
+double getCurrentExecutionTime();
+
 
 /*
  * Metropolis acceptance criterion implementation (fixed temperature)
