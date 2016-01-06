@@ -28,6 +28,7 @@ emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *curre
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
+    std::cout << cs << " " << ns << " " << " " << std::exp((cs-ns) / temperature) << std::endl;
     if (!status->force_accept && ns > cs) {
         double prob = std::exp((cs-ns) / temperature);
 

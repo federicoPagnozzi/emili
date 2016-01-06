@@ -51,6 +51,7 @@ public:
      * @return       initial temperature
      */
     virtual double set(double value)=0;
+    virtual double getMinTemp(void)=0;
 
     virtual double get(void) {
         return init_temp;
@@ -58,10 +59,6 @@ public:
 
     void set_status(SAStatus* _status) {
         status = _status;
-    }
-
-    double getMinTemp(void) {
-        return 0;
     }
 
 }; // class SAInitTemp
@@ -90,6 +87,10 @@ public:
         return init_temp;
     }
 
+    virtual double getMinTemp(void) {
+        return 0;
+    }
+
 }; // FixedInitTemp
 
 
@@ -108,6 +109,10 @@ public:
     virtual double set(double value) {
         init_temp = value * solution->getSolutionValue();;
         return init_temp;
+    }
+
+    virtual double getMinTemp(void) {
+        return 0;
     }
 
 }; // InitTempFromSolution
@@ -169,7 +174,7 @@ public:
         return init_temp;
     }
 
-    double getMinTemp(void) {
+    virtual double getMinTemp(void) {
         return mindelta;
     }
 
@@ -224,11 +229,11 @@ public:
         delete s2;
 
         init_temp = value * (mindelta + (maxdelta - mindelta) / 10);
-
+        
         return init_temp;
     }
 
-    double getMinTemp(void) {
+    virtual double getMinTemp(void) {
         return mindelta;
     }
 
@@ -282,6 +287,10 @@ public:
         return init_temp;
     }
 
+    virtual double getMinTemp(void) {
+        return 0;
+    }
+
 }; // RandomWalkAvgInitTemp
 
 
@@ -333,6 +342,10 @@ public:
         init_temp = value * (costsum / length) / std::log(init_prob);
 
         return init_temp;
+    }
+
+    virtual double getMinTemp(void) {
+        return 0;
     }
 
 }; // RandomWalkInitProb

@@ -72,7 +72,8 @@ public:
                                           tempLength->getType(),
                                           temprestart->getType());
                         status->init_temp = init_temp;
-                        status->final_temp = 0;
+                        status->final_temp = initialTemperature->getMinTemp();
+                        
 
                         /**
                          * initialization of attribute depends on termination criteria

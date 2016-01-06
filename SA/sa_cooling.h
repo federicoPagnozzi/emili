@@ -389,7 +389,7 @@ public:
         if (!in_fixed_temp_state              &&
             tempLength->isCoolingTime(counter)  ) {
 
-            if (status->not_improved > max_reject) {
+            if (status->counter > max_reject) {
                 // stop cooling
                 status->force_accept = true;
                 setA(1);
@@ -424,19 +424,17 @@ public:
                        emili::Neighborhood *nei):
         max_reject(nei->size()),
         in_fixed_temp_state(false),
-        SACooling(0, 0, it) { }
+        SACooling(1, 0, it) { }
 
     virtual double update_cooling(double temp) {
         counter++;
-
         if (status->force_accept) {
             status->force_accept = false;
         }
 
-        if (!in_fixed_temp_state              &&
-            tempLength->isCoolingTime(counter)  ) {
+        if (!in_fixed_temp_state) {
 
-            if (status->not_improved > max_reject) {
+            if (status->counter > max_reject) {
                 // stop cooling
                 status->force_accept = true;
                 setA(1);
@@ -449,9 +447,9 @@ public:
             status->step = status->step + 1;
             b = (status->init_temp - status->final_temp) /
                 (status->neigh_size * 50 * status->init_temp * status->final_temp);
-            float tmp = (temp / (1 + b*temp));
+            return (temp / (1 + b*temp));
 
-            return tempRestart->adjust(tmp);
+            // return tempRestart->adjust(tmp);
 
         }
 

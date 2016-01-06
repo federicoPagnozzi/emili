@@ -94,6 +94,7 @@ public:
         std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
         std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
         not_improved = 0;
+        counter = 0;
     }
 
 
