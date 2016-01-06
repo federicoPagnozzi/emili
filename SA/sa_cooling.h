@@ -412,4 +412,53 @@ public:
 }; // Q87Cooling
 
 
+// connolly paper
+class ConnollyQ87Cooling: public SACooling {
+
+protected:
+    int max_reject;
+    bool in_fixed_temp_state;
+
+public:
+    ConnollyQ87Cooling(SAInitTemp *it,
+                       emili::Neighborhood *nei):
+        max_reject(nei->size()),
+        in_fixed_temp_state(false),
+        SACooling(0, 0, it) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (status->force_accept) {
+            status->force_accept = false;
+        }
+
+        if (!in_fixed_temp_state              &&
+            tempLength->isCoolingTime(counter)  ) {
+
+            if (status->not_improved > max_reject) {
+                // stop cooling
+                status->force_accept = true;
+                setA(1);
+                setB(0);
+                in_fixed_temp_state = true;
+                return status->best_temp;
+            }
+
+            counter = 0;
+            status->step = status->step + 1;
+            b = (status->init_temp - status->final_temp) /
+                (status->neigh_size * 50 * status->init_temp * status->final_temp);
+            float tmp = (temp / (1 + b*temp));
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // ConnollyQ87Cooling
+
+
 #endif

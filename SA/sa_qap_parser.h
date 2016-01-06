@@ -37,7 +37,8 @@ protected:
      * @return    SACooling object
      */
     SACooling*       COOL(prs::TokenManager& tm,
-                              SAInitTemp *it);
+                              SAInitTemp *it,
+                              emili::Neighborhood *nei);
 
     /**
      * identify acceptance criterion
@@ -52,7 +53,8 @@ protected:
      * @param  tm TokenManager
      * @return    SATermination object
      */
-    SATermination*   TERMINATION(prs::TokenManager& tm);
+    SATermination*   TERMINATION(prs::TokenManager& tm,
+                                 emili::Neighborhood *nei);
 
     /**
      * identify Neighborhood
@@ -68,7 +70,8 @@ protected:
      * @return         InitTemp object
      */
     SAInitTemp*      INITTEMP(prs::TokenManager&      tm,
-                              emili::InitialSolution* initsol);
+                              emili::InitialSolution* initsol,
+                              emili::Neighborhood *nei);
 
     /**
      * identify initial solution builder

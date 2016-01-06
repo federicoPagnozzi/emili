@@ -38,7 +38,8 @@
 //using namespace prs;
 
 SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
-                                  emili::InitialSolution *initsol) {
+                                  emili::InitialSolution *initsol,
+                                  emili::Neighborhood *nei) {
 
     if (tm.checkToken(FIXEDINITTEMP)) {
         double             value     = tm.getDecimal();
@@ -54,20 +55,26 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
     } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
         int length = tm.getInteger();
         double value = tm.getDecimal();
-        SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, length);
+        SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, nei, length);
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(CONNOLLYRWIT)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new ConnollyRandomWalkInitTemp(initsol, nei, length);
         init_temp->set(value);
         return init_temp;
     } else if (tm.checkToken(RANDOMWALKAVGINITTEMP)) {
         int length = tm.getInteger();
         double value = tm.getDecimal();
-        SAInitTemp* init_temp = new RandomWalkAvgInitTemp(initsol, length);
+        SAInitTemp* init_temp = new RandomWalkAvgInitTemp(initsol, nei, length);
         init_temp->set(value);
         return init_temp;
     } else if (tm.checkToken(RANDOMWALKINITPROB)) {
         float ip = tm.getDecimal();
         int length = tm.getInteger();
         double value = tm.getDecimal();
-        SAInitTemp* init_temp = new RandomWalkInitProb(initsol, ip, length);
+        SAInitTemp* init_temp = new RandomWalkInitProb(initsol, nei, ip, length);
         init_temp->set(value);
         return init_temp;
     } else {
@@ -116,7 +123,8 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
 }
 
 
-SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm) {
+SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm,
+                                        emili::Neighborhood *nei) {
 
     if (tm.checkToken(MAXBADITERS)) {
         int    mb = tm.getInteger();
@@ -133,6 +141,9 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm) {
         int te = tm.getInteger();
         float rate = tm.getDecimal();
         return new SALastAcceptanceRateTermination(te, rate);
+    } else if (tm.checkToken(NEIGHSIZEITERTERM)) {
+        float co = tm.getDecimal();
+        return new SANeighSizeIterTermination(nei, co);
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -143,7 +154,8 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm) {
 
 
 SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
-                             SAInitTemp *it) {
+                             SAInitTemp *it,
+                             emili::Neighborhood *nei) {
 
     if (tm.checkToken(GEOM)) {
         float a = tm.getDecimal();
@@ -170,6 +182,8 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
         float b = tm.getDecimal();
         int   m = tm.getInteger();
         return new Q87Cooling(a, b, m, it);
+    } else if (tm.checkToken(CONNOLLYQ87COOLING)) {
+        return new ConnollyQ87Cooling(it, nei);
     } else if (tm.checkToken(LINEARCOOLING)) {
         float a = tm.getDecimal();
         return new LinearCooling(a, it);
@@ -198,9 +212,9 @@ SATempLength* SAQAPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
         return new NeighSizeTempLength(neigh, a);
-    } else if (tm.checkToken(CONNOLLYNEIGHSIZETEMPLEN)) {
+    } else if (tm.checkToken(BRNEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
-        return new ConnollyNeighSizeTempLength(neigh, a);
+        return new BurkardRendlNeighSizeTempLength(neigh, a);
     } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
         int a = tm.getInteger();
         return new MaxAcceptedTempLength(a);
@@ -356,12 +370,12 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     problem(tm);
     emili::InitialSolution* initsol    = init(tm);
     emili::Neighborhood*    nei        = neigh(tm);
-    SAInitTemp*      inittemp   = INITTEMP(tm, initsol);
+    SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
-    SACooling*       cooling    = COOL(tm, inittemp);
+    SACooling*       cooling    = COOL(tm, inittemp, nei);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp);
     cooling->setTempRestart(temprestart);
-    SATermination*     term       = TERMINATION(tm); // termin(tm);
+    SATermination*     term       = TERMINATION(tm, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, term);

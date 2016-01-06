@@ -8,7 +8,7 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
 
     
     if (ns > cs) {
-        double prob = std::exp((cs-ns) / temperature);
+        double prob = std::exp((cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;

@@ -121,14 +121,17 @@ public:
 class RandomWalkInitTemp: public SAInitTemp {
 protected:
     emili::InitialSolution *is;
+    emili::Neighborhood *nei;
     int length;
     double mindelta;
 
 public:
 
     RandomWalkInitTemp(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
                        int _length):
         is(_is),
+        nei(_nei),
         length(_length) { }
 
     virtual double set(double value) {
@@ -146,7 +149,7 @@ public:
 
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
-            s2 = is->generateSolution();
+            s2 = nei->random(s1); //is->generateSolution();
             c1 = c2;
             c2 = s2->getSolutionValue();
 
@@ -174,6 +177,64 @@ public:
 
 
 
+class ConnollyRandomWalkInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    emili::Neighborhood *nei;
+    int length;
+    double mindelta;
+
+public:
+
+    ConnollyRandomWalkInitTemp(emili::InitialSolution* _is,
+                               emili::Neighborhood *_nei,
+                               int _length):
+        is(_is),
+        nei(_nei),
+        length(_length) { }
+
+    virtual double set(double value) {
+        int i;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double maxdelta = 0,
+               bestcost = c2;
+
+        mindelta = c2;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = nei->random(s1); //is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+
+            if (abs(c2 - c1) > maxdelta) {
+                maxdelta = abs(c2 - c1);
+            } else if (abs(c2 - c1) > 0 && abs(c2 - c1) < mindelta) {
+                mindelta = abs(c2 - c1);
+            }
+
+            delete s1;
+        }
+
+        delete s2;
+
+        init_temp = value * (mindelta + (maxdelta - mindelta) / 10);
+
+        return init_temp;
+    }
+
+    double getMinTemp(void) {
+        return mindelta;
+    }
+
+}; // ConnollyRandomWalkInitTemp
+
+
 /**
  * Do a random walk and take the average of the (absolute values of the) gaps
  * as initial temperature
@@ -181,13 +242,16 @@ public:
 class RandomWalkAvgInitTemp: public SAInitTemp {
 protected:
     emili::InitialSolution *is;
+    emili::Neighborhood *nei;
     int length;
 
 public:
 
     RandomWalkAvgInitTemp(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
                        int _length):
         is(_is),
+        nei(_nei),
         length(_length) { }
 
     virtual double set(double value) {
@@ -228,15 +292,18 @@ public:
 class RandomWalkInitProb: public SAInitTemp {
 protected:
     emili::InitialSolution *is;
+    emili::Neighborhood *nei;
     float init_prob;
     int length;
 
 public:
 
     RandomWalkInitProb(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
                        float _init_prob,
                        int _length):
         is(_is),
+        nei(_nei),
         init_prob(_init_prob),
         length(_length) { }
 

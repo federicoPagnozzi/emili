@@ -43,7 +43,7 @@ public:
 class SAMaxBadIterTermination: public SATermination {
 
 protected:
-    int maxBadIterations;
+    long maxBadIterations;
 
 public:
     SAMaxBadIterTermination(int maxBadIterations):
@@ -70,7 +70,7 @@ public:
 class SAMaxIterTermination: public SATermination {
 
 protected:
-    int maxIterations;
+    long maxIterations;
 
 public:
     SAMaxIterTermination(int maxIterations):
@@ -93,6 +93,38 @@ public:
     }
 
 }; // SAMaxIterTermination
+
+
+class SANeighSizeIterTermination: public SATermination {
+
+protected:
+    double coeff;
+    emili::Neighborhood *neigh;
+    long maxIterations;
+
+public:
+    SANeighSizeIterTermination(emili::Neighborhood *nei, double _coeff):
+        neigh(nei),
+        coeff(_coeff),
+        maxIterations(neigh->size() * coeff),
+        SATermination(NEIGHSIZEITERTERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return true;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.total_counter >= maxIterations) return true;
+        return false;
+    }
+
+    // does nothing
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SANeighSizeIterTermination
 
 
 class SAWhileTrueTermination: public SATermination {

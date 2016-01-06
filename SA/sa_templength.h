@@ -86,23 +86,23 @@ public:
 
 
 /**
- * Length dependant on the size of the neighborhood:
- * From COnnolly Paper
- * 1/2 * |neigh|^2
+ * Length dependant on the size of the instance:
+ * Burkard-Rendl (From COnnolly Paper)
+ * 1/2 * |n|^2
  */
-class ConnollyNeighSizeTempLength: public SATempLength {
+class BurkardRendlNeighSizeTempLength: public SATempLength {
 
 protected:
     emili::Neighborhood* neigh;
     float alpha;
 
 public:
-    ConnollyNeighSizeTempLength(emili::Neighborhood* neigh,
+    BurkardRendlNeighSizeTempLength(emili::Neighborhood* neigh,
                        float alpha):
         neigh(neigh),
         alpha(alpha),
-        SATempLength(CONNOLLYNEIGHSIZETEMPLEN,
-                     (int)std::lrint(alpha * neigh->size() * neigh->size())) { }
+        SATempLength(BRNEIGHSIZETEMPLEN,
+                     (int)std::ceil(alpha * neigh->size() * neigh->size())) { }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)
@@ -110,7 +110,7 @@ public:
         return false;
     }
 
-}; // ConnollyNeighSizeTempLength
+}; // BurkardRendlNeighSizeTempLength
 
 
 /**
