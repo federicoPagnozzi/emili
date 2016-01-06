@@ -15,26 +15,10 @@ void g2c_info()
     exit(0);
 }
 
-void test(){
-
-    emili::irp::InventoryRoutingProblem *irp = new emili::irp::InventoryRoutingProblem("Instance_V_1.1.xml");
-    irpSolution s = irp->getIrpInstance().backTrackingRandomSolution(1.0, 1.0, 1);
-    emili::irp::InventoryRoutingSolution *irs = new emili::irp::InventoryRoutingSolution(s);
-    if(irp->getIrpInstance().checkFeasibility(irs->getIrpSolution(), false))
-        cout<<"\nNOT FEASIBLE! \n";
-    else
-        cout<<"\nFEASIBLE! \n";
-    cout<<"CIAOOO";
-//    irs->getIrpSolution().saveSolution("Solution_V_1.1.xml");
-//    emili::irp::irpPerturbation perturbation = emili::irp::irpPerturbation();
-//    perturbation.perturb(irs);
-
-}
 
 int main(int argc, char *argv[])
 {
-
- //   test();
+std::cout.setstate(std::ios_base::failbit);
 
 prs::emili_header();
     /* initialize random seed: */
@@ -122,4 +106,10 @@ prs::emili_header();
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
+
+    ofstream file;
+    file.open ("./Ciao");
+    file.precision(15);
+    file<<"time : " << time_elapsed << std::endl;
+    file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
 }

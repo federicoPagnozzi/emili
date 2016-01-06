@@ -118,9 +118,32 @@ CMakeFiles/EMILI.dir/main.cpp.o.provides: CMakeFiles/EMILI.dir/main.cpp.o.requir
 
 CMakeFiles/EMILI.dir/main.cpp.o.provides.build: CMakeFiles/EMILI.dir/main.cpp.o
 
+CMakeFiles/EMILI.dir/irpOld.cpp.o: CMakeFiles/EMILI.dir/flags.make
+CMakeFiles/EMILI.dir/irpOld.cpp.o: irpOld.cpp
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_4)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/irpOld.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/irpOld.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/irpOld.cpp
+
+CMakeFiles/EMILI.dir/irpOld.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/EMILI.dir/irpOld.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/antoniofisk/Desktop/Uni/MasterThesis/Project/irpOld.cpp > CMakeFiles/EMILI.dir/irpOld.cpp.i
+
+CMakeFiles/EMILI.dir/irpOld.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/EMILI.dir/irpOld.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/antoniofisk/Desktop/Uni/MasterThesis/Project/irpOld.cpp -o CMakeFiles/EMILI.dir/irpOld.cpp.s
+
+CMakeFiles/EMILI.dir/irpOld.cpp.o.requires:
+.PHONY : CMakeFiles/EMILI.dir/irpOld.cpp.o.requires
+
+CMakeFiles/EMILI.dir/irpOld.cpp.o.provides: CMakeFiles/EMILI.dir/irpOld.cpp.o.requires
+	$(MAKE) -f CMakeFiles/EMILI.dir/build.make CMakeFiles/EMILI.dir/irpOld.cpp.o.provides.build
+.PHONY : CMakeFiles/EMILI.dir/irpOld.cpp.o.provides
+
+CMakeFiles/EMILI.dir/irpOld.cpp.o.provides.build: CMakeFiles/EMILI.dir/irpOld.cpp.o
+
 CMakeFiles/EMILI.dir/irpparser.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/irpparser.cpp.o: irpparser.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_4)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_5)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/irpparser.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/irpparser.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/irpparser.cpp
 
@@ -143,7 +166,7 @@ CMakeFiles/EMILI.dir/irpparser.cpp.o.provides.build: CMakeFiles/EMILI.dir/irppar
 
 CMakeFiles/EMILI.dir/irp.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/irp.cpp.o: irp.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_5)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_6)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/irp.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/irp.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/irp.cpp
 
@@ -166,7 +189,7 @@ CMakeFiles/EMILI.dir/irp.cpp.o.provides.build: CMakeFiles/EMILI.dir/irp.cpp.o
 
 CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o: ROADF/tinyxml.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_6)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_7)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/tinyxml.cpp
 
@@ -189,7 +212,7 @@ CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o.provides.build: CMakeFiles/EMILI.dir/RO
 
 CMakeFiles/EMILI.dir/ROADF/operation.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/operation.cpp.o: ROADF/operation.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_7)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_8)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/operation.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/operation.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/operation.cpp
 
@@ -212,7 +235,7 @@ CMakeFiles/EMILI.dir/ROADF/operation.cpp.o.provides.build: CMakeFiles/EMILI.dir/
 
 CMakeFiles/EMILI.dir/ROADF/solution.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/solution.cpp.o: ROADF/solution.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_8)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_9)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/solution.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/solution.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/solution.cpp
 
@@ -235,7 +258,7 @@ CMakeFiles/EMILI.dir/ROADF/solution.cpp.o.provides.build: CMakeFiles/EMILI.dir/R
 
 CMakeFiles/EMILI.dir/ROADF/matrix.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/matrix.cpp.o: ROADF/matrix.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_9)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_10)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/matrix.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/matrix.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/matrix.cpp
 
@@ -258,7 +281,7 @@ CMakeFiles/EMILI.dir/ROADF/matrix.cpp.o.provides.build: CMakeFiles/EMILI.dir/ROA
 
 CMakeFiles/EMILI.dir/ROADF/location.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/location.cpp.o: ROADF/location.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_10)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_11)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/location.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/location.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/location.cpp
 
@@ -281,7 +304,7 @@ CMakeFiles/EMILI.dir/ROADF/location.cpp.o.provides.build: CMakeFiles/EMILI.dir/R
 
 CMakeFiles/EMILI.dir/ROADF/main.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/main.cpp.o: ROADF/main.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_11)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_12)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/main.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/main.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/main.cpp
 
@@ -304,7 +327,7 @@ CMakeFiles/EMILI.dir/ROADF/main.cpp.o.provides.build: CMakeFiles/EMILI.dir/ROADF
 
 CMakeFiles/EMILI.dir/ROADF/instance.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/instance.cpp.o: ROADF/instance.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_12)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_13)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/instance.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/instance.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/instance.cpp
 
@@ -327,7 +350,7 @@ CMakeFiles/EMILI.dir/ROADF/instance.cpp.o.provides.build: CMakeFiles/EMILI.dir/R
 
 CMakeFiles/EMILI.dir/ROADF/driver.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/driver.cpp.o: ROADF/driver.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_13)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_14)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/driver.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/driver.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/driver.cpp
 
@@ -350,7 +373,7 @@ CMakeFiles/EMILI.dir/ROADF/driver.cpp.o.provides.build: CMakeFiles/EMILI.dir/ROA
 
 CMakeFiles/EMILI.dir/ROADF/tinyxmlerror.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/tinyxmlerror.cpp.o: ROADF/tinyxmlerror.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_14)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_15)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/tinyxmlerror.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/tinyxmlerror.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/tinyxmlerror.cpp
 
@@ -373,7 +396,7 @@ CMakeFiles/EMILI.dir/ROADF/tinyxmlerror.cpp.o.provides.build: CMakeFiles/EMILI.d
 
 CMakeFiles/EMILI.dir/ROADF/trailer.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/trailer.cpp.o: ROADF/trailer.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_15)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_16)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/trailer.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/trailer.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/trailer.cpp
 
@@ -396,7 +419,7 @@ CMakeFiles/EMILI.dir/ROADF/trailer.cpp.o.provides.build: CMakeFiles/EMILI.dir/RO
 
 CMakeFiles/EMILI.dir/ROADF/tinyxmlparser.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/tinyxmlparser.cpp.o: ROADF/tinyxmlparser.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_16)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_17)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/tinyxmlparser.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/tinyxmlparser.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/tinyxmlparser.cpp
 
@@ -419,7 +442,7 @@ CMakeFiles/EMILI.dir/ROADF/tinyxmlparser.cpp.o.provides.build: CMakeFiles/EMILI.
 
 CMakeFiles/EMILI.dir/ROADF/tinystr.cpp.o: CMakeFiles/EMILI.dir/flags.make
 CMakeFiles/EMILI.dir/ROADF/tinystr.cpp.o: ROADF/tinystr.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_17)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/antoniofisk/Desktop/Uni/MasterThesis/Project/CMakeFiles $(CMAKE_PROGRESS_18)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/EMILI.dir/ROADF/tinystr.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/EMILI.dir/ROADF/tinystr.cpp.o -c /home/antoniofisk/Desktop/Uni/MasterThesis/Project/ROADF/tinystr.cpp
 
@@ -445,6 +468,7 @@ EMILI_OBJECTS = \
 "CMakeFiles/EMILI.dir/generalParser.cpp.o" \
 "CMakeFiles/EMILI.dir/emilibase.cpp.o" \
 "CMakeFiles/EMILI.dir/main.cpp.o" \
+"CMakeFiles/EMILI.dir/irpOld.cpp.o" \
 "CMakeFiles/EMILI.dir/irpparser.cpp.o" \
 "CMakeFiles/EMILI.dir/irp.cpp.o" \
 "CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o" \
@@ -466,6 +490,7 @@ EMILI_EXTERNAL_OBJECTS =
 EMILI: CMakeFiles/EMILI.dir/generalParser.cpp.o
 EMILI: CMakeFiles/EMILI.dir/emilibase.cpp.o
 EMILI: CMakeFiles/EMILI.dir/main.cpp.o
+EMILI: CMakeFiles/EMILI.dir/irpOld.cpp.o
 EMILI: CMakeFiles/EMILI.dir/irpparser.cpp.o
 EMILI: CMakeFiles/EMILI.dir/irp.cpp.o
 EMILI: CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o
@@ -492,6 +517,7 @@ CMakeFiles/EMILI.dir/build: EMILI
 CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/generalParser.cpp.o.requires
 CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/emilibase.cpp.o.requires
 CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/main.cpp.o.requires
+CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/irpOld.cpp.o.requires
 CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/irpparser.cpp.o.requires
 CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/irp.cpp.o.requires
 CMakeFiles/EMILI.dir/requires: CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o.requires

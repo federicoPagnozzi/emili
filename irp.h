@@ -98,7 +98,7 @@ public:
     */
     virtual int size();
 
-    irpTwoExchangeNeighborhood(InventoryRoutingProblem &i):irp(i){this->numberFeasibleSolutions=0;}
+    irpTwoExchangeNeighborhood(InventoryRoutingProblem &i):irp(i){this->numberFeasibleSolutions=0; this->bestValueFound = DBL_MAX;}
 };
 
 

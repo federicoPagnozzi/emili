@@ -33,6 +33,14 @@ private:
 	vector<Trailer> trailers;
 	vector<Customer> customers;
 	vector< vector<double> > distMatrices;
+
+    double maxCapacity;
+    double maxInitialQuantity;
+
+    vector< vector<double> > horizons;
+    vector< vector<double> > actualQuantity;
+
+    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > timeWindows;
 	
 	
 public:
@@ -40,6 +48,7 @@ public:
 	
 	Instance();
 	
+    string getName();
 	int getUnit();
 	int getHorizon();
 	vector< vector<double> > getTimeMatrices();
@@ -47,6 +56,19 @@ public:
 	vector<Trailer> getTrailers();
 	vector<Customer> getCustomers();
 	vector< vector<double> > getDistMatrices();
+
+    double getMaxCapacity();
+    double getMaxInitialQuantity();
+    void setMaxCapacity(double mc);
+    void setMaxInitialQuantity(double miq);
+
+    vector< vector<double> > getHorizons();
+    vector< vector<double> > getActualQuantity();
+    void setHorizons(vector< vector<double> > h);
+    void setActualQuantity(vector< vector<double> > aq);
+
+    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > getTimeWindows();
+    void setTimeWindows(vector< pair< pair<unsigned int,unsigned int>, unsigned int > > tw);
 	
 	void loadInstance(const char *pFilename);
     bool dri01(irpSolution solution);
@@ -71,14 +93,14 @@ public:
 	
     vector<Operation> recursiveRandomShift(irpSolution solution, unsigned int time, unsigned int cumTime, vector< vector<double> > &horizonQuantities, vector<double> &tankQuantities, vector<double> &trailerQuantities, vector<double> &pastQuantities, vector<unsigned int>  &lastOperations, vector< pair<pair<unsigned int,unsigned int>, unsigned int> > &timeWindows, vector<unsigned int> &customerList, vector<Operation> &operations, vector<double> &deliveredQuantities, vector<double> totalForecasts, double timeWeight, double quantityWeight, int ties, vector<bool> refuelFlags);
     irpSolution recursiveRandomSolution(irpSolution solution, unsigned int time, vector< vector<double> > &horizonQuantities, vector<double> &tankQuantities, vector<double> &trailerQuantities, vector<double> &pastQuantities, vector<unsigned int>  &lastOperations, vector< pair<pair<unsigned int,unsigned int>, unsigned int> > &timeWindows, double timeWeight, double quantityWeight, int ties, vector<double> &deliveredQuantities, double totalDistance, vector<double> &totalForecasts);
-    irpSolution backTrackingRandomSolution(double timeWeight, double quantityWeight, int ties);
+    irpSolution backTrackingRandomSolution(double timeWeight, double quantityWeight, double ties);
 
     irpSolution GreedySolution();
 
 //    void twoExchangeNeighborhood(irpSolution solution);
     irpSolution twoExchangeNeighborhood(irpSolution solution, int s1, int o1, int s2, int o2);
 
-    irpSolution rebuildSolution(irpSolution &initialSolution, vector<unsigned int> solutionRepresentation, double refuelRatio, double deliveredQuantityRatio);
+    irpSolution rebuildSolution(irpSolution &initialSolution, vector<unsigned int> solutionRepresentation, double refuelRatio, double deliveredQuantityRatio, bool originalFlag);
     void compute(irpSolution &solution);
 
 };

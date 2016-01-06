@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <iomanip>
+#include <algorithm>
 
 #define EPSILON 0.000001
 
@@ -14,6 +15,7 @@ Instance::Instance()
 {
 }
 
+string Instance::getName()  {return this->name;}
 int Instance::getUnit()	{return this->unit;}
 int Instance::getHorizon()	{return this->horizon;}
 vector<vector<double> > Instance::getTimeMatrices()	{return this->timeMatrices;}
@@ -22,12 +24,28 @@ vector<Trailer> Instance::getTrailers()	{return this->trailers;}
 vector<Customer> Instance::getCustomers()	{return this->customers;}
 vector<vector<double> > Instance::getDistMatrices()	{return this->distMatrices;}
 
+double Instance::getMaxCapacity() {return this->maxCapacity;}
+double Instance::getMaxInitialQuantity() {return this->maxInitialQuantity;}
+void Instance::setMaxCapacity(double mc)    {this->maxCapacity = mc;}
+void Instance::setMaxInitialQuantity(double miq)    {this->maxInitialQuantity = miq;}
+
+vector< vector<double> > Instance::getHorizons()    {return this->horizons;}
+vector< vector<double> > Instance::getActualQuantity()  {return this->actualQuantity;}
+void Instance::setHorizons(vector< vector<double> > h)  {this->horizons = h;}
+void Instance::setActualQuantity(vector< vector<double> > aq)   {this->actualQuantity = aq;}
+
+vector< pair< pair<unsigned int,unsigned int>, unsigned int > > Instance::getTimeWindows()  {return this->timeWindows;}
+void Instance::setTimeWindows(vector< pair< pair<unsigned int,unsigned int>, unsigned int > > tw)   {this->timeWindows = tw;}
+
+
 
 /**
  * Read xml instance file
  */
 void Instance::loadInstance(const char* pFilename)
 {
+      this->name = pFilename;
+    this->name = this->name.substr(this->name.size()-18, this->name.size()-4);
       int index;
       double d;
       TiXmlDocument doc(pFilename);
@@ -40,11 +58,9 @@ void Instance::loadInstance(const char* pFilename)
 
 
       pInnerElem=hDoc.FirstChildElement().Element();
-      // should always have a valid root but handle gracefully if it does
       if (!pInnerElem) return;
-      name=pInnerElem->Value();
+//      name=pInnerElem->Value();
 
-      // save this for later
       hRoot=TiXmlHandle(pInnerElem);
       
       pInnerElem=hDoc.FirstChild( "IRP_Roadef_Challenge_Instance" ).FirstChild().Element();
@@ -300,6 +316,49 @@ void Instance::loadInstance(const char* pFilename)
 	      i++;
       }
 
+      vector<double> maxCapacities(this->trailers.size(), 0.0);
+      vector<double> maxInitialQuantities(this->trailers.size(), 0.0);
+      for(int t=0; t<this->trailers.size(); t++){
+          maxCapacities[t] = this->trailers[t].getCapacity();
+          maxInitialQuantities[t] = this->trailers[t].getInitialQuantity();
+      }
+      this->maxCapacity = *max_element(maxCapacities.begin(), maxCapacities.end());
+      this->maxInitialQuantity = *max_element(maxInitialQuantities.begin(), maxInitialQuantities.end());
+
+      for(int c=0; c<this->customers.size(); c++){
+          vector<double> horizon(this->horizon*60, 0.0);
+          this->horizons.push_back(horizon);
+          this->actualQuantity.push_back(horizon);
+          this->horizons[c][0] += this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel();
+          this->actualQuantity[c][0] += this->customers[c].getInitialTankQuantity();
+          if(c>1)
+              for(int f=0; f<this->horizon*60; f++){
+                  if(f>0){
+                      this->horizons[c][f] += this->horizons[c][f-1];
+                      this->actualQuantity[c][f] += this->actualQuantity[c][f-1];
+                      if(f%60 == 0){
+                          this->horizons[c][f] -= this->customers[c].getForecast()[(int)f/60];
+                          this->actualQuantity[c][f] -= this->customers[c].getForecast()[(int)f/60];
+                      }
+                  }
+                  else{
+                      this->horizons[c][f] -= this->customers[c].getForecast()[0];
+                      this->actualQuantity[c][f] -= this->customers[c].getForecast()[0];
+                  }
+              }
+      }
+
+//      vector< pair< pair<unsigned int,unsigned int>, unsigned int > > timeWindows;
+      for(int d=0; d<this->drivers.size(); d++){
+        for(int t=0; t<this->drivers[d].getTimeWindows().size(); t++){
+          pair< pair<unsigned int,unsigned int>, unsigned int > tw;
+          tw.first = this->drivers[d].getTimeWindows()[t];
+          tw.second = d;
+          this->timeWindows.push_back(tw);
+        }
+      }
+     this->sortPair(timeWindows);
+
 }
 
 
@@ -534,8 +593,8 @@ bool Instance::tl03(irpSolution solution){
  * [QS02  | Run-out avoidance]
  */
 double Instance::dyn01(irpSolution solution, bool feasibility){
-  
-  double unfeasibilityCounter = 0.0;
+
+  double unfeasibilityCounter = 1/EPSILON;
 
   vector<vector<double> > tankQuantities(this->customers.size());
   for(int p=0; p<this->customers.size();p++){
@@ -555,7 +614,7 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
           if(not (operations[o].getQuantity() >= -EPSILON)){
 //             cout<<"SHI11 NOT FEASIBLE!!!!";
                 cout<<"\n"<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
-                unfeasibilityCounter = operations[o].getArrival();
+//                unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
           //    return true;
           }
@@ -564,7 +623,7 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
         else if(operations[o].getPoint() == 1)
           if(not (operations[o].getQuantity() <= EPSILON)){
 //             cout<<"SHI11 NOT FEASIBLE!!!!";
-             unfeasibilityCounter = operations[o].getArrival();
+//             unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
           //    return true;
           }
@@ -589,21 +648,25 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
 //               cout<<"DYN01 QS02 NOT FEASIBLE!!!!";
 //               cout<<"\n"<<p<<" "<<f<<" "<<tankQuantities[p][f]<<" "<<
 //            this->customers[p].getCapacity()<<" "<<this->customers[p].getSafetyLevel()<<"\n";
-               if(not(customerFlag)){
-                  unfeasibilityCounter += abs(this->horizon*60 - f);
+//               if(not(customerFlag)){
+                  if(abs(/*this->horizon*60 - */f) < unfeasibilityCounter)
+                  unfeasibilityCounter /*+*/= abs(/*this->horizon*60 - */f);
                   customerFlag = true;
-               }
+ //                 cout<<unfeasibilityCounter<<" ";
+//               }
             //   exit(0);
             //    return true;
             }
 
       }
     }
-//    if(customerFlag)
-//        customerCounter++;
     customerFlag = false;
   }
+  cout<<"\n";
 //  return false;
+  if(unfeasibilityCounter >= 1/EPSILON - EPSILON)
+      return 0;
+  else
   return unfeasibilityCounter;
 }
 
@@ -735,20 +798,26 @@ double Instance::checkFeasibility(irpSolution solution, double feasibility){
               );
               */
     double feas = this->dyn01(solution, false);
-    if(
-          this->dri01(solution) ||
-          this->dri03(solution) ||
-          this->dri08(solution) ||
-          this->tl01(solution)  ||
-          this->tl03(solution)  ||
-          feas ||
-          this->shi02(solution) ||
-          this->shi05(solution) ||
-          this->shi06(solution)
-                  )
-        return feas;
+    if(not feas){
+        if(
+              this->dri01(solution) ||
+              this->dri03(solution) ||
+              this->dri08(solution) ||
+              this->tl01(solution)  ||
+              this->tl03(solution)  ||
+              feas ||
+              this->shi02(solution) ||
+              this->shi05(solution) ||
+              this->shi06(solution)
+                      )
+            return feas;
+        else
+            return 0;
+    }
     else
-        return 0;
+        return feas;
+
+
 }
 
 double Instance::computeObjective(irpSolution solution){
@@ -804,14 +873,31 @@ void Instance::sort(vector<unsigned int> &priorities, vector<double> urgency){
 
 
 void Instance::sortPair(vector< pair< pair<unsigned int,unsigned int>, unsigned int > > &priorities){
+
+ /* vector<double> addP(priorities.size(), 0.0);
+  for(int p=0; p<addP.size(); p++)
+      addP[p] = 100 * EPSILON * this->drivers[priorities[p].second].getTimeCost()
+              + 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getDistanceCost()
+              - 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getInitialQuantity()/this->maxInitialQuantity
+              - 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getCapacity()/this->maxCapacity;
+*/
+ /* cout<<setprecision(15);
+  for(int p=0; p<addP.size(); p++)
+      cout<<(double)((double)priorities[p].first.first + addP[p])<<"    ";
+*/
   pair< pair<unsigned int,unsigned int>, unsigned int > app;
+  double a;
     for (int i=0; i<priorities.size(); i++){
         for (int j=i+1; j<priorities.size(); j++){
 
-            if (priorities[i].first.first > priorities[j].first.first){
+            if ((double)((double)priorities[i].first.first /*+ addP[i]*/) > (double)((double)priorities[j].first.first /*+ addP[j]*/)){
                 app =  priorities[i];
                 priorities[i] = priorities[j];
                 priorities[j] = app;
+
+               /* a =  addP[i];
+                addP[i] = addP[j];
+                addP[j] = a;*/
             }
         }
     }
@@ -1020,29 +1106,28 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
     customerList.erase(customerList.begin());
 
     ////////////////////
-    vector<unsigned int> customerList;
+   vector<unsigned int> customerList;
     for(int c=0; c<this->customers.size(); c++)
     customerList.push_back(c);
 
     vector<double> urgency(this->customers.size(),0.0);
 
     for(int c=2; c<this->customers.size(); c++){
-      Customer customer = this->customers[c];
-      vector<double> forecast = customer.getForecast();
+//      Customer customer = this->customers[c];
+      vector<double> forecast = this->customers[c].getForecast();
       double totForecast = 0;
       bool flag = true;
 
       double deliveredQuantity = deliveredQuantities[c];
 
       unsigned int currentPoint = 0;
-      if(solution.getShifts().size() > 0)
-          if(solution.getShifts().back().getOperations().size() > 0)
-            currentPoint = solution.getShifts().back().getOperations().back().getPoint();
+//      if(operations.size() > 0)
+            currentPoint = customer/*solution.getShifts().back().getOperations().back().getPoint()*/;
 
       double totalDistance = 0.0;
       for(int d=0; d<this->customers.size(); d++)
           totalDistance += this->timeMatrices[currentPoint][d];
-
+      totalDistance = *max_element(this->timeMatrices[currentPoint].begin(), this->timeMatrices[currentPoint].end());
       double totalForecast = totalForecasts[c];
 
       unsigned int f = 0;
@@ -1052,13 +1137,14 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
         if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
           timeFactor = ((double)f/forecast.size()) * timeWeight/2;
           quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
-          distanceFactor = 100.0 * EPSILON * (double)this->timeMatrices[currentPoint][c]/(totalDistance);
-          distanceFactor *= ties;
+          distanceFactor = 100.0 * EPSILON * ((double)this->timeMatrices[currentPoint][c]/totalDistance)*ties;
           urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
           flag = false;
+
   //        cout<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
   //        cout<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
 //            int a;cin>>a;
+//          cout<<c<<" "<<distanceFactor<<" "<<urgency[c]<<"\n";
         }
         f++;
       }
@@ -1099,7 +1185,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
       cout<<urgency[u]<<" ";
     cout<<"\n";
     */
-//            int a;cin>>a;
+
     return recursiveRandomShift(
       solution,
       operation.getArrival() + currentSetupTime,
@@ -1161,9 +1247,9 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
         unsigned int currentPoint = 0;
 
         totalDistance = 0.0;
-        for(int d=0; d<this->customers.size(); d++)
-            totalDistance += this->timeMatrices[currentPoint][d];
-
+//        for(int d=0; d<this->customers.size(); d++)
+//            totalDistance += this->timeMatrices[currentPoint][d];
+        totalDistance = *max_element(this->timeMatrices[currentPoint].begin(), this->timeMatrices[currentPoint].end());
         double totalForecast = totalForecasts[c];
 
         unsigned int f = 0;
@@ -1171,15 +1257,16 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
         while(f < forecast.size() and flag){
           totForecast += forecast[f];
           if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
-            timeFactor = ((double)f/forecast.size()) * timeWeight/2;
-            quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
-            distanceFactor = 100.0 * EPSILON * (double)this->timeMatrices[currentPoint][c]/(totalDistance);
-            distanceFactor *= ties;
-            urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
-            flag = false;
-//            cout<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
-//            cout<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
-//            int a;cin>>a;
+              timeFactor = ((double)f/forecast.size()) * timeWeight/2;
+              quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
+              distanceFactor = 100.0 * EPSILON * ((double)this->timeMatrices[currentPoint][c]/(totalDistance))*ties;
+              urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
+              flag = false;
+
+      //        cout<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
+      //        cout<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
+    //            int a;cin>>a;
+    //          cout<<c<<" "<<distanceFactor<<" "<<urgency[c]<<"\n";
           }
           f++;
         }
@@ -1232,7 +1319,7 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
     }
 }
 
-irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quantityWeight, int ties){
+irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quantityWeight, double ties){
   
   irpSolution solution;
   vector< vector<double> > horizonQuantities(this->customers.size());
@@ -1297,7 +1384,6 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
       for(int f=0; f<this->customers[c].getForecast().size(); f++)
           totalForecasts[c] += this->customers[c].getForecast()[f];
 
-  
   return recursiveRandomSolution(solution,
                                  0,
                                  horizonQuantities, tankQuantities, trailerQuantities,
@@ -1311,7 +1397,7 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
 
 
 irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsigned int> solutionRepresentation,
-                                      double refuelRatio, double deliveredQuantityRatio){
+                                      double refuelRatio, double deliveredQuantityRatio, bool originalFlag){
 
     deliveredQuantityRatio = 1.0 - deliveredQuantityRatio;
 /*    cout<<"REPRESENTATION: ";
@@ -1319,33 +1405,33 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
         cout<<solutionRepresentation[p]<<" ";
     cout<<"\n\n";
 */
-    vector< vector<double> > horizons;
-    vector< vector<double> > actualQuantity;
+    /*
+    vector< vector<double> > this->horizons;
+    vector< vector<double> > this->actualQuantity;
     for(int c=0; c<this->customers.size(); c++){
         vector<double> horizon(this->horizon*60, 0.0);
-        horizons.push_back(horizon);
-        actualQuantity.push_back(horizon);
-        horizons[c][0] += this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel();
-        actualQuantity[c][0] += this->customers[c].getInitialTankQuantity();
+        this->horizons.push_back(horizon);
+        this->actualQuantity.push_back(horizon);
+        this->horizons[c][0] += this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel();
+        this->actualQuantity[c][0] += this->customers[c].getInitialTankQuantity();
         if(c>1)
             for(int f=0; f<this->horizon*60; f++){
                 if(f>0){
-     /*               horizons[c][f] += (horizons[c][f-1] - this->customers[c].getForecast()[(int)f/60]);
-                    actualQuantity[c][f] += (actualQuantity[c][f-1] - this->customers[c].getForecast()[(int)f/60]);*/
-                    horizons[c][f] += horizons[c][f-1];
-                    actualQuantity[c][f] += actualQuantity[c][f-1];
+                    this->this->horizons[c][f] += this->horizons[c][f-1];
+                    this->actualQuantity[c][f] += this->actualQuantity[c][f-1];
                     if(f%60 == 0){
-                        horizons[c][f] -= this->customers[c].getForecast()[(int)f/60];
-                        actualQuantity[c][f] -= this->customers[c].getForecast()[(int)f/60];
+                        this->horizons[c][f] -= this->customers[c].getForecast()[(int)f/60];
+                        this->actualQuantity[c][f] -= this->customers[c].getForecast()[(int)f/60];
                     }
                 }
                 else{
-                    horizons[c][f] -= this->customers[c].getForecast()[0];
-                    actualQuantity[c][f] -= this->customers[c].getForecast()[0];
+                    this->horizons[c][f] -= this->customers[c].getForecast()[0];
+                    this->actualQuantity[c][f] -= this->customers[c].getForecast()[0];
                 }
             }
     }
-
+*/
+    /*
     vector< pair< pair<unsigned int,unsigned int>, unsigned int > > timeWindows;
     for(int d=0; d<this->drivers.size(); d++){
       for(int t=0; t<this->drivers[d].getTimeWindows().size(); t++){
@@ -1356,7 +1442,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
       }
     }
    this->sortPair(timeWindows);
-
+*/
    irpSolution solution;
    vector <Shift> shifts;
    unsigned int time;
@@ -1373,6 +1459,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
    for(int t=0; t<this->trailers.size(); t++)
        if(trailerQuantities[t] <= EPSILON)
            refuelFlag[t] = true;
+
    while(solutionRepresentation.size() > 0 and timeWindows.size() > 0){
 
        unsigned int driver = timeWindows[0].second;
@@ -1387,11 +1474,8 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
        for(int t=0; t<this->trailers.size(); t++)
            if(trailerQuantities[t] <= EPSILON)
                refuelFlag[t] = true;
-/*
-       cout<<"SHIFT: "<<shift.getIndex()<<"\n";
-       cout<<"       "<<shift.getDriver()<<" "<<shift.getTrailer()<<" "<<shift.getStart()<<"\n";
-*/
-//       cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+
+ //      cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
        time = timeWindows[0].first.first;
 
        unsigned int prec;
@@ -1446,8 +1530,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            operation.setArrival(cumulatedTime);
            operation.setPoint(succ);
 
-//           cout<<"QU; "<<trailerQuantities[trailer]<<" "<<actualQuantity[succ][operation.getArrival()]/*tankQuantities[succ]*/<<"     "<<horizons[succ].back()<<" "<<this->customers[succ].getCapacity()<<"       ";
- //          cout<<"         Tank: "<<actualQuantity[succ][operation.getArrival()]<<"   trail:"<<trailerQuantities[trailer]/*<<"   horizon: "<<horizons[succ].back()*/<<" "<<this->customers[succ].getCapacity()<<"       ";
+//           cout<<"         Tank: "<<this->actualQuantity[succ][operation.getArrival()]<<"   trail:"<<trailerQuantities[trailer]/*<<"   horizon: "<<this->horizons[succ].back()*/<<" "<<this->customers[succ].getCapacity()<<"       \n";
            double quantity = 0.0;
 
            if(refuelFlag[trailer] == true){
@@ -1457,8 +1540,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
 
                operation.setQuantity(-quantity);
 
-       //        cout<<"OP: "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
-  //             cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+//               cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
                operations.push_back(operation);
 
                prec = 1;
@@ -1472,9 +1554,9 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                      allowedTrailerFlag = true;
            }
            else{
-           if(trailerQuantities[trailer] <= fabs(horizons[succ].back())
-                   and horizons[succ].back() < 0){
-               double residualQuantity = actualQuantity[succ][(int)(operation.getArrival()/* + this->customers[succ].getSetupTime()*/)/*/60*/];
+           if(trailerQuantities[trailer] <= fabs(this->horizons[succ].back())
+                   and this->horizons[succ].back() < 0){
+               double residualQuantity = this->actualQuantity[succ][(int)(operation.getArrival()/* + this->customers[succ].getSetupTime()*/)/*/60*/];
                if(residualQuantity < 0)
                    residualQuantity = 0;
                else if(residualQuantity > this->customers[succ].getCapacity())
@@ -1485,8 +1567,8 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    quantity = trailerQuantities[trailer] /** deliveredQuantityRatio*/;
 
                    for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
-                       if(actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
-                          quantity -= (actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
+                       if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
+                          quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
                           horizonFlag = true;
                        }
                    }
@@ -1510,8 +1592,8 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    quantity = (this->customers[succ].getCapacity() - residualQuantity) /** deliveredQuantityRatio*/;
 
                    for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
-                       if(actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
-                          quantity -= (actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
+                       if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
+                          quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
                           horizonFlag = true;
                        }
                    }
@@ -1529,19 +1611,19 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                }
            }
            else{
-               double residualQuantity = actualQuantity[succ][(int)(operation.getArrival()/* + this->customers[succ].getSetupTime()*/)/*/60*/];
+               double residualQuantity = this->actualQuantity[succ][(int)(operation.getArrival()/* + this->customers[succ].getSetupTime()*/)/*/60*/];
                if(residualQuantity < 0)
                    residualQuantity = 0;
                else if(residualQuantity > this->customers[succ].getCapacity())
                    residualQuantity = this->customers[succ].getCapacity();
 
-               if(fabs(horizons[succ].back()) <= this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ]*/
-                       and horizons[succ].back() < 0){
-                   quantity = fabs(horizons[succ].back()) /** deliveredQuantityRatio*/;
+               if(fabs(this->horizons[succ].back()) <= this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ]*/
+                       and this->horizons[succ].back() < 0){
+                   quantity = fabs(this->horizons[succ].back()) /** deliveredQuantityRatio*/;
 
                    for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
-                       if(actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
-                          quantity -= (actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
+                       if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
+                          quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
                           horizonFlag = true;
                        }
                    }
@@ -1557,13 +1639,13 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    trailerQuantities[trailer] -= quantity;
                    tankQuantities[succ] += quantity;
                }
-               else if(fabs(horizons[succ].back()) > this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ]*/
-                       and horizons[succ].back() < 0){
+               else if(fabs(this->horizons[succ].back()) > this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ]*/
+                       and this->horizons[succ].back() < 0){
                    quantity = (this->customers[succ].getCapacity() - residualQuantity) /** deliveredQuantityRatio*/;
 
                    for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
-                       if(actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
-                          quantity -= (actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
+                       if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
+                          quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
                           horizonFlag = true;
                         }
                    }
@@ -1584,23 +1666,21 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    quantity = 0.0;
            }
 
-           if(horizonFlag or (quantity <= EPSILON and operation.getPoint()!=1))
-               break;
+           if(horizonFlag or (quantity <= EPSILON and operation.getPoint()!=1 and originalFlag))
+                break;
            if(trailerQuantities[trailer] <= EPSILON + this->trailers[trailer].getCapacity() * refuelRatio){
 //             cout<<"   REFUEL!!!   ";
              refuelFlag[trailer] = true;
            }
 
            for(int ff = (int)(operation.getArrival() /*+ this->customers[succ].getSetupTime()*/)/*/60*/; ff < this->customers[succ].getForecast().size()*60; ff++){
-               horizons[succ][ff] += quantity;
-               actualQuantity[succ][ff] += quantity;
+               this->horizons[succ][ff] += quantity;
+               this->actualQuantity[succ][ff] += quantity;
            }
 
            operation.setQuantity(quantity);
 
-
-       //    cout<<"OP: "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
- //          cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+//           cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
            operations.push_back(operation);
            solutionRepresentation.erase(solutionRepresentation.begin());
            if(refuelFlag[trailer]){
@@ -1612,7 +1692,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            else{
                prec = succ;
                if(solutionRepresentation.size() > 0){
-                  /* if(horizons[solutionRepresentation.front()].back() >= 0)
+                  /* if(this->horizons[solutionRepresentation.front()].back() >= 0)
                        solutionRepresentation.erase(solutionRepresentation.begin());*/
                    if(solutionRepresentation.size() > 0)
                       succ = solutionRepresentation.front();
@@ -1650,16 +1730,16 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
    }
 
    cout<<"HORIZON: \n";
-   for(int h=0; h<horizons.size(); h++)
-       cout<<horizons[h][0]<<"   "<<horizons[h].back()<<"\n";
+   for(int h=0; h<this->horizons.size(); h++)
+       cout<<this->horizons[h][0]<<"   "<<this->horizons[h].back()<<"\n";
     int a;
     */
 /*
    cout<<"HORIZON: \n";
    for(int f=0; f<this->horizon*60; f++){
-       cout<<actualQuantity[6][f]<<"\n";
-       if(actualQuantity[6][f] > 6000){
-                      cout<<f<<" "<<actualQuantity[6].back()<<"\n";
+       cout<<this->actualQuantity[6][f]<<"\n";
+       if(this->actualQuantity[6][f] > 6000){
+                      cout<<f<<" "<<this->actualQuantity[6].back()<<"\n";
            cin>>a;
        }
    }

@@ -3,6 +3,10 @@
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
+#include <iostream>
+#include <fstream>
+
+
 
 #if defined(_WIN32) || defined(_WIN64)
 //no signals compilation path for windows.
@@ -101,6 +105,14 @@ static void finalise (int _)
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << sol_val << std::endl;
         std::cerr << std::flush;
+
+        ofstream file;
+        file.open ("./Ciao",fstream::app);
+        file.precision(15);
+        file<< "\nCPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        file<< "Objective function value: " << sol_val << std::endl;
+        file.close();
+
     }
     else
     {

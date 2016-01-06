@@ -2,6 +2,7 @@ FILE(REMOVE_RECURSE
   "CMakeFiles/EMILI.dir/generalParser.cpp.o"
   "CMakeFiles/EMILI.dir/emilibase.cpp.o"
   "CMakeFiles/EMILI.dir/main.cpp.o"
+  "CMakeFiles/EMILI.dir/irpOld.cpp.o"
   "CMakeFiles/EMILI.dir/irpparser.cpp.o"
   "CMakeFiles/EMILI.dir/irp.cpp.o"
   "CMakeFiles/EMILI.dir/ROADF/tinyxml.cpp.o"

@@ -46,6 +46,9 @@
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
 
+/* perturbations*/
+#define PERTURBATION_RANDOM_MOVE "rndmv"
+
 
 
 std::string prs::irp::IrpParser::info()
@@ -154,10 +157,29 @@ emili::LocalSearch* prs::irp::IrpParser::ils(prs::TokenManager& tm)
 emili::Perturbation* prs::irp::IrpParser::per(prs::TokenManager& tm)
 {
     /*increment tab for nicer output*/
-    prs::incrementTabLevel();    
+    prs::incrementTabLevel();
     emili::Perturbation* per;
+    std::ostringstream oss;
+
 
     /*TODO HERE GOES THE CODE TO PARSE THE PERTURBATION*/
+    if(tm.checkToken(PERTURBATION_RANDOM_MOVE))
+        {
+            printTab("Random move perturbation.");
+            emili::Neighborhood* n = neigh(tm);
+            int num = tm.getInteger();
+            prs::incrementTabLevel();
+            oss.str(""); oss  << "number of moves per perturbation step " << num;
+            printTab(oss.str().c_str());
+            prs::decrementTabLevel();
+            per = new emili::RandomMovePertubation(*n,num);
+        }
+    else
+        {
+            std::cerr<< "'" << tm.peek() << "' -> ERROR a perturbation criteria specification was expected! " << std::endl;
+            std::cout << info() << std::endl;
+            exit(-1);
+        }
 
     prs::decrementTabLevel();
     return per;

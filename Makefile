@@ -471,6 +471,30 @@ irp.cpp.s:
 	$(MAKE) -f CMakeFiles/EMILI.dir/build.make CMakeFiles/EMILI.dir/irp.cpp.s
 .PHONY : irp.cpp.s
 
+irpOld.o: irpOld.cpp.o
+.PHONY : irpOld.o
+
+# target to build an object file
+irpOld.cpp.o:
+	$(MAKE) -f CMakeFiles/EMILI.dir/build.make CMakeFiles/EMILI.dir/irpOld.cpp.o
+.PHONY : irpOld.cpp.o
+
+irpOld.i: irpOld.cpp.i
+.PHONY : irpOld.i
+
+# target to preprocess a source file
+irpOld.cpp.i:
+	$(MAKE) -f CMakeFiles/EMILI.dir/build.make CMakeFiles/EMILI.dir/irpOld.cpp.i
+.PHONY : irpOld.cpp.i
+
+irpOld.s: irpOld.cpp.s
+.PHONY : irpOld.s
+
+# target to generate assembly for a file
+irpOld.cpp.s:
+	$(MAKE) -f CMakeFiles/EMILI.dir/build.make CMakeFiles/EMILI.dir/irpOld.cpp.s
+.PHONY : irpOld.cpp.s
+
 irpparser.o: irpparser.cpp.o
 .PHONY : irpparser.o
 
@@ -573,6 +597,9 @@ help:
 	@echo "... irp.o"
 	@echo "... irp.i"
 	@echo "... irp.s"
+	@echo "... irpOld.o"
+	@echo "... irpOld.i"
+	@echo "... irpOld.s"
 	@echo "... irpparser.o"
 	@echo "... irpparser.i"
 	@echo "... irpparser.s"
