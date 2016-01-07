@@ -121,6 +121,7 @@
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
 #define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
+#define NEIGHBORHOOD_OPT_INSERT "oinsert"
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NATAx_INSERT "natxinsert"
 #define NEIGHBORHOOD_NATA2x_INSERT "natx2insert"
@@ -1118,10 +1119,15 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
         printTab( "Insert with Taillard Acceleration(Experimental)");
         neigh = new emili::pfsp::TAxInsertNeighborhood(*istance);
     }
-    else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
+    else if(tm.checkToken(NEIGHBORHOOD_OPT_INSERT))
     {
         printTab( "Delta Evaluation Insert for Weighted Tardiness");
         neigh = new emili::pfsp::OptInsert(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
+    {
+        printTab( "Atx Delta Evaluation Insert for Weighted Tardiness");
+        neigh = new emili::pfsp::AtxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {
