@@ -159,6 +159,9 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm,
         int te = tm.getInteger();
         float rate = tm.getDecimal();
         return new SALastAcceptanceRateTermination(te, rate);
+    } else if (tm.checkToken(MAXTEMPRESTARTSTERM)) {
+        int tr = tm.getInteger();
+        return new SaMaxTempRestartsTermination(tr);
     } else if (tm.checkToken(NEIGHSIZEITERTERM)) {
         float co = tm.getDecimal();
         return new SANeighSizeIterTermination(nei, co);

@@ -113,6 +113,28 @@ public:
 }; // BurkardRendlNeighSizeTempLength
 
 
+class BurkardRendlGeomTempLength: public SATempLength {
+
+protected:
+    float c;
+
+public:
+    BurkardRendlGeomTempLength(emili::Neighborhood* neigh, float _c):
+        c(_c),
+        SATempLength(BRGEOMTEMPLEN,
+            (int)0.5 * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size()))) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length) {
+            length  = length * c;
+            return true;
+        }
+        return false;
+    }
+
+}; // BurkardRendlGeomTempLength
+
+
 /**
  * Length based on a maximum number of accepted solutions.
  */

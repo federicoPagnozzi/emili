@@ -227,4 +227,36 @@ public:
 }; // SALastAcceptanceRateTermination
 
 
+/**
+ * meller-bozer, new simulated annealing algorithm for facility layout
+ */
+class SaMaxTempRestartsTermination: public SATermination {
+
+protected:
+    int mtr;
+
+public:
+    SaMaxTempRestartsTermination(int _mtr):
+        mtr(_mtr),
+        SATermination(MAXTEMPRESTARTSTERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.temp_restarts > mtr)
+            return true;
+        
+        return false;
+    }
+
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SaMaxTempRestartsTermination
+
+
 #endif

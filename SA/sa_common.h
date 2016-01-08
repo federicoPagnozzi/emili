@@ -22,6 +22,7 @@ public:
     long   tenure;
     long   index;
     long   step;
+    int    temp_restarts;
 
     long   neigh_size;
 
@@ -54,6 +55,7 @@ public:
         step = 0;
         best_temp = 0;
         neigh_size = 0;
+        temp_restarts = 0;
 
         keep_last = false;
         force_accept = false;
@@ -91,8 +93,10 @@ public:
         best = sol->clone();
         best_cost = cost;
         best_temp = temp;
-        std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
-        std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
+        //std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
+        //std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
+        std::cout << std::fixed << cost << " " << total_counter << " ";// << temp << " ";
+        std::cout << std::fixed << emili::getCurrentExecutionTime() << std::endl;
         not_improved = 0;
         counter = 0;
     }

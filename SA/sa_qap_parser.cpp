@@ -141,6 +141,9 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm,
         int te = tm.getInteger();
         float rate = tm.getDecimal();
         return new SALastAcceptanceRateTermination(te, rate);
+    } else if (tm.checkToken(MAXTEMPRESTARTSTERM)) {
+        int tr = tm.getInteger();
+        return new SaMaxTempRestartsTermination(tr);
     } else if (tm.checkToken(NEIGHSIZEITERTERM)) {
         float co = tm.getDecimal();
         return new SANeighSizeIterTermination(nei, co);
@@ -236,6 +239,9 @@ SATempLength* SAQAPParser::TEMPLENGTH(prs::TokenManager& tm,
         return new ExpTempLength(a, b);
     } else if (tm.checkToken(NOTEMPLEN)) {
         return new NoTempLength();
+    } else if (tm.checkToken(BRGEOMTEMPLEN)) {
+        float b = tm.getDecimal();
+        return new BurkardRendlGeomTempLength(neigh, b);
     } else {
         std::cerr << "SATempLength expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

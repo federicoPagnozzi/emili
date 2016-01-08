@@ -63,8 +63,10 @@ public:
         SATempRestart(SAMINTEMPRESTART) { }
 
     virtual float adjust(float temp) {
-        if (temp <= reset_threshold)
+        if (temp <= reset_threshold) {
+            status->temp_restarts += 1;
             return init_temp;
+        }
         return temp;
     }
 
@@ -88,8 +90,10 @@ public:
         SATempRestart(SAPERCTEMPRESTART) { }
 
     virtual float adjust(float temp) {
-        if (temp <= reset_threshold)
+        if (temp <= reset_threshold) {
+            status->temp_restarts += 1;
             return init_temp;
+        }
         return temp;
     }
 
@@ -111,8 +115,10 @@ public:
         SATempRestart(SALOWRATERESTART) { }
 
     virtual float adjust(float temp) {
-        if ((1.0 * status->accepted / status->total_counter) < rate_threshold)
+        if ((1.0 * status->accepted / status->total_counter) < rate_threshold) {
+            status->temp_restarts += 1;
             return init_temp;
+        }
         return temp;
     }
 
@@ -133,8 +139,10 @@ public:
         SATempRestart(SALOWRATERESTARTBEST) { }
 
     virtual float adjust(float temp) {
-        if ((1.0 * status->accepted / status->total_counter) < rate_threshold)
+        if ((1.0 * status->accepted / status->total_counter) < rate_threshold) {
+            status->temp_restarts += 1;
             return status->best_temp;
+        }
         return temp;
     }
 
@@ -168,6 +176,7 @@ public:
 
     virtual float adjust(float temp) {
         if ((1.0 * total_accepted() / status->tenure) < rate_threshold) {
+            status->temp_restarts += 1;
             return init_temp;
         }
         return temp;
@@ -199,8 +208,10 @@ public:
         SATempRestart(SALOWRATEREHEAT) { }
 
     virtual float adjust(float temp) {
-        if ((1.0 * status->accepted / status->total_counter) < rate_threshold)
+        if ((1.0 * status->accepted / status->total_counter) < rate_threshold) {
+            status->temp_restarts += 1;
             return temp / value;
+        }
         return temp;
     }
 
@@ -239,6 +250,7 @@ public:
 
     virtual float adjust(float temp) {
         if ((1.0 * total_accepted() / status->tenure) < rate_threshold) {
+            status->temp_restarts += 1;
             return temp / value;
         }
         return temp;
@@ -271,6 +283,7 @@ public:
 
     virtual float adjust(float temp) {
         if (status->not_improved > tenure) {
+            status->temp_restarts += 1;
             return temp / value;
         }
         return temp;
@@ -296,6 +309,7 @@ public:
 
     virtual float adjust(float temp) {
         if (status->not_improved > tenure) {
+            status->temp_restarts += 1;
             return status->best_temp;
         }
         return temp;
@@ -334,6 +348,7 @@ public:
     virtual float adjust(float temp) {
         if (status->not_improved > tenure) {
             value = std::max(epsilon, value - epsilon);
+            status->temp_restarts += 1;
             return temp / value;
         }
         return temp;
