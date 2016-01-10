@@ -8,3 +8,11 @@ build
 CMakeLists.txt.user.3.3-pre1
 *.autosave
 *.swp
+CMakeFiles
+CMakeCache.txt
+EMILI
+Makefile
+irpOld.cpp
+irp.cpp.Yu2554
+Code Stubs
+EMILI.cbp
