@@ -7,6 +7,8 @@
 #include "generalParser.h"
 #include "setup.h"
 
+#include "irp.h"
+
 #include "irpparser.h"
 
 void g2c_info()
@@ -107,10 +109,19 @@ prs::emili_header();
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
 
-    ofstream file;
+ /*   ofstream file;
     file.open ("./Ciao");
     file.precision(15);
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
-    file.close();
+    file.close();*/
+
+    emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
+    string filepath;
+//    filepath.append("./Neighborhood/");
+//    filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+//    filepath.append(to_string(this->numberFeasibleSolutions));
+    filepath.append("./BestSolution.xml");
+    cout<<"\n"<<bestSolution->getIrpSolution().getShifts().size();
+    bestSolution->getIrpSolution().saveSolution(filepath);
 }

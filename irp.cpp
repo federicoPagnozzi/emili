@@ -6,7 +6,7 @@
 #define REFUEL_INITIAL_VALUE 0.0
 #define REFUEL_STEP 0.1
 
-#define COUT if (1) cout
+#define COUT if (0) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -66,8 +66,8 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
 
     bool bf = false;
     double bestValue = DBL_MAX;
-    for(double tw=0.0; tw<=1.0; tw+=0.05){
-        for(double qw=0.0; qw<=1.0; qw+=0.05){
+    for(double tw=0.0; tw<=1.0; tw+=0.1){
+        for(double qw=0.0; qw<=1.0; qw+=0.1){
             for(double t=-1; t<=1; t+=1){
                 irps = irp.getIrpInstance().backTrackingRandomSolution(tw, qw, t);
                 irs = new InventoryRoutingSolution(irps);
@@ -95,15 +95,15 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                     COUT<<bestIrs->getSolutionRepresentation();
                     COUT<<"\nORIGINAL OBJ VALUE: "<<irs->getSolutionValue()<<"\n";
                     COUT<<"\nVALUES: "<<tw<<" "<<qw<<" "<<t<<"\n";
-                    if(not (irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false))){
-                        bf = true;break;
+                    if(not (irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false)))
+                    {bf = true;break;
                         string filepath;
                         filepath.append("./Neighborhood/");
                         filepath.append(to_string(feasibleOriginalCounter));
                         filepath.append("OriginalSolution.xml");
                         irs->getIrpSolution().saveSolution(filepath);
                         feasibleOriginalCounter++;
-
+                    
                     }
                 }
     //            bf = true;
@@ -171,12 +171,12 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpTwoExchangeNeighborhood
     if(this->bestValueFound >= DBL_MAX - EPSILON){
         this->bestValueFound = irpStartSolution->getSolutionValue();
         this->numberFeasibleSolutions++;
-         string filepath;
+  /*       string filepath;
          filepath.append("./Neighborhood/");
          filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
          filepath.append(to_string(this->numberFeasibleSolutions));
          filepath.append("NeighSolution.xml");
-         irpStartSolution->getIrpSolution().saveSolution(filepath);
+         irpStartSolution->getIrpSolution().saveSolution(filepath);*/
     }
 //    COUT.clear();
     COUT<<"INITIAL BEGIN: "<<this->numberOfOperations1<<" "<<this->numberOfOperations2<<"\n";
@@ -242,12 +242,12 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 //            COUT<<"\nNEIGH FEASIBLE!\n";
             this->numberFeasibleSolutions++;
             this->bestValueFound = irs.getSolutionValue();
-            string filepath;
-            filepath.append("./Neighborhood2/");
+/*            string filepath;
+            filepath.append("./Neighborhood/");
             filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
             filepath.append(to_string(this->numberFeasibleSolutions));
             filepath.append("NeighSolution.xml");
-            irs.getIrpSolution().saveSolution(filepath);
+            irs.getIrpSolution().saveSolution(filepath);*/
 
         }
 //    COUT<<irs.getSolutionRepresentation();
@@ -364,12 +364,12 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::beg
     if(this->bestValueFound >= DBL_MAX - EPSILON){
         this->bestValueFound = irpStartSolution->getSolutionValue();
         this->numberFeasibleSolutions++;
-         string filepath;
+/*         string filepath;
          filepath.append("./Neighborhood/");
          filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
          filepath.append(to_string(this->numberFeasibleSolutions));
          filepath.append("NeighSolution.xml");
-         irpStartSolution->getIrpSolution().saveSolution(filepath);
+         irpStartSolution->getIrpSolution().saveSolution(filepath);*/
     }
 
 //    COUT.clear();
@@ -423,12 +423,12 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
     else if(irs.getSolutionValue() < this->bestValueFound - EPSILON){
       this->bestValueFound = irs.getSolutionValue();
       this->numberFeasibleSolutions++;
-       string filepath;
-       filepath.append("./Neighborhood2/");
+/*       string filepath;
+       filepath.append("./Neighborhood/");
        filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
        filepath.append(to_string(this->numberFeasibleSolutions));
        filepath.append("NeighSolution.xml");
-       irs.getIrpSolution().saveSolution(filepath);
+       irs.getIrpSolution().saveSolution(filepath);*/
 //      COUT<<"\nBEST!: "<<irs.getSolutionValue()<<"\n";
 //      int a; CIN>>a;
    }
