@@ -105,23 +105,24 @@ static void finalise (int _)
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         std::cerr << sol_val << std::endl;
         std::cerr << std::flush;
-
+/*
         ofstream file;
         file.open ("./Ciao",fstream::app);
         file.precision(15);
         file<< "\nCPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         file<< "Objective function value: " << sol_val << std::endl;
         file.close();
-
+*/
     }
     else
     {
+        /*
         std::cout << "No valid solution found!" << std::endl;
         ofstream file;
         file.open ("./Ciao",fstream::app);
         file.precision(15);
         file<< "No valid solution found!";
-        file.close();
+        file.close();*/
     }
     std::cout << std::flush;
 #ifndef NOSIG

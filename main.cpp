@@ -115,13 +115,11 @@ prs::emili_header();
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
     file.close();*/
-
+/*
     emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
     string filepath;
-//    filepath.append("./Neighborhood/");
-//    filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
-//    filepath.append(to_string(this->numberFeasibleSolutions));
     filepath.append("./BestSolution.xml");
     cout<<"\n"<<bestSolution->getIrpSolution().getShifts().size();
     bestSolution->getIrpSolution().saveSolution(filepath);
+    */
 }

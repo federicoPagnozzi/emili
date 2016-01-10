@@ -94,11 +94,11 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                     COUT<<"\nVALUES: "<<tw<<" "<<qw<<" "<<t<<"\n";
                     if(not (irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false)))
                     {bf = true;break;
-                        string filepath;
+                        /*string filepath;
                         filepath.append("./Neighborhood/");
                         filepath.append(to_string(feasibleOriginalCounter));
                         filepath.append("OriginalSolution.xml");
-                        irs->getIrpSolution().saveSolution(filepath);
+                        irs->getIrpSolution().saveSolution(filepath);*/
                         feasibleOriginalCounter++;
                     
                     }
@@ -124,7 +124,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
     }
     else{
         COUT<<"\nRECOSTRUCTION FEASIBLE!\n";
-        rirs->getIrpSolution().saveSolution(*new string("RebuiltSolution.xml"));
+//        rirs->getIrpSolution().saveSolution(*new string("RebuiltSolution.xml"));
         COUT<<"OBJ VALUE: "<<rirs->getSolutionValue()<<"\n\n";
     }
     COUT<<"OBJ VALUE: "<<rirs->getSolutionValue()<<"\n\n";
