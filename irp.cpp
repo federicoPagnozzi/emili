@@ -2,11 +2,8 @@
 
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
-#define POINT_INITIAL_VALUE 0
-#define REFUEL_INITIAL_VALUE 0.0
-#define REFUEL_STEP 0.1
 
-#define COUT if (0) cout
+#define COUT if (1) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -159,14 +156,17 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpTwoExchangeNeighborhood
     this->currentNeighboringSolution = startSolution->clone();
     InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
 
-    this->operation1 = POINT_INITIAL_VALUE;
-    this->operation2 = POINT_INITIAL_VALUE;
-
     irpStartSolution->getIrpSolution().fromSolutionToRepresentation(irpStartSolution->getIrpSolution());
+    unsigned int representationSize = irpStartSolution->getIrpSolution().getRepresentation().size();
+
+    this->operation1 = (unsigned int) representationSize * (1.0/(double)this->pointInitialValue);
+    this->operation2 = this->operation1;
+
+
     irp.evaluateSolution(*irpStartSolution);
 
-    this->numberOfOperations1 = irpStartSolution->getIrpSolution().getRepresentation().size();
-    this->numberOfOperations2 = irpStartSolution->getIrpSolution().getRepresentation().size();
+    this->numberOfOperations1 = representationSize;
+    this->numberOfOperations2 = representationSize;
 
     if(this->bestValueFound >= DBL_MAX - EPSILON){
         this->bestValueFound = irpStartSolution->getSolutionValue();
@@ -202,8 +202,8 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 //    this->currentNeighboringSolution = dynamic_cast<Solution *> (neighboringSolution);
 
 
-    if(this->operation2 < this->numberOfOperations2 - 1 -1){
-        this->operation2++;
+    if(this->operation2 < this->numberOfOperations2 - this->pointStep -2){
+        this->operation2+=this->pointStep;
         this->operation1 = this->operation2+1;
     }
   /*  else if(this->operation1 < this->numberOfOperations1 - 1){
@@ -265,10 +265,10 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 
 void emili::irp::irpTwoExchangeNeighborhood::reset(){
 
-    this->operation1 = POINT_INITIAL_VALUE;
-    this->operation2 = POINT_INITIAL_VALUE;
-    this->numberOfOperations1 = POINT_INITIAL_VALUE;
-    this->numberOfOperations2 = POINT_INITIAL_VALUE;
+    this->operation1 = this->pointInitialValue;
+    this->operation2 = this->pointInitialValue;
+    this->numberOfOperations1 = this->pointInitialValue;
+    this->numberOfOperations2 = this->pointInitialValue;
 //    this->numberFeasibleSolutions = 0;
 }
 
@@ -282,8 +282,8 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::random(Solution* curren
     irps.fromSolutionToRepresentation(irps);
     neighboringSolution = new InventoryRoutingSolution(irps);
     this->irp.evaluateSolution(*neighboringSolution);
-    this->operation1 = POINT_INITIAL_VALUE;
-    this->operation2 = POINT_INITIAL_VALUE;
+    this->operation1 = this->pointInitialValue;
+    this->operation2 = this->pointInitialValue;
     this->numberOfOperations1 = neighboringSolution->getIrpSolution().getRepresentation().size();
     this->numberOfOperations2 = neighboringSolution->getIrpSolution().getRepresentation().size();
 
@@ -351,10 +351,9 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::beg
     this->currentNeighboringSolution = startSolution->clone();
 
     InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
-    this->refuelRatio = REFUEL_INITIAL_VALUE;
-    this->refuelStep = REFUEL_STEP;
-    this->deliveredQuantityRatio = -REFUEL_STEP/*REFUEL_INITIAL_VALUE*/;
-    this->deliveredQuantityStep = REFUEL_STEP;
+    this->refuelRatio = this->refuelInitialValue;
+    this->deliveredQuantityRatio = -this->refuelStep/*this->refuelInitialValue*/;
+    this->deliveredQuantityStep = this->refuelStep;
 //    this->numberFeasibleSolutions = 0;
 //    this->bestValueFound = DBL_MAX;
 
@@ -396,7 +395,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         this->deliveredQuantityRatio += this->deliveredQuantityStep;
     }
     else if(this->refuelRatio <= 1.0-this->refuelStep){
-        this->deliveredQuantityRatio = REFUEL_INITIAL_VALUE;
+        this->deliveredQuantityRatio = this->refuelInitialValue;
         this->refuelRatio += this->refuelStep;
     }
     else
@@ -449,10 +448,9 @@ void emili::irp::irpRefuelNeighborhood::reset(){
 
 //    COUT<<"\nRESET\n";
     //int a;CIN>>a;
-    this->refuelRatio = REFUEL_INITIAL_VALUE;
-    this->refuelStep = REFUEL_STEP;
-    this->deliveredQuantityRatio = REFUEL_INITIAL_VALUE;
-    this->deliveredQuantityStep = REFUEL_STEP;
+    this->refuelRatio = this->refuelInitialValue;
+    this->deliveredQuantityRatio = this->refuelInitialValue;
+    this->deliveredQuantityStep = this->refuelStep;
 //    this->numberFeasibleSolutions = 0;
 //    this->bestValueFound = DBL_MAX;
 }
@@ -496,7 +494,7 @@ void emili::irp::irpRefuelNeighborhood::reverseLastMove(Solution * step){
 
 int emili::irp::irpRefuelNeighborhood::size()
 {
-    return 1/(REFUEL_INITIAL_VALUE * REFUEL_INITIAL_VALUE);
+    return 1/(this->refuelInitialValue * this->refuelInitialValue);
 }
 
 emili::Solution* emili::irp::irpPerturbation::perturb(Solution* solution){

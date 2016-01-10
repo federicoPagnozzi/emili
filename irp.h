@@ -71,6 +71,8 @@ protected:
     int numberOfOperations2;
     int numberFeasibleSolutions; //in a neighborhood
     double bestValueFound;
+    unsigned int pointInitialValue;
+    unsigned int pointStep;
     virtual Solution* computeStep(Solution* step);
     virtual void reverseLastMove(Solution* step);
 public:
@@ -98,7 +100,7 @@ public:
     */
     virtual int size();
 
-    irpTwoExchangeNeighborhood(InventoryRoutingProblem &i):irp(i){this->numberFeasibleSolutions=0; this->bestValueFound = DBL_MAX;}
+    irpTwoExchangeNeighborhood(InventoryRoutingProblem &i, unsigned int piv, unsigned int ps):irp(i),numberFeasibleSolutions(0),bestValueFound(DBL_MAX),pointInitialValue(piv),pointStep(ps){}
 };
 
 
@@ -108,11 +110,12 @@ protected:
     InventoryRoutingProblem irp;
     Solution * currentNeighboringSolution;
     double refuelRatio;
-    double refuelStep;
     double deliveredQuantityRatio;
     double deliveredQuantityStep;
     int numberFeasibleSolutions; //in a neighborhood
     double bestValueFound;
+    double refuelInitialValue;
+    double refuelStep;
     virtual Solution* computeStep(Solution* step);
     virtual void reverseLastMove(Solution* step);
 
@@ -137,7 +140,7 @@ public:
     */
     virtual int size();
 
-    irpRefuelNeighborhood(InventoryRoutingProblem &i):irp(i){this->numberFeasibleSolutions=0;this->bestValueFound=DBL_MAX;}
+    irpRefuelNeighborhood(InventoryRoutingProblem &i, double riv, double rs):irp(i),numberFeasibleSolutions(0),bestValueFound(DBL_MAX),refuelInitialValue(riv),refuelStep(rs){}
 };
 
 class irpPerturbation : public emili::Perturbation
