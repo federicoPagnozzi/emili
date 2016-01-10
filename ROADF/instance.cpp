@@ -662,7 +662,7 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
     }
     customerFlag = false;
   }
-  cout<<"\n";
+//  cout<<"\n";
 //  return false;
   if(unfeasibilityCounter >= 1/EPSILON - EPSILON)
       return 0;
@@ -1064,7 +1064,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
 
     bool refuelFlag = false;
 
-    cout<<"         Tank: "<<tankQuantities[customer]<<"   trail:"<<trailerQuantities[trailer]<<"   horizon: "<<horizon<<" "<<this->customers[customer].getCapacity()<< "\n";
+//    cout<<"         Tank: "<<tankQuantities[customer]<<"   trail:"<<trailerQuantities[trailer]<<"   horizon: "<<horizon<<" "<<this->customers[customer].getCapacity()<< "\n";
 
     if(customer == 1){
       operation.setQuantity(-(this->trailers[trailer].getCapacity() - trailerQuantities[trailer]));
@@ -1175,7 +1175,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
       customerList.insert(customerList.begin() + 1, 1);
     }
 
-    cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+//    cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
     /*
     for(int c=0; c<customerList.size(); c++)
       cout<<customerList[c]<<" ";
@@ -1293,7 +1293,7 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
       cout<<"\n";  
 */
 //      int a;cin>>a;
-      cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<"  \n";
+//      cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<"  \n";
       vector<bool> refuelFlags(this->trailers.size(), false);
       vector<Operation> operations;
       operations = recursiveRandomShift(solution, shift.getStart(), 0, horizonQuantities, tankQuantities, trailerQuantities,

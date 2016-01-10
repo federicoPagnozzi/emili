@@ -117,6 +117,11 @@ static void finalise (int _)
     else
     {
         std::cout << "No valid solution found!" << std::endl;
+        ofstream file;
+        file.open ("./Ciao",fstream::app);
+        file.precision(15);
+        file<< "No valid solution found!";
+        file.close();
     }
     std::cout << std::flush;
 #ifndef NOSIG

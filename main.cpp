@@ -18,7 +18,7 @@ void g2c_info()
 
 int main(int argc, char *argv[])
 {
-std::cout.setstate(std::ios_base::failbit);
+//std::cout.setstate(std::ios_base::failbit);
 
 prs::emili_header();
     /* initialize random seed: */
@@ -112,4 +112,5 @@ prs::emili_header();
     file.precision(15);
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
+    file.close();
 }
