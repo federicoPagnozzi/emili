@@ -259,4 +259,68 @@ public:
 }; // SaMaxTempRestartsTermination
 
 
+/**
+ * ker yan tam - a simulated annealing for allocating to manifacturing cells
+ */
+class SALocalMinTermination: public SATermination {
+
+protected:
+    int tenure;
+
+public:
+    SALocalMinTermination(int _tenure):
+        tenure(_tenure),
+        SATermination(LOCALMINTERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.not_improved > tenure) {
+            return tenure;
+        }
+        return false;
+    }
+
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SALocalMinTermination
+
+
+/**
+ * ker yan tam - a simulated annealing for allocating to manifacturing cells
+ */
+class SANeighSizeLocalMinTermination: public SATermination {
+
+protected:
+    int tenure;
+
+public:
+    SANeighSizeLocalMinTermination(emili::Neighborhood *neigh, float _coeff):
+        tenure((int)(_coeff * neigh->size())),
+        SATermination(NEIGHSIZELOCALMINTERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.not_improved > tenure) {
+            return tenure;
+        }
+        return false;
+    }
+
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SANeighSizeLocalMinTermination
+
+
 #endif

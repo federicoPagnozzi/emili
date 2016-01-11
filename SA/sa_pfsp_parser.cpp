@@ -165,6 +165,12 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZEITERTERM)) {
         float co = tm.getDecimal();
         return new SANeighSizeIterTermination(nei, co);
+    } else if (tm.checkToken(LOCALMINTERM)) {
+        int te = tm.getInteger();
+        return new SALocalMinTermination(te);
+    } else if (tm.checkToken(NEIGHSIZELOCALMINTERM)) {
+        float co = tm.getDecimal();
+        return new SANeighSizeLocalMinTermination(nei, co);
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
