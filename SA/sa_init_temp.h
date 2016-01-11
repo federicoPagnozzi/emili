@@ -272,7 +272,7 @@ public:
 
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
-            s2 = is->generateSolution();
+            s2 = nei->random(s1);; //is->generateSolution();
             c1 = c2;
             c2 = s2->getSolutionValue();
             costsum += abs(c2 - c1);
@@ -329,7 +329,7 @@ public:
 
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
-            s2 = is->generateSolution();
+            s2 = nei->random(s1);; //is->generateSolution();
             c1 = c2;
             c2 = s2->getSolutionValue();
             costsum += abs(c2 - c1);
