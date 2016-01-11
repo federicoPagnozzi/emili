@@ -352,6 +352,155 @@ public:
 
 
 
+/**
+ * misevicius - new sa
+ */
+class MiseviciusInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    emili::Neighborhood *nei;
+    int length;
+    float l11, l12, l21, l22;
+    double maxdelta, mindelta, avgdelta, ti, tf;
+
+public:
+
+    MiseviciusInitTemp(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
+                       int _length,
+                       float _l11,
+                       float _l12,
+                       float _l21,
+                       float _l22):
+        is(_is),
+        nei(_nei),
+        length(_length),
+        l11(_l11),
+        l12(_l12),
+        l21(_l21),
+        l22(_l22) {
+            if (l11 + l12 > 1) {
+                l11 = l11 / (l11 + l12);
+                l12 = l12 / (l11 + l12);
+            }
+            if (l21 + l22 > 1) {
+                l21 = l21 / (l21 + l22);
+                l22 = l22 / (l21 + l22);
+            }
+
+        }
+
+    virtual double set(double value) {
+        int i;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double bestcost = c2,
+               costsum = 0;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = nei->random(s1);; //is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+            costsum += abs(c2 - c1);
+            if (abs(c2 - c1) > maxdelta) {
+                maxdelta = abs(c2 - c1);
+            } else if (abs(c2 - c1) > 0 && abs(c2 - c1) < mindelta) {
+                mindelta = abs(c2 - c1);
+            }
+
+            delete s1;
+        }
+
+        delete s2;
+
+        avgdelta = costsum / length;
+
+        ti = (1 - l11 - l12) * mindelta + l11 * avgdelta + l12 * maxdelta;
+        tf = (1 - l21 - l22) * mindelta + l12 * avgdelta + l22 * maxdelta;
+
+        return ti;
+    }
+
+    virtual double getMinTemp(void) {
+        return tf;
+    }
+
+}; // MiseviciusInitTemp
+
+/**
+ * misevicius - new sa
+ */
+class SimplifiedMiseviciusInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    emili::Neighborhood *nei;
+    int length;
+    float l1, l2;
+    double mindelta, avgdelta, ti, tf;
+
+public:
+
+    SimplifiedMiseviciusInitTemp(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
+                       int _length,
+                       float _l1,
+                       float _l2):
+        is(_is),
+        nei(_nei),
+        length(_length),
+        l1(_l1),
+        l2(_l2) {
+            if (l2 >= l1) {
+                std::swap(l1, l2);
+            }
+        }
+
+    virtual double set(double value) {
+        int i;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double bestcost = c2,
+               costsum = 0;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = nei->random(s1);; //is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+            costsum += abs(c2 - c1);
+            if (abs(c2 - c1) > 0 && abs(c2 - c1) < mindelta) {
+                mindelta = abs(c2 - c1);
+            }
+
+            delete s1;
+        }
+
+        delete s2;
+
+        avgdelta = costsum / length;
+
+        ti = (1 - l1) * mindelta + l1 * avgdelta;
+        tf = (1 - l2) * mindelta + l2 * avgdelta;
+
+        return ti;
+    }
+
+    virtual double getMinTemp(void) {
+        return tf;
+    }
+
+}; // SimplifiedMiseviciusInitTemp
+
+
 
 /**
  * see Moscato-Fontanari, Stochastic vs. deterministic update in SA

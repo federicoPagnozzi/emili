@@ -95,6 +95,22 @@ SAInitTemp* SAPFSPParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new RandomWalkInitProb(initsol, nei, ip, length);
         init_temp->set(value);
         return init_temp;
+    } else if (tm.checkToken(MISEVICIUSINITTEMP)) {
+        int length = tm.getInteger();
+        float l11 = tm.getDecimal();
+        float l12 = tm.getDecimal();
+        float l21 = tm.getDecimal();
+        float l22 = tm.getDecimal();
+        SAInitTemp* init_temp = new MiseviciusInitTemp(initsol, nei, length, l11, l12, l21, l22);
+        init_temp->set(1);
+        return init_temp;
+    } else if (tm.checkToken(SIMPLEMISEVICIUSINITTEMP)) {
+        int length = tm.getInteger();
+        float l1 = tm.getDecimal();
+        float l2 = tm.getDecimal();
+        SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
+        init_temp->set(1);
+        return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
