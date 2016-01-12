@@ -219,7 +219,7 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
     int o2 = this->operation2;
     unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1];
     unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2];
-       COUT<<"\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2<<"\n";
+       COUT<<"\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2<<"";
 
         this->irp.evaluateSolution(*neighboringSolution);
 //        neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
@@ -254,6 +254,7 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
         }
 //    COUT<<irs.getSolutionRepresentation();
  //   int a; CIN>>a;
+
     /*
     * QUI COPIA lo stato interno di irs in currentSolution
     * neighboringSolution e currentSolution puntano allo stesso oggetto

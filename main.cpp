@@ -17,6 +17,7 @@ void g2c_info()
     exit(0);
 }
 
+
 int main(int argc, char *argv[])
 {
 
@@ -67,6 +68,34 @@ int main(int argc, char *argv[])
      emili::initializeRandom(randomSeed);
 
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
+       emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
+       emili::Termination* te= new emili::LocalMinimaTermination();
+       double riv = 0.0;
+       double rs = 0.1;
+       emili::Neighborhood* ne = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
+       emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
+
+
+       emili::Termination* pft = new emili::TimedTermination(maxTime);
+
+       unsigned int  piv = 5;
+       unsigned int ps2 = 3;
+       emili::Neighborhood* n = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
+       unsigned int num = 3;
+       emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
+
+       double start = 1.5613;
+       double end = 0.4880;
+       double ratio = 0.0488;
+       emili::Acceptance* tac = new  emili::Metropolis(start,end,ratio);
+       emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
+   //    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+       emili::Solution* solution;
+       solution = ls->search();
+       solution = ls->getBestSoFar();
+
+/*
+    emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
     emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
     emili::Termination* te= new emili::LocalMinimaTermination();
     unsigned int  piv = 2;
@@ -87,7 +116,30 @@ int main(int argc, char *argv[])
     emili::Solution* solution;
     solution = ls->search();
     solution = ls->getBestSoFar();
+*/
+/*
+    emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
+    emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
+    emili::Termination* te= new emili::LocalMinimaTermination();
+    unsigned int  piv = 0;
+    unsigned int ps2 = 1;
+    emili::Neighborhood* ne = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
+    emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
 
+
+    emili::Termination* pft = new emili::TimedTermination(maxTime);
+    double riv = 0.0;
+    double rs = 0.1;
+    emili::Neighborhood* n = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
+    unsigned int num = 3;
+    emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
+    emili::Acceptance* tac = new  emili::MetropolisAcceptance(3.5);
+    emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
+//    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+    emili::Solution* solution;
+    solution = ls->search();
+    solution = ls->getBestSoFar();
+*/
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     std::cout << "time : " << time_elapsed << std::endl;
     std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
