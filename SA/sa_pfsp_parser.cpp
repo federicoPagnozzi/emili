@@ -187,6 +187,9 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZELOCALMINTERM)) {
         float co = tm.getDecimal();
         return new SANeighSizeLocalMinTermination(nei, co);
+    } else if (tm.checkToken(MAXSTEPSTERM)) {
+        int ms = tm.getInteger();
+        return new SAMaxStepsTermination(ms);
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -260,6 +263,14 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
         int a = tm.getInteger();
         return new MaxAcceptedTempLength(a);
+    } else if (tm.checkToken(CAPPEDMAXACCEPTEDTEMPLEN)) {
+        int a = tm.getInteger();
+        int c = tm.getInteger();
+        return new CappedMaxAcceptedTempLength(a, c);
+    } else if (tm.checkToken(NEIGHCAPPEDMAXACCEPTEDTEMPLEN)) {
+        float a = tm.getDecimal();
+        int c = tm.getInteger();
+        return new NeighSizeCappedMaxAcceptedTempLength(neigh, a, c);
     } else if (tm.checkToken(ARITMTEMPLEN)) {
         int a = tm.getInteger();
         int b = tm.getInteger();
@@ -278,6 +289,9 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
         return new ExpTempLength(a, b);
     } else if (tm.checkToken(NOTEMPLEN)) {
         return new NoTempLength();
+    } else if (tm.checkToken(BRGEOMTEMPLEN)) {
+        float b = tm.getDecimal();
+        return new BurkardRendlGeomTempLength(neigh, b);
     } else {
         std::cerr << "SATempLength expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

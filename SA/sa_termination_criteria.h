@@ -279,7 +279,7 @@ public:
 
     virtual bool terminate(SAStatus& status) {
         if (status.not_improved > tenure) {
-            return tenure;
+            return true;
         }
         return false;
     }
@@ -311,7 +311,7 @@ public:
 
     virtual bool terminate(SAStatus& status) {
         if (status.not_improved > tenure) {
-            return tenure;
+            return true;
         }
         return false;
     }
@@ -321,6 +321,38 @@ public:
     }
 
 }; // SANeighSizeLocalMinTermination
+
+
+/**
+ * jajodia et al - class, computerized layout solution using simulated annealing
+ */
+class SAMaxStepsTermination: public SATermination {
+
+protected:
+    int maxsteps;
+
+public:
+    SAMaxStepsTermination(long _ms):
+        maxsteps(_ms),
+        SATermination(MAXSTEPSTERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.step > maxsteps) {
+            return true;
+        }
+        return false;
+    }
+
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SAMaxStepsTermination
 
 
 #endif

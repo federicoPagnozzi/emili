@@ -136,7 +136,7 @@ public:
 
 
 /**
- * Length based on a maximum number of accepted solutions.
+ * Length based on a maximum number of accepted solutions. (Schaerf? Jajodia?)
  */
 class MaxAcceptedTempLength: public SATempLength {
 
@@ -153,6 +153,63 @@ public:
     }
 
 }; // MaxAcceptedTempLength
+
+
+/**
+ * Length based on a maximum number of accepted solutions OR max length (Jajodia - class)
+ */
+class CappedMaxAcceptedTempLength: public SATempLength {
+
+protected:
+    long cap;
+
+public:
+    CappedMaxAcceptedTempLength(int length, long _cap):
+        cap(_cap),
+        SATempLength(CAPPEDMAXACCEPTEDTEMPLEN, length) { }
+
+    bool isCoolingTime(int counter) {
+        if (status->curr_accepted >= length || counter > cap) {
+            status->curr_accepted = 0;
+            return true;
+        }
+        return false;
+    }
+
+}; // CappedMaxAcceptedTempLength
+
+
+/**
+ * Length dependant on the size of the neighborhood:
+ * alpha * |neigh|
+ * (Jajodia - class)
+ */
+class NeighSizeCappedMaxAcceptedTempLength: public SATempLength {
+
+protected:
+    emili::Neighborhood* neigh;
+    float alpha;
+    long cap;
+
+public:
+    NeighSizeCappedMaxAcceptedTempLength(emili::Neighborhood* neigh,
+                       float alpha,
+                       long _cap):
+        neigh(neigh),
+        alpha(alpha),
+        cap(_cap),
+        SATempLength(NEIGHCAPPEDMAXACCEPTEDTEMPLEN,
+                     (int)std::lrint(alpha * neigh->size())) { }
+
+    bool isCoolingTime(int counter) {
+        if (status->curr_accepted >= length || counter >= cap) {
+            status->curr_accepted = 0;
+            return true;
+        }
+        return false;
+    }
+
+}; // NeighSizeCappedMaxAcceptedTempLength
 
 
 /**

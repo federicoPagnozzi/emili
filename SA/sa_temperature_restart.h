@@ -296,6 +296,33 @@ public:
 }; // SALocalMinReheat
 
 
+// e.g. meller-bozer
+class SALocalMinTempRestart: public SATempRestart {
+
+protected:
+    int tenure;
+
+public:
+    SALocalMinTempRestart(SAInitTemp *it,
+                            int _tenure):
+        tenure(_tenure),
+        SATempRestart(SALOCALMINRESTARTBEST) { }
+
+    virtual float adjust(float temp) {
+        if (status->not_improved > tenure) {
+            status->temp_restarts += 1;
+            return status->best_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SALocalMinTempRestart
+
+
 class SALocalMinRestartToBest: public SATempRestart {
 
 protected:
