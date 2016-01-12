@@ -815,7 +815,6 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
                         float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
                         if(time > better_secs)
                         {
-                            delete ithSolution;
                             return bestSoFar;
                         }
         //END
