@@ -3,7 +3,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (0) cout
+#define COUT if (1) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -242,12 +242,13 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 //            COUT<<"\nNEIGH FEASIBLE!\n";
             this->numberFeasibleSolutions++;
             this->bestValueFound = irs.getSolutionValue();
-/*            string filepath;
+            string filepath;
             filepath.append("./Neighborhood/");
             filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
             filepath.append(to_string(this->numberFeasibleSolutions));
             filepath.append("NeighSolution.xml");
-            irs.getIrpSolution().saveSolution(filepath);*/
+            irs.getIrpSolution().saveSolution(filepath);
+            cout<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
 
         }
 //    COUT<<irs.getSolutionRepresentation();
@@ -422,12 +423,12 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
     else if(irs.getSolutionValue() < this->bestValueFound - EPSILON){
       this->bestValueFound = irs.getSolutionValue();
       this->numberFeasibleSolutions++;
-/*       string filepath;
+       string filepath;
        filepath.append("./Neighborhood/");
        filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
        filepath.append(to_string(this->numberFeasibleSolutions));
        filepath.append("NeighSolution.xml");
-       irs.getIrpSolution().saveSolution(filepath);*/
+       irs.getIrpSolution().saveSolution(filepath);
 //      COUT<<"\nBEST!: "<<irs.getSolutionValue()<<"\n";
 //      int a; CIN>>a;
    }

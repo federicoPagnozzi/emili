@@ -17,8 +17,106 @@ void g2c_info()
     exit(0);
 }
 
-
 int main(int argc, char *argv[])
+{
+
+    clock_t time = clock();
+
+    double maxTime;
+    char *instanceName;
+    char *solutionName;
+    int teamID = 42;
+    int randomSeed = 0;
+
+    if(argc==2){
+        cout<<"\nTEAM ID: "<<teamID<<"\n";
+        exit(0);
+    }
+    else{
+        for (int i = 1; i < argc; i++) {
+            if (i + 1 != argc){ // Check that we haven't finished parsing already
+                if (strcmp(argv[i],"-t") == 0) {
+                    // We know the next argument *should* be the filename:
+                    maxTime = atoi(argv[i + 1]);
+                    cout<<"TIME: "<<maxTime;
+                } else if (strcmp(argv[i],"-p") == 0) {
+                    instanceName = argv[i + 1];
+    //                cout<<"\nINSTANCE: "<<instanceName;
+                } else if (strcmp(argv[i],"-o") == 0) {
+                    solutionName = argv[i + 1];
+    //                cout<<"\nSOLUTION: "<<solutionName;
+                } else if (strcmp(argv[i],"-name") == 0) {
+                    cout<<"\nTEAM ID: "<<teamID;
+                } else if (strcmp(argv[i],"-s") == 0) {
+                    randomSeed = atoi(argv[i + 1]);
+    //                 cout<<"\nRANDOM SEED: "<<randomSeed;
+                }
+            }/*
+            else{
+                cout<<"\nWrong parameters\nPress any button.";
+                 cin>>i;
+                exit(0);
+            }*/
+        }
+
+        cout<<"\n";
+    }
+/*
+    maxTime = atoi(argv[2]);
+    instanceName = argv[4];
+    solutionName = argv[6];
+    randomSeed = atoi(argv[9]);*/
+
+    emili::initializeRandom(randomSeed);
+
+    emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
+    emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
+    emili::Termination* te= new emili::LocalMinimaTermination();
+    double riv = 0.0;
+    double rs = 0.1;
+    emili::Neighborhood* ne = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
+    emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
+
+
+    emili::Termination* pft = new emili::TimedTermination(maxTime);
+
+    unsigned int  piv = 5;
+    unsigned int ps2 = 3;
+    emili::Neighborhood* n = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
+    unsigned int num = 3;
+    emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
+
+    double start = 1.5613;
+    double end = 0.4880;
+    double ratio = 0.0488;
+    emili::Acceptance* tac = new  emili::Metropolis(start,end,ratio);
+    emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
+//    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+    emili::Solution* solution;
+    solution = ls->search();
+    solution = ls->getBestSoFar();
+
+    double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+    std::cout << "time : " << time_elapsed << std::endl;
+    std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+    std::cerr << solution->getSolutionValue() << std::endl;
+    //cerr << time_elapsed << " ";
+    std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+    std::cout << "Found solution: ";
+    std::cout << solution->getSolutionRepresentation() << std::endl;
+    std::cout << std::endl;
+
+    string filepath;
+    emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
+    filepath.append("./BestSolution.xml");
+    cout<<"\n"<<bestSolution->getIrpSolution().getShifts().size();
+    bestSolution->getIrpSolution().saveSolution(filepath);
+
+    return teamID;
+
+}
+
+int main2(int argc, char *argv[])
 {
 //std::cout.setstate(std::ios_base::failbit);
 
@@ -98,6 +196,8 @@ prs::emili_header();
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
 #endif
+
+
     solution = ls->getBestSoFar();    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     std::cout << "time : " << time_elapsed << std::endl;
@@ -109,17 +209,18 @@ prs::emili_header();
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
 
- /*   ofstream file;
+    ofstream file;
     file.open ("./Ciao");
     file.precision(15);
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
-    file.close();*/
-/*
-    emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
+    file.close();
+
+
     string filepath;
+    emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
     filepath.append("./BestSolution.xml");
     cout<<"\n"<<bestSolution->getIrpSolution().getShifts().size();
     bestSolution->getIrpSolution().saveSolution(filepath);
-    */
+
 }
