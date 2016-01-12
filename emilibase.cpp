@@ -35,6 +35,8 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
     return *this;
 }
  */
+int better_secs = -1;
+clock_t better_start = -1;
 
 #ifndef NOC11
 
@@ -967,6 +969,8 @@ void emili::TimedTermination::reset()
      }*/
     secs = _ratio;
     start = clock();
+    better_start = clock();
+    better_secs = secs;
 #ifdef NOSIG
     beginTime = start;
 #endif
@@ -1016,7 +1020,10 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
     }
     else
     {
-        return currentSolution->operator <=(*newSolution);
+        clock_t test = clock();
+        float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
+
+        return (currentSolution->operator <=(*newSolution) && !(time < better_secs));
     }
 }
 
