@@ -791,13 +791,17 @@ emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution
 
 emili::Solution* emili::IteratedLocalSearch::search(){
     termcriterion->reset();
-    acc.reset();
+    acc.reset();   
     bestSoFar = ls.search();
+    if(termcriterion->terminate(bestSoFar,bestSoFar))
+    {
+        return bestSoFar;
+    }
     return search(bestSoFar);
 }
 
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
-    termcriterion->reset();
+    //termcriterion->reset();
     acc.reset();
     bestSoFar = initial;
     bestSoFar = ls.search(initial);
@@ -978,11 +982,6 @@ void emili::TimedTermination::reset()
      }*/
     secs = _ratio;
     start = clock();
-    if(better_start != -1)
-    {
-        better_start = clock();
-        better_secs = secs;
-    }
 #ifdef NOSIG
     beginTime = start;
 #endif
