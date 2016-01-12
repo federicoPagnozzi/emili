@@ -512,9 +512,11 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                 }
 // BETTER TIME TERMINAITON WITHOUT SO
                 clock_t test = clock();
+                std::cout << "fs" << better_secs << std::endl;
                 float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
                 if(time > better_secs)
                 {
+
                     delete ithSolution;
                     return bestSoFar;
                 }
@@ -813,6 +815,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         // BETTER TIME TERMINAITON WITHOUT SO
                         clock_t test = clock();
                         float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
+                        std::cout << "fs" << better_secs << std::endl;
                         if(time > better_secs)
                         {
                             return bestSoFar;
@@ -967,6 +970,11 @@ bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *new
 {
     clock_t test = clock();
     float time = (test-start)/ (float)CLOCKS_PER_SEC;
+    if(better_start == -1)
+    {
+        better_start = start;
+        better_secs = secs;
+    }
 #ifdef NOSIG
     if(time > secs)
     {
