@@ -197,7 +197,7 @@ public:
                        long _cap):
         neigh(neigh),
         alpha(alpha),
-        cap(_cap),
+        cap(_cap * (int)std::lrint(alpha * neigh->size())),
         SATempLength(NEIGHCAPPEDMAXACCEPTEDTEMPLEN,
                      (int)std::lrint(alpha * neigh->size())) { }
 
