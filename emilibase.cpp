@@ -810,7 +810,15 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     emili::Solution* s_s = nullptr;
     //initialization done
     do{
-
+        // BETTER TIME TERMINAITON WITHOUT SO
+                        clock_t test = clock();
+                        float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
+                        if(time > better_secs)
+                        {
+                            delete ithSolution;
+                            return bestSoFar;
+                        }
+        //END
         //Pertubation step
         emili::Solution* s_p = pert.perturb(s);
         //local search on s_p
