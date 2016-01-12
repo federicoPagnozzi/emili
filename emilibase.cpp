@@ -509,7 +509,16 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
                     break;
-                }                                
+                }
+// BETTER TIME TERMINAITON WITHOUT SO
+                clock_t test = clock();
+                float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
+                if(time > better_secs)
+                {
+                    delete ithSolution;
+                    return bestSoFar;
+                }
+//END
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
@@ -969,8 +978,11 @@ void emili::TimedTermination::reset()
      }*/
     secs = _ratio;
     start = clock();
-    better_start = clock();
-    better_secs = secs;
+    if(better_start != -1)
+    {
+        better_start = clock();
+        better_secs = secs;
+    }
 #ifdef NOSIG
     beginTime = start;
 #endif
@@ -1020,10 +1032,7 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
     }
     else
     {
-        clock_t test = clock();
-        float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
-
-        return (currentSolution->operator <=(*newSolution) && !(time < better_secs));
+        return currentSolution->operator <=(*newSolution);
     }
 }
 
