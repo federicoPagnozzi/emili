@@ -1,5 +1,5 @@
 SET(CMAKE_BUILD_TYPE Debug)
-project(EMILI)
+project(challengeAL)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./ROADF SRC_LIST_R)
