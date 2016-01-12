@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     if(isDeterministic)
      emili::initializeRandom(randomSeed);
-
+/*
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
        emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
        emili::Termination* te= new emili::LocalMinimaTermination();
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
        emili::Solution* solution;
        solution = ls->search();
        solution = ls->getBestSoFar();
-
+*/
 /*
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
     emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
@@ -117,21 +117,21 @@ int main(int argc, char *argv[])
     solution = ls->search();
     solution = ls->getBestSoFar();
 */
-/*
+
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
     emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
     emili::Termination* te= new emili::LocalMinimaTermination();
-    unsigned int  piv = 0;
+    unsigned int  piv = -1;
     unsigned int ps2 = 1;
     emili::Neighborhood* ne = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
     emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
 
 
     emili::Termination* pft = new emili::TimedTermination(maxTime);
-    double riv = 0.0;
     double rs = 0.1;
+    double riv = -rs;
     emili::Neighborhood* n = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
-    unsigned int num = 3;
+    unsigned int num = 1;
     emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
     emili::Acceptance* tac = new  emili::MetropolisAcceptance(3.5);
     emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
     emili::Solution* solution;
     solution = ls->search();
     solution = ls->getBestSoFar();
-*/
+
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     std::cout << "time : " << time_elapsed << std::endl;
     std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
@@ -150,20 +150,12 @@ int main(int argc, char *argv[])
     std::cout << solution->getSolutionRepresentation() << std::endl;
 //    std::cout << std::endl;
 
-   /*
-    ofstream file;
-    file.open ("./Ciao",fstream::app);
-    file.precision(15);
-    file<<"time : " << time_elapsed << std::endl;
-    file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
-    file.close();
-*/
-
     emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
 
 
     string filepath;
-    filepath.append("./Neighborhood/");
+ //   filepath.append("./Neighborhood/");
+    filepath.append("./");
 //    filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
 //    filepath.append(to_string(this->numberFeasibleSolutions));
 //    filepath.append("./");
