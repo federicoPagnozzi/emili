@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- TODO: all the new inside the calls should be pushed in some datastructure
+           and properly freed before the end to avoid memory leaks... -->
+
+<gr:grammar xmlns:gr="grammar">
+    <gr:derivations xmlns:irp="automatic_generation">
+
+         <irp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
+         <irp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
+         <irp:steps type="int" min="1" max="300" stepIfEnumerated="1"/>
+         <irp:sp_impact type="int" min="5" max="20" stepIfEnumerated="1"/>
+         <irp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
+         <irp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
+         <irp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
+         <irp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
+         <irp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
+         <irp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
+         <irp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+         <irp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
+ <irp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>
+ <irp:pointInitialValue type="int" min="0" max="10" stepIfEnumerated="1" />
+ <irp:pointStep type="int" min="1" max="3" stepIfEnumerated="1" />
+ <irp:refuelInitialValue type="real" min="0.0" max="0.8" stepIfEnumerated="0.01"/>
+ <irp:refuelStep type="real" min="0.05" max="0.2" stepIfEnumerated="0.01"/>
+
+<irp:always_acc_param>
+        <![CDATA[intensify ]]>
+    <or/>
+   <![CDATA[diversify ]]>
+</irp:always_acc_param>
+
+<irp:initial_solution>
+   <![CDATA[random ]]>
+</irp:initial_solution>
+
+<irp:termination>
+   <![CDATA[locmin ]]>
+   <or/> 
+   <![CDATA[maxstep ]]><irp:steps/><![CDATA[ ]]>
+</irp:termination>
+
+<irp:neighborhood>
+           <![CDATA[twoExc ]]><irp:pointInitialValue/><![CDATA[ ]]><irp:pointStep/><![CDATA[ ]]>
+        <or/>
+           <![CDATA[ref ]]><irp:refuelInitialValue/><![CDATA[ ]]><irp:refuelStep/><![CDATA[ ]]>
+</irp:neighborhood>
+
+<irp:pertubation>
+                <![CDATA[rndmv ]]><irp:neighborhood/><irp:random_moves/><![CDATA[ ]]>
+</irp:pertubation>
+
+<irp:acceptance>
+                <![CDATA[metropolis ]]><irp:metrotemp/><![CDATA[ ]]>
+                <or/>
+                <![CDATA[improve ]]>
+                <or/>
+                <![CDATA[always ]]><irp:always_acc_param/>
+                <or/>
+                <![CDATA[sa_metropolis ]]><irp:start_temp/><![CDATA[ ]]><irp:end_temp/><![CDATA[ ]]><irp:temp_ratio/><![CDATA[ ]]>
+                <or/>
+                <![CDATA[pmetro ]]><irp:start_temp/><![CDATA[ ]]><irp:end_temp/><![CDATA[ ]]><irp:temp_ratio/><![CDATA[ ]]><irp:tempiterations/><![CDATA[ ]]>
+</irp:acceptance>
+
+        <irp:first>
+           <![CDATA[first ]]>
+                  <irp:initial_solution/>
+                  <irp:termination/>
+                  <irp:neighborhood/>
+        </irp:first>
+
+        <irp:best>
+           <![CDATA[best ]]>
+           <irp:initial_solution/>
+           <irp:termination/>
+           <irp:neighborhood/>
+        </irp:best>
+
+        <irp:ils>
+                <![CDATA[ils ]]>
+                <irp:algos/>
+                <irp:termination/>
+                <irp:pertubation/>
+                <irp:acceptance/>
+        </irp:ils>
+
+        <irp:gls>
+           <![CDATA[ils ]]>
+                <!--<irp:ils/>-->
+                <irp:algos/>
+                <![CDATA[true ]]>
+                <irp:pertubation/>
+                <irp:acceptance/>
+        </irp:gls>
+
+        <irp:vnd>
+           <![CDATA[vnd ]]>
+                <irp:vnds/>
+                <irp:initial_solution/>
+                <irp:termination/>
+                <irp:neighborhood/>
+                <irp:neighborhood/>
+                <irp:neighborhood/>
+        </irp:vnd>
+
+        <irp:vnds>
+                <![CDATA[first ]]>
+                <or/>
+                <![CDATA[best ]]>
+        </irp:vnds>
+
+        <irp:algos>
+                <irp:first/>
+                <or/>
+                <irp:best/>
+                <or/>
+                <!--<irp:ils/>
+                <or/>-->
+                <irp:vnd/>
+        </irp:algos>
+
+        <irp:main>
+                <irp:gls/>
+                <!--<or/>
+                <irp:algos/>-->
+        </irp:main>
+
+        <irp:main_algorithm output="params">
+                <![CDATA[IRP ]]>
+                <irp:main/>
+
+        </irp:main_algorithm>
+
+    </gr:derivations>
+</gr:grammar>
+
