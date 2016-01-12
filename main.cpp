@@ -28,46 +28,40 @@ int main(int argc, char *argv[])
     int teamID = 42;
     int randomSeed = 0;
 
-    if(argc==2){
+    bool isDeterministic = false;
+    if(argc != 2 and argc != 8 and argc != 10){
+        cout<<"\nBas arguments\n";
+        exit(0);
+    }
+    else if(argc==2 and strcmp(argv[1],"-name") == 0){
         cout<<"\nTEAM ID: "<<teamID<<"\n";
         exit(0);
     }
     else{
         for (int i = 1; i < argc; i++) {
-            if (i + 1 != argc){ // Check that we haven't finished parsing already
+            if (i + 1 != argc){
                 if (strcmp(argv[i],"-t") == 0) {
-                    // We know the next argument *should* be the filename:
                     maxTime = atoi(argv[i + 1]);
                     cout<<"TIME: "<<maxTime;
                 } else if (strcmp(argv[i],"-p") == 0) {
                     instanceName = argv[i + 1];
-    //                cout<<"\nINSTANCE: "<<instanceName;
                 } else if (strcmp(argv[i],"-o") == 0) {
                     solutionName = argv[i + 1];
-    //                cout<<"\nSOLUTION: "<<solutionName;
                 } else if (strcmp(argv[i],"-name") == 0) {
                     cout<<"\nTEAM ID: "<<teamID;
                 } else if (strcmp(argv[i],"-s") == 0) {
                     randomSeed = atoi(argv[i + 1]);
-    //                 cout<<"\nRANDOM SEED: "<<randomSeed;
+                    isDeterministic = true;
                 }
-            }/*
-            else{
-                cout<<"\nWrong parameters\nPress any button.";
-                 cin>>i;
-                exit(0);
-            }*/
+            }
         }
 
         cout<<"\n";
     }
-/*
-    maxTime = atoi(argv[2]);
-    instanceName = argv[4];
-    solutionName = argv[6];
-    randomSeed = atoi(argv[9]);*/
 
-    emili::initializeRandom(randomSeed);
+
+    if(isDeterministic)
+     emili::initializeRandom(randomSeed);
 
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
     emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
@@ -105,6 +99,14 @@ int main(int argc, char *argv[])
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
+
+    ofstream file;
+    file.open ("./Ciao");
+    file.precision(15);
+    file<<"time : " << time_elapsed << std::endl;
+    file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
+    file.close();
+
 
     string filepath;
     emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
