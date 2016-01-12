@@ -3,7 +3,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (0) cout
+#define COUT if (1) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -180,6 +180,7 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpTwoExchangeNeighborhood
     }
 //    COUT.clear();
     COUT<<"INITIAL BEGIN: "<<this->numberOfOperations1<<" "<<this->numberOfOperations2<<"\n";
+
 //    std::COUT.setstate(std::ios_base::failbit);
 //        int a;CIN>>a;
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
@@ -197,7 +198,7 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 
     InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
 
-//    COUT<<"NEIGH: "<<this->irp.evaluateSolution(*neighboringSolution);
+//   COUT<<"NEIGH: "<<this->irp.evaluateSolution(*neighboringSolution);
 
 //    this->currentNeighboringSolution = dynamic_cast<Solution *> (neighboringSolution);
 
@@ -218,9 +219,9 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
     int o2 = this->operation2;
     unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1];
     unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2];
-//        COUT<<"\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2;
+       COUT<<"\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2<<"\n";
 
-//        this->irp.evaluateSolution(*neighboringSolution);
+        this->irp.evaluateSolution(*neighboringSolution);
 //        neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
         vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
         representation[o1] = point2;
@@ -248,12 +249,11 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
             filepath.append(to_string(this->numberFeasibleSolutions));
             filepath.append("NeighSolution.xml");
             irs.getIrpSolution().saveSolution(filepath);
-            cout<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
+            COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
 
         }
 //    COUT<<irs.getSolutionRepresentation();
  //   int a; CIN>>a;
-
     /*
     * QUI COPIA lo stato interno di irs in currentSolution
     * neighboringSolution e currentSolution puntano allo stesso oggetto

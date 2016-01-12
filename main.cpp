@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
     clock_t time = clock();
 
-    double maxTime;
+    float maxTime;
     char *instanceName;
     char *solutionName;
     int teamID = 42;
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     bool isDeterministic = false;
     if(argc != 2 and argc != 8 and argc != 10){
-        cout<<"\nBas arguments\n";
+        cout<<"\nBad arguments\n";
         exit(0);
     }
     else if(argc==2 and strcmp(argv[1],"-name") == 0){
@@ -41,16 +41,19 @@ int main(int argc, char *argv[])
         for (int i = 1; i < argc; i++) {
             if (i + 1 != argc){
                 if (strcmp(argv[i],"-t") == 0) {
-                    maxTime = atoi(argv[i + 1]);
-                    cout<<"TIME: "<<maxTime;
+                    maxTime = atof(argv[i + 1]);
+                    cout<<"\nTIME: "<<maxTime;
                 } else if (strcmp(argv[i],"-p") == 0) {
                     instanceName = argv[i + 1];
+                    cout<<"\nINSTANCE: "<<instanceName;
                 } else if (strcmp(argv[i],"-o") == 0) {
                     solutionName = argv[i + 1];
+                    cout<<"\nSOLUTION: "<<solutionName;
                 } else if (strcmp(argv[i],"-name") == 0) {
                     cout<<"\nTEAM ID: "<<teamID;
                 } else if (strcmp(argv[i],"-s") == 0) {
                     randomSeed = atoi(argv[i + 1]);
+                    cout<<"\nSEED: "<<randomSeed;
                     isDeterministic = true;
                 }
             }
@@ -66,24 +69,19 @@ int main(int argc, char *argv[])
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
     emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
     emili::Termination* te= new emili::LocalMinimaTermination();
-    double riv = 0.0;
-    double rs = 0.1;
-    emili::Neighborhood* ne = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
+    unsigned int  piv = 2;
+    unsigned int ps2 = 1;
+    emili::Neighborhood* ne = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
     emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
 
 
     emili::Termination* pft = new emili::TimedTermination(maxTime);
-
-    unsigned int  piv = 5;
-    unsigned int ps2 = 3;
+    piv = 0;
+    ps2 = 3;
     emili::Neighborhood* n = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
     unsigned int num = 3;
     emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
-
-    double start = 1.5613;
-    double end = 0.4880;
-    double ratio = 0.0488;
-    emili::Acceptance* tac = new  emili::Metropolis(start,end,ratio);
+    emili::Acceptance* tac = new emili::ImproveAccept();
     emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
 //    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
     emili::Solution* solution;
@@ -98,23 +96,28 @@ int main(int argc, char *argv[])
     std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
+   /*
     ofstream file;
-    file.open ("./Ciao");
+    file.open ("./Ciao",fstream::app);
     file.precision(15);
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
     file.close();
+*/
+
+    emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
 
 
     string filepath;
-    emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
-    filepath.append("./BestSolution.xml");
-    cout<<"\n"<<bestSolution->getIrpSolution().getShifts().size();
+    filepath.append("./Neighborhood/");
+//    filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+//    filepath.append(to_string(this->numberFeasibleSolutions));
+//    filepath.append("./");
+    filepath.append(solutionName);filepath.append(".xml");
     bestSolution->getIrpSolution().saveSolution(filepath);
 
-    return teamID;
 
 }
 
@@ -212,7 +215,7 @@ prs::emili_header();
     std::cout << std::endl;
 
     ofstream file;
-    file.open ("./Ciao");
+    file.open ("./Ciao",fstream::app);
     file.precision(15);
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;

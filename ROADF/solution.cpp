@@ -164,7 +164,6 @@ void irpSolution::saveSolution(string pFilename){
     file << "\n</IRP_Roadef_Challenge_Shift_>";
   }
   
-//<IRP_Roadef_Challenge_Operation_><point>4</point><arrival>575</arrival><Quantity>4791</Quantity></IRP_Roadef_Challenge_Operation_>
   
   file << "\n</Shifts>\n</IRP_Roadef_Challenge_Output>";
   file.close();
