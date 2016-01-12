@@ -511,8 +511,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                     break;
                 }
 // BETTER TIME TERMINAITON WITHOUT SO
-                clock_t test = clock();
-                std::cout << "fs" << better_secs << std::endl;
+                clock_t test = clock();              
                 float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
                 if(time > better_secs)
                 {
@@ -814,8 +813,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     do{
         // BETTER TIME TERMINAITON WITHOUT SO
                         clock_t test = clock();
-                        float time = (test-better_start)/ (float)CLOCKS_PER_SEC;
-                        std::cout << "fs" << better_secs << std::endl;
+                        float time = (test-better_start)/ (float)CLOCKS_PER_SEC;                      
                         if(time > better_secs)
                         {
                             return bestSoFar;
