@@ -596,6 +596,9 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
     } else if (tm.checkToken(SALOCALMINRESTARTBEST)) {
         int   te = tm.getInteger();
         return new SALocalMinRestartToBest(it, te);
+    } else if (tm.checkToken(SALOCALMINTEMPRESTART)) {
+        int   te = tm.getInteger();
+        return new SALocalMinTempRestart(it, te);
     } else if (tm.checkToken(SALOCALMINENHANCEDREHEAT)) {
         int   te = tm.getInteger();
         float va = tm.getDecimal();
