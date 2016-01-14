@@ -133,7 +133,7 @@ class PfspInstance{
     long int computeNIMS(std::vector<int> & sol);
     /*Compute no idle partial make span*/
     long int computeNIMS(std::vector<int> &sol, int size);
-    /*Compute no idle make span iwthout computing the sums of machine 1 processing times*/
+    /*Compute no idle make span without computing the sums of machine 1 processing times*/
     long int computeNIMS(std::vector<int> &sol, long int nims);
     /*Compute no idle weighted tardiness*/
     long int computeNIWT(std::vector<int> &sol);
