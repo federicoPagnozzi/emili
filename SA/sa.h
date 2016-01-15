@@ -100,6 +100,7 @@ public:
                         }
 
                         status->final_temp = initialTemperature->getMinTemp();
+                        status->init_prob = initialTemperature->getInit_prob();
                         status->neigh_size = neighborhood->size();
 
                         acceptanceCriterion->set_status(status);

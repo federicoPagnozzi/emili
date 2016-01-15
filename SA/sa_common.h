@@ -35,6 +35,8 @@ public:
     double init_temp;
     double final_temp;
 
+    double init_prob;
+
     bool keep_last;
     bool force_accept;
 
@@ -56,6 +58,7 @@ public:
         best_temp = 0;
         neigh_size = 0;
         temp_restarts = 0;
+        init_prob = 1.0;
 
         keep_last = false;
         force_accept = false;

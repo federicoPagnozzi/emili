@@ -23,6 +23,8 @@ protected:
     emili::Solution  *solution;
     double            init_temp;
     SAStatus         *status;
+    double            maxdelta,
+                      mindelta;
 
 public:
 
@@ -59,6 +61,10 @@ public:
 
     void set_status(SAStatus* _status) {
         status = _status;
+    }
+
+    virtual double getInit_prob(void) {
+        return 1;
     }
 
 }; // class SAInitTemp
@@ -128,7 +134,6 @@ protected:
     emili::InitialSolution *is;
     emili::Neighborhood *nei;
     int length;
-    double mindelta;
 
 public:
 
@@ -147,9 +152,9 @@ public:
         
         double c1,
                c2 = s2->getSolutionValue();
-        double maxdelta = 0,
-               bestcost = c2;
+        double bestcost = c2;
 
+        maxdelta = 0;
         mindelta = c2;
 
         for (i = 0 ; i < length ; i++) {
@@ -178,6 +183,10 @@ public:
         return mindelta;
     }
 
+    virtual double getInit_prob(void) {
+        return std::exp(maxdelta / init_temp);
+    }
+
 }; // RandomWalkInitTemp
 
 
@@ -187,7 +196,6 @@ protected:
     emili::InitialSolution *is;
     emili::Neighborhood *nei;
     int length;
-    double mindelta;
 
 public:
 
@@ -206,9 +214,9 @@ public:
         
         double c1,
                c2 = s2->getSolutionValue();
-        double maxdelta = 0,
-               bestcost = c2;
+        double bestcost = c2;
 
+        maxdelta = 0;
         mindelta = c2;
 
         for (i = 0 ; i < length ; i++) {
@@ -235,6 +243,10 @@ public:
 
     virtual double getMinTemp(void) {
         return mindelta;
+    }
+
+    virtual double getInit_prob(void) {
+        return std::exp(maxdelta / init_temp);
     }
 
 }; // ConnollyRandomWalkInitTemp
@@ -289,6 +301,10 @@ public:
 
     virtual double getMinTemp(void) {
         return 0;
+    }
+
+    virtual double getInit_prob(void) {
+        return std::exp(maxdelta / init_temp);
     }
 
 }; // RandomWalkAvgInitTemp
@@ -348,6 +364,10 @@ public:
         return 0;
     }
 
+    virtual double getInit_prob(void) {
+        return init_prob;
+    }
+
 }; // RandomWalkInitProb
 
 
@@ -361,7 +381,7 @@ protected:
     emili::Neighborhood *nei;
     int length;
     float l11, l12, l21, l22;
-    double maxdelta, mindelta, avgdelta, ti, tf;
+    double avgdelta, ti, tf;
 
 public:
 
@@ -430,6 +450,10 @@ public:
         return tf;
     }
 
+    virtual double getInit_prob(void) {
+        return std::exp(maxdelta / ti);
+    }
+
 }; // MiseviciusInitTemp
 
 /**
@@ -496,6 +520,10 @@ public:
 
     virtual double getMinTemp(void) {
         return tf;
+    }
+
+    virtual double getInit_prob(void) {
+        return std::exp(avgdelta / ti);
     }
 
 }; // SimplifiedMiseviciusInitTemp
