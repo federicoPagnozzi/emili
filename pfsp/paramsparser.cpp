@@ -1081,17 +1081,17 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     }
     else if(tm.checkToken(NEIGHBORHOOD_OPT_EXCHANGE))
     {
-        printTab( "Exchange neighborhood");
+        printTab( "Optimized Exchange neighborhood");
         neigh = new emili::pfsp::OptExchange(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATX_EXCHANGE))
        {
-           printTab( "Exchange neighborhood");
+           printTab( "Exchange neighborhood with speedup");
            neigh = new emili::pfsp::HaxtExchange(*istance);
        }
        else if(tm.checkToken(NEIGHBORHOOD_EATX_EXCHANGE))
        {
-           printTab( "Exchange neighborhood");
+           printTab( "Exchange neighborhood with speedup");
            neigh = new emili::pfsp::EaxtExchange(*istance);
        }
     else if(tm.checkToken(NEIGHBORHOOD_TRANSPOSE))
