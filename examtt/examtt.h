@@ -454,7 +454,7 @@ struct CostComponents {
     }
 
     bool exactlyEqual(CostComponents const& other) const {
-        return hard.exactlyEqual(other.hard) && soft.exactlyEqual(soft);
+        return hard.exactlyEqual(other.hard) && soft.exactlyEqual(other.soft);
     }
 
     struct Printer {
@@ -639,6 +639,8 @@ struct RandomInitialSolution : emili::InitialSolution {
     Solution* generateSolution() override;
     Solution* generateEmptySolution() override;
 };
+
+void test();
 
 }
 }

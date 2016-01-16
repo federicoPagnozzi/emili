@@ -8,6 +8,7 @@
 #include "examtt/examttparser.h"
 #include "setup.h"
 
+#include "examtt/examtt.h"
 
 void g2c_info()
 {
@@ -25,6 +26,12 @@ prs::emili_header();
     /* Create instance object */
     //testTaillardAccel();
     clock_t time = clock();
+    {
+        emili::ExamTT::test();
+        double time_elapsed = (double)(clock() - time) / CLOCKS_PER_SEC;
+        std::cout << "Time " << time_elapsed << std::endl;
+        return 0;
+    }
  //instance.setSilence(true);
 #ifdef GRAMMAR2CODE
 

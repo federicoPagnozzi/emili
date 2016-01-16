@@ -946,28 +946,75 @@ void InstanceParser::parse(ExamTT &i) {
 
     // check duplicate or reverse duplicate for AFTER, EXCLUSIVE, EXAM_COINCIDENCE
 
-    for(size_t a = 0; a < i.examsAfter.size(); a++)
-    for(size_t b = a + 1; b < i.examsAfter.size(); b++){
-        Two<ExamId> p = i.examsAfter[a];
-        Two<ExamId> q = i.examsAfter[b];
-        if(p.first == q.first && p.second == q.second || p.second == q.first && p.first == q.second) {
-            ostringstream oss;
-            oss << "Exams after, duplicate #" << a << p << " and #" << b << q;
-            throw invalid_argument(oss.str());
-        }
-    }
-
-    for(std::vector<Two<ExamId>>* v : {&i.examsCoincidence, &i.examsExclusion}) {
-        for(size_t a = 0; a < v->size(); a++)
-        for(size_t b = a+1; b < v->size(); b++){
-            Two<ExamId> p = (*v)[a];
-            Two<ExamId> q = (*v)[b];
+    constexpr bool STOP_WHEN_DUPLICATE = false;
+    // AFTER
+    if(STOP_WHEN_DUPLICATE) {
+        for(size_t a = 0; a < i.examsAfter.size(); a++)
+        for(size_t b = a + 1; b < i.examsAfter.size(); b++){
+            Two<ExamId> p = i.examsAfter[a];
+            Two<ExamId> q = i.examsAfter[b];
             if(p.first == q.first && p.second == q.second) {
                 ostringstream oss;
-                oss << "Exams coincidence or exclusion, duplicate #" << a << p << " and #" << b << q;
+                oss << "Exams after, duplicate #" << a << p << " and #" << b << q;
                 throw invalid_argument(oss.str());
             }
         }
+    } else {
+        std::vector<Two<ExamId>> res;
+        for(size_t a = 0; a < i.examsAfter.size(); a++) {
+            Two<ExamId> p = i.examsAfter[a];
+            bool hasDuplicate = false;
+            for(size_t b = a + 1; b < i.examsAfter.size(); b++) {
+                Two<ExamId> q = i.examsAfter[b];
+                if(p.first == q.first && p.second == q.second) {
+                    hasDuplicate = true;
+                    break;
+                }
+            }
+            if(! hasDuplicate)
+                res.push_back(p);
+        }
+        i.examsAfter.swap(res);
+    }
+
+    // EXCLUSIVE, EXAM_COINCIDENCE
+    if(STOP_WHEN_DUPLICATE) {
+        for(std::vector<Two<ExamId>>* v : {&i.examsCoincidence, &i.examsExclusion}) {
+            for(size_t a = 0; a < v->size(); a++)
+            for(size_t b = a+1; b < v->size(); b++){
+                Two<ExamId> p = (*v)[a];
+                Two<ExamId> q = (*v)[b];
+                if(p.first == q.first && p.second == q.second || p.second == q.first && p.first == q.second) {
+                    ostringstream oss;
+                    oss << "Exams coincidence or exclusion, duplicate #" << a << p << " and #" << b << q;
+                    throw invalid_argument(oss.str());
+                }
+            }
+        }
+    } else {
+        for(std::vector<Two<ExamId>>* v : {&i.examsCoincidence, &i.examsExclusion}) {
+            std::vector<Two<ExamId>> res;
+            for(size_t a = 0; a < v->size(); a++) {
+                Two<ExamId> p = (*v)[a];
+                bool hasDuplicate = false;
+                for(size_t b = a+1; b < v->size(); b++){
+                    Two<ExamId> q = (*v)[b];
+                    if(p.first == q.first && p.second == q.second || p.second == q.first && p.first == q.second) {
+                        hasDuplicate = true;
+                        break;
+                    }
+                }
+                if(! hasDuplicate)
+                    res.push_back(p);
+            }
+            (*v).swap(res);
+        }
+    }
+
+    for(std::vector<Two<ExamId>>* v : {&i.examsAfter, &i.examsCoincidence, &i.examsExclusion}) {
+        cout << "--" << endl;
+        for(auto& x : *v)
+            cout << x << endl;
     }
 
     if(i.institutionalWeightings.periodSpread > i.periods.size())
@@ -1085,9 +1132,12 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
     PeriodId prevP = periods[e];
     RoomId prevR = rooms[e];
 
-    // TODO Delta evaluation
-    // updateMove(instance, e, nextP, nextR, this->costs);
-    // setSolutionValue(costs.total(instance.hardWeight));
+    constexpr bool USE_DELTA = true;
+
+    if(USE_DELTA) {
+        updateMove(instance, e, nextP, nextR, this->costs);
+        setSolutionValue(costs.total(instance.hardWeight));
+    }
 
     examsByPeriods[prevP].erase(examsByPeriodsIterators[e]);
     examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
@@ -1097,8 +1147,9 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
     periods[e] = nextP;
     rooms[e] = nextR;
 
-    // TODO Delta
-    computeCost(instance);
+    if(! USE_DELTA) {
+        computeCost(instance);
+    }
 }
 
 void ExamTTSolution::swap(ExamTT const& instance, ExamId e1, ExamId e2) {
@@ -1262,7 +1313,8 @@ string lower(string s) {
 }
 
 void test() {
-    string filename = "../simple1.exam"; // ../itc2007-exam-instances/exam_comp_set1.exam"; // args[0];
+    // string filename = "../simple1.exam"; // "../itc2007-exam-instances/exam_comp_set3.exam"; // args[0];
+    string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
     ExamTT inst;
     ExamTT& instance = inst;
     InstanceParser parser(filename);
@@ -1358,9 +1410,9 @@ void test() {
 
     ExamTTSolution sol;
 
-    Random r;
-    r.seed(89);
-    sol.initRandom(inst, r);
+    Random ran;
+    ran.seed(89);
+    sol.initRandom(inst, ran);
 
     /*
     InstanceParser parser2("../my-solutions/exam_comp_set1-seed-89-crand.sol"); // ("../my-solutions/art000-seed-89-crand.sol");
@@ -1370,10 +1422,11 @@ void test() {
     log << endl << "* Solution" << endl;
 
     sol.printTo(inst, log);
-    log.close();
 
     // hard after test
     // test on simple with 4 after 6
+
+    /*
     vector<pair<int,int>> data;
     data.push_back({4,2});
     data.push_back({6,2});
@@ -1386,38 +1439,77 @@ void test() {
         data.push_back({6, 2});
     }
 
-    cout << sol.printer(inst);
-    cout << "Going to move" << endl;
+    log << sol.printer(inst);
+    log << "Going to move" << endl;
     if(data.size())
-        cout << "Next " << EPrefix(data[0].first) << " to " << PPrefix(data[0].second) << endl;
-    /*std::string s;
-    getline(cin, s);*/
+        log << "Next " << EPrefix(data[0].first) << " to " << PPrefix(data[0].second) << endl;
+    // std::string s; getline(cin, s);
 
     for(size_t moveId = 0; moveId < data.size(); moveId++) {
         auto move = data[moveId];
 
         sol.movePeriod(inst, move.first, move.second);
 
-        cout << sol.printer(inst);
-        cout << "Moved " << EPrefix(move.first) << " to " << PPrefix(move.second) << endl;
+        log << sol.printer(inst);
+        log << "Moved " << EPrefix(move.first) << " to " << PPrefix(move.second) << endl;
         if(moveId < data.size() + 1)
-            cout << "Next " << EPrefix(data[moveId+1].first) << " to " << PPrefix(data[moveId+1].second) << endl;
+            log << "Next " << EPrefix(data[moveId+1].first) << " to " << PPrefix(data[moveId+1].second) << endl;
 
         if(sol.costs.hard.periodConstraintAfter != sol.computeAndGetCost(inst).hard.periodConstraintAfter) {
-            cout << "Error " << " Real " << sol.computeAndGetCost(inst).hard.periodConstraintAfter << " vs diffed " << sol.costs.hard.periodConstraintAfter << endl;
+            log << "Error periodAfter" << " Real " << sol.computeAndGetCost(inst).hard.periodConstraintAfter << " vs diffed " << sol.costs.hard.periodConstraintAfter << endl;
             sol.computeCost(inst);
             break;
         }
 
         if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
-            cout << "Error " << " Real " << sol.computeAndGetCost(inst).print(inst) << " vs diffed " << sol.costs.print(inst) << endl;
+            log << "Error " << " Real " << sol.computeAndGetCost(inst).print(inst) << " vs diffed " << sol.costs.print(inst) << endl;
             sol.computeCost(inst);
             break;
         }
 
-        /*std::string s;
-        getline(cin, s);*/
+        // std::string s; getline(cin, s);
     }
+    */
+
+    {
+        // test difference
+        Random ran;
+        ran.seed(89);
+        for(int i = 0; i < 1000; i++) {
+            int e = ran.randrange(E), p = ran.randrange(P), r = ran.randrange(R);
+            int bp = sol.periods[e], br = sol.rooms[e];
+            sol.move(inst, e,p,r);
+            if(1) {
+                if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
+                    log << "Error " << "Real " << sol.computeAndGetCost(inst).print(inst)
+                         << "vs diffed " << sol.costs.print(inst) << endl
+                         << " e p r; bp br = " << e << " " << p << " " << r << ";" << bp << " " << br << endl;
+
+                    sol.move(inst, e,bp,br);
+                    log << "Before" << endl << sol.computeAndGetCost(inst).print(inst); sol.printTimelineTo(inst, log);
+
+                    sol.move(inst, e,p,r);
+                    log << "After" << endl << sol.computeAndGetCost(inst).print(inst); sol.printTimelineTo(inst, log);
+
+                    cout << "Error in one of random move, see log." << endl;
+                    exit(1);
+                }
+            }
+        }
+
+
+        auto real = sol.computeAndGetCost(inst);
+        log << "End of random moves" << endl
+            << "Real" << real.print(inst)
+            << "Diffed" << sol.costs.print(inst) << endl;
+
+        if(! sol.costs.exactlyEqual(real))
+            cout << "Error " << endl;
+        return;
+    }
+
+
+    log.close();
 
     bool isHelp = true;
     string str;
@@ -1435,6 +1527,7 @@ void test() {
              << "DCost                       : display current solution cost" << endl
              << "ReCalculate                 : recalculate cost of current solution" << endl
              << "Help                        : display help" << endl
+             << "Quit                        : quit" << endl;
             ;
         getline(cin, str);
         if(! cin)
@@ -1459,6 +1552,7 @@ void test() {
         bool isWriteVerbose = name == "wv" || name == "writeverbose";
         bool isDisplayCost  = name == "dc" || name == "dcost";
         bool isRecalculate  = name == "rc" || name == "recal" || name == "recalculate";
+        bool isQuit         = name == "q" || name == "quit" || name == "exit";
         isHelp              = name == "h" || name == "help" || name == "?";
 
         if(isPeriod || isRoom || isMove || isSwap || isPeriodC || isRoomC || isMoveC || isSwapC) {
@@ -1585,6 +1679,8 @@ void test() {
                 cout << "Error " << (sol.costs - before).print(instance);
         } else if(isHelp){
 
+        } else if(isQuit){
+            break;
         } else {
             cout << "Unknown command '" << name << "'" << endl;
         }
@@ -1759,32 +1855,36 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     if(make_pair(prevP, prevR) == make_pair(nextP, nextR))
         return;
 
-    cout << endl << "* Move E " << ex << endl;
-    cout << endl << "** Periods" << endl;
-
     InstitutionalWeightings const& weightings = instance.institutionalWeightings;
 
-    for(int n = 0; n < 2; n++) {
-        PeriodId p = n == 0 ? prevP : nextP;
-        cout << (n == 0 ? "From P" : "To   P") << setw(4) << p << " ";
+    // logging
+    if(0) {
+        cout << endl << "* Move " << EPrefix(ex) << " from "
+             << PPrefix(prevP) << "," << RPrefix(prevR) << " to "
+             << PPrefix(nextP) << "," << RPrefix(nextR) << endl;
 
-        Instance::ExamsRelated const& related = instance.examsRelated[ex];
+        for(int n = 0; n < 2; n++) {
+            PeriodId p = n == 0 ? prevP : nextP;
+            cout << (n == 0 ? "From P" : "To   P") << setw(4) << p << " ";
 
-        cout << " AF=" << print(intersection(examsByPeriods[p], related.afters), nocomma);
-        cout << " BE=" << print(intersection(examsByPeriods[p], related.befores), nocomma);
-        cout << " CO=" << print(intersection(examsByPeriods[p], related.coincidences), nocomma);
-        cout << " EX=" << print(intersection(examsByPeriods[p], related.exclusions), nocomma);
+            Instance::ExamsRelated const& related = instance.examsRelated[ex];
 
-        set<ExamId> I = intersection(examsByPeriods[p], related.hasStudentsInCommon);
+            cout << " AF=" << print(intersection(examsByPeriods[p], related.afters), nocomma);
+            cout << " BE=" << print(intersection(examsByPeriods[p], related.befores), nocomma);
+            cout << " CO=" << print(intersection(examsByPeriods[p], related.coincidences), nocomma);
+            cout << " EX=" << print(intersection(examsByPeriods[p], related.exclusions), nocomma);
 
-        std::vector<KeyValue<ExamId,int>> M;
-        M.reserve(I.size());
-        for(ExamId j : I)
-            M.push_back({j, instance.numberStudentsInCommon[ex][j]});
+            set<ExamId> I = intersection(examsByPeriods[p], related.hasStudentsInCommon);
 
-        cout << " STU=" << print(M);
+            std::vector<KeyValue<ExamId,int>> M;
+            M.reserve(I.size());
+            for(ExamId j : I)
+                M.push_back({j, instance.numberStudentsInCommon[ex][j]});
 
-        cout << " -- " << print(examsByPeriods[p], nocomma) << endl;
+            cout << " STU=" << print(M);
+
+            cout << " -- " << print(examsByPeriods[p], nocomma) << endl;
+        }
     }
 
     Instance::ExamsRelated const& related = instance.examsRelated[ex];
@@ -1796,16 +1896,10 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     if(s) {
 
         // simple period penalty
-        costs.soft.periodsPenalty += instance.periods[nextP].penalty - instance.periods[prevP].penalty;
+        costs.soft.periodsPenalty -= instance.periods[prevP].penalty;
+        costs.soft.periodsPenalty += instance.periods[nextP].penalty;
 
-        /*
-        costs.hard.periodConstraintCoincidence += countIntersection(examsByPeriods[prevP], instance.coincidenceOfExam[e])
-                                                - countIntersection(examsByPeriods[nextP], instance.coincidenceOfExam[e]);
-
-        costs.hard.periodConstraintExclusion -= countIntersection(examsByPeriods[prevP], instance.exclusionOfExam[e])
-                                              - countIntersection(examsByPeriods[nextP], instance.exclusionOfExam[e]);
-        */
-
+        // coincidence
         for(ExamId j : related.coincidences) {
             int d = periods[j] == prevP ? +1 :
                     periods[j] == nextP ? -1 : 0;
@@ -1813,6 +1907,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             costs.hard.periodConstraintExclusion -= d;
         }
 
+        // exclusion
         for(ExamId j : related.exclusions) {
             int d = periods[j] == prevP ? +1 :
                     periods[j] == nextP ? -1 : 0;
@@ -1820,39 +1915,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             costs.hard.periodConstraintExclusion += d;
         }
 
-
-        /*
-        cout << "Passing through" << endl;
-
-        for(int i = prevP + s; (nextP - i) * s >= 0; i += s) {
-            cout << setw(4) << i << " ";
-
-            cout << (s == 1 ? " -" : " +") << countIntersection(examsByPeriods[i], instance.afterOfExam[e])
-                 << (s == 1 ? " +" : " -") << countIntersection(examsByPeriods[i], instance.beforeEqualOfExam[e]) << " ";
-
-            set<int> I;
-            makeIntersection(examsByPeriods[i], instance.afterOfExam[e], I);
-            cout << "AF" << I;
-
-            I.clear();
-            makeIntersection(examsByPeriods[i], instance.beforeEqualOfExam[e], I);
-            cout << "BE" << I;
-
-            I.clear();
-            makeIntersection(examsByPeriods[i], instance.coincidenceOfExam[e], I);
-            cout << "CO" << I;
-
-            I.clear();
-            makeIntersection(examsByPeriods[i], instance.exclusionOfExam[e], I);
-            cout << "EX" << I;
-
-            cout << " -- " << examsByPeriods[i] << " ";
-            cout << endl;
-
-            costs.hard.periodConstraintAfter -= s * countIntersection(examsByPeriods[i], instance.afterOfExam[e]);
-            costs.hard.periodConstraintAfter += s * countIntersection(examsByPeriods[i], instance.beforeEqualOfExam[e]);
-        }
-        */
+        // after
         int m = min(prevP, nextP);
         int M = max(prevP, nextP);
 
@@ -1863,77 +1926,91 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         for(ExamId j : instance.beforeOfExam(ex))
             if(m < periods[j] && periods[j] <= M)
                 costs.hard.periodConstraintAfter += s;
+
+        // for coincidence/exclusion, here is a different method : by counting intersections
+        if(0) {
+            costs.hard.periodConstraintCoincidence += countIntersection(examsByPeriods[prevP], related.coincidences);
+            costs.hard.periodConstraintCoincidence -= countIntersection(examsByPeriods[nextP], related.coincidences);
+
+            costs.hard.periodConstraintExclusion -= countIntersection(examsByPeriods[prevP], related.exclusions);
+            costs.hard.periodConstraintExclusion += countIntersection(examsByPeriods[nextP], related.exclusions);
+        }
+
+        // logging
+        if(0) {
+            cout << "Passing through" << endl;
+
+            for(int i = prevP + s; (nextP - i) * s >= 0; i += s) {
+                cout << setw(4) << i << " ";
+
+                cout << (s == 1 ? " -" : " +") << countIntersection(examsByPeriods[i], related.afters)
+                     << (s == 1 ? " +" : " -") << countIntersection(examsByPeriods[i], related.befores) << " ";
+
+                cout << "AF" << intersection(examsByPeriods[i], related.afters);
+                cout << "BE" << intersection(examsByPeriods[i], related.befores);
+                cout << "CO" << intersection(examsByPeriods[i], related.coincidences);
+                cout << "EX" << intersection(examsByPeriods[i], related.exclusions);
+                cout << " -- " << examsByPeriods[i] << " ";
+                cout << endl;
+
+                // old way
+                // costs.hard.periodConstraintAfter -= s * countIntersection(examsByPeriods[i], instance.afterOfExam[e]);
+                // costs.hard.periodConstraintAfter += s * countIntersection(examsByPeriods[i], instance.beforeEqualOfExam[e]);
+            }
+        }
     }
 
     // room penalty
-    costs.soft.roomsPenalty += instance.rooms[nextR].penalty - instance.rooms[prevR].penalty;
+    costs.soft.roomsPenalty -= instance.rooms[prevR].penalty;
+    costs.soft.roomsPenalty += instance.rooms[nextR].penalty;
 
-    // about students in common
+    // about students in common : (twoExamsInARow, twoExamsInADay, periodSpread, simultaneousExams)
 
     for(ExamId j : related.hasStudentsInCommon) {
         Cost cost = instance.numberStudentsInCommon[ex][j];
 
         int relatedP = periods[j];
-        int prevDiff = abs(relatedP - prevP);
-        int nextDiff = abs(relatedP - nextP);
 
         Two<Period const&> before = {instance.periods[relatedP], instance.periods[prevP]};
-        Two<Period const&> after  = {instance.periods[relatedP], instance.periods[nextP]};
 
-        if(1) {
-            if(nextP == relatedP)
-                cout << EPrefix(j) << "[simul " << " @" << PPrefix(periods[j]) << " +" << instance.numberStudentsInCommon[ex][j] << endl;
-
-            if(prevP == relatedP)
-                cout << EPrefix(j) << "[simul " << " @" << PPrefix(periods[j]) << " -" << instance.numberStudentsInCommon[ex][j] << endl;
-
+        // remove the weight from before
+        if(prevP == relatedP) {
+            costs.hard.simultaneousExams -= cost;
+        } else {
+            int prevDiff = abs(relatedP - prevP);
 
             if(before.first.date == before.second.date) {
                 if(prevDiff == 1)
-                    cout << EPrefix(j) << "[twoExamsInARow -" << cost * weightings.twoInARow << endl;
-                else
-                    cout << EPrefix(j) << "[twoExamsInADay -" << cost * weightings.twoInADay << endl;
+                    costs.soft.twoExamsInARow -= cost * weightings.twoInARow;
+                else if(prevDiff > 1)
+                    costs.soft.twoExamsInADay -= cost * weightings.twoInADay;
             }
+
+            if(prevDiff <= weightings.periodSpread)
+                costs.soft.periodSpread -= cost;
+        }
+
+        Two<Period const&> after  = {instance.periods[relatedP], instance.periods[nextP]};
+
+        // add the new
+        if(nextP == relatedP) {
+            costs.hard.simultaneousExams += cost;
+        } else {
+            int nextDiff = abs(relatedP - nextP);
 
             if(after.first.date == after.second.date) {
                 if(nextDiff == 1)
-                    cout << EPrefix(j) << "[twoExamsInARow +" << cost * weightings.twoInARow << endl;
-                else
-                    cout << EPrefix(j) << "[twoExamsInADay +" << cost * weightings.twoInADay << endl;
+                    costs.soft.twoExamsInARow += cost * weightings.twoInARow;
+                else if(nextDiff > 1)
+                    costs.soft.twoExamsInADay += cost * weightings.twoInADay;
             }
+
+            if(nextDiff <= weightings.periodSpread)
+                costs.soft.periodSpread += cost;
         }
-
-        // remove the weight from before
-        if(prevP == relatedP)
-            costs.hard.simultaneousExams -= cost;
-
-        if(before.first.date == before.second.date) {
-            if(prevDiff == 1)
-                costs.soft.twoExamsInARow -= cost * weightings.twoInARow;
-            else
-                costs.soft.twoExamsInADay -= cost * weightings.twoInADay;
-        }
-
-        if(prevDiff <= weightings.periodSpread)
-            costs.soft.periodSpread -= cost;
-
-        // add the new
-        if(nextP == relatedP)
-            costs.hard.simultaneousExams += cost;
-
-        if(after.first.date == after.second.date) {
-            if(nextDiff == 1)
-                costs.soft.twoExamsInARow += cost * weightings.twoInARow;
-            else
-                costs.soft.twoExamsInADay += cost * weightings.twoInADay;
-        }
-
-        if(nextDiff <= weightings.periodSpread)
-            costs.soft.periodSpread += cost;
     }
 
     // frontload
-
     if(instance.isInFrontLoad[ex]) {
         if(instance.periodInTheEnd(prevP))
             costs.soft.frontload -= weightings.frontload.penalty;
@@ -1942,61 +2019,68 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     }
 
     // excessiveDuration
-    if(instance.exams[ex].duration > instance.periods[prevP].duration)
-        costs.hard.excessiveDuration--;
-    if(instance.exams[ex].duration > instance.periods[nextP].duration)
-        costs.hard.excessiveDuration++;
+    {
+        if(instance.exams[ex].duration > instance.periods[prevP].duration)
+            costs.hard.excessiveDuration--;
+        if(instance.exams[ex].duration > instance.periods[nextP].duration)
+            costs.hard.excessiveDuration++;
+    }
 
     // comparing assignement before and after
 
-    set<ExamId> leaving; // exams that I am leaving
-    makeIntersection(examsByRooms[prevR], examsByPeriods[prevP], leaving);
-
-    set<ExamId> meeting; // exams that I will meet
-    makeIntersection(examsByRooms[nextR], examsByPeriods[nextP], meeting);
-
+    set<ExamId> leaving = intersection(examsByRooms[prevR], examsByPeriods[prevP]); // exams that I am leaving
     leaving.erase(leaving.find(ex)); // I am not included in the leaving
 
+    set<ExamId> meeting = intersection(examsByRooms[nextR], examsByPeriods[nextP]); // exams that I will meet
+
     // room exclusive
+    {
+        if(leaving.size() == 1 && instance.examIsRoomExclusive[*leaving.begin()])
+            costs.hard.roomConstraint--;
+        if(leaving.size() > 0 && instance.examIsRoomExclusive[ex])
+            costs.hard.roomConstraint--;
 
-    if(leaving.size() == 1 && instance.examIsRoomExclusive[*leaving.begin()])
-        costs.hard.roomConstraint--;
-    if(leaving.size() > 0 && instance.examIsRoomExclusive[ex])
-        costs.hard.roomConstraint--;
-
-    if(meeting.size() == 1 && instance.examIsRoomExclusive[*meeting.begin()])
-        costs.hard.roomConstraint++;
-    if(meeting.size() > 0 && instance.examIsRoomExclusive[ex])
-        costs.hard.roomConstraint++;
+        if(meeting.size() == 1 && instance.examIsRoomExclusive[*meeting.begin()])
+            costs.hard.roomConstraint++;
+        if(meeting.size() > 0 && instance.examIsRoomExclusive[ex])
+            costs.hard.roomConstraint++;
+    }
 
     // overcapacity
-    int mySize = instance.exams[ex].students.size();
+    {
+        int mySize = instance.exams[ex].students.size();
 
-    int leavingSum = 0; // = sum(instance.exams[j].students.size() for j in leaving)
-    int meetingSum = 0; // = sum(instance.exams[j].students.size() for j in meeting)
+        // remove
+        int capLeaving = instance.rooms[prevR].capacity;
 
-    for(ExamId j : leaving)
-        leavingSum += instance.exams[j].students.size();
+        int leavingSum = 0; // = sum(instance.exams[j].students.size() for j in leaving)
+        for(ExamId j : leaving)
+            leavingSum += instance.exams[j].students.size();
 
-    for(ExamId j : meeting)
-        meetingSum += instance.exams[j].students.size();
+        if(leavingSum + mySize <= capLeaving) // was not in overcapacity
+            ;
+        else if(leavingSum > capLeaving) // was in overcapacity, still in overcapacity
+            costs.hard.overCapacity -= mySize;
+        else // was in overcapacity, not in overcapacity now
+            costs.hard.overCapacity -= leavingSum + mySize - capLeaving;
 
-    int capLeaving = instance.rooms[prevR].capacity;
-    int capMeeting = instance.rooms[nextR].capacity;
+        // add
+        int capMeeting = instance.rooms[nextR].capacity;
 
-    if(leavingSum <= capLeaving && capLeaving < leavingSum + mySize)
-        costs.hard.overCapacity -= leavingSum + mySize - capLeaving;
+        int meetingSum = 0; // = sum(instance.exams[j].students.size() for j in meeting)
+        for(ExamId j : meeting)
+            meetingSum += instance.exams[j].students.size();
 
-    if(meetingSum <= capMeeting && capMeeting < meetingSum + mySize)
-        costs.hard.overCapacity += meetingSum + mySize - capMeeting;
+        if(meetingSum > capMeeting) // already over capacity
+            costs.hard.overCapacity += mySize;
+        else if(meetingSum + mySize > capMeeting)
+            costs.hard.overCapacity += meetingSum + mySize - capMeeting;
+        else
+            ; // no overcapacity created
 
-    if(1) {
-        cout << "Leaving " << leaving << " Meeting " << meeting << endl;
-        if(leavingSum <= capLeaving && capLeaving < leavingSum + mySize)
-            cout << "[overCapacity -" << leavingSum + mySize - capLeaving << endl;
-
-        if(meetingSum <= capMeeting && capMeeting < meetingSum + mySize)
-            cout << "[overCapacity +" << meetingSum + mySize - capMeeting << endl;
+        if(0) {
+            cout << "Leaving " << leaving << " Meeting " << meeting << endl;
+        }
     }
 
     // mixedDurations
