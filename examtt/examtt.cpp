@@ -50,7 +50,7 @@ struct KeyValue {
 
 template <typename T, typename U>
 bool operator <(KeyValue<T,U> const& a, KeyValue<T,U> const& b) {
-    return make_pair(a.key,a.value) < make_pair(b.key, b.value);
+    return make_pair(a.key, a.value) < make_pair(b.key, b.value);
 }
 
 template <typename T, typename U>
@@ -248,9 +248,9 @@ std::ostream& operator <<(std::ostream& out, Prefix const& p) {
     return out << p.S;
 }
 
-const Prefix EPrefix{"e", 4};
-const Prefix PPrefix{"p", 3};
-const Prefix RPrefix{"r", 3};
+const Prefix EPrefix{"e", 5};
+const Prefix PPrefix{"p", 4};
+const Prefix RPrefix{"r", 4};
 
 bool ExamTT::periodInTheEnd(PeriodId p) const {
     return ! correctPeriod(p + institutionalWeightings.frontload.time);
@@ -514,22 +514,26 @@ std::ostream& operator <<(std::ostream& out, SoftCostComponents::Printer printer
     auto const& soft = printer.self;
     auto const& instance = printer.instance;
 
+    auto div0 = [](int a, int b) -> std::string {
+        return b == 0 ? to_string(a) + "/0" : to_string(a / b);
+    };
+
     return out << endl << "* Soft " << soft.sum() << endl
                << "    periodsPenalty " << setw(10) << soft.periodsPenalty << endl
                << "      roomsPenalty " << setw(10) << soft.roomsPenalty << endl
                << "    twoExamsInARow " << setw(10) << soft.twoExamsInARow << " = "
-                    << setw(5) << soft.twoExamsInARow / instance.institutionalWeightings.twoInARow << "x"
+                    << setw(5) << div0(soft.twoExamsInARow, instance.institutionalWeightings.twoInARow) << "x"
                     << setw(5) << instance.institutionalWeightings.twoInARow << " soft cost / student" << endl
                << "    twoExamsInADay " << setw(10) << soft.twoExamsInADay << " = "
-                    << setw(5) << soft.twoExamsInADay / instance.institutionalWeightings.twoInADay << "x"
+                    << setw(5) << div0(soft.twoExamsInADay, instance.institutionalWeightings.twoInADay) << "x"
                     << setw(5) << instance.institutionalWeightings.twoInADay << " soft cost / student" << endl
                << "      periodSpread " << setw(10) << soft.periodSpread << " = "
                     << setw(5) << soft.periodSpread << "x    1 soft cost / student" << endl
                << "         frontload " << setw(10) << soft.frontload << " = "
-                    << setw(5) << soft.frontload / instance.institutionalWeightings.frontload.penalty << "x"
+                    << setw(5) << div0(soft.frontload, instance.institutionalWeightings.frontload.penalty) << "x"
                     << setw(5) << instance.institutionalWeightings.frontload.penalty << " soft cost / big exam too late" << endl
                << "     mixedDuration " << setw(10) << soft.mixedDuration << " = "
-                    << setw(5) << soft.mixedDuration / instance.institutionalWeightings.nonMixedDurations << "x"
+                    << setw(5) << div0(soft.mixedDuration, instance.institutionalWeightings.nonMixedDurations) << "x"
                     << setw(5) << instance.institutionalWeightings.nonMixedDurations << " soft cost / period / room " << endl;
 }
 
@@ -929,8 +933,10 @@ void InstanceParser::parse(ExamTT &i) {
 
                 if(w.frontload.largestExams >= (int)i.exams.size())
                     throw invalid_argument("Too many exams for the Frontload Constraint");
-                if(w.frontload.time >= (int)i.periods.size())
-                    throw invalid_argument("Too many periods for the Frontload Constraint");
+                if(w.frontload.time >= (int)i.periods.size()) {
+                    cout << "Warning: Too many periods for the Frontload Constraint" << endl;
+                    w.frontload.time = i.periods.size();
+                }
                 if(w.frontload.penalty < 0)
                     throw invalid_argument(name + " has a negative penalty");
 
@@ -947,19 +953,9 @@ void InstanceParser::parse(ExamTT &i) {
     // check duplicate or reverse duplicate for AFTER, EXCLUSIVE, EXAM_COINCIDENCE
 
     constexpr bool STOP_WHEN_DUPLICATE = false;
+
     // AFTER
-    if(STOP_WHEN_DUPLICATE) {
-        for(size_t a = 0; a < i.examsAfter.size(); a++)
-        for(size_t b = a + 1; b < i.examsAfter.size(); b++){
-            Two<ExamId> p = i.examsAfter[a];
-            Two<ExamId> q = i.examsAfter[b];
-            if(p.first == q.first && p.second == q.second) {
-                ostringstream oss;
-                oss << "Exams after, duplicate #" << a << p << " and #" << b << q;
-                throw invalid_argument(oss.str());
-            }
-        }
-    } else {
+    {
         std::vector<Two<ExamId>> res;
         for(size_t a = 0; a < i.examsAfter.size(); a++) {
             Two<ExamId> p = i.examsAfter[a];
@@ -974,24 +970,20 @@ void InstanceParser::parse(ExamTT &i) {
             if(! hasDuplicate)
                 res.push_back(p);
         }
-        i.examsAfter.swap(res);
+
+        if(STOP_WHEN_DUPLICATE) {
+            if(i.examsAfter.size() != res.size()) {
+                ostringstream oss;
+                oss << "Exams after, exist a duplicate";
+                throw invalid_argument(oss.str());
+            }
+        } else {
+            i.examsAfter.swap(res);
+        }
     }
 
     // EXCLUSIVE, EXAM_COINCIDENCE
-    if(STOP_WHEN_DUPLICATE) {
-        for(std::vector<Two<ExamId>>* v : {&i.examsCoincidence, &i.examsExclusion}) {
-            for(size_t a = 0; a < v->size(); a++)
-            for(size_t b = a+1; b < v->size(); b++){
-                Two<ExamId> p = (*v)[a];
-                Two<ExamId> q = (*v)[b];
-                if(p.first == q.first && p.second == q.second || p.second == q.first && p.first == q.second) {
-                    ostringstream oss;
-                    oss << "Exams coincidence or exclusion, duplicate #" << a << p << " and #" << b << q;
-                    throw invalid_argument(oss.str());
-                }
-            }
-        }
-    } else {
+    {
         for(std::vector<Two<ExamId>>* v : {&i.examsCoincidence, &i.examsExclusion}) {
             std::vector<Two<ExamId>> res;
             for(size_t a = 0; a < v->size(); a++) {
@@ -1007,18 +999,56 @@ void InstanceParser::parse(ExamTT &i) {
                 if(! hasDuplicate)
                     res.push_back(p);
             }
-            (*v).swap(res);
+            if(STOP_WHEN_DUPLICATE) {
+                if(v->size() != res.size()) {
+                    ostringstream oss;
+                    oss << "Exams coincidence or exclusion, exists duplicate";
+                    throw invalid_argument(oss.str());
+                }
+            } else {
+                (*v).swap(res);
+            }
         }
     }
 
+    // remove aberations : x COINCIDENCE x
+    {
+        std::vector<Two<ExamId>> res;
+        for(auto p : i.examsCoincidence)
+            if(p.first != p.second)
+                res.push_back(p);
+        res.swap(i.examsCoincidence);
+    }
+
+    // test for impossibility x EXCLUSION x, x AFTER x
+    {
+        for(auto p : i.examsExclusion)
+            if(p.first == p.second) {
+                ostringstream oss;
+                oss << "Exam exclusion " << p.first << " EXCLUSION " << p.second;
+                throw invalid_argument(oss.str());
+            }
+
+        for(auto p : i.examsAfter)
+            if(p.first == p.second) {
+                ostringstream oss;
+                oss << "Exam after " << p.first << " AFTER " << p.second;
+                throw invalid_argument(oss.str());
+            }
+    }
+
+    /*
     for(std::vector<Two<ExamId>>* v : {&i.examsAfter, &i.examsCoincidence, &i.examsExclusion}) {
         cout << "--" << endl;
         for(auto& x : *v)
             cout << x << endl;
     }
+    */
 
-    if(i.institutionalWeightings.periodSpread > i.periods.size())
-        throw invalid_argument("Period Spread longer then the number of periods");
+    if(i.institutionalWeightings.periodSpread > i.periods.size()) {
+        cout << "Warning: " << ("Period Spread longer than the number of periods") << endl;
+        i.institutionalWeightings.periodSpread = i.periods.size();
+    }
 
     i.compute();
     i.buildStructures();
@@ -1304,33 +1334,13 @@ void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) 
     }
 }
 
-string lower(string s) {
-    // first time we Want a copy...
-    for(char& c : s)
-        if('A' <= c && c <= 'Z')
-            c += 'a' - 'A';
-    return s;
-}
-
-void test() {
-    // string filename = "../simple1.exam"; // "../itc2007-exam-instances/exam_comp_set3.exam"; // args[0];
-    string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
-    ExamTT inst;
-    ExamTT& instance = inst;
-    InstanceParser parser(filename);
-
-    if(! parser.file) {
-        cerr << "NO FILE" << endl;
-        return;
-    }
-
-    parser.parse(inst);
+void ExamTT::presentation(ostream & log) {
+    auto& inst = *this;
+    auto& instance = *this;
 
     int E = inst.exams.size(),
         P = inst.periods.size(),
         R = inst.rooms.size();
-
-    ofstream log("log");
 
     log << endl << "* Stats" << endl
          << "             Exams    " << inst.exams.size() << endl
@@ -1374,7 +1384,7 @@ void test() {
         if(inst.coincidenceOfExam(i).size())
             log << EPrefix(i) << " CO " << print(inst.coincidenceOfExam(i), nocomma) << endl;
 
-    log << "* Exams | minutes | id | size | connected exams : student in commons : {exam1 exam2} [studentsWith1 studentsWith2]" << endl;
+    log << "* Exams : minutes | id | size | connected exams : student in commons : {exam1 exam2} [studentsWith1 studentsWith2]" << endl;
     for(ExamId i = 0; i < E; i++) {
         vector<KeyValue<int,int>> M;
         vector<int> M2;
@@ -1401,115 +1411,67 @@ void test() {
     log << "* Frontload periods (" << inst.institutionalWeightings.frontload.time << ") : "
         << PPrefix(P - inst.institutionalWeightings.frontload.time) << " - " << PPrefix(P-1) << endl;
 
-    log << "* ROOM_EX Exams that must be room exclusive" << endl;
+    log << "* ROOM_EX Exams that must be room exclusive (" << inst.examsRoomsExclusive.size() << ")" << endl;
     for(ExamId e : inst.examsRoomsExclusive)
         log << e << endl;
 
     log << "* InstitutionalWeightings" << endl
          << inst.institutionalWeightings << endl;
+}
 
-    ExamTTSolution sol;
+void ExamTT::testDelta(ExamTTSolution& sol, std::ostream& log) {
+    auto& inst = *this;
+    constexpr bool CHECK_EACH_MOVE = false;
+
+    int E = inst.exams.size(),
+        P = inst.periods.size(),
+        R = inst.rooms.size();
 
     Random ran;
     ran.seed(89);
-    sol.initRandom(inst, ran);
+    for(int i = 0; i < 1000; i++) {
+        int e = ran.randrange(E), p = ran.randrange(P), r = ran.randrange(R);
+        int bp = sol.periods[e], br = sol.rooms[e];
+        sol.move(inst, e,p,r);
 
-    /*
-    InstanceParser parser2("../my-solutions/exam_comp_set1-seed-89-crand.sol"); // ("../my-solutions/art000-seed-89-crand.sol");
-    parser2.parse(sol);
-    */
+        if(CHECK_EACH_MOVE) {
+            if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
+                log << "Error " << "Real " << sol.computeAndGetCost(inst).print(inst)
+                     << "vs diffed " << sol.costs.print(inst) << endl
+                     << " e p r; bp br = " << e << " " << p << " " << r << ";" << bp << " " << br << endl;
 
-    log << endl << "* Solution" << endl;
+                sol.move(inst, e,bp,br);
+                log << "Before" << endl << sol.computeAndGetCost(inst).print(inst); sol.printTimelineTo(inst, log);
 
-    sol.printTo(inst, log);
+                sol.move(inst, e,p,r);
+                log << "After" << endl << sol.computeAndGetCost(inst).print(inst); sol.printTimelineTo(inst, log);
 
-    // hard after test
-    // test on simple with 4 after 6
-
-    /*
-    vector<pair<int,int>> data;
-    data.push_back({4,2});
-    data.push_back({6,2});
-    for(int i = 0; i < P; i++) {
-        data.push_back({6, i});
-        for(int j = 0; j < P; j++) {
-            data.push_back({4, j});
-            data.push_back({4, 2});
-        }
-        data.push_back({6, 2});
-    }
-
-    log << sol.printer(inst);
-    log << "Going to move" << endl;
-    if(data.size())
-        log << "Next " << EPrefix(data[0].first) << " to " << PPrefix(data[0].second) << endl;
-    // std::string s; getline(cin, s);
-
-    for(size_t moveId = 0; moveId < data.size(); moveId++) {
-        auto move = data[moveId];
-
-        sol.movePeriod(inst, move.first, move.second);
-
-        log << sol.printer(inst);
-        log << "Moved " << EPrefix(move.first) << " to " << PPrefix(move.second) << endl;
-        if(moveId < data.size() + 1)
-            log << "Next " << EPrefix(data[moveId+1].first) << " to " << PPrefix(data[moveId+1].second) << endl;
-
-        if(sol.costs.hard.periodConstraintAfter != sol.computeAndGetCost(inst).hard.periodConstraintAfter) {
-            log << "Error periodAfter" << " Real " << sol.computeAndGetCost(inst).hard.periodConstraintAfter << " vs diffed " << sol.costs.hard.periodConstraintAfter << endl;
-            sol.computeCost(inst);
-            break;
-        }
-
-        if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
-            log << "Error " << " Real " << sol.computeAndGetCost(inst).print(inst) << " vs diffed " << sol.costs.print(inst) << endl;
-            sol.computeCost(inst);
-            break;
-        }
-
-        // std::string s; getline(cin, s);
-    }
-    */
-
-    {
-        // test difference
-        Random ran;
-        ran.seed(89);
-        for(int i = 0; i < 1000; i++) {
-            int e = ran.randrange(E), p = ran.randrange(P), r = ran.randrange(R);
-            int bp = sol.periods[e], br = sol.rooms[e];
-            sol.move(inst, e,p,r);
-            if(1) {
-                if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
-                    log << "Error " << "Real " << sol.computeAndGetCost(inst).print(inst)
-                         << "vs diffed " << sol.costs.print(inst) << endl
-                         << " e p r; bp br = " << e << " " << p << " " << r << ";" << bp << " " << br << endl;
-
-                    sol.move(inst, e,bp,br);
-                    log << "Before" << endl << sol.computeAndGetCost(inst).print(inst); sol.printTimelineTo(inst, log);
-
-                    sol.move(inst, e,p,r);
-                    log << "After" << endl << sol.computeAndGetCost(inst).print(inst); sol.printTimelineTo(inst, log);
-
-                    cout << "Error in one of random move, see log." << endl;
-                    exit(1);
-                }
+                cout << "Error in random move " << i << " see log." << endl;
+                exit(1);
             }
         }
-
-
-        auto real = sol.computeAndGetCost(inst);
-        log << "End of random moves" << endl
-            << "Real" << real.print(inst)
-            << "Diffed" << sol.costs.print(inst) << endl;
-
-        if(! sol.costs.exactlyEqual(real))
-            cout << "Error " << endl;
-        return;
     }
 
 
-    log.close();
+    auto real = sol.computeAndGetCost(inst);
+    log << "End of random moves" << endl
+        << "Real" << real.print(inst)
+        << "Diffed" << sol.costs.print(inst) << endl;
+
+    if(! sol.costs.exactlyEqual(real))
+        cout << "Error " << endl;
+}
+
+string lower(string s) {
+    // first time we Want a copy...
+    for(char& c : s)
+        if('A' <= c && c <= 'Z')
+            c += 'a' - 'A';
+    return s;
+}
+
+void interactiveSolution(ExamTTSolution& sol, ExamTT& inst) {
+    auto& instance = inst;
 
     bool isHelp = true;
     string str;
@@ -1527,7 +1489,7 @@ void test() {
              << "DCost                       : display current solution cost" << endl
              << "ReCalculate                 : recalculate cost of current solution" << endl
              << "Help                        : display help" << endl
-             << "Quit                        : quit" << endl;
+             << "Quit                        : quit" << endl
             ;
         getline(cin, str);
         if(! cin)
@@ -1685,47 +1647,40 @@ void test() {
             cout << "Unknown command '" << name << "'" << endl;
         }
     }
-
-    /*
-
-    // solve 1 after
-    sol.move(106, 50, sol.rooms[106]);
-    sol.print();
-
-    CostComponents recalculate;
-    sol.computeCost(recalculate);
-    if(! recalculate.exactlyEqual(sol.costs))
-        cout << "Wrong cost diffed !" << endl << recalculate.print(inst) << endl;
-
-    // break 1 after
-    sol.move(106, 14, sol.rooms[106]);
-    sol.print();
-    sol.computeCost(recalculate);
-    if(! recalculate.exactlyEqual(sol.costs))
-        cout << "Wrong cost diffed !" << endl << recalculate.print(inst) << endl;
-
-    // solve 1 exclusive
-    sol.move(175, 45, sol.rooms[175]);
-    sol.print();
-    sol.computeCost(recalculate);
-    if(! recalculate.exactlyEqual(sol.costs))
-        cout << "Wrong cost diffed !" << endl << recalculate.print(inst) << endl;
-
-    // break 1 exclusive
-    sol.move(175, 44, sol.rooms[175]);
-    sol.print();
-    sol.computeCost(recalculate);
-    if(! recalculate.exactlyEqual(sol.costs))
-        cout << "Wrong cost diffed !" << endl << recalculate.print(inst) << endl;
-
-    for(int n = 0; n < 100; n++)
-        cout << endl;
-        */
 }
 
-/*
- * SOLUTION
- */
+void test() {
+    // string filename = "../simple1.exam"; // "../itc2007-exam-instances/exam_comp_set3.exam"; // args[0];
+    // string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
+    string filename = "../examtt-instances/Instances/art000.exam";
+
+    ExamTT inst;
+    ExamTT& instance = inst;
+    InstanceParser parser(filename);
+
+    if(! parser.file) {
+        cerr << "NO FILE" << endl;
+        return;
+    }
+
+    parser.parse(inst);
+
+    ofstream log("log");
+    inst.presentation(log);
+
+    ExamTTSolution sol;
+    Random ran(89);
+    sol.initRandom(inst, ran);
+
+    log << endl << "* Solution" << endl;
+    sol.printTo(inst, log);
+
+    inst.testDelta(sol, log);
+
+    log.close();
+
+    interactiveSolution(sol, inst);
+}
 
 const void* ExamTTSolution::getRawData() const {
     return (const void*) this;
@@ -1895,40 +1850,46 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     // if the period has changed
     if(s) {
 
-        // simple period penalty
+        // period penalty
         costs.soft.periodsPenalty -= instance.periods[prevP].penalty;
         costs.soft.periodsPenalty += instance.periods[nextP].penalty;
-
-        // coincidence
-        for(ExamId j : related.coincidences) {
-            int d = periods[j] == prevP ? +1 :
-                    periods[j] == nextP ? -1 : 0;
-            costs.hard.periodConstraintCoincidence += d;
-            costs.hard.periodConstraintExclusion -= d;
-        }
-
-        // exclusion
-        for(ExamId j : related.exclusions) {
-            int d = periods[j] == prevP ? +1 :
-                    periods[j] == nextP ? -1 : 0;
-            costs.hard.periodConstraintCoincidence -= d;
-            costs.hard.periodConstraintExclusion += d;
-        }
 
         // after
         int m = min(prevP, nextP);
         int M = max(prevP, nextP);
 
+        //// remove
         for(ExamId j : instance.afterOfExam(ex))
             if(m <= periods[j] && periods[j] < M)
                 costs.hard.periodConstraintAfter -= s;
 
+        //// add
         for(ExamId j : instance.beforeOfExam(ex))
             if(m < periods[j] && periods[j] <= M)
                 costs.hard.periodConstraintAfter += s;
 
+        // exclusion/coincidences
+
+        //// remove
+        for(ExamId j : related.exclusions)
+            if(periods[j] == prevP)
+                costs.hard.periodConstraintExclusion--;
+
+        for(ExamId j : related.coincidences)
+            if(periods[j] != prevP)
+                costs.hard.periodConstraintCoincidence--;
+
+        //// add
+        for(ExamId j : related.exclusions)
+            if(periods[j] == nextP)
+                costs.hard.periodConstraintExclusion++;
+
+        for(ExamId j : related.coincidences)
+            if(periods[j] != nextP)
+                costs.hard.periodConstraintCoincidence++;
+
         // for coincidence/exclusion, here is a different method : by counting intersections
-        if(0) {
+        if(0){
             costs.hard.periodConstraintCoincidence += countIntersection(examsByPeriods[prevP], related.coincidences);
             costs.hard.periodConstraintCoincidence -= countIntersection(examsByPeriods[nextP], related.coincidences);
 
@@ -1971,9 +1932,9 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
         int relatedP = periods[j];
 
-        Two<Period const&> before = {instance.periods[relatedP], instance.periods[prevP]};
+        // remove
 
-        // remove the weight from before
+        Two<Period const&> before = {instance.periods[relatedP], instance.periods[prevP]};
         if(prevP == relatedP) {
             costs.hard.simultaneousExams -= cost;
         } else {
@@ -1990,9 +1951,9 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
                 costs.soft.periodSpread -= cost;
         }
 
-        Two<Period const&> after  = {instance.periods[relatedP], instance.periods[nextP]};
+        // add
 
-        // add the new
+        Two<Period const&> after = {instance.periods[relatedP], instance.periods[nextP]};
         if(nextP == relatedP) {
             costs.hard.simultaneousExams += cost;
         } else {

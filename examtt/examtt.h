@@ -66,6 +66,14 @@ struct VectorExclusivePair {
 
 struct Random {
 
+    Random() {
+
+    }
+
+    Random(long s) {
+        seed(s);
+    }
+
     void seed(long s) {
        emili::initializeRandom(s);
     }
@@ -213,6 +221,8 @@ using Two = std::pair<T,T>;
 template <typename T, typename U>
 using MapVec = std::vector<U>;
 
+class ExamTTSolution;
+
 /* emili classes */
 class ExamTT: public emili::Problem
 {
@@ -323,6 +333,9 @@ public:
     Two<Period const&> periodsOf(PeriodId a, PeriodId b) const;
 
     VectorExclusivePair<ExamId> pairsOfExams();
+
+    void presentation(std::ostream&);
+    void testDelta(ExamTTSolution&, std::ostream &log);
 
 public:
     ExamTT() {}
