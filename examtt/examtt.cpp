@@ -1170,8 +1170,9 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
     }
 
     examsByPeriods[prevP].erase(examsByPeriodsIterators[e]);
-    examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
     examsByRooms[prevR].erase(examsByRoomsIterators[e]);
+
+    examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
     examsByRoomsIterators[e] = examsByRooms[nextR].insert(e).first;
 
     periods[e] = nextP;
@@ -1226,7 +1227,7 @@ void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) 
         if(periods[exams.first] != periods[exams.second])
             costs.hard.periodConstraintCoincidence++;
 
-    // pairs of exams with students in common
+    // pairs of exams with students in common, edges in graph
 
     costs.hard.simultaneousExams = 0;
 
@@ -1421,7 +1422,7 @@ void ExamTT::presentation(ostream & log) {
 
 void ExamTT::testDelta(ExamTTSolution& sol, std::ostream& log) {
     auto& inst = *this;
-    constexpr bool CHECK_EACH_MOVE = false;
+    constexpr bool CHECK_EACH_MOVE = true;
 
     int E = inst.exams.size(),
         P = inst.periods.size(),
@@ -1855,18 +1856,37 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         costs.soft.periodsPenalty += instance.periods[nextP].penalty;
 
         // after
-        int m = min(prevP, nextP);
-        int M = max(prevP, nextP);
+        if(0) {
+            // remove
+            for(ExamId j : related.afters)
+                if(periods[j] >= prevP)
+                    costs.hard.periodConstraintAfter--;
 
-        //// remove
-        for(ExamId j : instance.afterOfExam(ex))
-            if(m <= periods[j] && periods[j] < M)
-                costs.hard.periodConstraintAfter -= s;
+            for(ExamId j : related.befores)
+                if(periods[j] <= prevP)
+                    costs.hard.periodConstraintAfter--;
 
-        //// add
-        for(ExamId j : instance.beforeOfExam(ex))
-            if(m < periods[j] && periods[j] <= M)
-                costs.hard.periodConstraintAfter += s;
+            // add
+            for(ExamId j : related.afters)
+                if(periods[j] >= nextP)
+                    costs.hard.periodConstraintAfter++;
+
+            for(ExamId j : related.befores)
+                if(periods[j] <= nextP)
+                    costs.hard.periodConstraintAfter++;
+
+        } else {
+            int m = min(prevP, nextP);
+            int M = max(prevP, nextP);
+
+            for(ExamId j : related.afters)
+                if(m <= periods[j] && periods[j] < M)
+                    costs.hard.periodConstraintAfter -= s;
+
+            for(ExamId j : related.befores)
+                if(m < periods[j] && periods[j] <= M)
+                    costs.hard.periodConstraintAfter += s;
+        }
 
         // exclusion/coincidences
 
@@ -1943,7 +1963,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             if(before.first.date == before.second.date) {
                 if(prevDiff == 1)
                     costs.soft.twoExamsInARow -= cost * weightings.twoInARow;
-                else if(prevDiff > 1)
+                else
                     costs.soft.twoExamsInADay -= cost * weightings.twoInADay;
             }
 
@@ -1962,7 +1982,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             if(after.first.date == after.second.date) {
                 if(nextDiff == 1)
                     costs.soft.twoExamsInARow += cost * weightings.twoInARow;
-                else if(nextDiff > 1)
+                else
                     costs.soft.twoExamsInADay += cost * weightings.twoInADay;
             }
 
@@ -2046,15 +2066,16 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
     // mixedDurations
     int myDuration = instance.exams[ex].duration;
-    std::set<Minutes> durationsLeaving; // = set(instance.exams[j].duration for j in leaving)
-    std::set<Minutes> durationsMeeting; // = set(instance.exams[j].duration for j in meeting)
+
+    std::set<Minutes> durationsLeaving;
+    std::set<Minutes> durationsMeeting;
 
     for(ExamId j : leaving)
         durationsLeaving.insert(instance.exams[j].duration);
     for(ExamId j : meeting)
         durationsMeeting.insert(instance.exams[j].duration);
 
-    // counters
+    // using counters
 
     int NLeavingWithoutMe = durationsLeaving.size();
     int NMeetingWithoutMe = durationsMeeting.size();
@@ -2064,7 +2085,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     if(NLeavingWithoutMe > 0)
         costs.soft.mixedDuration += (NLeavingWithoutMe - NLeavingWithMe) * weightings.nonMixedDurations;
     if(NMeetingWithoutMe > 0)
-        costs.soft.mixedDuration += (NMeetingWithMe - NMeetingWithoutMe) * weightings.nonMixedDurations;
+        costs.soft.mixedDuration -= (NMeetingWithoutMe - NMeetingWithMe) * weightings.nonMixedDurations;
 
     /*
     // no counters
@@ -2154,8 +2175,15 @@ int MoveNeighborhood::size() {
 }
 
 Solution *MoveNeighborhood::random(Solution *currentSolution) {
-    // must return a new Solution
-    return nullptr; // TODO
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution->clone();
+
+    int E = instance.exams.size(),
+        P = instance.periods.size(),
+        R = instance.rooms.size();
+
+    Random r;
+    sol->move(instance, r.randrange(E), r.randrange(P), r.randrange(R));
+    return sol;
 }
 
 Solution *RandomInitialSolution::generateSolution()
@@ -2220,8 +2248,105 @@ int SwapNeighborhood::size() {
 }
 
 Solution *SwapNeighborhood::random(Solution *currentSolution) {
-    // TODO
-    return nullptr;
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution->clone();
+
+    int E = instance.exams.size();
+
+    Random r;
+    sol->swap(instance, r.randrange(E), r.randrange(E));
+    return sol;
+}
+
+KempeChainNeighborhood::KempeChainNeighborhood(const ExamTT &instance_)
+    : instance(instance)
+{
+    reset();
+}
+
+void KempeChainNeighborhood::reset() {
+    exam = 0;
+    t1 = -1; // so that +1 = 0
+    chain.clear();
+}
+
+int KempeChainNeighborhood::size() {
+    int E = instance.exams.size();
+    int P = instance.periods.size();
+
+    return E * (P-1); // at most
+}
+
+Solution* KempeChainNeighborhood::computeStep(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    int E = instance.exams.size();
+    int R = instance.rooms.size();
+    int P = instance.periods.size();
+
+    ++t1;
+    if(t1 == sol->periods[exam])
+        ++t1;
+    if(t1 == P)
+        ++exam;
+
+    if(exam == instance.E())
+        return nullptr;
+
+    t0 = sol->periods[exam];
+
+    chain.clear();
+    createChain(sol, exam);
+
+    // currently have a lot of duplicates and we construct a chain per computeStep
+    // should do like this :
+    // for i in range(P)
+    //   for j in range(i+1,P)
+    //     chains = components(C[i] | C[j])
+    //     for chain in chains:
+    //       apply(chain, i, j)
+    //       reverse(chain, i, j)
+
+    for(ExamId i : chain)
+        sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
+}
+
+void KempeChainNeighborhood::createChain(ExamTTSolution* sol, ExamId x) {
+    if(chain.count(x))
+        return;
+
+    if(sol->periods[x] == t0 || sol->periods[x] == t1)
+        for(ExamId j : instance.hasStudentsInCommonOfExam(x))
+            createChain(sol, j);
+}
+
+void KempeChainNeighborhood::reverseLastMove(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    for(ExamId i : chain)
+        sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
+}
+
+Solution *KempeChainNeighborhood::step(Solution *currentSolution) {
+    return computeStep(currentSolution);
+}
+
+Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution->clone();
+
+    int E = instance.exams.size();
+    int P = instance.periods.size();
+
+    // when is random called ?
+
+    Random r;
+    exam = r.randrange(E);
+    t0 = sol->periods[exam];
+    t1 = r.randrange(P-1);
+    t1 += t1 >= t0;
+
+    chain.clear();
+    createChain(sol, exam);
+    return sol;
 }
 
 }

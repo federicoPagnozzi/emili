@@ -318,10 +318,9 @@ emili::InitialSolution* ExamTTParser::init(prs::TokenManager& tm)
 
     printTab(*tm);
 
-    if(tm.checkToken(INITIAL_RANDOM))
+    if(tm.checkToken(INITIAL_RANDOM)) {
         return new emili::ExamTT::RandomInitialSolution(instance);
-    else
-    {
+    } else {
         errorExpected(tm, "INITIAL_SOLUTION", {INITIAL_RANDOM});
         return nullptr;
     }
@@ -371,12 +370,15 @@ emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm)
 
     if(tm.checkToken("move")){
         return new emili::ExamTT::MoveNeighborhood(instance);
-
-    } else if(tm.checkToken("swap")) {
+    }
+    else if(tm.checkToken("swap")) {
         return new emili::ExamTT::SwapNeighborhood(instance);
-
-    } else {
-        errorExpected(tm, "NEIGHBORHOOD", {"move", "swap"});
+    }
+    else if(tm.checkToken("kempe")) {
+        return new emili::ExamTT::KempeChainNeighborhood(instance);
+    }
+    else {
+        errorExpected(tm, "NEIGHBORHOOD", {"move", "swap", "kempe"});
         return nullptr;
     }
 }

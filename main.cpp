@@ -27,12 +27,17 @@ int main(int argc, const char *argv[])
     /* Create instance object */
     //testTaillardAccel();
     clock_t time = clock();
+
+    // examTT test
+
     {
         emili::ExamTT::test();
         double time_elapsed = (double)(clock() - time) / CLOCKS_PER_SEC;
         std::cout << "Time " << time_elapsed << std::endl;
         return 0;
     }
+
+
  //instance.setSilence(true);
 #ifdef GRAMMAR2CODE
 

@@ -334,6 +334,10 @@ public:
 
     VectorExclusivePair<ExamId> pairsOfExams();
 
+    int E() const { return exams.size(); }
+    int P() const { return periods.size(); }
+    int R() const { return rooms.size(); }
+
     void presentation(std::ostream&);
     void testDelta(ExamTTSolution&, std::ostream &log);
 
@@ -652,6 +656,31 @@ struct RandomInitialSolution : emili::InitialSolution {
     Solution* generateSolution() override;
     Solution* generateEmptySolution() override;
 };
+
+
+struct KempeChainNeighborhood : emili::Neighborhood {
+protected:
+    ExamTT const& instance;
+
+    ExamId exam;
+    int t0, t1;
+    std::set<ExamId> chain;
+
+    void createChain(ExamTTSolution* sol, ExamId x);
+
+    Solution* computeStep(Solution *rawStep) override;
+    void reverseLastMove(Solution *rawStep) override;
+
+public:
+    KempeChainNeighborhood(ExamTT const& instance);
+
+    Solution* step(Solution *currentSolution) override;
+    void reset() override;
+    int size() override;
+
+    Solution* random(Solution *currentSolution) override;
+};
+
 
 void test();
 
