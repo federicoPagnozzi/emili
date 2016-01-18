@@ -224,6 +224,10 @@ public:
   publisher={IEEE}
 }
 
+Simulated annealing for manufacturing systems layout design
+
+    Abdelghani Souilah
+
  */
 class ArithmeticTempLength: public SATempLength {
 
@@ -279,7 +283,7 @@ public:
 
     bool isCoolingTime(int counter) {
         if (counter >= length) {
-            length  = c / log(status->step);
+            length  = c / log(status->temp);
             return true;
         }
         return false;

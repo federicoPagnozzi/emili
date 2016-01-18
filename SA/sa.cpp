@@ -18,15 +18,15 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     status->best = incumbent->clone();
     status->best_cost = incumbent->getSolutionValue();
 
-    acceptanceCriterion->setCurrentTemp(temp);
+    acceptanceCriterion->setCurrentTemp(status->temp);
 
     neigh->reset();
 
     do {
 
         bestSoFar = exploration->nextSolution(bestSoFar, *status);
-        temp = coolingScheme->update_cooling(temp);
-        acceptanceCriterion->setCurrentTemp(temp);
+        status->temp = coolingScheme->update_cooling(status->temp);
+        acceptanceCriterion->setCurrentTemp(status->temp);
 
     } while(!terminationCriterion->terminate(*status));
 
@@ -36,5 +36,6 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 } // end search
 
 void SimulatedAnnealing::reset(void) {
-    temp = init_temp;
+    temp = status->init_temp;
+    status->temp = status->init_temp;
 }

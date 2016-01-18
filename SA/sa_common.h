@@ -34,6 +34,7 @@ public:
 
     double init_temp;
     double final_temp;
+    double temp;
 
     double init_prob;
 
