@@ -15,6 +15,7 @@ class SAStatus {
 public:
     long   counter;
     long   total_counter;
+    long   temp_counter;
     long   accepted;
     long   curr_accepted;
     double  rate;
@@ -49,6 +50,7 @@ public:
     SAStatus(void) {
         counter = 0;
         total_counter = 0;
+        temp_counter = 0;
         accepted = 0;
         curr_accepted = 0;
         index = 0;
@@ -88,6 +90,7 @@ public:
     void increment_counters(void) {
         counter += 1;
         total_counter += 1;
+        temp_counter += 1;
         not_improved += 1;
     }
 

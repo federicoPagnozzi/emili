@@ -65,6 +65,7 @@ public:
     virtual float adjust(float temp) {
         if (temp <= reset_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return init_temp;
         }
         return temp;
@@ -92,6 +93,7 @@ public:
     virtual float adjust(float temp) {
         if (temp <= reset_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return init_temp;
         }
         return temp;
@@ -117,6 +119,7 @@ public:
     virtual float adjust(float temp) {
         if ((1.0 * status->accepted / status->total_counter) < rate_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return init_temp;
         }
         return temp;
@@ -141,6 +144,7 @@ public:
     virtual float adjust(float temp) {
         if ((1.0 * status->accepted / status->total_counter) < rate_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return status->best_temp;
         }
         return temp;
@@ -177,6 +181,7 @@ public:
     virtual float adjust(float temp) {
         if ((1.0 * total_accepted() / status->tenure) < rate_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return init_temp;
         }
         return temp;
@@ -210,6 +215,7 @@ public:
     virtual float adjust(float temp) {
         if ((1.0 * status->accepted / status->total_counter) < rate_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return temp / value;
         }
         return temp;
@@ -251,6 +257,7 @@ public:
     virtual float adjust(float temp) {
         if ((1.0 * total_accepted() / status->tenure) < rate_threshold) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return temp / value;
         }
         return temp;
@@ -284,6 +291,7 @@ public:
     virtual float adjust(float temp) {
         if (status->not_improved > tenure) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return temp / value;
         }
         return temp;
@@ -311,6 +319,7 @@ public:
     virtual float adjust(float temp) {
         if (status->not_improved > tenure) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return status->best_temp;
         }
         return temp;
@@ -337,6 +346,7 @@ public:
     virtual float adjust(float temp) {
         if (status->not_improved > tenure) {
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return status->best_temp;
         }
         return temp;
@@ -376,6 +386,7 @@ public:
         if (status->not_improved > tenure) {
             value = std::max(epsilon, value - epsilon);
             status->temp_restarts += 1;
+            status->temp_counter = 0;
             return temp / value;
         }
         return temp;
@@ -386,6 +397,66 @@ public:
     }
 
 }; // SALocalMinEnhancedReheat
+
+
+
+class SAMaxItersTempRestart: public SATempRestart {
+
+protected:
+    int tenure;
+    float init_temp;
+
+public:
+    SAMaxItersTempRestart(SAInitTemp *it,
+                          int _tenure):
+        tenure(_tenure),
+        init_temp(it->get()),
+        SATempRestart(SAMAXITERSTEMPRESTART) { }
+
+    virtual float adjust(float temp) {
+        if (status->temp_counter > tenure) {
+            status->temp_counter = 0;
+            status->temp_restarts += 1;
+            return init_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SAMaxItersTempRestart
+
+
+class SAMaxItersReheat: public SATempRestart {
+
+protected:
+    int tenure;
+    float alpha;
+
+public:
+    SAMaxItersReheat(SAInitTemp *it,
+                          int _tenure,
+                          float _alpha):
+        tenure(_tenure),
+        alpha(_alpha),
+        SATempRestart(SAMAXITERSREHEAT) { }
+
+    virtual float adjust(float temp) {
+        if (status->temp_counter > tenure) {
+            status->temp_counter = 0;
+            status->temp_restarts += 1;
+            return temp / alpha;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SAMaxItersReheat
 
 
 #endif

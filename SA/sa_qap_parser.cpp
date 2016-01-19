@@ -397,6 +397,13 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         float ep = tm.getDecimal();
         return new SALocalMinEnhancedReheat(it, te, va, ep);
+    } else if (tm.checkToken(SAMAXITERSTEMPRESTART)) {
+        int   te = tm.getInteger();
+        return new SAMaxItersTempRestart(it, te);
+    } else if (tm.checkToken(SAMAXITERSREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SAMaxItersReheat(it, te, va);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
