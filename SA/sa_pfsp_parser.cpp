@@ -560,7 +560,8 @@ SAExploration* SAPFSPParser::EXPLORATION(prs::TokenManager& tm,
 }
 
 SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
-                                         SAInitTemp *it) {
+                                         SAInitTemp *it,
+                                         emili::Neighborhood* neigh) {
 
     if (tm.checkToken(SANOTEMPRESTART)) {
         return new SANoRestart();
@@ -611,6 +612,13 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
         int   te = tm.getInteger();
         float va = tm.getDecimal();
         return new SAMaxItersReheat(it, te, va);
+    } else if (tm.checkToken(SANEIGHSIZEMAXITERSTEMPRESTART)) {
+        float   te = tm.getInteger();
+        return new SANeighSizeMaxItersTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SANEIGHSIZEMAXITERSREHEAT)) {
+        float   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SANeighSizeMaxItersReheat(it, neigh, te, va);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -627,7 +635,7 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
     SACooling*       cooling    = COOL(tm, inittemp, nei);
-    SATempRestart*   temprestart = TEMPRESTART(tm, inittemp);
+    SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
     SATermination*     term       = TERMINATION(tm, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei);

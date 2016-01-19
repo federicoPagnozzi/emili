@@ -429,6 +429,36 @@ public:
 }; // SAMaxItersTempRestart
 
 
+class SANeighSizeMaxItersTempRestart: public SATempRestart {
+
+protected:
+    int tenure;
+    float init_temp;
+
+public:
+    SANeighSizeMaxItersTempRestart(SAInitTemp *it,
+                                   emili::Neighborhood* neigh,
+                                   float _coeff):
+        tenure(_coeff * neigh->size()),
+        init_temp(it->get()),
+        SATempRestart(SANEIGHSIZEMAXITERSTEMPRESTART) { }
+
+    virtual float adjust(float temp) {
+        if (status->temp_counter > tenure) {
+            status->temp_counter = 0;
+            status->temp_restarts += 1;
+            return init_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SANeighSizeMaxItersTempRestart
+
+
 class SAMaxItersReheat: public SATempRestart {
 
 protected:
@@ -457,6 +487,37 @@ public:
     }
 
 }; // SAMaxItersReheat
+
+
+class SANeighSizeMaxItersReheat: public SATempRestart {
+
+protected:
+    int tenure;
+    float alpha;
+
+public:
+    SANeighSizeMaxItersReheat(SAInitTemp *it,
+                              emili::Neighborhood* neigh,
+                              float _coeff,
+                              float _alpha):
+        tenure(_coeff * neigh->size()),
+        alpha(_alpha),
+        SATempRestart(SANEIGHSIZEMAXITERSREHEAT) { }
+
+    virtual float adjust(float temp) {
+        if (status->temp_counter > tenure) {
+            status->temp_counter = 0;
+            status->temp_restarts += 1;
+            return temp / alpha;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SANeighSizeMaxItersReheat
 
 
 #endif

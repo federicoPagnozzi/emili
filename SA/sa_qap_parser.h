@@ -93,7 +93,8 @@ protected:
                                         SATermination *term);
 
     SATempRestart* TEMPRESTART(prs::TokenManager& tm,
-                               SAInitTemp *it);
+                               SAInitTemp *it,
+                               emili::Neighborhood* neigh);
 
     /**
      * load the instance
