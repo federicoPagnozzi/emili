@@ -1,6 +1,12 @@
 //#define RELDUE_FIELD
 //#define TWO_VECTORS
 //#define HORIZONTAL
+#define IDLE_ONE_STEP
+#define IDLE_TWO_STEPS
+#define IDLE_FORWARD
+#define IDLE_BACKWARDS
+#define SIMPLE_IDLE_INSERTION
+
 /***************************************************************************
  *   Copyright (C) 2012 by Jérémie Dubois-Lacoste   *
  *   jeremie.dl@gmail.com   *
@@ -179,10 +185,12 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 
 	dueDates.resize(nbJ+1);
 	priority.resize(nbJ+1);
-#pragma endregion NEWCODE
+#pragma region NEWCODE
 	releaseDates.resize(nbJ + 1);
 	weightsE.resize(nbJ + 1);
-#pragma region NEWCODE
+	earlinessDD.resize(nbJ + 1);
+	tardinessDD.resize(nbJ + 1);
+#pragma endregion NEWCODE
 }
 
 
@@ -204,6 +212,7 @@ long int PfspInstance::getTime(int job, int machine)
 /* Read the instance from file : */
 bool PfspInstance::readDataFromFile(char * fileName)
 {
+	string code = "No Code";
 	bool everythingOK = true;
 	int j, m; // iterators
 	long int readValue;
@@ -237,7 +246,11 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 #pragma region NEWCODE
 		fileIn >> str;
-		if (str == "HFSDDW") fileIn >> nbJob;
+		if (str == "HFSDDW" || str == "HFS")
+		{
+			code = str;
+			fileIn >> nbJob;
+		}
 		else nbJob = stol(str);
 		//fileIn >> nbJob;
 #pragma endregion NEWCODE
@@ -257,7 +270,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 			vector< int > st(nbStages + 1);
 			stages = st;
-
+			
 			fileIn >> readValue;// Just to read first index of the table.  OR next line of Stages.
 
 			if (readValue != 0)
@@ -315,7 +328,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 				processingTimesMatrix[j][m] = readValue;
 			}
 		}
-        fileIn >> str; // this is not read
+        fileIn >> str; 
 
 #pragma region NEWCODE
 		int LBCmax = -1;
@@ -341,6 +354,22 @@ bool PfspInstance::readDataFromFile(char * fileName)
 				weightsE[j] = readValue;
 				fileIn >> readValue; // Tardiness Weights
 				priority[j] = readValue;
+			}
+		}
+
+		// While str is not ddw and not end of file... Ignore everything... 
+		while ((newToLower(str).compare("ddw") != 0) && (!fileIn.eof()))
+		{
+			fileIn >> str;
+		}
+		if (newToLower(str).compare("ddw") == 0)
+		{
+			for (j = 1; j <= nbJob; ++j)
+			{
+				fileIn >> readValue; // Earliness Due Date
+				earlinessDD[j] = readValue;
+				fileIn >> readValue; // Tardiness Due Date
+				tardinessDD[j] = readValue;
 			}
 		}
 #pragma endregion NEWCODE
@@ -388,8 +417,8 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 #endif
     if(!silence)
     {
-    cout << "name : " << fileNameOK << endl;
-    cout << "file : " << fileName << endl;
+		cout << "name : " << fileNameOK << endl;
+		cout << "file : " << fileName << endl;
     }
     fileIn.open(fileName);
 
@@ -501,15 +530,24 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
                 }
             }
 
-
-
         }
-        if(!fileIn.eof())
-        {
-        fileIn >> str; // this is not read
-		if (newToLower(str).compare("reldue") == 0)
-        {
+
+		fileIn >> str;
+
 #pragma region NEWCODE
+		int LBCmax = -1;
+		if ((newToLower(str).compare("lbcmax:") == 0))
+		{
+			fileIn >> LBCmax;
+			fileIn >> str;
+		}
+		// While str is not Reldue and not end of file... Ignore everything... 
+		while ((newToLower(str).compare("reldue") != 0) && (!fileIn.eof()))
+		{
+			fileIn >> str;
+		}
+		if (newToLower(str).compare("reldue") == 0)
+		{
 			for (j = 1; j <= nbJob; ++j)
 			{
 				fileIn >> readValue; // Release Date
@@ -521,9 +559,24 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 				fileIn >> readValue; // Tardiness Weights
 				priority[j] = readValue;
 			}
+		}
+
+		// While str is not ddw and not end of file... Ignore everything... 
+		while ((newToLower(str).compare("ddw") != 0) && (!fileIn.eof()))
+		{
+			fileIn >> str;
+		}
+		if (newToLower(str).compare("ddw") == 0)
+		{
+			for (j = 1; j <= nbJob; ++j)
+			{
+				fileIn >> readValue; // Earliness Due Date
+				earlinessDD[j] = readValue;
+				fileIn >> readValue; // Tardiness Due Date
+				tardinessDD[j] = readValue;
+			}
+		}
 #pragma endregion NEWCODE
-        }
-        }
         if(!silence)
         cout << "All is read from file." << std::endl;
         fileIn.close();
@@ -800,7 +853,7 @@ int minValue(vector<int> &finishingTimes)
 	//// This gives the min index 
 	//int min_index = std::min_element(finishingTimes.begin() + 1, finishingTimes.end()) - finishingTimes.begin();
 
-	int minValue = 99999;
+	int minValue = std::numeric_limits<int>::max();;
 	int ID = 0;
 	int size = finishingTimes.size();
 	for (size_t i = 0; i < size; i++)
@@ -820,7 +873,7 @@ int maxValue(vector<int> &finishingTimes)
 	//// This gives the min index?
 	//int max_index = std::max_element(finishingTimes.begin() + 1, finishingTimes.end()) - finishingTimes.begin();
 
-	int maxValue = -99999;
+	int maxValue = std::numeric_limits<int>::min();;
 	int ID = 0;
 	int size = finishingTimes.size();
 	for (size_t i = 0; i < size; i++)
@@ -837,7 +890,7 @@ int maxValue(vector<int> &finishingTimes)
 // Given an array and a valueCealing. Obtains the higher value that is under or equal to cealing, if there is none, will just return minimum value.
 int maxLower(vector<int> &finishingTimes, int cealing)
 {
-	int minValue = 99999;
+	int minValue = std::numeric_limits<int>::max();
 	int bestSuited = -1;
 	int bestSuitedID = -1;
 	int minID = 0;
@@ -882,6 +935,28 @@ void orderVectors(vector<int>& pasive, vector<int>& orderer)
 	std::cout << "End: Pasive:" << printVector(pasive) << " Ind:" << printVector(indexes) << " Orderer:" << printVector(orderer) << "\n";
 #endif
 }
+
+// Given a pair vector, re-order it in same order as the normal vector indexes
+void orderPairVectorWithIds(vector<pair<int, int>>& toOrder, vector<int>& indexes)
+{
+	vector< pair< int, int > > temp;
+	int permSize = indexes.size() - 1;
+	for (int j = 0; j <= permSize; j++)
+	{
+		int job = indexes[j];
+		int position = -1;
+		for (int k = 0; k <= permSize; k++)
+		{
+			if (toOrder[k].first == job)
+				position = k;
+		}
+
+		temp.push_back(pair<int, int>(toOrder[position].first, toOrder[position].second));
+	}
+
+	toOrder = temp;
+}
+
 
 // Given a vector with values {1,2,3,2} returns a jagged vector {0}{0,0}{0,0,0}{0,0}
 vector< vector < int > > createJaggedVector(vector<int> machinesPerStage)
@@ -928,6 +1003,12 @@ long int PfspInstance::computeHWE(vector< int > & sol)
 long int PfspInstance::computeHWET(vector< int > & sol)
 {
 	return computeHWET(sol, nbJob);
+}
+
+/* Compute the weighted earliness tardines with Due Date Windows of a given solution */
+long int PfspInstance::computeHWETDDW(vector< int > & sol)
+{
+	return computeHWETDDW(sol, nbJob);
 }
 
 #ifdef HORIZONTAL
@@ -1180,6 +1261,7 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 	int previousTaskFT, previousMachineFT;
 	int endingTime, startingTime;
 
+	//string XXX;
 	// In first stage all our previous task finishing times are 0. (no previous task)
 	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
 	for (i = 1; i <= stages; ++i)
@@ -1202,6 +1284,7 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 
 			jobAndFT[j].second = endingTime;
 		}
+		//XXX += printPairedVector(jobAndFT) + "\n";
 		// Sounds crazy but doesnt improve... if (i != stages)
 		// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
 		std::sort(jobAndFT.begin(), jobAndFT.end(),
@@ -1435,7 +1518,7 @@ long int PfspInstance::computeHWET(vector<int> &sol, int size)
 	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
 	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
 
-	// With the pair (jobId, PreviousStageFinishingTimes);
+	// With the tuple (jobId, PreviousStageFinishingTimes);
 	vector< pair< int, int > > jobAndFT;
 	for (int j = 0; j <= permSize; j++)
 		jobAndFT.push_back(pair<int, int>(sol[j], 0));
@@ -1496,6 +1579,525 @@ long int PfspInstance::computeHWET(vector<int> &sol, int size)
 	// Weighted Earliness Tardiness
 	return wET;
 }
+
+#ifdef IDLE_TWO_STEPS
+#else
+#endif
+
+long int inline simpleIdleInsertion(vector<vector<pair<int, int>>>& LSCompleteSR, 
+	vector< int >& idleTI, vector< int >& machinesPerStage, vector<vector<long int>>& processingTimesMatrix,
+	vector<long int>& earlinessDD, vector<long int>& tardinessDD, vector<long int>& weightsE)
+{
+	int stages = machinesPerStage.size() - 1;
+	int mInLastStage = machinesPerStage[stages];
+
+	// Add dummy job behind to make the + inifinite (or similar)
+	for (int i = 0; i < mInLastStage; i++)
+		LSCompleteSR[i].push_back(pair<int, int>(0, std::numeric_limits<int>::max()));
+
+	int improvements = 0;
+
+	// Foreach machine
+	for (int i = 0; i < mInLastStage; i++)
+	{
+		int dimSize = LSCompleteSR[i].size();
+		// Foreach job in this machine, starting from the second to last.
+		for (int j = dimSize - 2; j >= 0; j--)
+		{
+			int k = j + 1; // His follower
+			int jobj = LSCompleteSR[i][j].first;
+			int jobk = LSCompleteSR[i][k].first;
+
+			// Gap is the distance between finishing one job and starting next one. 
+			int startk = (LSCompleteSR[i][k].second - processingTimesMatrix[jobk][stages]) + idleTI[jobk];
+			int endj = LSCompleteSR[i][j].second + idleTI[jobj];
+
+			// Distance to tardiness due date, negative means, there is not tardiness yet.
+			int tardiness = endj - tardinessDD[jobj];
+			int earliness = earlinessDD[jobj] - endj;
+
+			int gap = startk - endj;
+
+			// If there is a gap between jobs, and job j has slack to tardiness due date... we move. 
+			if (gap > 0 && tardiness < 0)
+			{
+				// Instead of earliness I use negative tardiness because Its convinient to move the job as much 
+				// as posible in his due date window, to avoid doing it again for the next jobs 
+				int idleInsertion = std::min(gap, -1 * tardiness);
+
+				idleTI[jobj] += idleInsertion;
+
+				// The idle time inserted that is minor to earliness, after weigthed, is the reduction of the Objective function.
+				improvements += (std::max(std::min(earliness, idleInsertion), 0) * weightsE[jobj]);
+
+			}
+		}
+	}
+	return improvements;
+}
+
+/*compute partial weighted earliness tardiness with Due Date Windows*/
+long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
+{
+	// 613 613
+	//sol = { 0, 9, 1, 4, 5, 6, 8, 2, 3, 7, 10 }; // Best for Instance0
+	
+	//// 906 1009 (906 con hack)
+	//sol = { 0, 9, 2, 6, 4, 7, 8, 1, 5, 3, 10 }; // Best for Instance1 
+	//vector<int> sol2ndStage = { 0, 9, 2, 4, 6, 7, 1, 8, 3, 10, 5 }; // Best for Instance1
+	
+	// 1041 1573 (1103 si lo dejamos ir solo: sol : 0, 10, 3, 5, 9, 2, 8, 1, 4, 6, 7 ) (1041 con hack )
+	//sol = { 0, 9, 3, 10, 2, 5, 1, 4, 8, 7, 6 }; // Best for Instance2
+	//vector<int> sol2ndStage = { 0,  3, 10, 9, 5, 8, 2, 1, 7, 4, 6 }; // Best for Instance2
+	
+	// 357 357
+	//sol = { 0, 4, 9, 7, 1, 6, 2, 10, 5, 3, 8 }; // Best for Instance3
+	
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+	int mInLastStage = machinesPerStage[stages];
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	// Machine assigned to the job marked by index. 
+	vector< int > LSMA(getNbJob()+1);
+	// Idle Time Inserted
+	vector< int > idleTI(getNbJob() + 1);
+
+	// Last Stage complete representation. A Vector of pairs <job, finishingTime> for each machine. 
+	vector< vector < pair< int, int > > > LSCompleteSR(mInLastStage); 
+	
+	string tmp;
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+	long int wE = 0, wT = 0;
+	long int wET = 0;
+	bool lastStage = false;
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		if (i == stages) lastStage = true;
+		//// To force a change in second stage... Just to compare with Pan
+		//if (i == stages) orderPairVectorWithIds(jobAndFT, sol2ndStage);
+		
+#ifdef _DEBUG2
+		tmp = printPairedVector(jobAndFT) + "\n";
+		tmp += "S" + std::to_string(i) + " MachinesFTs: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]); // Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+#ifdef _DEBUG2
+			tmp += "J" + std::to_string(j) + "(" + std::to_string(jobNumber) + ") PTFT: " + std::to_string(previousTaskFT) + " FAMFT: " + std::to_string(previousMachineFT) + " PT:" + std::to_string(processingTimesMatrix[jobNumber][i]) + "\n";
+#endif
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+			if (lastStage)
+			{
+				wE = (std::max(earlinessDD[jobNumber] - endingTime, 0L) * weightsE[jobNumber]); // Earliness With DDW
+				wT = (std::max(endingTime - tardinessDD[jobNumber], 0L) * priority[jobNumber]); // Tardiness With DDW
+				wET += wE + wT;
+
+				// Save the id of the machine used to assign
+				LSMA[jobNumber] = FAM_ID;
+
+				// SR direct representation for last stage:
+				LSCompleteSR[FAM_ID].push_back(pair<int, int>(jobNumber, endingTime));
+			}
+#ifdef _DEBUG2
+			tmp += "S" + std::to_string(i) + " MachinesFTs: " + printVector(machineFreeingTimes_S_M[i]) + " wE: " + std::to_string(wE) + " wT: " + std::to_string(wT) + "\n";
+#endif
+		}
+		if (!lastStage){
+			// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+			std::sort(jobAndFT.begin(), jobAndFT.end(),
+				[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+				return left.second < right.second; });
+		}
+
+	}
+
+	// Add dummy job behind to make the + inifinite (or similar)
+	for (int i = 0; i < mInLastStage; i++)
+		LSCompleteSR[i].push_back(pair<int, int>(0, std::numeric_limits<int>::max()));
+
+	int improvements = 0;
+
+#ifdef SIMPLE_IDLE_INSERTION312
+	// Foreach machine
+	for (int i = 0; i < mInLastStage; i++)
+	{
+		int dimSize = LSCompleteSR[i].size();
+		// Foreach job in this machine, starting from the second to last.
+		for (int j = dimSize - 2; j >= 0; j--)
+		{
+			int k = j + 1; // His follower
+			int jobj = LSCompleteSR[i][j].first;
+			int jobk = LSCompleteSR[i][k].first;
+
+			// Gap is the distance between finishing one job and starting next one. 
+			int startk = (LSCompleteSR[i][k].second - processingTimesMatrix[jobk][stages]) + idleTI[jobk];
+			int endj = LSCompleteSR[i][j].second + idleTI[jobj];
+
+			// Distance to tardiness due date, negative means, there is not tardiness yet.
+			int tardiness = endj - tardinessDD[jobj];
+			int earliness = earlinessDD[jobj] - endj;
+			
+			int gap = startk - endj;
+
+			// If there is a gap between jobs, and job j has slack to tardiness due date... we move. 
+			if (gap > 0 && tardiness < 0)
+			{
+				// Instead of earliness I use negative tardiness because Its convinient to move the job as much 
+				// as posible in his due date window, to avoid doing it again for the next jobs 
+				int idleInsertion = std::min(gap, -1 * tardiness);
+
+				idleTI[jobj] += idleInsertion;
+
+				// The idle time inserted that is minor to earliness, after weigthed, is the reduction of the Objective function.
+				improvements += (std::max(std::min(earliness, idleInsertion), 0) * weightsE[jobj]);
+
+				//break;
+			}
+		}
+	}
+	wET -= improvements;
+	improvements = 0;
+#else
+
+	improvements = simpleIdleInsertion(LSCompleteSR, idleTI, machinesPerStage, processingTimesMatrix, earlinessDD, tardinessDD, weightsE);
+		
+	wET -= improvements;
+	improvements = 0;
+
+#endif
+	
+	////////////////////////////////////////////////////////////////////////
+	//////   Problemo con los indices... Al meter el job final   ///////////
+	//////   para tener el mas infinito, ahora tengo un indice   ///////////
+	//////   de std::numeric_limits<int>::max(); que se buscara en los jobs, o se metera...  ///////////
+	// Intento de solucion, poniendo 0, ya que será el job fantasma de Federico con 0 PT :)
+	////////////////////////////////////////////////////////////////////////
+
+
+	// Try now to move block is needed. There could be the case:
+	// 4 Jobs are together. Job 1 and 2 have earliness with acumulated w of 10, job 3 has no tardiness for next 10 positions 
+	// with weight 6 and job 4 has tardiness weight 6. Between jobs 4 and 5 there is a gap of 13. 
+	// If we move the block (all jobs), we must consider simultaneously all weight and Tardiness/Earliness, also gap with next job.
+
+	// The way of doing it is studying forward job by job, making a block, and cumulating all weights. 
+	// If weights show an improvement posible we can move all the block to the right. But we should do it 
+	// a maximum number of positions equivalent to the minimum of all the changeing states of that formula
+	// (when we fill the gap with next job or one of the jobs changes of state(early, tardy or on time))
+
+	// Foreach machine
+	for (int i = 0; i < mInLastStage; i++)
+	{
+		int dimSize = LSCompleteSR[i].size();
+
+		// Foreach job in this machine, starting from the second to last.
+		for (int j = dimSize - 2; j >= 0; j--)
+		{
+			//int k = j + 1; // His follower
+			int jobj = LSCompleteSR[i][j].first;
+			
+			int gap = 0;
+			int minMovementToChange = std::numeric_limits<int>::max();
+			int weightsBalance = 0;
+			int endOfBlock = 0;
+			
+			int k = -1;
+			// Elaborate the block checking gaps between elements and his following
+			for (k = j; k < dimSize - 1; k++)
+			{
+				gap = 0;
+				int jobk = LSCompleteSR[i][k].first;
+				int nextJob = LSCompleteSR[i][k + 1].first;
+
+				// Gap is the distance between finishing one job and starting next one. 
+				int endk = LSCompleteSR[i][k].second + idleTI[jobk];
+				int nextStart = (LSCompleteSR[i][k + 1].second - processingTimesMatrix[nextJob][stages]) + idleTI[nextJob];
+
+				int movementToChange = 0;
+
+				// Distance to tardiness due date, negative means, there is not tardiness yet.
+				int tardiness = endk - tardinessDD[jobk];
+				int earliness = earlinessDD[jobk] - endk;
+
+				// If early, save distance to end of earliness and Earliness Weight * -1.
+				if (earliness > 0)
+				{
+					movementToChange = earliness;
+					weightsBalance += weightsE[jobk] * -1; 
+					// Its negative because we are reducing Objective function value when inserting idle times. 
+				}
+				else
+				{
+					// Else if tardy. Save distance to tardiness and Tardiness Weight
+					if (tardiness >= 0)
+					{
+						movementToChange = std::numeric_limits<int>::max();
+						weightsBalance += priority[jobk];
+					}
+					// Else, If on time, save distance to tardiness and weight 0.
+					else
+					{
+						movementToChange = tardiness * -1;
+						weightsBalance += 0;
+					}
+				}
+
+				gap = nextStart - endk;
+
+				minMovementToChange = std::min(minMovementToChange, movementToChange);
+
+				if (gap > 0)
+				{
+					endOfBlock = k;
+					minMovementToChange = std::min(minMovementToChange, gap);
+					
+					// We break for, because we already have a block.
+					break;
+				}
+			}
+
+			// Now we have a block j to k (j =< k)
+			// We have the movement until the balance of weights change. 
+			// And we have the change of the objective function per unit moved (can be 0 or negative)
+
+			// If movement is not beneficial, continue studing next element. 
+			// if (weightsBalance >= 0) continue;
+			// If movement  
+			if (weightsBalance > 0) continue;
+			else
+			{
+				// Move the elements with idle time insertion
+				for (int x = j; x <= k; x++)
+				{
+					int jobx = LSCompleteSR[i][x].first;
+					idleTI[jobx] += minMovementToChange;
+				}
+
+				improvements += minMovementToChange * weightsBalance;
+
+				// BECAUSE WE HAD IMPROVED, BUT COULD BE REQUIRED ANOTHER MOVE IN SAME BLOCK TO IMRPOVE MORE
+				// I DO THIS DIRTY SHIT UNTILL I SWAP TO DoWhile with conditional incrementation
+				j = j++;
+			}
+
+		}
+	}
+
+	wET += improvements;
+
+	// Weighted Earliness Tardiness
+	return wET;
+}
+
+
+
+
+
+
+
+/*compute partial weighted earliness tardiness with Due Date Windows*/
+/*
+long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
+{
+	sol = {0, 9, 1, 4, 5, 6, 8, 2, 3, 7, 10};
+	int permSize = size;
+	// number of stages
+	int stages = getNbStages();
+
+	// Stages as a vector with number of machines per stage.
+	vector< int > machinesPerStage = getStages();
+
+	// Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage. 
+	vector< vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+
+	// With the pair (jobId, PreviousStageFinishingTimes);
+	vector< pair< int, int > > jobAndFT;
+	for (int j = 0; j <= permSize; j++)
+		jobAndFT.push_back(pair<int, int>(sol[j], 0));
+
+	// Machine assigned to the job marked by index. 
+	vector< int > LSMA(size + 1);
+	// Idle Time Inserted
+	vector< int > idleTI(size + 1);
+
+	int j, i; // indexes job/stage
+	int jobNumber; // jobID
+	int FAM_ID; // First Available Machine
+	int previousTaskFT, previousMachineFT;
+	int endingTime, startingTime;
+	long int wE = 0, wT = 0;
+	long int wET = 0;
+	bool lastStage = false;
+	//string tmp = "";
+
+	// In first stage all our previous task finishing times are 0. (no previous task)
+	// In consecuent stages we will use a pair based vector with (jobId, finishingTime).
+	for (i = 1; i <= stages; ++i)
+	{
+		if (i == stages) lastStage = true;
+#ifdef _DEBUG
+		string tmp = printPairedVector(jobAndFT) + "\n";
+		tmp += "S" + std::to_string(i) + " MachinesFTs: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
+#endif
+		for (j = 1; j <= permSize; ++j)
+		{
+			jobNumber = jobAndFT[j].first; // Get Job number
+			previousTaskFT = jobAndFT[j].second; // Get previous task finishing time
+
+			// TODO integrate both steps in a single function.
+			FAM_ID = minValue(machineFreeingTimes_S_M[i]);// Get First Available Machine 
+			previousMachineFT = machineFreeingTimes_S_M[i][FAM_ID]; // Get FAM finishing Time.
+
+#ifdef _DEBUG
+			tmp += "J" + std::to_string(j) + "(" + std::to_string(jobNumber) + ") PTFT: " + std::to_string(previousTaskFT) + " FAMFT: " + std::to_string(previousMachineFT) + " PT:" + std::to_string(processingTimesMatrix[jobNumber][i]) + "\n";
+#endif
+			// Task can't start until has finished in previous stage and until there is a free machine in actual stage
+			startingTime = std::max(previousMachineFT, previousTaskFT);
+			endingTime = startingTime + processingTimesMatrix[jobNumber][i];
+
+			// Increase finishing times
+			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
+
+			jobAndFT[j].second = endingTime;
+			if (lastStage)
+			{
+				//wET += (std::max(dueDates[jobNumber] - endingTime, 0L) * weightsE[jobNumber]); // Earliness
+				//wET += (std::max(endingTime - dueDates[jobNumber], 0L) * priority[jobNumber]); // Tardiness
+				wE = (std::max(earlinessDD[jobNumber] - endingTime, 0L) * weightsE[jobNumber]); // Earliness With DDW
+				wT = (std::max(endingTime - tardinessDD[jobNumber], 0L) * priority[jobNumber]); // Tardiness With DDW
+				wET += wE + wT;
+
+				// Save the id of the machine used to assign
+				LSMA[jobNumber] = FAM_ID;
+			}
+#ifdef _DEBUG
+			tmp += "S" + std::to_string(i) + " MachinesFTs: " + printVector(machineFreeingTimes_S_M[i]) + " wE: " + std::to_string(wE) + " wT: " + std::to_string(wT) + "\n";
+#endif
+		}
+		if (!lastStage){
+			// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+			std::sort(jobAndFT.begin(), jobAndFT.end(),
+				[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+				return left.second < right.second; });
+		}
+
+	}
+
+
+	// IDLE time  insertion function  ONLY FOR GAPS...
+	int improvements = 0;
+	//do
+	//{
+		improvements = 0;
+		// Foreach machine in last stage. 
+		for (int m = 0; m < machinesPerStage[stages]; m++)
+		{
+			for (int j = permSize; j >= 1; j--)
+			{
+				int gap = 0;
+				int jobID = jobAndFT[j].first;
+
+				int machine = LSMA[jobID];
+				if (machine != m) continue; // we study one machine each time. Ignore all jobs that are not related to this machine. 
+
+				int endingTime = jobAndFT[j].second + idleTI[jobID];
+				int earliness = earlinessDD[jobID] - endingTime;
+				int earlinessW = weightsE[jobID];
+				int tardiness = endingTime - tardinessDD[jobID];
+				int tardinessW = priority[jobID];
+
+				//if (earliness <= 0) continue; // If its not early we dont care about this job anymore. 
+				if (tardiness > 0) continue; // If job can be delayd without cost in tardiness... we delay it.
+
+				// Check next job in same machine and move right untill colides with next job or
+				// reaches the tardiness due date (even if the job has no tardiness we move it anyway)
+				for (int k = j + 1; k <= permSize; k++)
+				{
+					int kID = jobAndFT[k].first;
+
+					int machinek = LSMA[kID];
+					if (machinek != m) continue; // we study one machine each time. Ignore all jobs that are not related to this machine. 
+
+					int endingTimek = jobAndFT[k].second + idleTI[kID];
+					int startingTimek = endingTimek - processingTimesMatrix[kID][stages];
+					int earlinessk = earlinessDD[kID] - endingTime;
+					int earlinessWk = weightsE[kID];
+					int tardinessk = endingTime - tardinessDD[kID];
+					int tardinessWk = priority[kID];
+
+					if (endingTime < startingTimek)
+					{
+						gap = startingTimek - endingTime;
+					
+						//int idleInsertion = std::min(gap, earliness);
+						// Instead of earliness I use negative tardiness because Its convinient to move 
+						// the job as much as posible in his due date window, to avoid doing it again. 
+						int idleInsertion = std::min(gap, -1*tardiness);
+
+						idleTI[jobID] += idleInsertion;
+
+						// The idle time inserted that is minor to earliness, after weigthed, is the reduction of the Objective function.
+						improvements += (std::max(std::min(earliness , idleInsertion), 0) * earlinessW);
+
+						break;
+					}
+				}
+
+			}
+		}
+	//} while (improvements > 0);
+
+		bool improved;
+		//At this point we have the idle times inserted for all gaps... we have to study groups of jobs to see is a idle insertion in x job together improves Earliness more than screws Tardiness.
+		do
+		{
+			improved = false;
+
+			for (int j = 0; j < permSize; j++)
+			{
+
+			}
+
+
+		} while (improved == true);
+
+
+	// Weighted Earliness Tardiness
+	return wET - improvements;
+}*/
+
 #endif
 
 /*

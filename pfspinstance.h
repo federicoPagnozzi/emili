@@ -36,6 +36,8 @@ class PfspInstance{
 	std::vector< int > stages;
 	std::vector< long int > weightsE;
 	std::vector< long int > releaseDates;
+	std::vector< long int > earlinessDD;
+	std::vector< long int > tardinessDD;
 #pragma endregion NEWCODE
     std::vector< long int > dueDates;
     std::vector< long int > priority;
@@ -53,6 +55,8 @@ class PfspInstance{
 		this->nbStages = is.getNbStages();
 		this->weightsE = is.getWeightsE();
 		this->releaseDates = is.getReleaseDates();
+		this->earlinessDD = is.getEarlinessDD();
+		this->tardinessDD = is.getTardinessDD();
 #pragma endregion NEWCODE
         this->dueDates = is.getDueDates();
         this->priority = is.getPriorities();
@@ -103,8 +107,14 @@ class PfspInstance{
     long int getTime(int job, int machine);
     void setTime(int job, int machine, long int processTime);
 
-    long int getDueDate(int job);
-    void setDueDate(int job, int value);
+	long int getDueDate(int job);
+	void setDueDate(int job, int value);
+
+	long int getEarlinessDD(int job);
+	void setEarlinessDD(int job, int value);
+
+	long int getTardinessDD(int job);
+	void setTardinessDD(int job, int value);
 
     long int getPriority(int job);
     void setPriority(int job, int value);
@@ -113,6 +123,16 @@ class PfspInstance{
     {
         return dueDates;
     }
+
+	std::vector< long int >& getEarlinessDD()
+	{
+		return earlinessDD;
+	}
+
+	std::vector< long int >& getTardinessDD()
+	{
+		return tardinessDD;
+	}
 
     std::vector< long int >& getPriorities()
     {
@@ -154,6 +174,11 @@ class PfspInstance{
 	long int computeHWET(vector<int> & sol);
 	/* Compute partial Hybrid Flowshop Weighted Earliness Tardiness */
 	long int computeHWET(vector<int> &sol, int size);
+
+	/* Compute Hybrid Flowshop Weighted Earliness Tardiness with Due Date Windows*/
+	long int computeHWETDDW(vector<int> & sol);
+	/* Compute partial Hybrid Flowshop Weighted Earliness Tardiness with Due Date Windows */
+	long int computeHWETDDW(vector<int> &sol, int size);
 
 #pragma endregion NEWCODE
     /*Compute weighted tardiness*/

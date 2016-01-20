@@ -113,6 +113,15 @@ public:
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
 };
+
+class HFSP_WETDDW : public HybridFlowShop
+{
+public:
+	HFSP_WETDDW(PfspInstance& problem_instance) :HybridFlowShop(problem_instance) { }
+	HFSP_WETDDW(char* instance_path) :HybridFlowShop(instance_path) { }
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size);
+	virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+};
 /*
 #pragma region SDST
 

@@ -793,6 +793,16 @@ int emili::pfsp::HFSP_WET::computeObjectiveFunction(std::vector<int> &partial_so
 {
 	return instance.computeHWET(partial_solution, size);
 }
+
+int emili::pfsp::HFSP_WETDDW::computeObjectiveFunction(std::vector<int> &partial_solution)
+{
+	return instance.computeHWETDDW(partial_solution);
+}
+
+int emili::pfsp::HFSP_WETDDW::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
+{
+	return instance.computeHWETDDW(partial_solution, size);
+}
 /*
 #pragma region SSD
 

@@ -56,6 +56,7 @@
 #define PROBLEM_HFS_WT "HFSP_WT"
 #define PROBLEM_HFS_WE "HFSP_WE"
 #define PROBLEM_HFS_WET "HFSP_WET"
+#define PROBLEM_HFS_WETDDW "HFSP_WETDDW"
 #pragma endregion NEWCODE
 
 /* no wait permutation flowshop*/
@@ -327,6 +328,11 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
 		prs::printTab("Hybrid Flowshop weighted Earliness Tardiness");
 		prob = new emili::pfsp::HFSP_WET(i);
 	}
+	else if (strcmp(t, PROBLEM_HFS_WETDDW) == 0)
+	{
+		prs::printTab("Hybrid Flowshop weighted Earliness Tardiness with Due Date Windows");
+		prob = new emili::pfsp::HFSP_WETDDW(i);
+	}
 #pragma endregion NEWCODE
     else
     {
@@ -387,7 +393,7 @@ emili::LocalSearch* prs::ParamsParser::eparams(prs::TokenManager& tm)
 {
 	prs::incrementTabLevel();
 	emili::LocalSearch* ls;
-	//std::vector< int > sol ={0, 39, 29, 10, 50, 33, 25, 41, 28, 48, 8, 2, 22, 15, 31, 18, 43, 12, 30, 17, 13, 20, 34, 46, 27, 44, 37, 1, 40, 19, 9, 35, 49, 24, 42, 32, 36, 16, 6, 45, 14, 23, 21, 47, 26, 5, 3, 4, 11, 38, 7 };
+	//std::vector< int > sol = { 0, 10, 39, 29, 13, 44, 8, 31, 19, 17, 2, 43, 27, 25, 37, 6, 33, 30, 35, 16, 50, 20, 41, 49, 14, 47, 23, 45, 22, 1, 5, 9, 48, 36, 40, 34, 12, 42, 24, 15, 32, 46, 11, 3, 7, 4, 18, 38, 28, 26, 21 };
 	////std::vector< int > sol = {0, 29, 33, 10, 39, 44, 13, 41, 47, 31, 27, 9, 25, 30, 19, 37, 43, 4, 18, 20, 2, 5, 8, 22, 42, 1, 50, 6, 36, 23, 34, 14, 48, 35, 15, 45, 40, 46, 12, 24, 16, 32, 17, 49, 11, 3, 26, 28, 21, 7, 38 };
 	//PfspInstance& p = istance->getInstance();
 	//std::cout << p.computeHMS(sol) << std::endl;
@@ -1399,6 +1405,10 @@ bool prs::ParamsParser::isParsable(string &problem)
 		return true;
 	}
 	else if (strcmp(problem.c_str(), PROBLEM_HFS_WET) == 0)
+	{
+		return true;
+	}
+	else if (strcmp(problem.c_str(), PROBLEM_HFS_WETDDW) == 0)
 	{
 		return true;
 	}
