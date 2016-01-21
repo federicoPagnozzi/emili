@@ -619,6 +619,20 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
         float   te = tm.getInteger();
         float va = tm.getDecimal();
         return new SANeighSizeMaxItersReheat(it, neigh, te, va);
+    } else if (tm.checkToken(SAMAXSTEPSTEMPRESTART)) {
+        int   te = tm.getInteger();
+        return new SAMaxStepsTempRestart(it, te);
+    } else if (tm.checkToken(SAMAXSTEPSREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SAMaxStepsReheat(it, te, va);
+    } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSTEMPRESTART)) {
+        float   te = tm.getInteger();
+        return new SANeighSizeMaxStepsTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSREHEAT)) {
+        float   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SANeighSizeMaxStepsReheat(it, neigh, te, va);
     } else {
         std::cerr << "SATempRestart expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

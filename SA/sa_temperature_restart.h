@@ -520,4 +520,124 @@ public:
 }; // SANeighSizeMaxItersReheat
 
 
+class SAMaxStepsTempRestart: public SATempRestart {
+
+protected:
+    int tenure;
+    float init_temp;
+
+public:
+    SAMaxStepsTempRestart(SAInitTemp *it,
+                          int _tenure):
+        tenure(_tenure),
+        init_temp(it->get()),
+        SATempRestart(SAMAXSTEPSTEMPRESTART) { }
+
+    virtual float adjust(float temp) {
+        if (status->step > tenure) {
+            status->step = 0;
+            status->temp_restarts += 1;
+            return init_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SAMaxStepsTempRestart
+
+
+class SANeighSizeMaxStepsTempRestart: public SATempRestart {
+
+protected:
+    int tenure;
+    float init_temp;
+
+public:
+    SANeighSizeMaxStepsTempRestart(SAInitTemp *it,
+                                   emili::Neighborhood* neigh,
+                                   float _coeff):
+        tenure(_coeff * neigh->size()),
+        init_temp(it->get()),
+        SATempRestart(SANEIGHSIZEMAXSTEPSTEMPRESTART) { }
+
+    virtual float adjust(float temp) {
+        if (status->step > tenure) {
+            status->step = 0;
+            status->temp_restarts += 1;
+            return init_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SANeighSizeMaxStepsTempRestart
+
+
+class SAMaxStepsReheat: public SATempRestart {
+
+protected:
+    int tenure;
+    float alpha;
+
+public:
+    SAMaxStepsReheat(SAInitTemp *it,
+                          int _tenure,
+                          float _alpha):
+        tenure(_tenure),
+        alpha(_alpha),
+        SATempRestart(SAMAXSTEPSREHEAT) { }
+
+    virtual float adjust(float temp) {
+        if (status->step > tenure) {
+            status->step = 0;
+            status->temp_restarts += 1;
+            return temp / alpha;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SAMaxStepsReheat
+
+
+class SANeighSizeMaxStepsReheat: public SATempRestart {
+
+protected:
+    int tenure;
+    float alpha;
+
+public:
+    SANeighSizeMaxStepsReheat(SAInitTemp *it,
+                              emili::Neighborhood* neigh,
+                              float _coeff,
+                              float _alpha):
+        tenure(_coeff * neigh->size()),
+        alpha(_alpha),
+        SATempRestart(SANEIGHSIZEMAXSTEPSREHEAT) { }
+
+    virtual float adjust(float temp) {
+        if (status->step > tenure) {
+            status->step = 0;
+            status->temp_restarts += 1;
+            return temp / alpha;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SANeighSizeMaxStepsReheat
+
+
 #endif
