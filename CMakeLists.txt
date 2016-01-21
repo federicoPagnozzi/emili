@@ -2,8 +2,12 @@ SET(CMAKE_BUILD_TYPE Debug)
 project(EMILI)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
-aux_source_directory(./pfsp SRC_LIST)
-aux_source_directory(./examtt SRC_LIST)
+
+aux_source_directory(./examtt EXAMTT_SRC_LIST)
+aux_source_directory(./SA SA_SRC_LIST)
+aux_source_directory(./QAP QAP_SRC_LIST)
+aux_source_directory(./pfsp PFSP_SRC_LIST)
+
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g")
@@ -36,5 +40,5 @@ else ()
     #message(FATAL_ERROR "Your C++ compiler does not support C++11.")
 endif ()
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+add_executable(${PROJECT_NAME} emilibase.cpp ${EXAMTT_SRC_LIST} ${PFSP_SRC_LIST} generalParser.cpp main.cpp ${SA_SRC_LIST} ${QAP_SRC_LIST})
 

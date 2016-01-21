@@ -6,6 +6,8 @@
 #include <set>
 #include <string>
 
+#include "../emilibase.h"
+
 namespace prs {
 namespace ExamTT {
 
@@ -162,7 +164,7 @@ emili::Perturbation* ExamTTParser::per(prs::TokenManager& tm)
     prs::TabLevel level;
 
     if(tm.checkToken("noperturb"))
-        return new emili::NoPertubation();
+        return new emili::NoPerturbation();
 
     errorExpected(tm, "PERTURBATION", {"noperturb"});
 }

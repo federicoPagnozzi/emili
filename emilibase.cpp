@@ -1,3 +1,9 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
+
 #include "emilibase.h"
 #include <cstdlib>
 #include <cstdio>
@@ -100,6 +106,10 @@ clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch;
 
+double emili::getCurrentExecutionTime()
+{
+    return (double)((clock()-beginTime)/ (double)CLOCKS_PER_SEC);
+}
 
 static void finalise (int _)
 {
@@ -114,7 +124,7 @@ static void finalise (int _)
         std::cout << sol_val << std::endl;
        //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
-        std::cerr << sol_val << std::endl;
+        std::cerr << std::fixed << sol_val << std::endl;
         std::cerr << std::flush;
     }
     else
@@ -266,7 +276,7 @@ bool emili::Solution::operator>(emili::Solution& a)
 }
 
 double emili::Solution::getSolutionValue()
-{
+{    
     return solution_value;
 }
 
@@ -670,7 +680,7 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 
 */
 
-emili::Solution* emili::RandomMovePertubation::perturb(Solution *solution)
+emili::Solution* emili::RandomMovePerturbation::perturb(Solution *solution)
 {
     Solution* ret = explorer.random(solution);
 
@@ -683,7 +693,7 @@ emili::Solution* emili::RandomMovePertubation::perturb(Solution *solution)
     return ret;
 }
 
-emili::Solution* emili::VNRandomMovePertubation::perturb(Solution *solution)
+emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
 {
 
     Solution* ret = explorers[currentExplorer]->random(solution);
@@ -788,7 +798,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     //initialization done
     do{
 
-        //Pertubation step
+        //Perturbation step
         emili::Solution* s_p = pert.perturb(s);
         //local search on s_p
         if(s!=s_s && s_s != nullptr)
@@ -830,7 +840,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         //initialization done
         do{
             //iteration_increment();
-            //Pertubation step
+            //Perturbation step
             emili::Solution* s_p = pert.perturb(s);
            // std::cout << s_p->getSolutionValue() << std::endl;
             //local search on s_p
@@ -878,7 +888,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         //initialization done
         do{
 
-            //Pertubation step
+            //Perturbation step
             emili::Solution* s_p = pert.perturb(s);
             //local search on s_p
             s_s = ls.search(s_p);
@@ -1125,7 +1135,7 @@ emili::Solution* emili::GVNS::search(Solution* initial)
         //initialization done
         do{
 
-            //Pertubation step
+            //Perturbation step
             emili::Solution* s_p = perturbations[k]->perturb(s);
 
             //local search on s_p

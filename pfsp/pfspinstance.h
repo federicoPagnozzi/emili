@@ -1,30 +1,14 @@
-/***************************************************************************
- *   Copyright (C) 2012 by Jérémie Dubois-Lacoste   *
- *   jeremie.dl@gmail.com   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-
+//
+//  Created by by Jérémie Dubois-Lacoste and Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
 
 #ifndef _PFSPINSTANCEWT_H_
 #define _PFSPINSTANCEWT_H_
 
 #include <string>
 #include <vector>
-
 
 
 class PfspInstance{
@@ -148,7 +132,7 @@ class PfspInstance{
     long int computeNIMS(std::vector<int> & sol);
     /*Compute no idle partial make span*/
     long int computeNIMS(std::vector<int> &sol, int size);
-    /*Compute no idle make span iwthout computing the sums of machine 1 processing times*/
+    /*Compute no idle make span without computing the sums of machine 1 processing times*/
     long int computeNIMS(std::vector<int> &sol, long int nims);
     /*Compute no idle weighted tardiness*/
     long int computeNIWT(std::vector<int> &sol);
@@ -193,7 +177,7 @@ class PfspInstance{
 
 
     /* Compute weighted tardines starting from an index*/
-    long int computeWT(std::vector< int > & sol,std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
+    long int computeWT(std::vector< int > & sol, std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
 
     long int computeWT(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     //to compute WT and save the values for the job job

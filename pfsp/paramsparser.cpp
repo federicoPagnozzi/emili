@@ -1,3 +1,8 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
 #include "paramsparser.h"
 #include <cstdlib>
 #include <cstdio>
@@ -17,6 +22,7 @@
 #define VND "vnd"
 #define GVNS_ILS "gvns"
 #define TEST_INIT "stin"
+#define EMPTY_LOCAL "nols"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -115,6 +121,7 @@
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
 #define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
+#define NEIGHBORHOOD_OPT_INSERT "oinsert"
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NATAx_INSERT "natxinsert"
 #define NEIGHBORHOOD_NATA2x_INSERT "natx2insert"
@@ -122,20 +129,21 @@
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 
-/* permutation flowshop solution pertubations */
-#define PERTUBATION_RANDOM_MOVE "rndmv"
-#define PERTUBATION_VNRANDOM_MOVE "vnrmv"
-#define PERTUBATION_NOPER "noper"
-#define PERTUBATION_RND "randpert"
-#define PERTUBATION_NRZ "nrzper"
-#define PERTUBATION_TMIIG "tmiigper"
-#define PERTUBATION_SOA "igper"
-#define PERTUBATION_SOA_LEGACY "soaper"
-#define PERTUBATION_TEST "testper"
-#define PERTUBATION_IGLS "igls"
-#define PERTUBATION_RSLS "rsls"
-#define PERTUBATION_RS "rsper"
-#define PERTUBATION_RSFF "rsff"
+/* permutation flowshop solution perturbations */
+#define PERTURBATION_RANDOM_MOVE "rndmv"
+#define PERTURBATION_VNRANDOM_MOVE "vnrmv"
+#define PERTURBATION_NOPER "noper"
+#define PERTURBATION_RND "randpert"
+#define PERTURBATION_NRZ "nrzper"
+#define PERTURBATION_TMIIG "tmiigper"
+#define PERTURBATION_SOA "igper"
+#define PERTURBATION_SOA_LEGACY "soaper"
+#define PERTURBATION_TEST "testper"
+#define PERTURBATION_IGLS "igls"
+#define PERTURBATION_RSLS "rsls"
+#define PERTURBATION_RS "rsper"
+#define PERTURBATION_RSFF "rsff"
+#define PERTURBATION_IGIO "igio"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -347,15 +355,15 @@ std::string prs::ParamsParser::info()
               << PROBLEM_NIPFS_MS <<" "<<PROBLEM_NIPFS_WT<< " " <<PROBLEM_NIPFS_WE<< " " <<PROBLEM_NIPFS_TCT<< " " <<PROBLEM_NIPFS_MS<< " "
               << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E <<"\n";
     oss << "LOCAL_SEARCH          = SEARCH_TYPE INITIAL_SOLUTION TERMINATION NEIGHBORHOOD" <<"\n";
-    oss << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTUBATION ACCEPTANCE -it seconds" << "\n";
+    oss << "ITERATED_LOCAL_SEARCH = ils LOCAL_SEARCH TERMINATION PERTURBATION ACCEPTANCE -it seconds" << "\n";
     oss << "TABU_SEARCH           = tabu < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD TABU_MEMORY " << "\n";
     oss << "VND_SEARCH            = vnd < first | best > INITIAL_SOLUTION TERMINATION NEIGHBORHOOD1 NEIGHBORHOOD2 ... NEIGHBORHOODn" << "\n";
-    oss << "GVNS_SEARCH           = gvns INITIAL_SOLUTION PERTUBATION1 PERTUBATION2 -it seconds" << "\n";
+    oss << "GVNS_SEARCH           = gvns INITIAL_SOLUTION PERTURBATION1 PERTURBATION2 -it seconds" << "\n";
     oss << "SEARCH_TYPE           = first | best | tabu | vnd | ils" << "\n";
     oss << "INITIAL_SOLUTION      = random | slack | nwslack | lit | rz | nrz | nrz2 | lr size(int)| nlr size(int) | mneh" <<"\n";
     oss << "TERMINATION           = true | time float | locmin | soater | iteration int | maxstep int" << "\n";
     oss << "NEIGHBORHOOD          = transpose | exchange | insert | binsert | finsert | tinsert | "<< NEIGHBORHOOD_TA_INSERT << " | " << NEIGHBORHOOD_NITA_INSERT<<"\n";
-    oss << "PERTUBATION           = igper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int) (int) | igls (int) LOCAL_SEARCH | rsls (int) LOCAL_SEARCH" << "\n";
+    oss << "PERTURBATION           = igper int | testper | rndmv NEIGHBORHOOD #moves(int) | noper (int) | nrzper (int) | tmiigper (int) (int) | igls (int) LOCAL_SEARCH | rsls (int) LOCAL_SEARCH" << "\n";
     oss << "ACCEPTANCE            = soaacc float | testacc #swaps(int) | metropolis start_temperature(float) | always (intensify | diversify) | improve | sa_metropolis start_temp end_temp ratio | pmetro start_temp end_temp ratio frequence(int) | saacc start_temp end_temp ratio frequence(int) alpha ]0,1] | tmiigacc start_temperature(float) | implat number_of_non_improving_steps_accepted plateau_threshold" << std::endl;
     oss << "TABU_MEMORY           = move size(int) | hash size(int) | solution size(int) | tsabm size(int)" << "\n";
    // std::cout << " syntax->EMILI instancefile search_type intial_solution termination neighborhood" << std::endl;
@@ -435,6 +443,11 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         std::cerr << s-> getSolutionValue() << std::endl;
         exit(-1);
     }
+    else if(tm.checkToken(EMPTY_LOCAL))
+    {
+        emili::InitialSolution* ini = init(tm);
+        ls = new emili::EmptyLocalSearch(*ini);
+    }
     else
     {
         std::cerr<< "'" << tm.peek() << "' -> ERROR a search definition was expected! " << std::endl;
@@ -468,33 +481,33 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     prs::incrementTabLevel();
     std::ostringstream oss;
     emili::Perturbation* per;
-    if(tm.checkToken(PERTUBATION_SOA) || tm.checkToken(PERTUBATION_SOA_LEGACY))
+    if(tm.checkToken(PERTURBATION_SOA) || tm.checkToken(PERTURBATION_SOA_LEGACY))
     {
         int n = tm.getInteger();
 
-        oss << "NEH destruct/construct pertubation which use objective function. number of job erased: "<<n;
+        oss << "NEH destruct/construct perturbation which use objective function. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGPerturbation(n,*istance);
-    }else if(tm.checkToken(PERTUBATION_RS))
+    }else if(tm.checkToken(PERTURBATION_RS))
     {
         int n = tm.getInteger();
 
-        oss << "NEH destruct/construct pertubation. number of job erased: "<<n;
+        oss << "NEH destruct/construct perturbation. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::RSPertubation(n,*istance);
+        per = new emili::pfsp::RSPerturbation(n,*istance);
     }
-    else if(tm.checkToken(PERTUBATION_RSFF))
+    else if(tm.checkToken(PERTURBATION_RSFF))
         {
             int n = tm.getInteger();
 
-            oss << "NEH destruct/construct pertubation with tbff tie breaking. number of job erased: "<<n;
+            oss << "NEH destruct/construct perturbation with tbff tie breaking. number of job erased: "<<n;
             printTab(oss.str().c_str());
-            per = new emili::pfsp::RSffPertubation(n,*istance);
+            per = new emili::pfsp::RSffPerturbation(n,*istance);
         }
-    else if(tm.checkToken(PERTUBATION_IGLS))
+    else if(tm.checkToken(PERTURBATION_IGLS))
     {
         int n = tm.getInteger();
-        oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
+        oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
         PfspInstance pfs = this->istance->getInstance();
         pfs.setNbJob(pfs.getNbJob()-n);
@@ -503,12 +516,12 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         this->istance = pfse;
         emili::LocalSearch* ll = search(tm);
         this->istance = is;
-        per = new emili::pfsp::IgLsPertubation(n,*istance,ll);
+        per = new emili::pfsp::IgLsPerturbation(n,*istance,ll);
     }
-    else if(tm.checkToken(PERTUBATION_RSLS))
+    else if(tm.checkToken(PERTURBATION_RSLS))
     {
         int n = tm.getInteger();
-        oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
+        oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
         PfspInstance pfs = this->istance->getInstance();
         pfs.setNbJob(pfs.getNbJob()-n);
@@ -517,41 +530,41 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         this->istance = pfse;
         emili::LocalSearch* ll = search(tm);
         this->istance = is;
-        per = new emili::pfsp::RSLSPertubation(n,*istance,ll);
+        per = new emili::pfsp::RSLSPerturbation(n,*istance,ll);
     }
-    else if(tm.checkToken(PERTUBATION_TEST))
+    else if(tm.checkToken(PERTURBATION_TEST))
     {
-        oss.str(""); oss<< "Random swap test pertubation.";
+        oss.str(""); oss<< "Random swap test perturbation.";
         printTab(oss.str().c_str());
         per = new emili::pfsp::PfspRandomSwapPertub(*istance);
-    }else if(tm.checkToken(PERTUBATION_RANDOM_MOVE))
+    }else if(tm.checkToken(PERTURBATION_RANDOM_MOVE))
     {
         printTab("Random move perturbation.");
         emili::Neighborhood* n = neigh(tm);
         int num = tm.getInteger();
         prs::incrementTabLevel();
-        oss.str(""); oss  << "number of moves per pertubation step " << num;
+        oss.str(""); oss  << "number of moves per perturbation step " << num;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
-        per = new emili::RandomMovePertubation(*n,num);
+        per = new emili::RandomMovePerturbation(*n,num);
     }
-    else if(tm.checkToken(PERTUBATION_NOPER))
+    else if(tm.checkToken(PERTURBATION_NOPER))
     {
-        printTab("No pertubation.");
-        per = new emili::NoPertubation();
+        printTab("No PERTURBATION.");
+        per = new emili::NoPerturbation();
     }
-    else if(tm.checkToken(PERTUBATION_NRZ))
+    else if(tm.checkToken(PERTURBATION_NRZ))
     {
         int n = tm.getInteger();
-        oss.str(""); oss  << "neh rz destruct/construct pertubation. number of job erased: "<<n;
+        oss.str(""); oss  << "neh rz destruct/construct PERTURBATION. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::NRZPertubation(n,*istance);
-    }else if(tm.checkToken(PERTUBATION_VNRANDOM_MOVE))
+        per = new emili::pfsp::NRZPerturbation(n,*istance);
+    }else if(tm.checkToken(PERTURBATION_VNRANDOM_MOVE))
     {
         printTab("Random move perturbation." );
         prs::incrementTabLevel();
         int num = tm.getInteger();
-        oss.str(""); oss  << "number of moves per pertubation step " << num << ".\n\t";
+        oss.str(""); oss  << "number of moves per perturbation step " << num << ".\n\t";
         printTab(oss.str().c_str());
         int iter = tm.getInteger();
         oss.str(""); oss  << "number of iteration before changing the neighborhood " << iter << ".\n\t";
@@ -559,19 +572,27 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         nes.clear();
         prs::decrementTabLevel();
         neighs(tm);
-        per = new emili::VNRandomMovePertubation(nes,num,iter);
+        per = new emili::VNRandomMovePerturbation(nes,num,iter);
     }
-    else if(tm.checkToken(PERTUBATION_TMIIG))
+    else if(tm.checkToken(PERTURBATION_TMIIG))
     {
         int num = tm.getInteger();
         int tsize = tm.getInteger();
-        oss.str(""); oss  << "TMIIG pertubation. Number of job erased " << num << ". tabu list size " << tsize <<".\n\t";
+        oss.str(""); oss  << "TMIIG PERTURBATION. Number of job erased " << num << ". tabu list size " << tsize <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::TMIIGPertubation(num,*istance,tsize);
+        per = new emili::pfsp::TMIIGPerturbation(num,*istance,tsize);
+    }
+    else if(tm.checkToken(PERTURBATION_IGIO))
+    {
+        int num = tm.getInteger();
+
+        oss.str(""); oss  << "IGIO PERTURBATION. Number of job erased " << num <<".\n\t";
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::IGIOPerturbation(num,*istance);
     }
     else
     {
-        std::cerr<< "'" << tm.peek() << "' -> ERROR a pertubation criteria specification was expected! " << std::endl;
+        std::cerr<< "'" << tm.peek() << "' -> ERROR a perturbation criteria specification was expected! " << std::endl;
         std::cout << info() << std::endl;
         exit(-1);
     }
@@ -1058,17 +1079,17 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     }
     else if(tm.checkToken(NEIGHBORHOOD_OPT_EXCHANGE))
     {
-        printTab( "Exchange neighborhood");
+        printTab( "Optimized Exchange neighborhood");
         neigh = new emili::pfsp::OptExchange(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATX_EXCHANGE))
        {
-           printTab( "Exchange neighborhood");
+           printTab( "Exchange neighborhood with speedup");
            neigh = new emili::pfsp::HaxtExchange(*istance);
        }
        else if(tm.checkToken(NEIGHBORHOOD_EATX_EXCHANGE))
        {
-           printTab( "Exchange neighborhood");
+           printTab( "Exchange neighborhood with speedup");
            neigh = new emili::pfsp::EaxtExchange(*istance);
        }
     else if(tm.checkToken(NEIGHBORHOOD_TRANSPOSE))
@@ -1096,10 +1117,15 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
         printTab( "Insert with Taillard Acceleration(Experimental)");
         neigh = new emili::pfsp::TAxInsertNeighborhood(*istance);
     }
-    else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
+    else if(tm.checkToken(NEIGHBORHOOD_OPT_INSERT))
     {
         printTab( "Delta Evaluation Insert for Weighted Tardiness");
-        neigh = new emili::pfsp::ApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
+        neigh = new emili::pfsp::OptInsert(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
+    {
+        printTab( "Atx Delta Evaluation Insert for Weighted Tardiness");
+        neigh = new emili::pfsp::AtxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {

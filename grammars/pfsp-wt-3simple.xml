@@ -67,7 +67,7 @@
 	   <![CDATA[transpose ]]>
 	<or/>
 	   <!--<![CDATA[insert ]]>-->
-	   <![CDATA[hatxinsert ]]>
+	   <![CDATA[natxinsert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
@@ -77,6 +77,8 @@
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
+		<![CDATA[igio ]]><pfsp:sp_impact/><![CDATA[ ]]>
+	  	<or/>
 		<!-- <![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	  	<or/> -->
 		<![CDATA[igper ]]><pfsp:sp_impact/><![CDATA[ ]]>
