@@ -695,7 +695,9 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
-
+/*
+ * One level approximation no threshold
+ */
 class HeavilyApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
 protected:
@@ -716,7 +718,9 @@ protected:
 public:
     OptInsert(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
 };
-
+/*
+ * One level approximation
+ */
 class NatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:    
@@ -724,7 +728,9 @@ protected:
 public:
     NatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
 };
-
+/*
+ * One level approximation with experimental performance improvement tricks
+ */
 class Natx2Neighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
@@ -736,7 +742,9 @@ public:
     Natx2Neighborhood(PermutationFlowShop& problem, int starting_threshold):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),thresh(starting_threshold) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
-
+/*
+ * zero level approximation
+ **/
 class AtxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
@@ -745,6 +753,9 @@ public:
     AtxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
 };
 
+/*
+ * Two level approximation
+ */
 class EatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
@@ -753,14 +764,37 @@ public:
     EatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
 };
 
+/*
+ * Three level approximation
+ */
+class ThatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    ThatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
+};
+
+/*
+ * Four level approximation
+ */
+class FatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    FatxNeighborhood(PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem) { }
+};
+/*
+ * One level approximation Threshold testbed
+ */
 class TatxNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
 {
 protected:
-    float aptre;
-    int aplev;
+    float aptre;    
     virtual Solution* computeStep(Solution *value);
 public:
-    TatxNeighborhood(float approximation_start_threshold, int approximation_level, PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),aplev(problem.getNmachines()-approximation_level),aptre(approximation_start_threshold*problem.getNjobs()) { }
+    TatxNeighborhood(float approximation_start_threshold, PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),aptre(approximation_start_threshold*problem.getNjobs()) { }
 };
 
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
