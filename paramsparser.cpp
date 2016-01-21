@@ -495,14 +495,18 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     emili::Perturbation* per;
     if(tm.checkToken(PERTUBATION_SOA) || tm.checkToken(PERTUBATION_SOA_LEGACY))
     {
+	int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
 
         oss << "NEH destruct/construct pertubation which use objective function. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGPerturbation(n,*istance);
     }else if(tm.checkToken(PERTUBATION_RS))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
 
         oss << "NEH destruct/construct pertubation. number of job erased: "<<n;
         printTab(oss.str().c_str());
@@ -510,7 +514,9 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTUBATION_RSFF))
         {
-            int n = tm.getInteger();
+            int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
 
             oss << "NEH destruct/construct pertubation with tbff tie breaking. number of job erased: "<<n;
             printTab(oss.str().c_str());
@@ -518,7 +524,9 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         }
     else if(tm.checkToken(PERTUBATION_IGLS))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
         PfspInstance pfs = this->istance->getInstance();
@@ -532,7 +540,9 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTUBATION_RSLS))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
         PfspInstance pfs = this->istance->getInstance();
@@ -567,7 +577,9 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTUBATION_NRZ))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         oss.str(""); oss  << "neh rz destruct/construct pertubation. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::NRZPertubation(n,*istance);
@@ -588,11 +600,13 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTUBATION_TMIIG))
     {
-        int num = tm.getInteger();
-        int tsize = tm.getInteger();
-        oss.str(""); oss  << "TMIIG pertubation. Number of job erased " << num << ". tabu list size " << tsize <<".\n\t";
+        int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+	int tsize = tm.getInteger();
+        oss.str(""); oss  << "TMIIG pertubation. Number of job erased " << n << ". tabu list size " << tsize <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::TMIIGPertubation(num,*istance,tsize);
+        per = new emili::pfsp::TMIIGPertubation(n,*istance,tsize);
     }
     else
     {
