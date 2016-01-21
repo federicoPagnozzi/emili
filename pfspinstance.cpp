@@ -208,6 +208,21 @@ long int PfspInstance::getTime(int job, int machine)
   }
 }
 
+void cheatingCodeToInitializePriorityAndWeights(vector<long int>& priority, vector<long int>& weightsE)
+{
+	if (priority[1] == 0){
+		for (int i = 1; i < priority.size(); i++)
+		{
+			priority[i] = 1;
+		}
+	}
+	if (weightsE[1] == 0){
+		for (int i = 1; i < weightsE.size(); i++)
+		{
+			weightsE[i] = 1;
+		}
+	}
+}
 
 /* Read the instance from file : */
 bool PfspInstance::readDataFromFile(char * fileName)
@@ -372,6 +387,9 @@ bool PfspInstance::readDataFromFile(char * fileName)
 				tardinessDD[j] = readValue;
 			}
 		}
+
+		cheatingCodeToInitializePriorityAndWeights(priority, weightsE);
+
 #pragma endregion NEWCODE
         if(!silence)
         cout << "All is read from file." << std::endl;
@@ -576,6 +594,9 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 				tardinessDD[j] = readValue;
 			}
 		}
+
+		cheatingCodeToInitializePriorityAndWeights(priority, weightsE);
+
 #pragma endregion NEWCODE
         if(!silence)
         cout << "All is read from file." << std::endl;
