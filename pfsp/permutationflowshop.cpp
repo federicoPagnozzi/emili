@@ -1892,9 +1892,12 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     //
       emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
       s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
-      s =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
-      solPartial = s->getJobSchedule();
-
+      emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
+      
+      solPartial = s_n->getJobSchedule();
+	
+      delete s;
+      delete s_n;
     for(int l=0;l<removed.size();l++){
         sops++;
         k=removed[l];
@@ -1924,7 +1927,6 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
-    delete s;
     //assert(min == instance.computeObjectiveFunction(solPartial));
     s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
     instance.evaluateSolution(*s);

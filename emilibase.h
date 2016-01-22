@@ -557,6 +557,7 @@ public:
             }
             else
             {
+		delete new_s;
                 i = i+1;
             }
         }while(i < neigh.size());
