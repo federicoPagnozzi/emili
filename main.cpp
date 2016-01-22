@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     float maxTime;
     char *instanceName;
     char *solutionName;
-    int teamID = 42;
+    char *teamID = "S11";
     int randomSeed = 0;
 
     bool isDeterministic = false;
@@ -43,80 +43,30 @@ int main(int argc, char *argv[])
             if (i + 1 != argc){
                 if (strcmp(argv[i],"-t") == 0) {
                     maxTime = atof(argv[i + 1]);
-                    cout<<"\nTIME: "<<maxTime;
+//                    cout<<"\nTIME: "<<maxTime;
                 } else if (strcmp(argv[i],"-p") == 0) {
                     instanceName = argv[i + 1];
-                    cout<<"\nINSTANCE: "<<instanceName;
+//                    cout<<"\nINSTANCE: "<<instanceName;
                 } else if (strcmp(argv[i],"-o") == 0) {
                     solutionName = argv[i + 1];
-                    cout<<"\nSOLUTION: "<<solutionName;
+//                    cout<<"\nSOLUTION: "<<solutionName;
                 } else if (strcmp(argv[i],"-name") == 0) {
-                    cout<<"\nTEAM ID: "<<teamID;
+                    cout<<"\nTEAM ID: "<<teamID<<"\n";
                 } else if (strcmp(argv[i],"-s") == 0) {
                     randomSeed = atoi(argv[i + 1]);
-                    cout<<"\nSEED: "<<randomSeed;
+//                    cout<<"\nSEED: "<<randomSeed;
                     isDeterministic = true;
                 }
             }
         }
 
-        cout<<"\n";
+//        cout<<"\n";
     }
 
 
     if(isDeterministic)
      emili::initializeRandom(randomSeed);
-/*
-    emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
-       emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
-       emili::Termination* te= new emili::LocalMinimaTermination();
-       double riv = 0.0;
-       double rs = 0.1;
-       emili::Neighborhood* ne = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
-       emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
 
-
-       emili::Termination* pft = new emili::TimedTermination(maxTime);
-
-       unsigned int  piv = 5;
-       unsigned int ps2 = 3;
-       emili::Neighborhood* n = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
-       unsigned int num = 3;
-       emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
-
-       double start = 1.5613;
-       double end = 0.4880;
-       double ratio = 0.0488;
-       emili::Acceptance* tac = new  emili::Metropolis(start,end,ratio);
-       emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
-   //    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
-       emili::Solution* solution;
-       solution = ls->search();
-       solution = ls->getBestSoFar();
-*/
-/*
-    emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
-    emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
-    emili::Termination* te= new emili::LocalMinimaTermination();
-    unsigned int  piv = 2;
-    unsigned int ps2 = 1;
-    emili::Neighborhood* ne = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
-    emili::LocalSearch* ils =  new emili::FirstImprovementSearch(*in,*te,*ne);
-
-
-    emili::Termination* pft = new emili::TimedTermination(maxTime);
-    piv = 0;
-    ps2 = 3;
-    emili::Neighborhood* n = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
-    unsigned int num = 3;
-    emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
-    emili::Acceptance* tac = new emili::ImproveAccept();
-    emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
-//    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
-    emili::Solution* solution;
-    solution = ls->search();
-    solution = ls->getBestSoFar();
-*/
 
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
     emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
@@ -135,30 +85,25 @@ int main(int argc, char *argv[])
     emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
     emili::Acceptance* tac = new  emili::MetropolisAcceptance(3.5);
     emili::LocalSearch*ls = new emili::IteratedLocalSearch(*ils,*pft,*prsp,*tac);
-//    ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+
     emili::Solution* solution;
     solution = ls->search();
     solution = ls->getBestSoFar();
 
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-    std::cout << "time : " << time_elapsed << std::endl;
+/*    std::cout << "time : " << time_elapsed << std::endl;
     std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
     std::cerr << solution->getSolutionValue() << std::endl;
     //cerr << time_elapsed << " ";
     std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
-//    std::cout << std::endl;
-
+    std::cout << std::endl;
+*/
     emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
 
-
     string filepath;
- //   filepath.append("./Neighborhood/");
     filepath.append("./");
-//    filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
-//    filepath.append(to_string(this->numberFeasibleSolutions));
-//    filepath.append("./");
     filepath.append(solutionName);filepath.append(".xml");
     bestSolution->getIrpSolution().saveSolution(filepath);
 

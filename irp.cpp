@@ -244,8 +244,8 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 //            COUT<<"\nNEIGH FEASIBLE!\n";
             this->numberFeasibleSolutions++;
             this->bestValueFound = irs.getSolutionValue();
-         /*   string filepath;
-            filepath.append("./Neighborhood/");
+            string filepath;
+        /*    filepath.append("./Neighborhood/");
             filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
             filepath.append(to_string(this->numberFeasibleSolutions));
             filepath.append("NeighSolution.xml");
