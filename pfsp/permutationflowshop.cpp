@@ -2925,8 +2925,11 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
         }
         end_position = ((end_position)%njobs)+1;
         newsol.insert(newsol.begin()+end_position,sol_i);
-
+#ifdef ENABLE_SSE
+        float ins_pos[nmac+1];
+#else
         int ins_pos[nmac+1];
+#endif
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -2962,6 +2965,20 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             {
                 thresh++;
             }
+#ifndef ENABLE_SSE
+            std::vector< long int > pmet(njobs+1,0);
+            computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
+           for(int k=end_position+1; k<= njobs; k++)
+            {
+               int job = newsol[k];
+               pre_wt += (std::max(pmet[k] - pis.getDueDate(job), 0L) * pis.getPriority(job));
+               if(pre_wt > value_wt)
+                 {
+                   break;
+                 }
+           }
+
+#else
             for(int k=end_position+1; k<= njobs; k++)
             {
                 int job = newsol[k];
@@ -2991,6 +3008,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
                 }
 
             }
+#endif
 
             value->setSolutionValue(pre_wt);
 

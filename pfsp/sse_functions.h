@@ -1473,12 +1473,13 @@ inline void computeTAIL(std::vector<int> &sol,std::vector< std::vector < int > >
     }
 }
 
-inline void computePMakespans(std::vector<int>& sol,std::vector< long >& previousMachineEndTime, std::vector<std::vector< long> >& pmat,int nbJob, int nbMac,std::vector<float>& L)
+inline void computePMakespans(std::vector<int>& sol,std::vector< long >& previousMachineEndTime,const std::vector<std::vector< long> >& pmat,int nJob, int nbMac,int starting_job,float* L)
 {
 
     /* Permutation flowshop makespan computation using SSE instructions
      **/
     // Each sse register can contain 4 float so the computation is divided in groups of 4 jobs
+    int nbJob = nJob-starting_job;
     int r4 = nbJob%4;
     int lambda_number =  r4==0?nbJob/4:(nbJob/4+1); // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
     if(r4>0)
@@ -1489,7 +1490,7 @@ inline void computePMakespans(std::vector<int>& sol,std::vector< long >& previou
             previousMachineEndTime.push_back(0);
         }
     }
-    int j=1;
+    int j=starting_job;
      // the makespan for each machine of the fourth job in the last group ( at the beginning is zero)
     float res[4] __attribute__((aligned(16)));
     int* k = (int*)res;
@@ -1523,7 +1524,7 @@ inline void computePMakespans(std::vector<int>& sol,std::vector< long >& previou
     k[2] = 0xffffffff;
     k[3] = 0;
     __m128 mask0010 = _mm_load_ps(res);
-    __m128 K = _mm_setzero_ps();
+    __m128 K = _mm_set_ps1(L[1]);
 
     for(int l = 0 ; l < lambda_number ; l++)
     {
