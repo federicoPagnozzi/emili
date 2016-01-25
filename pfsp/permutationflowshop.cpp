@@ -2965,7 +2965,8 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             {
                 thresh++;
             }
-#ifndef ENABLE_SSE
+            /*
+#ifdef ENABLE_SSE
             std::vector< long int > pmet(njobs+1,0);
             computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
            for(int k=end_position+1; k<= njobs; k++)
@@ -2979,6 +2980,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
            }
 
 #else
+*/
             for(int k=end_position+1; k<= njobs; k++)
             {
                 int job = newsol[k];
