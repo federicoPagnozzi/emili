@@ -1611,13 +1611,8 @@ long int inline simpleIdleInsertion(vector<vector<pair<int, int>>>& LSCompleteSR
 {
 	int stages = machinesPerStage.size() - 1;
 	int mInLastStage = machinesPerStage[stages];
-
-	// Add dummy job behind to make the + inifinite (or similar)
-	for (int i = 0; i < mInLastStage; i++)
-		LSCompleteSR[i].push_back(pair<int, int>(0, std::numeric_limits<int>::max()));
-
 	int improvements = 0;
-
+		
 	// Foreach machine
 	for (int i = 0; i < mInLastStage; i++)
 	{
@@ -1656,6 +1651,134 @@ long int inline simpleIdleInsertion(vector<vector<pair<int, int>>>& LSCompleteSR
 	}
 	return improvements;
 }
+
+
+
+long int inline complexIdleInsertion(vector<vector<pair<int, int>>>& LSCompleteSR,
+	vector< int >& idleTI, vector< int >& machinesPerStage, vector<vector<long int>>& processingTimesMatrix,
+	vector<long int>& earlinessDD, vector<long int>& tardinessDD, vector<long int>& priority, vector<long int>& weightsE)
+{
+////////////////////////////////////////////////////////////////////////
+//////   Problemo con los indices... Al meter el job final   ///////////
+//////   para tener el mas infinito, ahora tengo un indice   ///////////
+//////   de std::numeric_limits<int>::max(); que se buscara en los jobs, o se metera...  ///////////
+// Intento de solucion, poniendo 0, ya que será el job fantasma de Federico con 0 PT :)
+////////////////////////////////////////////////////////////////////////
+
+// Try now to move block is needed. There could be the case:
+// 4 Jobs are together. Job 1 and 2 have earliness with acumulated w of 10, job 3 has no tardiness for next 10 positions 
+// with weight 6 and job 4 has tardiness weight 6. Between jobs 4 and 5 there is a gap of 13. 
+// If we move the block (all jobs), we must consider simultaneously all weight and Tardiness/Earliness, also gap with next job.
+
+// The way of doing it is studying forward job by job, making a block, and cumulating all weights. 
+// If weights show an improvement posible we can move all the block to the right. But we should do it 
+// a maximum number of positions equivalent to the minimum of all the changeing states of that formula
+// (when we fill the gap with next job or one of the jobs changes of state(early, tardy or on time))
+
+	int stages = machinesPerStage.size() - 1;
+	int mInLastStage = machinesPerStage[stages];
+	int improvements = 0;
+
+	// Foreach machine
+	for (int i = 0; i < mInLastStage; i++)
+	{
+		int dimSize = LSCompleteSR[i].size();
+
+		// Foreach job in this machine, starting from the second to last.
+		for (int j = dimSize - 2; j >= 0; j--)
+		{
+			//int k = j + 1; // His follower
+			int jobj = LSCompleteSR[i][j].first;
+
+			int gap = 0;
+			int minMovementToChange = std::numeric_limits<int>::max();
+			int weightsBalance = 0;
+			int endOfBlock = 0;
+
+			int k = -1;
+			// Elaborate the block checking gaps between elements and his following
+			for (k = j; k < dimSize - 1; k++)
+			{
+				gap = 0;
+				int jobk = LSCompleteSR[i][k].first;
+				int nextJob = LSCompleteSR[i][k + 1].first;
+
+				// Gap is the distance between finishing one job and starting next one. 
+				int endk = LSCompleteSR[i][k].second + idleTI[jobk];
+				int nextStart = (LSCompleteSR[i][k + 1].second - processingTimesMatrix[nextJob][stages]) + idleTI[nextJob];
+
+				int movementToChange = 0;
+
+				// Distance to tardiness due date, negative means, there is not tardiness yet.
+				int tardiness = endk - tardinessDD[jobk];
+				int earliness = earlinessDD[jobk] - endk;
+
+				// If early, save distance to end of earliness and Earliness Weight * -1.
+				if (earliness > 0)
+				{
+					movementToChange = earliness;
+					weightsBalance += weightsE[jobk] * -1;
+					// Its negative because we are reducing Objective function value when inserting idle times. 
+				}
+				else
+				{
+					// Else if tardy. Save distance to tardiness and Tardiness Weight
+					if (tardiness >= 0)
+					{
+						movementToChange = std::numeric_limits<int>::max();
+						weightsBalance += priority[jobk];
+					}
+					// Else, If on time, save distance to tardiness and weight 0.
+					else
+					{
+						movementToChange = tardiness * -1;
+						weightsBalance += 0;
+					}
+				}
+
+				gap = nextStart - endk;
+
+				minMovementToChange = std::min(minMovementToChange, movementToChange);
+
+				if (gap > 0)
+				{
+					endOfBlock = k;
+					minMovementToChange = std::min(minMovementToChange, gap);
+
+					// We break for, because we already have a block.
+					break;
+				}
+			}
+
+			// Now we have a block j to k (j =< k)
+			// We have the movement until the balance of weights change. 
+			// And we have the change of the objective function per unit moved (can be 0 or negative)
+
+			// If movement is not beneficial, continue studing next element. 
+			// if (weightsBalance >= 0) continue;
+			// If movement  
+			if (weightsBalance > 0) continue;
+			else
+			{
+				// Move the elements with idle time insertion
+				for (int x = j; x <= k; x++)
+				{
+					int jobx = LSCompleteSR[i][x].first;
+					idleTI[jobx] += minMovementToChange;
+				}
+
+				improvements += minMovementToChange * weightsBalance;
+
+				// BECAUSE WE HAD IMPROVED, BUT COULD BE REQUIRED ANOTHER MOVE IN SAME BLOCK TO IMRPOVE MORE
+				// I DO THIS DIRTY SHIT UNTILL I SWAP TO DoWhile with conditional incrementation
+				j = j++;
+			}
+
+		}
+	}
+	return improvements;
+}
+
 
 /*compute partial weighted earliness tardiness with Due Date Windows*/
 long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
@@ -1764,14 +1887,16 @@ long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
 		}
 
 	}
+	
+	int improvements = 0;
 
 	// Add dummy job behind to make the + inifinite (or similar)
 	for (int i = 0; i < mInLastStage; i++)
 		LSCompleteSR[i].push_back(pair<int, int>(0, std::numeric_limits<int>::max()));
 
-	int improvements = 0;
+#ifdef SIMPLE_IDLE_INSERTION22
 
-#ifdef SIMPLE_IDLE_INSERTION312
+
 	// Foreach machine
 	for (int i = 0; i < mInLastStage; i++)
 	{
@@ -1812,14 +1937,15 @@ long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
 	wET -= improvements;
 	improvements = 0;
 #else
-
+	
 	improvements = simpleIdleInsertion(LSCompleteSR, idleTI, machinesPerStage, processingTimesMatrix, earlinessDD, tardinessDD, weightsE);
 		
 	wET -= improvements;
 	improvements = 0;
-
+	
 #endif
 	
+#ifdef COMPLEX_IDLE_INSERTION
 	////////////////////////////////////////////////////////////////////////
 	//////   Problemo con los indices... Al meter el job final   ///////////
 	//////   para tener el mas infinito, ahora tengo un indice   ///////////
@@ -1935,17 +2061,16 @@ long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
 
 		}
 	}
+#else
 
+	improvements = complexIdleInsertion(LSCompleteSR, idleTI, machinesPerStage, processingTimesMatrix, earlinessDD, tardinessDD, priority, weightsE);
+
+#endif
 	wET += improvements;
 
 	// Weighted Earliness Tardiness
 	return wET;
 }
-
-
-
-
-
 
 
 /*compute partial weighted earliness tardiness with Due Date Windows*/
