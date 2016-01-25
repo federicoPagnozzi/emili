@@ -127,6 +127,8 @@
 #define NEIGHBORHOOD_NATA2x_INSERT "natx2insert"
 #define NEIGHBORHOOD_THATAx_INSERT "thatxinsert"
 #define NEIGHBORHOOD_FATAx_INSERT "fatxinsert"
+#define NEIGHBORHOOD_PATAx_INSERT "patxinsert"
+#define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
@@ -1168,6 +1170,16 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     {
         printTab( "Approximated Insert for Weighted Tardiness with 3 levels of approximation");
         neigh = new emili::pfsp::ThatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_PATAx_INSERT))
+    {
+        printTab( "Approximated Insert for Weighted Tardiness with 5 levels of approximation");
+        neigh = new emili::pfsp::PatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_SATAx_INSERT))
+    {
+        printTab( "Approximated Insert for Weighted Tardiness with 6 levels of approximation");
+        neigh = new emili::pfsp::SatxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_FATAx_INSERT))
     {
