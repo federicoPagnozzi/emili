@@ -778,33 +778,33 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     acc.reset();
     bestSoFar = initial;
     bestSoFar = ls.search(initial);
-    emili::Solution* s = init->generateEmptySolution();
-     *s = *bestSoFar;
+    emili::Solution* s = bestSoFar->clone();
     emili::Solution* s_s = nullptr;
+    emili::Solution* s_p = nullptr;
     //initialization done
     do{
-
+        if(s_p != s && s_p != nullptr)
+            delete s_p;
         //Perturbation step
-        emili::Solution* s_p = pert.perturb(s);
+        s_p = pert.perturb(s);
         //local search on s_p
         if(s!=s_s && s_s != nullptr)
             delete s_s;
         s_s = ls.search(s_p);
+        delete s_p;
         //best solution
         if(*s_s < *bestSoFar)
         {
-
             *bestSoFar = *s_s;
             //s_time = clock();
         }
-        if(s != s_p)
-        delete s_p;
         //acceptance step
         s_p = s;
         s = acc.accept(s_p,s_s);
-        if(s != s_p)
-            delete s_p;
-    }while(!termcriterion->terminate(s,s_s));    
+    }while(!termcriterion->terminate(s_p,s_s));
+    delete s_p;
+    delete s;
+    delete s_s;
     return bestSoFar;
 }
 

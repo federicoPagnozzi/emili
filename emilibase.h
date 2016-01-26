@@ -368,7 +368,7 @@ class Perturbation
 class NoPerturbation: public emili::Perturbation
 {
 public:
-    virtual Solution* perturb(Solution *solution) { return solution;}
+    virtual Solution* perturb(Solution *solution) { return solution->clone();}
 };
 
 /*
