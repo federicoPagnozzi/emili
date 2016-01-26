@@ -83,6 +83,39 @@ public:
 }; // SAMetropolisAcceptance
 
 
+
+class SAPrecomputedMetropolisAcceptance: public SAAcceptance {
+
+protected:
+    int num_precomputed;
+    double delta;
+    double* probs;
+
+public:
+    SAPrecomputedMetropolisAcceptance(float initial_temperature,
+                                      int _numprec):
+                num_precomputed(_numprec),
+                delta(initial_temperature),
+                SAAcceptance(PRECOMPUTEDMETROPOLIS,
+                             initial_temperature / _numprec) {
+                    probs = (double *)malloc(num_precomputed * sizeof(double));
+                    double t = initial_temperature;
+                    for (int i = 0 ; i < num_precomputed; i++) {
+                        probs[i] = std::exp(t);
+                        t -= delta;
+                    }
+                }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+    ~SAPrecomputedMetropolisAcceptance(void) {
+        free(probs);
+    }
+
+}; // SAPrecomputedMetropolisAcceptance
+
+
 // connolly paper
 class SAMetropolisWithForcedAcceptance: public SAAcceptance {
 public:
