@@ -125,6 +125,10 @@
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NATAx_INSERT "natxinsert"
 #define NEIGHBORHOOD_NATA2x_INSERT "natx2insert"
+#define NEIGHBORHOOD_THATAx_INSERT "thatxinsert"
+#define NEIGHBORHOOD_FATAx_INSERT "fatxinsert"
+#define NEIGHBORHOOD_PATAx_INSERT "patxinsert"
+#define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
@@ -485,30 +489,35 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     emili::Perturbation* per;
     if(tm.checkToken(PERTURBATION_SOA) || tm.checkToken(PERTURBATION_SOA_LEGACY))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
-
+        n = n<nj?n:nj-1;
         oss << "NEH destruct/construct perturbation which use objective function. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGPerturbation(n,*istance);
     }else if(tm.checkToken(PERTURBATION_RS))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
-
+        n = n<nj?n:nj-1;
         oss << "NEH destruct/construct perturbation. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSPerturbation(n,*istance);
     }
     else if(tm.checkToken(PERTURBATION_RSFF))
         {
-            int n = tm.getInteger();
-
+        int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
             oss << "NEH destruct/construct perturbation with tbff tie breaking. number of job erased: "<<n;
             printTab(oss.str().c_str());
             per = new emili::pfsp::RSffPerturbation(n,*istance);
         }
     else if(tm.checkToken(PERTURBATION_IGLS))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
         PfspInstance pfs = this->istance->getInstance();
@@ -522,7 +531,9 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTURBATION_RSLS))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
         PfspInstance pfs = this->istance->getInstance();
@@ -557,7 +568,9 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTURBATION_NRZ))
     {
+        int nj = istance->getNjobs();
         int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         oss.str(""); oss  << "neh rz destruct/construct PERTURBATION. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::NRZPerturbation(n,*istance);
@@ -578,19 +591,23 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTURBATION_TMIIG))
     {
-        int num = tm.getInteger();
+        int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
         int tsize = tm.getInteger();
-        oss.str(""); oss  << "TMIIG PERTURBATION. Number of job erased " << num << ". tabu list size " << tsize <<".\n\t";
+        oss.str(""); oss  << "TMIIG PERTURBATION. Number of job erased " << n << ". tabu list size " << tsize <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::TMIIGPerturbation(num,*istance,tsize);
+        per = new emili::pfsp::TMIIGPerturbation(n,*istance,tsize);
     }
     else if(tm.checkToken(PERTURBATION_IGIO))
     {
-        int num = tm.getInteger();
+        int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
 
-        oss.str(""); oss  << "IGIO PERTURBATION. Number of job erased " << num <<".\n\t";
+        oss.str(""); oss  << "IGIO PERTURBATION. Number of job erased " << n <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::IGIOPerturbation(num,*istance);
+        per = new emili::pfsp::IGIOPerturbation(n,*istance);
     }
     else
     {
@@ -975,7 +992,7 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
     }
     else if(tm.checkToken(INITIAL_NEHFF))
     {
-        printTab( "NEH initial solution");
+        printTab( "NEHFF initial solution");
         //return new testIS(istance);
         init = new emili::pfsp::NEHff(*istance);
     }
@@ -1121,7 +1138,7 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     }
     else if(tm.checkToken(NEIGHBORHOOD_OPT_INSERT))
     {
-        printTab( "Delta Evaluation Insert for Weighted Tardiness");
+        printTab( "Delta Evaluation Insert for Weighted Tardiness with tail improvement");
         neigh = new emili::pfsp::OptInsert(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
@@ -1131,37 +1148,49 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {
-        printTab( "Approximated Insert with Taillard Acceleration for Weighted Tardiness");
+        printTab( "Approximated Insert with Taillard Acceleration for Weighted Tardiness with no threshold");
         neigh = new emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATAx_INSERT))
     {
-        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration for Weighted Tardiness");
+        printTab( "Approximated Insert for Weighted Tardiness with 1 level approximation");
         neigh = new emili::pfsp::NatxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA2x_INSERT))
     {
-        printTab( "Improved Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness");
+        printTab( "Improved Approximated Insert for Weighted Tardiness with 1 level approximation and online tuned threshold");
         neigh = new emili::pfsp::Natx2Neighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_EATAx_INSERT))
     {
-        printTab( "Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness with new kind of approximation");
+        printTab( "Approximated Insert for Weighted Tardiness with 2 levels of approximation");
         neigh = new emili::pfsp::EatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_THATAx_INSERT))
+    {
+        printTab( "Approximated Insert for Weighted Tardiness with 3 levels of approximation");
+        neigh = new emili::pfsp::ThatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_PATAx_INSERT))
+    {
+        printTab( "Approximated Insert for Weighted Tardiness with 5 levels of approximation");
+        neigh = new emili::pfsp::PatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_SATAx_INSERT))
+    {
+        printTab( "Approximated Insert for Weighted Tardiness with 6 levels of approximation");
+        neigh = new emili::pfsp::SatxNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_FATAx_INSERT))
+    {
+        printTab( "Approximated Insert for Weighted Tardiness with 4 levels of approximation");
+        neigh = new emili::pfsp::FatxNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_TATAx_INSERT))
     {
-        printTab( "Tunable Heavily Approximated Insert with Taillard Acceleration(Experimental) for Weighted Tardiness with new kind of approximation");
-        float start_level = tm.getDecimal();
-        int app_grade = tm.getInteger();
-        if(app_grade >= istance->getNmachines())
-        {
-            app_grade = istance->getNmachines() - 1 ;
-            std::ostringstream oss;
-            oss << "WARNING: the level of approximation cannot be greater or equal the number of machines. the level is set to: " << app_grade;
-            printTab(oss.str().c_str());
-        }
-        neigh = new emili::pfsp::TatxNeighborhood(start_level,app_grade,*istance);
+        printTab( "Approximated Insert for Weighted Tardiness with settable threshold");
+        float start_level = tm.getDecimal();       
+        neigh = new emili::pfsp::TatxNeighborhood(start_level,*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NITA_INSERT))
     {
