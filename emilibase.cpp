@@ -803,7 +803,6 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         s = acc.accept(s_p,s_s);
     }while(!termcriterion->terminate(s_p,s_s));
     delete s_p;
-    delete s;
     delete s_s;
     return bestSoFar;
 }
