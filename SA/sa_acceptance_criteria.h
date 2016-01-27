@@ -84,6 +84,11 @@ public:
 
 
 
+// according to https://faculty.washington.edu/aragon/pubs/annealing-pt1a.pdf
+// this saved up to 1/3 of time
+// 
+// ln(-5.3) ~= 0.005 -> minimum probability we consider
+// range is therefore [-5.3, 0]
 class SAPrecomputedMetropolisAcceptance: public SAAcceptance {
 
 protected:
@@ -95,11 +100,11 @@ public:
     SAPrecomputedMetropolisAcceptance(float initial_temperature,
                                       int _numprec):
                 num_precomputed(_numprec),
-                delta(initial_temperature),
+                delta(5.3 / _numprec),
                 SAAcceptance(PRECOMPUTEDMETROPOLIS,
-                             initial_temperature / _numprec) {
+                             initial_temperature) {
                     probs = (double *)malloc(num_precomputed * sizeof(double));
-                    double t = initial_temperature;
+                    double t = 0;
                     for (int i = 0 ; i < num_precomputed; i++) {
                         probs[i] = std::exp(t);
                         t -= delta;
@@ -115,6 +120,42 @@ public:
 
 }; // SAPrecomputedMetropolisAcceptance
 
+// according to https://faculty.washington.edu/aragon/pubs/annealing-pt1a.pdf
+// this saved up to 1/3 of time
+// 
+// ln(-5.3) ~= 0.005 -> minimum probability we consider
+// range is therefore [-5.3, 0]
+class SAPrecomputedMetropolisWithForcedAcceptance: public SAAcceptance {
+
+protected:
+    int num_precomputed;
+    double delta;
+    double* probs;
+
+public:
+    SAPrecomputedMetropolisWithForcedAcceptance(float initial_temperature,
+                                      int _numprec):
+                num_precomputed(_numprec),
+                delta(5.3 / _numprec),
+                SAAcceptance(PRECOMPUTEDMETROPOLISWFORCED,
+                             initial_temperature) {
+                    probs = (double *)malloc(num_precomputed * sizeof(double));
+                    double t = 0;
+                    for (int i = 0 ; i < num_precomputed; i++) {
+                        probs[i] = std::exp(t);
+                        t -= delta;
+                    }
+                }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+    ~SAPrecomputedMetropolisWithForcedAcceptance(void) {
+        free(probs);
+    }
+
+}; // SAPrecomputedMetropolisWithForcedAcceptance
+
 
 // connolly paper
 class SAMetropolisWithForcedAcceptance: public SAAcceptance {
@@ -129,6 +170,7 @@ public:
 }; // SAMetropolisWithForcedAcceptance
 
 
+// https://faculty.washington.edu/aragon/pubs/annealing-pt1a.pdf
 class SAApproxExpAcceptance: public SAAcceptance {
 public:
     SAApproxExpAcceptance(float initial_temperature):

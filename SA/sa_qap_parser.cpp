@@ -128,8 +128,14 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
         double de = tm.getDecimal();
         return new RecordToRecordAcceptance(de);
     } else if (tm.checkToken(LAHCACC)) {
-        double te = tm.getInteger();
+        int te = tm.getInteger();
         return new LAHCAcceptance(te);
+    } else if (tm.checkToken(PRECOMPUTEDMETROPOLIS)) {
+        int te = tm.getInteger();
+        return new SAPrecomputedMetropolisAcceptance(inittemp->get(), te);
+    } else if (tm.checkToken(PRECOMPUTEDMETROPOLISWFORCED)) {
+        int te = tm.getInteger();
+        return new SAPrecomputedMetropolisWithForcedAcceptance(inittemp->get(), te);
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

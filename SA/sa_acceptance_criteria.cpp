@@ -27,10 +27,39 @@ emili::Solution* SAPrecomputedMetropolisAcceptance::accept(emili::Solution *curr
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
 
-    
-    if (ns > cs) {
-        double prob = 1;//probs[(start_temp - temperature)]
-        // std::exp((cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
+
+    double ratio = (cs - ns) / temperature;
+
+    if (ratio < -5.3) {
+        return current_solution;
+    } else if (ratio < 0) {
+        double prob = probs[(int)(ratio / delta)];
+
+        if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+            return current_solution;
+        }
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns, temperature);
+    }
+
+    return new_solution;
+
+}
+
+
+emili::Solution* SAPrecomputedMetropolisWithForcedAcceptance::accept(emili::Solution *current_solution,
+                                                                     emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+
+
+    double ratio = (cs - ns) / temperature;
+
+    if (!status->force_accept && ratio < -5.3) {
+        return current_solution;
+    } else if (!status->force_accept && ratio < 0) {
+        double prob = probs[(int)(ratio / delta)];
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
