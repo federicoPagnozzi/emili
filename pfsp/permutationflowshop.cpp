@@ -1867,7 +1867,7 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
 emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
 {
     //emili::iteration_increment();
-
+   // assert(solution->getSolutionValue() >= 0);
     int index;
     int min;
     int k,tmp=0,ind=1;
@@ -1890,18 +1890,17 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     //
     // Local search on partial
     //
-      emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
-      emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
-      
-      solPartial = s_n->getJobSchedule();
-	
-      delete s;
-      delete s_n;
+    emili::pfsp::PermutationFlowShopSolution s(solPartial);
+    s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+    emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+
+    solPartial = s_n->getJobSchedule();
+    assert(solPartial.size() >= 1);
+    delete s_n;
     for(int l=0;l<removed.size();l++){
         sops++;
         k=removed[l];
-        min = std::numeric_limits<int>::max();        
+        min = std::numeric_limits<int>::max();
         for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
@@ -1928,9 +1927,10 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     }
 
     //assert(min == instance.computeObjectiveFunction(solPartial));
-    s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-    instance.evaluateSolution(*s);
-    return s;
+    s_n = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+    instance.evaluateSolution(*s_n);
+   // assert(s_n->getSolutionValue() >= 0);
+    return s_n;
 }
 
 emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
