@@ -515,7 +515,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         }
     else if(tm.checkToken(PERTURBATION_IGLS))
     {
-        int nj = istance->getNjobs();
+        int nj = istance->getNjobs()-1;
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
         oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
@@ -531,7 +531,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else if(tm.checkToken(PERTURBATION_RSLS))
     {
-        int nj = istance->getNjobs();
+        int nj = istance->getNjobs()-1;
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
         oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;

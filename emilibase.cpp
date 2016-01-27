@@ -801,7 +801,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         //acceptance step
         s_p = s;
         s = acc.accept(s_p,s_s);
-    }while(!termcriterion->terminate(s_p,s_s));
+    }while(!termcriterion->terminate(s_p,s));
     delete s_p;
     delete s_s;
     return bestSoFar;
@@ -820,38 +820,31 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         bestSoFar = init->generateSolution();
         emili::Solution*  s = ls.search(bestSoFar);
         *bestSoFar = *s ;
-
         emili::Solution* s_s = nullptr;
+        emili::Solution* s_p = nullptr;
         //initialization done
         do{
-            //iteration_increment();
+            if(s_p != s && s_p != nullptr)
+                delete s_p;
             //Perturbation step
-            emili::Solution* s_p = pert.perturb(s);
-           // std::cout << s_p->getSolutionValue() << std::endl;
+            s_p = pert.perturb(s);
             //local search on s_p
             if(s!=s_s && s_s != nullptr)
                 delete s_s;
-
             s_s = ls.search(s_p);
-
+            delete s_p;
             //best solution
             if(*s_s < *bestSoFar)
             {
-
                 *bestSoFar = *s_s;
                 //s_time = clock();
-            //    std::cout << bestSoFar->getSolutionValue() << std::endl;
             }
-            if(s != s_p)
-                delete s_p;
             //acceptance step
             s_p = s;
             s = acc.accept(s_p,s_s);
-            if(s != s_p)
-                delete s_p;            
-            //std::cout << "accepted fitness -> " << s->getSolutionValue() << std::endl;
-            //end loop
-        }while(!termcriterion->terminate(s,s_s) && keep_going);
+        }while(!termcriterion->terminate(s_p,s));
+        delete s_p;
+        delete s_s;
         stopTimer();
         return bestSoFar;
 }
