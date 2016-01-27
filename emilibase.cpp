@@ -822,7 +822,9 @@ emili::Solution* emili::IteratedLocalSearch::search(){
     termcriterion->reset();
     acc.reset();
     Solution* current = init->generateSolution();
-    return search(current);
+    Solution* ret = search(current);
+    delete current;
+    return ret;
 }
 
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
@@ -868,7 +870,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             search start
         */
         beginTime = clock();
-        emili::Solution*  s = ls.search(init->generateSolution());
+        emili::Solution*  s = ls.search();
         *bestSoFar = *s ;
         emili::Solution* s_s = nullptr;
         emili::Solution* s_p = nullptr;
