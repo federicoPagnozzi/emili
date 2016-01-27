@@ -99,4 +99,6 @@ prs::emili_header();
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
+    delete ls;
+    //delete solution;
 }
