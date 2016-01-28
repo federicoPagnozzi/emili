@@ -524,35 +524,45 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         }
     else if(tm.checkToken(PERTUBATION_IGLS))
     {
-        int nj = istance->getNjobs()-1;
-        int n = tm.getInteger();
-        n = n<nj?n:nj-1;
-        oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
+        int nj = istance->getNjobs()-2;
+        int k = tm.getInteger();
+        int n = k<nj?k:nj-1;
+        oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
-        PfspInstance pfs = this->istance->getInstance();
-        pfs.setNbJob(pfs.getNbJob()-n);
-        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
-        emili::pfsp::PermutationFlowShop* is = this->istance;
-        this->istance = pfse;
-        emili::LocalSearch* ll = search(tm);
-        this->istance = is;
-        per = new emili::pfsp::IgLsPertubation(n,*istance,ll);
+        if(n > 0)
+        {
+            PfspInstance pfs = this->istance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+            emili::pfsp::PermutationFlowShop* is = this->istance;
+            this->istance = pfse;
+            emili::LocalSearch* ll = search(tm);
+            this->istance = is;
+            per = new emili::pfsp::IgLsPerturbation(n,*istance,ll);
+        } else {
+             per = new emili::pfsp::IGPerturbation(1,*istance);
+        }
     }
     else if(tm.checkToken(PERTUBATION_RSLS))
     {
-        int nj = istance->getNjobs()-1;
+        int nj = istance->getNjobs()-2;
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
-        oss.str(""); oss  << "IG pertubation with local search applied on the partial solution. d = "<<n;
+        oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
         printTab(oss.str().c_str());
-        PfspInstance pfs = this->istance->getInstance();
-        pfs.setNbJob(pfs.getNbJob()-n);
-        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
-        emili::pfsp::PermutationFlowShop* is = this->istance;
-        this->istance = pfse;
-        emili::LocalSearch* ll = search(tm);
-        this->istance = is;
-        per = new emili::pfsp::RSLSPertubation(n,*istance,ll);
+        if(n > 0)
+        {
+            PfspInstance pfs = this->istance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+            emili::pfsp::PermutationFlowShop* is = this->istance;
+            this->istance = pfse;
+            emili::LocalSearch* ll = search(tm);
+            this->istance = is;
+            per = new emili::pfsp::RSLSPerturbation(n,*istance,ll);
+        } else {
+            per = new emili::pfsp::RSPerturbation(n,*istance);
+        }
     }
     else if(tm.checkToken(PERTUBATION_TEST))
     {

@@ -2345,9 +2345,12 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
     {
         if(ep_iterations < njobs){
             ep_iterations++;
-            if(ep_iterations == sp_iterations){
-                ep_iterations++;
-                end_position++;
+            if(end_position == start_position-1)
+            {
+                end_position+=2;
+                ep_iterations+=2;
+                if(ep_iterations > njobs && sp_iterations+1 > njobs)
+                    return nullptr;
             }
         }
         else
@@ -3805,7 +3808,7 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
 void emili::pfsp::PfspExchangeNeighborhood::reset()
 {    
     start_position = 1;
-    end_position = 2;
+    end_position = 1;
 }
 
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solution* value)
