@@ -56,15 +56,10 @@ emili::Solution* SAPrecomputedMetropolisWithForcedAcceptance::accept(emili::Solu
 
     double ratio = 1.0 * (cs - ns) / temperature;
 
-    std::cout << cs << " " << ns << " " << temperature << " " << ratio << " ... " << std::endl;
-
     if (!status->force_accept && ratio < -5.3) {
-        std::cout << "too bad, immediately discarded" << std::endl;
         return current_solution;
     } else if (!status->force_accept && ratio < 0) {
         double prob = probs[(int)( -ratio / delta)];
-
-        std::cout << (int)(ratio / delta) << " " << " prob : " << prob << std::endl;
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;

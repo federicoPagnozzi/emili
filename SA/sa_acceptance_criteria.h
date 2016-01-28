@@ -143,10 +143,8 @@ public:
                     double t = 0;
                     for (int i = 0 ; i < num_precomputed; i++) {
                         probs[i] = std::exp(t);
-                        std::cout << probs[i] << std::endl;
                         t -= delta;
                     }
-                    std::cout << initial_temperature << std::endl;
                 }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
