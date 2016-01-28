@@ -94,7 +94,7 @@ public:
     }
 
     virtual double getMinTemp(void) {
-        return 0;
+        return 0.0001;
     }
 
 }; // FixedInitTemp
@@ -118,7 +118,7 @@ public:
     }
 
     virtual double getMinTemp(void) {
-        return 0;
+        return 0.0001;
     }
 
 }; // InitTempFromSolution
@@ -300,7 +300,7 @@ public:
     }
 
     virtual double getMinTemp(void) {
-        return 0;
+        return 0.0001;
     }
 
     virtual double getInit_prob(void) {
@@ -355,13 +355,13 @@ public:
 
         delete s2;
 
-        init_temp = value * (costsum / length) / std::log(init_prob);
+        init_temp = std::abs(value * (costsum / length) / std::log(init_prob));
 
         return init_temp;
     }
 
     virtual double getMinTemp(void) {
-        return 0;
+        return 0.0001;
     }
 
     virtual double getInit_prob(void) {

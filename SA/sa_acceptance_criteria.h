@@ -20,7 +20,7 @@ class SAAcceptance: public emili::Acceptance
 
 protected:
 
-    float temperature;
+    double temperature;
     float start_temp;
 
     std::string type;
@@ -36,7 +36,7 @@ public:
      * @param  final_temperature   final_temperature
      */
     SAAcceptance(std::string type,
-                 float initial_temperature):
+                 double initial_temperature):
                 type(type),
                 temperature(initial_temperature),
                 start_temp(initial_temperature),
@@ -143,8 +143,10 @@ public:
                     double t = 0;
                     for (int i = 0 ; i < num_precomputed; i++) {
                         probs[i] = std::exp(t);
+                        std::cout << probs[i] << std::endl;
                         t -= delta;
                     }
+                    std::cout << initial_temperature << std::endl;
                 }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
