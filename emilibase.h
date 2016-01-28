@@ -334,11 +334,7 @@ class BestImprovementSearch : public emili::LocalSearch
 {
 public:
     BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
-    virtual Solution* search(emili::Solution* initial);
-    virtual Solution* search()
-    {
-        return emili::LocalSearch::search();
-    }
+    virtual Solution* search(emili::Solution* initial);   
 };
 
 /*

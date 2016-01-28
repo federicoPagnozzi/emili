@@ -2276,18 +2276,26 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
 emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solution* value)
 {
     emili::iteration_increment();
-    if(sp_iterations >= njobs)
+    if(sp_iterations > njobs)
     {
         return nullptr;
     }
-    else
-    {
+    else{
         if(ep_iterations < njobs){
             ep_iterations++;
-            if(ep_iterations == sp_iterations){
+           /* if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
+                std::cout << "BOOM!" << std::endl;
+            }*/
+            if(end_position == start_position-1)
+            {
+                end_position+=2;
+                ep_iterations+=2;
+                if(ep_iterations > njobs && sp_iterations+1 > njobs)
+                    return nullptr;
             }
+
         }
         else
         {
@@ -2296,8 +2304,8 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
             start_position = ((start_position)%njobs)+1;
             //end_position = start_position;
 
-        }        
-        end_position = ((end_position)%njobs)+1;        
+        }                
+        end_position = ((end_position)%njobs)+1;              
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
@@ -3987,7 +3995,7 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::computeStep(emili::Solut
 {
    emili::iteration_increment();
     if(sp_iterations >= (njobs-1))
-    {
+    {        
         return nullptr;
     }
     else
@@ -4511,7 +4519,7 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
 void emili::pfsp::PfspExchangeNeighborhood::reset()
 {    
     start_position = 1;
-    end_position = 2;
+    end_position = 1;
 }
 
 emili::Solution* emili::pfsp::PfspTransposeNeighborhood::computeStep(emili::Solution* value)
