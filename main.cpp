@@ -109,5 +109,8 @@ prs::emili_header();
 
     // std::cerr << std::fixed << solution->getSolutionValue() << endl;
 
+    delete ls;
+    //delete solution;
+    
     return 0;
 }
