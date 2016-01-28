@@ -2343,6 +2343,7 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
     }
     else
     {
+        end_position = ((end_position)%njobs)+1;        
         if(ep_iterations < njobs){
             ep_iterations++;
             if(end_position == start_position-1)
@@ -2358,10 +2359,16 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
             sp_iterations++;
             ep_iterations = 1;
             start_position = ((start_position)%njobs)+1;
+            if(end_position == start_position-1)
+            {
+                end_position+=2;
+                ep_iterations+=2;
+                if(ep_iterations > njobs && sp_iterations+1 > njobs)
+                    return nullptr;
+            }
             //end_position = start_position;
 
         }        
-        end_position = ((end_position)%njobs)+1;        
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
