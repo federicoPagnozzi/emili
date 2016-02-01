@@ -2205,7 +2205,6 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::XTransposeNeighborhood::b
 }
 emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili::Solution* value)
 {
-
     emili::iteration_increment();
     if(sp_iterations > njobs)
     {
@@ -2222,7 +2221,7 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili:
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2236,7 +2235,7 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili:
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2272,7 +2271,7 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2286,14 +2285,13 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
             }
 
         }
-
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
@@ -2316,14 +2314,10 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
         end_position = ((end_position)%njobs)+1;
         if(ep_iterations < njobs){
             ep_iterations++;
-           /* if(ep_iterations == sp_iterations){
-                ep_iterations++;
-                end_position++;
-                std::cout << "BOOM!" << std::endl;
-            }*/
+
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2337,14 +2331,13 @@ emili::Solution* emili::pfsp::PfspInsertNeighborhood::computeStep(emili::Solutio
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
             }
 
-        }                
-
+        }
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
@@ -2439,7 +2432,7 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2454,7 +2447,7 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2523,7 +2516,7 @@ emili::Solution* emili::pfsp::OptInsert::computeStep(emili::Solution *value)
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2538,7 +2531,7 @@ emili::Solution* emili::pfsp::OptInsert::computeStep(emili::Solution *value)
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2656,7 +2649,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2671,7 +2664,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2801,7 +2794,7 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2816,7 +2809,7 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2925,7 +2918,7 @@ emili::Solution* emili::pfsp::AtxNeighborhood::computeStep(emili::Solution *valu
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -2940,7 +2933,7 @@ emili::Solution* emili::pfsp::AtxNeighborhood::computeStep(emili::Solution *valu
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3025,7 +3018,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3040,7 +3033,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3176,7 +3169,7 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3191,7 +3184,7 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3302,7 +3295,7 @@ emili::Solution* emili::pfsp::ThatxNeighborhood::computeStep(emili::Solution *va
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3317,7 +3310,7 @@ emili::Solution* emili::pfsp::ThatxNeighborhood::computeStep(emili::Solution *va
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3430,7 +3423,7 @@ emili::Solution* emili::pfsp::FatxNeighborhood::computeStep(emili::Solution *val
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3445,7 +3438,7 @@ emili::Solution* emili::pfsp::FatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3560,7 +3553,7 @@ emili::Solution* emili::pfsp::PatxNeighborhood::computeStep(emili::Solution *val
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3575,7 +3568,7 @@ emili::Solution* emili::pfsp::PatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3691,7 +3684,7 @@ emili::Solution* emili::pfsp::SatxNeighborhood::computeStep(emili::Solution *val
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3706,7 +3699,7 @@ emili::Solution* emili::pfsp::SatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3826,7 +3819,7 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3841,7 +3834,7 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3855,7 +3848,8 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
 #endif
         }
 
-        newsol.insert(newsol.begin()+end_position,sol_i);
+         newsol.insert(newsol.begin()+end_position,sol_i);
+
         //std::vector< int > ins_pos(nmac+1,0);
         int ins_pos[nmac+1];
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
@@ -3880,6 +3874,7 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
         }
 
         int pre_wt = wt;
+
         if(end_position > aptre)
         for(int k=end_position+1; k<= njobs; k++)
         {
@@ -3946,7 +3941,7 @@ emili::Solution* emili::pfsp::NoIdleAcceleratedInsertNeighborhood::computeStep(e
             ep_iterations++;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -3961,7 +3956,7 @@ emili::Solution* emili::pfsp::NoIdleAcceleratedInsertNeighborhood::computeStep(e
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -4110,7 +4105,7 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::computeStep(emili::Solu
             }*/
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -4124,7 +4119,7 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::computeStep(emili::Solu
             start_position = ((start_position)%njobs)+1;
             if(end_position == start_position-1)
             {
-                end_position+=2;
+                end_position=((end_position+1)%njobs)+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
