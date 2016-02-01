@@ -67,6 +67,7 @@ public:
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution) = 0;
 	virtual int computeMS(std::vector< int > & partial_solution);
 	virtual int computeMS(std::vector< int >& partial, int size);
+	virtual int problemSize(){ return instance.getNbStages()*instance.getNbJob(); }
 };
 
 class HFSP_MS : public HybridFlowShop
