@@ -265,10 +265,10 @@ int seconds;
     LocalSearch() { }
 public:
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(nullptr)    {    }
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
 
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, int time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(nullptr)    {    }
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
     /*
      * search use the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -298,7 +298,7 @@ public:
     emili::InitialSolution& getInitialSolution();
     virtual Solution* getBestSoFar() { return bestSoFar;}
     virtual void setBestSoFar(Solution* newBest) {this->bestSoFar=newBest;}
-    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh;}
+    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh; delete bestSoFar;}
 
 };
 
@@ -324,10 +324,6 @@ class BestImprovementSearch : public emili::LocalSearch
 public:
     BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
     virtual Solution* search(emili::Solution* initial);
-    virtual Solution* search()
-    {
-        return emili::LocalSearch::search();
-    }
 };
 
 /*
@@ -451,6 +447,7 @@ public:
     virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
+    virtual ~IteratedLocalSearch() {delete &pert; delete &acc;}
 };
 
 /*
