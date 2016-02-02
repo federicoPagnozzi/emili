@@ -345,6 +345,13 @@ bool PfspInstance::readDataFromFile(const std::string _fileName)
 
           // closing of the input file
           inputFile.close();
+          if(!silence){
+              std::cout << "File " << _fileName << " is now open, start to read..." << std::endl;
+              std::cout << "Number of jobs : " << nbJob << std::endl;
+              std::cout << "Number of machines : " << nbMac << std::endl;
+              std::cout << "Memory allowed." << std::endl;
+              std::cout << "Start to read matrix..." << std::endl;
+          }
     return true;
 }
 
