@@ -203,6 +203,7 @@ int getTime(prs::TokenManager& tm,int problemSize)
             float d = tm.getDecimal();
             float time = d*problemSize;
             int n = floorf(time);
+	    n = n==0?1:n; // if n == 0 then set n to 1 otherwise n = n
             std::ostringstream oss;
             oss << "Rho = "<< d << " Run time secs : " << n;
             //printTab(oss.str().c_str());
