@@ -262,7 +262,7 @@ public:
 
     bool isCoolingTime(int counter) {
         if (counter >= length) {
-            length  = length / c;
+            length  = length * c;
             return true;
         }
         return false;
