@@ -4560,7 +4560,7 @@ emili::Solution* emili::pfsp::EaxtExchange::computeStep(emili::Solution *value)
         }
 
         int wt = (std::max(c_cur - pis.getDueDate(sol_i), 0L) * pis.getPriority(sol_i));
-        long int pppre_c_cur = ins_pos[nmac-2];
+        //long int pppre_c_cur = ins_pos[nmac-2];
         long int ppre_c_cur = ins_pos[nmac-1];
         long int pre_c_cur = c_cur;
 
