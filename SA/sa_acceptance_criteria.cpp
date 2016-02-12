@@ -21,6 +21,28 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
 
 }
 
+bool SAMetropolisAcceptance::acceptViaDelta(emili::Solution *new_solution, double delta)
+{
+    // double cs = new_solution->getSolutionValue() - delta;
+    double ns = new_solution->getSolutionValue();
+    // delta == ns - cs
+    // cs = ns - delta
+
+    if(delta > 0) {
+        // not improving
+        double prob = std::exp(- delta / temperature); // (1.3806503e-23 * temperature) ?
+
+        if(prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+            return false;
+        }
+    } else if(ns < status->best_cost) {
+        // ns is better, We keep a copy
+        status->new_best_solution(new_solution, ns, temperature);
+    }
+
+    return true;
+}
+
 
 emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *current_solution,
                                                           emili::Solution *new_solution) {
@@ -28,7 +50,7 @@ emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *curre
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    std::cout << cs << " " << ns << " " << " " << std::exp((cs-ns) / temperature) << std::endl;
+    std::cout << "cost=" << cs << " newcost=" << ns << " " << " e^(Delta/T)=" << std::exp((cs-ns) / temperature) << std::endl;
     if (!status->force_accept && ns > cs) {
         double prob = std::exp((cs-ns) / temperature);
 

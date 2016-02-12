@@ -3,6 +3,10 @@
 #include "../generalParser.h"
 #include "examtt.h"
 
+#include <utility>
+
+#include "../SA/sa_qap_parser.h"
+
 namespace prs
 {
 namespace  ExamTT
@@ -20,50 +24,28 @@ protected:
 protected:    
     //insert a variable to hold the problem instance
     emili::ExamTT::ExamTT instance;
-    /* Called by buildAlgo it calls all the other methods.
-     * Add here the call to your metaheuristcs if you don't want
-     * to let the user include it in the ILS.
-    */
     emili::LocalSearch* eparams(prs::TokenManager& tm);
-    /* This method load all the metaheuristics that
-     * can be included in a ILS.
-     */
     emili::LocalSearch* search(prs::TokenManager& tm);
-    /*This method load a ILS and it's components.
-     * It calls search() to build it's inner metaheuristic
-    */
     emili::LocalSearch* ils(prs::TokenManager& tm);
-    /* Even though this method returns a BestTabuSearch it's able to
-       load best and first tabu search.
-     */
     emili::BestTabuSearch* tparams(prs::TokenManager& tm);
-    /* This method should be implemented to load the tabutenure objects
-     * for the problem that is supported by this parser
-     */
     emili::TabuMemory* tmemory(emili::Neighborhood* n,prs::TokenManager& tm);
-    /* This method loads the parameters for the localsearch*/
-    void params(prs::TokenManager& tm);
-    /* This method loads the parameters for the VND*/
+    std::tuple<emili::InitialSolution*, emili::Termination*, emili::Neighborhood*> params(prs::TokenManager& tm);
     emili::LocalSearch* vparams(prs::TokenManager& tm);
-    /*This method should be implemented to load the initial Solution objects
-     * for the problem that is supported by this parser
-     * */
     emili::InitialSolution* init(prs::TokenManager& tm);
-    /*This method loads the termination criteria*/
     emili::Termination* term(prs::TokenManager& tm);
-    /*This method loads the acceptance criteria*/
     emili::Acceptance* acc(prs::TokenManager& tm);
-    /*This method should be implemented to load the perturbations
-     * for the problem that is supported by this parser
-     * */
     emili::Perturbation* per(prs::TokenManager& tm);
 
     emili::Neighborhood* neigh(prs::TokenManager& tm);
     emili::Neighborhood* neighV(prs::TokenManager& tm);
-    void neighs(prs::TokenManager& tm);
-    void neighs1(prs::TokenManager& tm);
-   /*This method loads the problem instance*/
+    std::vector<emili::Neighborhood *> neighs(prs::TokenManager& tm);
+
+    void neighs1(prs::TokenManager& tm, std::vector<emili::Neighborhood *> &nes);
     void problem(prs::TokenManager& tm);
+
+    struct SAParser : SAQAPParser {
+        SimulatedAnnealing* buildSA(prs::TokenManager& tm, emili::InitialSolution* initsol, emili::Neighborhood* nei);
+    } sa;
 
     virtual std::string availableProblems() const;
 public:

@@ -22,6 +22,23 @@ emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolu
 
 }
 
+emili::Solution* SARandomExplorationNoCopy::nextSolution(emili::Solution *startingSolution, SAStatus &status) {
+   status.increment_counters();
+
+   double costBefore = startingSolution->getSolutionValue();
+   neigh->randomStep(startingSolution);
+   double delta = startingSolution->getSolutionValue() - costBefore;
+
+   if(! acceptance->acceptViaDelta(startingSolution, delta)) {
+       neigh->reverseLastRandomStep(startingSolution);
+       status.not_accepted_sol();
+   } else {
+       status.accepted_sol(startingSolution->getSolutionValue());
+   }
+
+   return startingSolution;
+}
+
 
 emili::Solution* SASequentialExploration::nextSolution(emili::Solution *startingSolution,
                                                        SAStatus& status) {
@@ -32,7 +49,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
     emili::Solution* ithSolution;
 
     emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
-    ithSolution = *iter;
+    ithSolution = *iter; // isn't there a mistake ? ithSolution does not vary
 
     for(;
         iter!=neigh->end();

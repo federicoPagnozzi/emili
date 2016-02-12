@@ -112,6 +112,7 @@ int main(int argc, const char *argv[])
     int njobs = problem.getNjobs();
 #endif
     solution = ls->getBestSoFar();    
+    // std::cout << "Number of delete a:" << emili::ExamTT::ExamTTSolution::numberOfDeletes << std::endl;
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     std::cout << "time : " << time_elapsed << std::endl;
     std::cout << "iteration counter : " << std::fixed << emili::iteration_counter()<< std::endl;
@@ -121,6 +122,8 @@ int main(int argc, const char *argv[])
     std::cout << "Found solution: ";
     std::cout << std::fixed << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
+    std::cout << "Number of clones: " << emili::ExamTT::ExamTTSolution::numberOfClones << std::endl;
+    // std::cout << "Number of delete: " << emili::ExamTT::ExamTTSolution::numberOfDeletes << std::endl;
 
     // std::cerr << std::fixed << solution->getSolutionValue() << endl;
 

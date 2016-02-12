@@ -3,6 +3,9 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <functional>
+#include <tuple>
+#include <memory>
 
 using namespace std;
 
@@ -11,28 +14,29 @@ namespace emili
 namespace ExamTT
 {
 
+int ExamTTSolution::numberOfClones = 0;
+
 template<typename Type, unsigned N, unsigned Last>
-struct tuple_printer {
+struct tuple_operations {
 
     static void print(std::ostream& out, const Type& value) {
         out << std::get<N>(value) << ", ";
-        tuple_printer<Type, N + 1, Last>::print(out, value);
+        tuple_operations<Type, N + 1, Last>::print(out, value);
     }
 };
 
 template<typename Type, unsigned N>
-struct tuple_printer<Type, N, N> {
+struct tuple_operations<Type, N, N> {
 
     static void print(std::ostream& out, const Type& value) {
         out << std::get<N>(value);
     }
-
 };
 
 template<typename... Types>
 std::ostream& operator<<(std::ostream& out, const std::tuple<Types...>& value) {
     out << "(";
-    tuple_printer<std::tuple<Types...>, 0, sizeof...(Types) - 1>::print(out, value);
+    tuple_operations<std::tuple<Types...>, 0, sizeof...(Types) - 1>::print(out, value);
     out << ")";
     return out;
 }
@@ -41,6 +45,19 @@ template <typename U, typename V>
 std::ostream& operator <<(std::ostream& out, const std::pair<U,V>& value) {
     return out << "(" << value.first << ", " << value.second << ")";
 }
+
+/*
+op = '-'
+def make(N):
+    letters = [chr(ord('A') + i) for i in range(N)]
+    return '''template <{typenames}>\nstd::tuple<{types}> operator{op}(std::tuple<{types}> const& a, std::tuple<{types}> const& b) {{\n    return std::make_tuple({body});\n}}'''.format(
+        typenames=', '.join(map('typename {}'.format, letters)),
+        types=', '.join(letters),
+        op=op,
+        body=', '.join(map(('std::get<{0}>(a) ' + op + ' std::get<{0}>(b)').format, map(str,range(N))))
+    )
+print('\n'.join(map(make, range(10))))
+*/
 
 template <typename T, typename U>
 struct KeyValue {
@@ -1683,11 +1700,18 @@ void test() {
     interactiveSolution(sol, inst);
 }
 
+ExamTTSolution::~ExamTTSolution()
+{
+
+}
+
 const void* ExamTTSolution::getRawData() const {
     return (const void*) this;
 }
 
 void ExamTTSolution::setRawData(const void *data) {
+    numberOfClones++;
+
     ExamTTSolution const * other = (ExamTTSolution const *) data;
 
     setSolutionValue(const_cast<ExamTTSolution*>(other)->getSolutionValue());
@@ -1714,6 +1738,8 @@ void ExamTTSolution::setRawData(const void *data) {
 }
 
 Solution* ExamTTSolution::clone() {
+    numberOfClones++;
+
     ExamTTSolution* other = new ExamTTSolution(getSolutionValue());
 
     other->costs = costs;
@@ -1737,6 +1763,24 @@ Solution* ExamTTSolution::clone() {
     return other;
 }
 
+void ExamTTSolution::swap(Solution * rawOther) {
+    ExamTTSolution* other = (ExamTTSolution*) rawOther;
+
+    // swap cost
+    auto c = other->getSolutionValue();
+    other->setSolutionValue(getSolutionValue());
+    setSolutionValue(c);
+
+    // swap vectors
+    std::swap(other->costs, costs);
+    other->periods.swap(periods);
+    other->rooms.swap(rooms);
+    other->examsByPeriodsIterators.swap(examsByPeriodsIterators);
+    other->examsByRoomsIterators.swap(examsByRoomsIterators);
+    other->examsByPeriods.swap(examsByPeriods);
+    other->examsByRooms.swap(examsByRooms);
+}
+
 string ExamTTSolution::getSolutionRepresentation() {
     ostringstream oss;
 
@@ -1752,7 +1796,7 @@ string ExamTTSolution::getSolutionRepresentation() {
 
     oss << "]";
 
-    oss << "; hard = " << costs.hard.make_tuple() << "; soft = " << costs.soft.make_tuple() << endl;
+    oss << "; hard = " << costs.hard.make_tuple() << "; soft = " << costs.soft.make_tuple() << ";";
 
     return oss.str();
 }
@@ -2186,6 +2230,27 @@ Solution *MoveNeighborhood::random(Solution *currentSolution) {
     return sol;
 }
 
+void MoveNeighborhood::randomStep(Solution *currentSolution)
+{
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
+
+    int E = instance.exams.size(),
+        P = instance.periods.size(),
+        R = instance.rooms.size();
+
+    Random r;
+    re = r.randrange(E);
+    rp = r.randrange(P);
+    rr = r.randrange(R);
+    sol->move(instance, re, rp, rr);
+}
+
+void MoveNeighborhood::reverseLastRandomStep(Solution *currentSolution)
+{
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
+    sol->move(instance, re, rp, rr);
+}
+
 Solution *RandomInitialSolution::generateSolution()
 {
     ExamTT const& instance = (ExamTT const&) this->instance;
@@ -2200,6 +2265,30 @@ Solution *RandomInitialSolution::generateSolution()
 }
 
 Solution *RandomInitialSolution::generateEmptySolution()
+{
+    return new ExamTTSolution;
+}
+
+Solution *ZeroInitialSolution::generateSolution()
+{
+    ExamTT const& instance = (ExamTT const&) this->instance;
+
+    ExamTTSolution* sol = new ExamTTSolution;
+    sol->periods.assign(instance.exams.size(), 0);
+    sol->rooms.assign(instance.exams.size(), 0);
+
+    for(size_t i = 0; i < firstAssign.size(); ++i)
+        sol->assignement(i) = firstAssign[i];
+
+    sol->buildStructures(instance);
+    sol->computeCost(instance);
+
+    cout << "Initial solution " << sol->getSolutionRepresentation() << endl;
+
+    return sol;
+}
+
+Solution *ZeroInitialSolution::generateEmptySolution()
 {
     return new ExamTTSolution;
 }
@@ -2255,6 +2344,23 @@ Solution *SwapNeighborhood::random(Solution *currentSolution) {
     Random r;
     sol->swap(instance, r.randrange(E), r.randrange(E));
     return sol;
+}
+
+void SwapNeighborhood::randomStep(Solution *currentSolution)
+{
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
+    int E = instance.exams.size();
+
+    Random r;
+    re1 = r.randrange(E);
+    re2 = r.randrange(E);
+    sol->swap(instance, re1, re2);
+}
+
+void SwapNeighborhood::reverseLastRandomStep(Solution* currentSolution)
+{
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
+    sol->swap(instance, re1, re2);
 }
 
 KempeChainNeighborhood::KempeChainNeighborhood(const ExamTT &instance_)
@@ -2347,6 +2453,149 @@ Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
     chain.clear();
     createChain(sol, exam);
     return sol;
+}
+
+MixedMoveSwapNeighborhood::MixedMoveSwapNeighborhood(ExamTT const& instance_, double swapRate_)
+    : move(instance_), swap(instance_), swapRate(swapRate_)
+{
+
+}
+
+Solution* MixedMoveSwapNeighborhood::random(Solution *currentSolution) {
+    return emili::generateRealRandomNumber() <= swapRate ? swap.random(currentSolution) : move.random(currentSolution);
+}
+
+void MixedMoveSwapNeighborhood::randomStep(Solution *currentSolution)
+{
+    chosenSwap = emili::generateRealRandomNumber() <= swapRate;
+    if(chosenSwap)
+        swap.randomStep(currentSolution);
+    else
+        move.randomStep(currentSolution);
+}
+
+void MixedMoveSwapNeighborhood::reverseLastRandomStep(Solution *currentSolution)
+{
+    if(chosenSwap)
+        swap.reverseLastRandomStep(currentSolution);
+    else
+        move.reverseLastRandomStep(currentSolution);
+}
+
+BruteForce::BruteForce(Instance &i)
+    : BruteForce(i, {})
+{
+
+}
+
+BruteForce::BruteForce(Instance &i, std::vector<std::pair<PeriodId, RoomId> > firstAssign_)
+    : LocalSearch(
+          * new ZeroInitialSolution(i, firstAssign_),
+          * new WhileTrueTermination(),
+          * new MoveNeighborhood(instance)
+    )
+    , instance(i)
+    , firstAssign(firstAssign_)
+{
+
+}
+
+Solution *BruteForce::search(Solution *initial)
+{
+    constexpr bool DEBUG = true;
+    constexpr bool SEE_ALL_SOL = false;
+
+    int E = instance.exams.size();
+    int P = instance.periods.size();
+    int R = instance.rooms.size();
+
+    ExamTTSolution* sol = (ExamTTSolution*) initial;
+
+    bestSoFar = sol->clone();
+
+    std::function<void (int)> fNoDebug = [this, sol, E, P, R, &fNoDebug](int i){
+        if(i >= E) {
+            if(sol->costs < ((ExamTTSolution*)bestSoFar)->costs)
+                *bestSoFar = *sol;
+        } else {
+            for(int p = 0; p < P; p++) {
+                for(int r = 0; r < R; r++) {
+                    sol->move(instance, i, p, r);
+                    fNoDebug(i + 1);
+                }
+            }
+        }
+    };
+
+    std::function<void (int)> fDebug = [this, sol, E, P, R, &fDebug, &fNoDebug](int i){
+        if(i >= E) {
+            if(SEE_ALL_SOL)
+                std::cout << sol->getSolutionValue() << "\t" << sol->getSolutionRepresentation() << endl;
+            if(sol->costs < ((ExamTTSolution*)bestSoFar)->costs)
+                *bestSoFar = *sol;
+        } else {
+            auto nextF = SEE_ALL_SOL ? fDebug : i == firstAssign.size() + sizeOfDebug-1 ? fNoDebug : fDebug;
+            for(int p = 0; p < P; p++) {
+                for(int r = 0; r < R; r++) {
+                    if(! SEE_ALL_SOL) {
+                        if(firstAssign.size() <= i && i < firstAssign.size() + sizeOfDebug)
+                            std::cout << std::string(i, ' ') << i << " " << p << '/' << P << " " << r << '/' << R << "; best_cost=" << bestSoFar->getSolutionValue() << "; cur=" << sol->getSolutionRepresentation() << endl;
+                    }
+                    sol->move(instance, i, p, r);
+
+                    nextF(i + 1);
+                }
+            }
+        }
+    };
+
+    if(DEBUG)
+        fDebug(firstAssign.size());
+    else
+        fNoDebug(firstAssign.size());
+
+    return bestSoFar;
+}
+
+Solution *BSUSA::search(Solution *initial) {
+    auto sol = initial->clone();
+    searchInPlace(sol);
+    return sol;
+}
+
+void BSUSA::searchInPlace(Solution *initial) {
+    auto best = initial->clone();
+
+    // auto temp = ;
+    neighbh->reset();
+
+    auto accept = [](Solution* sol, double delta){
+        return delta < 0;
+    };
+
+    int accepted = 0;
+    int iterations = 0;
+
+    do {
+        // best = exploration->nextSolution();
+        auto costBefore = initial->getSolutionValue();
+        neighbh->randomStep(initial);
+        auto delta = initial->getSolutionValue() - costBefore;
+
+        if(accept(initial, delta)) {
+            // initial is the same
+            accepted++;
+        } else {
+            // we'll try another random
+            neighbh->reverseLastRandomStep(initial);
+        }
+
+        // temp = update(temp)
+        // accept.setTemp(temp)
+    } while (true);
+
+    best->swap(initial);
+    delete best;
 }
 
 }

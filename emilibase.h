@@ -38,7 +38,7 @@ Neighborhood and Perturbation.
 #define nullptr NULL
 #endif
 #include <functional>
-
+#include <stdexcept>
 
 
 namespace emili{
@@ -88,6 +88,7 @@ public:
     virtual double getSolutionValue();
     virtual void setSolutionValue(double value);
     virtual Solution* clone()=0;
+    virtual void swap(Solution*);
     virtual ~Solution() {}
 };
 
@@ -234,10 +235,27 @@ public:
      * (e.g. first improvement strategies for permutation flow shop).
      */
     virtual void reset()=0;
+
     /*
-     * A method that returns a random solution in the neighborhood has to be provided
+     * A method that returns a (new) random solution in the neighborhood has to be provided
      */
     virtual Solution* random(Solution* currentSolution) = 0;
+
+    /**
+     * @brief Do a random step on the solution
+     */
+    virtual void randomStep(Solution* currentSolution) {
+        throw std::invalid_argument("not implemented");
+    }
+
+    /**
+     * @brief reverse last random step.
+     * Asserts the last non const call was randomStep()
+     */
+    virtual void reverseLastRandomStep(Solution *currentSolution) {
+        throw std::invalid_argument("not implemented");
+    }
+
     /*
      * This method returns the size of the neighborhood
     */
@@ -285,9 +303,16 @@ public:
     */
     virtual Solution* search();
     /*
-     * a starting solution can be also provided
+     * a starting solution can be also provided.
+     * A New solution must be returned
      */
     virtual Solution* search(Solution* initial);
+
+    /**
+     * @brief searchInPlace will modify the current solution with the
+     * @param initial
+     */
+    virtual void searchInPlace(Solution* initial);
     /*
      * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
@@ -596,6 +621,7 @@ public:
 
 
 void initializeRandom(int seed);
+void initializeRandomFromTime();
 #ifdef NOC11
 std::tr1::mt19937& getRandomGenerator();
 #else
@@ -603,6 +629,10 @@ std::mt19937& getRandomGenerator();
 #endif
 
 int generateRandomNumber();
+
+/**
+ * @return uniform variable between 0 and 1
+ */
 float generateRealRandomNumber();
 
 /**

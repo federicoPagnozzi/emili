@@ -37,6 +37,12 @@ public:
         return type;
     }
 
+    /**
+     * @brief nextSolution
+     * @param startingSolution
+     * @param status
+     * @return next solution, may or may not be startingSolution
+     */
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
                                           SAStatus& status)=0;
 
@@ -58,6 +64,17 @@ public:
                                           SAStatus& status);
 
 }; // SARandomExploration
+
+
+class SARandomExplorationNoCopy : public SAExploration {
+public:
+    SARandomExplorationNoCopy(emili::Neighborhood *_neigh, SAAcceptance *_acceptance, SATermination *_term)
+        : SAExploration(_neigh, _acceptance, _term, "SARANDOMEXPLORATIONNOCOPY") {
+
+    }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution, SAStatus &status);
+};
 
 
 class SASequentialExploration: public SAExploration {

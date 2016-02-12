@@ -42,6 +42,27 @@ public:
     bool checkToken(const std::string &token);
     bool checkToken(const char* );
     const char* tokenAt(int i);
+
+    /**
+     * @brief if(the next token is an integer) { res = the integer; return true } else { return false }
+     * @param res the location to write the integer
+     * @return true if an integer was set to res
+     */
+    bool checkInteger(int &res);
+
+    /**
+     * @brief if(the next token is a decimal) { res = the decimal; return true } else { return false }
+     * @param res the location to write the decimal
+     * @return true if an decimal was set to res
+     */
+    bool checkDecimal(float &res);
+
+    /**
+     * @brief if(the next token is a decimal) { res = the decimal; return true } else { return false }
+     * @param res the location to write the decimal
+     * @return true if an decimal was set to res
+     */
+    bool checkDecimal(double &res);
 };
 
 class AlgoBuilder

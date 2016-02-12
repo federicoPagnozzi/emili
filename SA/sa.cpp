@@ -30,7 +30,8 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
     } while(!terminationCriterion->terminate(*status));
 
-    delete bestSoFar;
+    if(status->best != bestSoFar)
+        delete bestSoFar;
 
     return status->best;
 } // end search

@@ -164,6 +164,11 @@ protected:
     long cap;
 
 public:
+    /**
+     * @brief CappedMaxAcceptedTempLength
+     * @param length the max number of Accepted solutions
+     * @param _cap the max number of solutions
+     */
     CappedMaxAcceptedTempLength(int length, long _cap):
         cap(_cap),
         SATempLength(CAPPEDMAXACCEPTEDTEMPLEN, length) { }

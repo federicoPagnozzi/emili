@@ -158,6 +158,42 @@ bool prs::TokenManager::checkToken(const char* token)
     return false;
 }
 
+bool prs::TokenManager::checkInteger(int & res) {
+    if(currentToken < numberOfTokens) {
+        std::istringstream iss(tokens[currentToken]);
+        iss >> res;
+        if(iss) {
+            currentToken++;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool prs::TokenManager::checkDecimal(float & res) {
+    if(currentToken < numberOfTokens) {
+        std::istringstream iss(tokens[currentToken]);
+        iss >> res;
+        if(iss) {
+            currentToken++;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool prs::TokenManager::checkDecimal(double & res) {
+    if(currentToken < numberOfTokens) {
+        std::istringstream iss(tokens[currentToken]);
+        iss >> res;
+        if(iss) {
+            currentToken++;
+            return true;
+        }
+    }
+    return false;
+}
+
 int prs::TokenManager::getInteger()
 {
     const char* t = peek();
@@ -229,7 +265,11 @@ int getSeed(prs::TokenManager& tm)
     int rnds = 0;
     if(tm.checkToken(RNDSEED))
     {
-        rnds = tm.getInteger();
+        if(tm.checkToken("random")) {
+            emili::initializeRandomFromTime();
+        } else {
+            rnds = tm.getInteger();
+        }
     }
     std::cout << "Random seed : " << rnds << std::endl;
     return rnds;

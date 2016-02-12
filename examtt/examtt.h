@@ -7,6 +7,10 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include <utility>
+
+// SA
+#include "../SA/sa.h"
 
 namespace emili
 {
@@ -76,6 +80,10 @@ struct Random {
 
     void seed(long s) {
        emili::initializeRandom(s);
+    }
+
+    float random() {
+        return emili::generateRealRandomNumber();
     }
 
     int randrange(int N) {
@@ -150,6 +158,9 @@ typedef int NumberOfPeriods;
 typedef int NumberOfRooms;
 typedef int NumberOfExams;
 
+typedef std::pair<PeriodId, RoomId> Assignement;
+typedef std::pair<PeriodId&, RoomId&> AssignementRef;
+typedef std::pair<PeriodId const&, RoomId const&> AssignementConstRef;
 
 class Exam {
 public:
@@ -350,13 +361,14 @@ public:
 typedef ExamTT Instance;
 
 struct HardCostComponents {
-    HCost roomConstraint, // exams
+    HCost
+        simultaneousExams, // students
+        overCapacity, // students (seats)
         excessiveDuration, // exams
         periodConstraintAfter, // pairs
         periodConstraintCoincidence, // pairs
         periodConstraintExclusion, // pairs
-        simultaneousExams, // students
-        overCapacity; // students (seats)
+        roomConstraint; // exams
 
     static HardCostComponents zero() {
         return {0,0,0,0,0,0,0};
@@ -367,15 +379,18 @@ struct HardCostComponents {
     }
 
     HCost sum() const {
-        return roomConstraint + excessiveDuration + periodConstraint() + simultaneousExams + overCapacity;
+        return simultaneousExams + overCapacity + excessiveDuration + periodConstraint() + roomConstraint;
     }
 
-    std::tuple<HCost, HCost, HCost, HCost, HCost> small_tuple() const {
-        return std::make_tuple(roomConstraint, excessiveDuration, periodConstraint(), simultaneousExams, overCapacity);
+    typedef std::tuple<HCost, HCost, HCost, HCost, HCost> SmallTuple;
+    typedef std::tuple<HCost, HCost, HCost, HCost, HCost, HCost, HCost> Tuple;
+
+    SmallTuple small_tuple() const {
+        return std::make_tuple(simultaneousExams, overCapacity, excessiveDuration, periodConstraint(), roomConstraint);
     }
 
-    std::tuple<HCost, HCost, HCost, HCost, HCost, HCost, HCost> make_tuple() const {
-        return std::make_tuple(roomConstraint, excessiveDuration, periodConstraintAfter, periodConstraintCoincidence, periodConstraintExclusion, simultaneousExams, overCapacity);
+    Tuple make_tuple() const {
+        return std::make_tuple(simultaneousExams, overCapacity, excessiveDuration, periodConstraintAfter, periodConstraintCoincidence, periodConstraintExclusion, roomConstraint);
     }
 
     bool exactlyEqual(HardCostComponents const& other) const {
@@ -393,23 +408,23 @@ struct HardCostComponents {
 
     HardCostComponents operator -(HardCostComponents const& two) const {
         return {
-            roomConstraint              - two.roomConstraint,
+            simultaneousExams           - two.simultaneousExams,
+            overCapacity                - two.overCapacity,
             excessiveDuration           - two.excessiveDuration,
             periodConstraintAfter       - two.periodConstraintAfter,
             periodConstraintCoincidence - two.periodConstraintCoincidence,
             periodConstraintExclusion   - two.periodConstraintExclusion,
-            simultaneousExams           - two.simultaneousExams,
-            overCapacity                - two.overCapacity
+            roomConstraint              - two.roomConstraint,
         };
     }
 };
 
 struct SoftCostComponents {
-    SCost periodsPenalty,
-          roomsPenalty,
-          twoExamsInARow,
+    SCost twoExamsInARow,
           twoExamsInADay,
           periodSpread,
+          periodsPenalty,
+          roomsPenalty,
           frontload,
           mixedDuration;
 
@@ -418,15 +433,18 @@ struct SoftCostComponents {
     }
 
     SCost sum() const {
-        return periodsPenalty + roomsPenalty + twoExamsInARow + twoExamsInADay + periodSpread + frontload + mixedDuration;
+        return twoExamsInARow + twoExamsInADay + periodSpread + periodsPenalty + roomsPenalty + frontload + mixedDuration;
     }
 
-    std::tuple<SCost, SCost, SCost, SCost> small_tuple() const {
-        return std::make_tuple(periodsPenalty + roomsPenalty, twoExamsInARow + twoExamsInADay + periodSpread, frontload, mixedDuration);
+    typedef std::tuple<SCost, SCost, SCost, SCost> SmallTuple;
+    typedef std::tuple<SCost, SCost, SCost, SCost, SCost, SCost, SCost> Tuple;
+
+    SmallTuple small_tuple() const {
+        return std::make_tuple(twoExamsInARow + twoExamsInADay + periodSpread, periodsPenalty + roomsPenalty, frontload, mixedDuration);
     }
 
-    std::tuple<SCost, SCost, SCost, SCost, SCost, SCost, SCost> make_tuple() const {
-        return std::make_tuple(periodsPenalty, roomsPenalty, twoExamsInARow, twoExamsInADay, periodSpread, frontload, mixedDuration);
+    Tuple make_tuple() const {
+        return std::make_tuple(twoExamsInARow, twoExamsInADay, periodSpread, periodsPenalty, roomsPenalty, frontload, mixedDuration);
     }
 
     bool exactlyEqual(SoftCostComponents const& other) const {
@@ -444,11 +462,11 @@ struct SoftCostComponents {
 
     SoftCostComponents operator -(SoftCostComponents const& two) const {
         return {
-            periodsPenalty - two.periodsPenalty,
-            roomsPenalty   - two.roomsPenalty,
             twoExamsInARow - two.twoExamsInARow,
             twoExamsInADay - two.twoExamsInADay,
             periodSpread   - two.periodSpread,
+            periodsPenalty - two.periodsPenalty,
+            roomsPenalty   - two.roomsPenalty,
             frontload      - two.frontload,
             mixedDuration  - two.mixedDuration,
         };
@@ -474,6 +492,23 @@ struct CostComponents {
         return hard.exactlyEqual(other.hard) && soft.exactlyEqual(other.soft);
     }
 
+    typedef std::tuple<HardCostComponents::Tuple, SoftCostComponents::Tuple> Tuple;
+    typedef std::tuple<HCost, SCost> ComparableTuple;
+
+    // (1, 0, 0, 2), (10, 0, ..., 5)
+    Tuple make_tuple() const {
+        return std::make_tuple(hard.make_tuple(), soft.make_tuple());
+    }
+
+    // (3, 160)
+    ComparableTuple make_comparable_tuple() const {
+        return std::make_tuple(hard.sum(), soft.sum());
+    }
+
+    bool operator <(CostComponents const& other) const {
+        return make_comparable_tuple() < other.make_comparable_tuple();
+    }
+
     struct Printer {
         CostComponents const& self;
         Instance const& instance;
@@ -496,6 +531,7 @@ std::ostream& operator <<(std::ostream& out, CostComponents::Printer printer);
 class ExamTTSolution: public emili::Solution
 {
 public:
+    ~ExamTTSolution();
     virtual const void* getRawData() const;
     virtual void setRawData(const void* data);
 
@@ -516,10 +552,11 @@ public:
 
     void buildStructures(InstanceRef);
 
+    static int numberOfClones;
+
     /**
      * return the difference in cost for a move/swap
      */
-
     CostComponents differenceCostMove(InstanceRef, ExamId ex, PeriodId nextP, RoomId nextR) const;
     CostComponents differenceCostSwap(InstanceRef, ExamId e1, ExamId e2) const;
 
@@ -555,30 +592,35 @@ public:
     CostComponents computeAndGetCost(InstanceRef) const;
 
     // read
-    std::pair<PeriodId &, RoomId &> assignement(ExamId exam);
+    AssignementRef assignement(ExamId exam);
 
-    Two<std::pair<PeriodId &, RoomId &>> assignementOf(Two<ExamId> exam);
+    Two<AssignementRef> assignementOf(Two<ExamId> exam);
     Two<PeriodId&> periodsOf(Two<ExamId> exams);
     Two<RoomId&> roomsOf(Two<ExamId> exams);
 
-    Two<std::pair<PeriodId&, RoomId&>> assignementOf(ExamId exam1, ExamId exam2);
+    Two<AssignementRef> assignementOf(ExamId exam1, ExamId exam2);
     Two<PeriodId&> periodsOf(ExamId exam1, ExamId exam2);
     Two<RoomId&> roomsOf(ExamId exam1, ExamId exam2);
 
     // const version, for c++ purist
-    std::pair<PeriodId const&, RoomId const&> assignement(ExamId exam) const;
+    AssignementConstRef assignement(ExamId exam) const;
 
-    Two<std::pair<PeriodId const&, RoomId const&>> assignementOf(Two<ExamId> exam) const;
+    Two<AssignementConstRef> assignementOf(Two<ExamId> exam) const;
     Two<PeriodId const&> periodsOf(Two<ExamId> exams) const;
     Two<RoomId const&> roomsOf(Two<ExamId> exams) const;
 
-    Two<std::pair<PeriodId const&, RoomId const&>> assignementOf(ExamId exam1, ExamId exam2) const;
+    Two<AssignementConstRef> assignementOf(ExamId exam1, ExamId exam2) const;
     Two<PeriodId const&> periodsOf(ExamId exam1, ExamId exam2) const;
     Two<RoomId const&> roomsOf(ExamId exam1, ExamId exam2) const;
 
 public:
     ExamTTSolution(double solution_value = 0):emili::Solution(solution_value) { }
-    virtual Solution* clone();
+
+    /* O(n) */
+    Solution* clone() override;
+
+    /* O(1) */
+    void swap(Solution*) override;
 
     std::string getSolutionRepresentation() override;
 };
@@ -611,9 +653,9 @@ struct MoveNeighborhood : emili::Neighborhood {
 protected:
     ExamTT const& instance;
 
-    ExamId exam;
-    PeriodId bperiod, period;
-    RoomId broom, room;
+    ExamId exam, re;
+    PeriodId bperiod, period, rp;
+    RoomId broom, room, rr;
 
     Solution* computeStep(Solution *step) override;
     void reverseLastMove(Solution *step) override;
@@ -626,6 +668,8 @@ public:
     int size() override;
 
     Solution* random(Solution *currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
 struct SwapNeighborhood : emili::Neighborhood {
@@ -634,6 +678,8 @@ protected:
 
     ExamId e1;
     ExamId e2;
+
+    ExamId re1, re2;
 
     Solution* computeStep(Solution *rawStep) override;
     void reverseLastMove(Solution *rawStep) override;
@@ -646,6 +692,8 @@ public:
     int size() override;
 
     Solution* random(Solution *currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
 struct RandomInitialSolution : emili::InitialSolution {
@@ -657,6 +705,17 @@ struct RandomInitialSolution : emili::InitialSolution {
     Solution* generateEmptySolution() override;
 };
 
+struct ZeroInitialSolution : emili::InitialSolution {
+    ZeroInitialSolution(ExamTT& inst) : ZeroInitialSolution(inst, {}) {}
+
+    ZeroInitialSolution(ExamTT& inst, std::vector<Assignement> firstAssign_)
+        : emili::InitialSolution(inst), firstAssign(firstAssign_) {}
+
+    std::vector<Assignement> firstAssign;
+
+    Solution* generateSolution() override;
+    Solution* generateEmptySolution() override;
+};
 
 struct KempeChainNeighborhood : emili::Neighborhood {
 protected:
@@ -679,8 +738,68 @@ public:
     int size() override;
 
     Solution* random(Solution *currentSolution) override;
+    // void randomStep(Solution* currentSolution) override;
+    // void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
+struct MixedMoveSwapNeighborhood : emili::Neighborhood {
+protected:
+    MoveNeighborhood move;
+    SwapNeighborhood swap;
+
+    double swapRate;
+
+    bool chosenSwap;
+
+    Solution* computeStep(Solution *rawStep) override {
+        throw std::invalid_argument("undefined for random neighborhood");
+    }
+
+    void reverseLastMove(Solution *rawStep) override {
+        throw std::invalid_argument("undefined for random neighborhood");
+    }
+public:
+    MixedMoveSwapNeighborhood(ExamTT const& instance, double swapRate);
+
+    Solution* step(Solution *currentSolution) override {
+        throw std::invalid_argument("undefined for random neighborhood");
+    }
+
+    void reset() override {
+        // undefined for random neighborhood
+    }
+
+    int size() override {
+        return 0; // // undefined for random neighborhood
+    }
+
+    Solution* random(Solution *currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
+};
+
+struct BruteForce : emili::LocalSearch {
+    Instance& instance;
+    std::vector<std::pair<PeriodId,RoomId>> firstAssign;
+    int sizeOfDebug = 2;
+
+    BruteForce(Instance& i);
+    BruteForce(Instance& i, std::vector<std::pair<PeriodId,RoomId>> firstAssign);
+    void setSizeDebug(int n) { sizeOfDebug = n; }
+    Solution* search(Solution* initial) override;
+};
+
+struct BSUSA : emili::LocalSearch {
+    BSUSA(
+        Instance& i,
+        emili::InitialSolution* init,
+        SAInitTemp* initialTemperature,
+        SATempLength* tempLegth,
+        SACooling* cooling
+    );
+    Solution* search(Solution* initial) override;
+    void searchInPlace(Solution* initial) override;
+};
 
 void test();
 

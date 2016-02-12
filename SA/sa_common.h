@@ -100,14 +100,13 @@ public:
         best = sol->clone();
         best_cost = cost;
         best_temp = temp;
-        //std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
-        //std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
-        std::cout << std::fixed << cost << " " << total_counter << " ";// << temp << " ";
-        std::cout << std::fixed << emili::getCurrentExecutionTime() << std::endl;
+        // std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
+        // std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
+        // std::cout << "cost=" << std::fixed << cost << " count=" << total_counter << " ";// << temp << " ";
+        // std::cout << "time=" << std::fixed << emili::getCurrentExecutionTime() << std::endl;
         not_improved = 0;
         counter = 0;
     }
-
 
     void accepted_sol(double cost) {
         accepted += 1;

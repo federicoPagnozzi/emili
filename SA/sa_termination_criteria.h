@@ -83,8 +83,7 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        if (status.total_counter >= maxIterations) return true;
-        return false;
+        return status.total_counter >= maxIterations;
     }
 
     // does nothing
@@ -94,6 +93,31 @@ public:
 
 }; // SAMaxIterTermination
 
+struct SAMaxIterTerminationDebug : SAMaxIterTermination {
+    double stepRatio = 0.0;
+
+    SAMaxIterTerminationDebug(int maxBadIterations)
+        : SAMaxIterTermination(maxBadIterations) {
+
+    }
+
+    bool terminate(SAStatus& status) override {
+
+        double ratio = (double) status.total_counter / maxIterations;
+        if(ratio >= stepRatio) {
+            std::cout << "percent=" << (int)(100 * (double)status.total_counter / maxIterations) << "%"
+                      << "&cost=" << status.best_cost
+                      << std::endl;
+            stepRatio += 0.01; // every 1%
+        }
+
+        return SAMaxIterTermination::terminate(status);
+    }
+
+    void reset() override {
+        stepRatio = 0;
+    }
+};
 
 class SANeighSizeIterTermination: public SATermination {
 

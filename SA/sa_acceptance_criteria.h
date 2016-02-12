@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <cfloat>
+#include <stdexcept>
 
 #include "sa_constants.h"
 #include "sa_common.h"
@@ -47,10 +48,21 @@ public:
      * 
      * @param  current_emili::Solution emili::Solution 1
      * @param  new_emili::Solution     emili::Solution 2
-     * @return                  accepted solution
+     * @return                  accepted solution (must be one of the two ?)
      */
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution)=0;
+
+    /**
+     * @brief acceptViaDelta
+     * @param new_solution the solution modified
+     * @param delta = cost(new_solution) - cost(before)
+     * @return true iff the change is accepted
+     */
+    virtual bool acceptViaDelta(emili::Solution* new_solution, double delta) {
+        throw std::invalid_argument("not implemented");
+    }
+
 
     /**
      * update temperature
@@ -80,6 +92,7 @@ public:
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
 
+    virtual bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 }; // SAMetropolisAcceptance
 
 

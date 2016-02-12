@@ -34,11 +34,20 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 }
  */
 
+void emili::initializeRandomFromTime() {
+#ifndef NOC11
+    std::random_device rd;
+    initializeRandom( rd() );
+#else
+    srand(time(0));
+#endif
+}
+
 #ifndef NOC11
 
 std::mt19937 generator;
-std::uniform_int_distribution<int> distribution;
-std::uniform_real_distribution<float> realdistr;
+std::uniform_int_distribution<int> distribution; // (0,maxint)
+std::uniform_real_distribution<float> realdistr; // (0,1)
 void emili::initializeRandom(int seed)
 {
     generator = std::mt19937(seed);
@@ -53,8 +62,8 @@ std::mt19937& emili::getRandomGenerator()
 #else
 //Random generation compilation path for compilers that don't support c++11
 std::tr1::mt19937 generator;
-std::tr1::uniform_int<int> distribution;
-std::tr1::uniform_real<float> realdistr;
+std::tr1::uniform_int<int> distribution; // (0,maxint)
+std::tr1::uniform_real<float> realdistr; // (0,1)
 void emili::initializeRandom(int seed)
 {
     generator = std::tr1::mt19937(seed);
@@ -70,7 +79,7 @@ std::tr1::mt19937& emili::getRandomGenerator()
 
 int emili::generateRandRange(int n)
 {
-    return generateRandomNumber() % n; // TODO : use c++11
+    return generateRandInt(0, n - 1);
 }
 
 int emili::generateRandRange(int from, int to)
@@ -80,7 +89,7 @@ int emili::generateRandRange(int from, int to)
 
 int emili::generateRandInt(int from, int to)
 {
-    return generateRandRange(from, to + 1);
+    return std::uniform_int_distribution<>(from, to)(generator);
 }
 
 int emili::generateRandomNumber()
@@ -291,6 +300,14 @@ void emili::Solution::setSolutionValue(double value)
     this->solution_value = value;
 }
 
+void emili::Solution::swap(emili::Solution * other) {
+    // very bad implementation, should swap data
+    auto s = other->clone();
+    *other = *this;
+    *this = *s;
+    delete s;
+}
+
 /*
  * Base implementation of Neighborhood class
  */
@@ -387,6 +404,16 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
         }while(!termcriterion->terminate(bestSoFar,newSolution));
 
         return bestSoFar;
+}
+
+void emili::LocalSearch::searchInPlace(Solution *initial) {
+    // default, dummy implementation
+    auto sol = search(initial);
+    if(sol != initial) {
+        *initial = *sol;
+        delete sol; // move semantics... (or swap)
+    }
+    bestSoFar = initial;
 }
 
 emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *initial)
