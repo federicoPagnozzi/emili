@@ -424,7 +424,7 @@ emili::Neighborhood* prs::irp::IrpParser::neigh(prs::TokenManager& tm)
     emili::Neighborhood* neigh;
     if(tm.checkToken(IRP_TWOEXCHANGE)){
         /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
-        unsigned int piv = tm.getInteger();
+        int piv = tm.getInteger();
         unsigned int ps = tm.getInteger();
         return new emili::irp::irpTwoExchangeNeighborhood(*istance, piv, ps);
     }
@@ -432,7 +432,9 @@ emili::Neighborhood* prs::irp::IrpParser::neigh(prs::TokenManager& tm)
         /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
         double riv = tm.getDecimal();
         double rs = tm.getDecimal();
-        return new emili::irp::irpRefuelNeighborhood(*istance, riv, rs);
+        double dqiv = tm.getDecimal();
+        double dqs = tm.getDecimal();
+        return new emili::irp::irpRefuelNeighborhood(*istance, riv, rs, dqiv, dqs);
     }
     else
     {
@@ -450,7 +452,7 @@ emili::Neighborhood* prs::irp::IrpParser::neighV(prs::TokenManager& tm)
     emili::Neighborhood* neigh;
     if(tm.checkToken(IRP_TWOEXCHANGE)){
         /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
-        unsigned int piv = tm.getInteger();
+        int piv = tm.getInteger();
         unsigned int ps = tm.getInteger();
         return new emili::irp::irpTwoExchangeNeighborhood(*istance, piv, ps);
     }
@@ -458,7 +460,9 @@ emili::Neighborhood* prs::irp::IrpParser::neighV(prs::TokenManager& tm)
         /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
         double riv = tm.getDecimal();
         double rs = tm.getDecimal();
-        return new emili::irp::irpRefuelNeighborhood(*istance, riv, rs);
+        double dqiv = tm.getDecimal();
+        double dqs = tm.getDecimal();
+        return new emili::irp::irpRefuelNeighborhood(*istance, riv, rs, dqiv, dqs);
     }
     else
     {	

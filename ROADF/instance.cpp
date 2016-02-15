@@ -24,11 +24,6 @@ vector<Trailer> Instance::getTrailers()	{return this->trailers;}
 vector<Customer> Instance::getCustomers()	{return this->customers;}
 vector<vector<double> > Instance::getDistMatrices()	{return this->distMatrices;}
 
-double Instance::getMaxCapacity() {return this->maxCapacity;}
-double Instance::getMaxInitialQuantity() {return this->maxInitialQuantity;}
-void Instance::setMaxCapacity(double mc)    {this->maxCapacity = mc;}
-void Instance::setMaxInitialQuantity(double miq)    {this->maxInitialQuantity = miq;}
-
 vector< vector<double> > Instance::getHorizons()    {return this->horizons;}
 vector< vector<double> > Instance::getActualQuantity()  {return this->actualQuantity;}
 void Instance::setHorizons(vector< vector<double> > h)  {this->horizons = h;}
@@ -316,14 +311,6 @@ void Instance::loadInstance(const char* pFilename)
 	      i++;
       }
 
-      vector<double> maxCapacities(this->trailers.size(), 0.0);
-      vector<double> maxInitialQuantities(this->trailers.size(), 0.0);
-      for(int t=0; t<this->trailers.size(); t++){
-          maxCapacities[t] = this->trailers[t].getCapacity();
-          maxInitialQuantities[t] = this->trailers[t].getInitialQuantity();
-      }
-      this->maxCapacity = *max_element(maxCapacities.begin(), maxCapacities.end());
-      this->maxInitialQuantity = *max_element(maxInitialQuantities.begin(), maxInitialQuantities.end());
 
       for(int c=0; c<this->customers.size(); c++){
           vector<double> horizon(this->horizon*60, 0.0);
@@ -1356,7 +1343,7 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
   for(int t=0; t<this->trailers.size(); t++){
     trailerQuantities[t] = this->trailers[t].getInitialQuantity();
   }
-  
+
    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > timeWindows;
    for(int d=0; d<this->drivers.size(); d++){
      for(int t=0; t<this->drivers[d].getTimeWindows().size(); t++){
@@ -1367,7 +1354,7 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
      }
    }
   this->sortPair(timeWindows);
- 
+
   vector<unsigned int> lastOperations(this->customers.size(), 0.0);
   vector<double> pastQuantities(this->customers.size(), 0.0);
 
@@ -1399,50 +1386,8 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
 irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsigned int> solutionRepresentation,
                                       double refuelRatio, double deliveredQuantityRatio, bool originalFlag){
 
-    deliveredQuantityRatio = 1.0 - deliveredQuantityRatio;
-/*    cout<<"REPRESENTATION: ";
-    for(int p=0; p<solutionRepresentation.size(); p++)
-        cout<<solutionRepresentation[p]<<" ";
-    cout<<"\n\n";
-*/
-    /*
-    vector< vector<double> > this->horizons;
-    vector< vector<double> > this->actualQuantity;
-    for(int c=0; c<this->customers.size(); c++){
-        vector<double> horizon(this->horizon*60, 0.0);
-        this->horizons.push_back(horizon);
-        this->actualQuantity.push_back(horizon);
-        this->horizons[c][0] += this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel();
-        this->actualQuantity[c][0] += this->customers[c].getInitialTankQuantity();
-        if(c>1)
-            for(int f=0; f<this->horizon*60; f++){
-                if(f>0){
-                    this->this->horizons[c][f] += this->horizons[c][f-1];
-                    this->actualQuantity[c][f] += this->actualQuantity[c][f-1];
-                    if(f%60 == 0){
-                        this->horizons[c][f] -= this->customers[c].getForecast()[(int)f/60];
-                        this->actualQuantity[c][f] -= this->customers[c].getForecast()[(int)f/60];
-                    }
-                }
-                else{
-                    this->horizons[c][f] -= this->customers[c].getForecast()[0];
-                    this->actualQuantity[c][f] -= this->customers[c].getForecast()[0];
-                }
-            }
-    }
-*/
-    /*
-    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > timeWindows;
-    for(int d=0; d<this->drivers.size(); d++){
-      for(int t=0; t<this->drivers[d].getTimeWindows().size(); t++){
-        pair< pair<unsigned int,unsigned int>, unsigned int > tw;
-        tw.first = this->drivers[d].getTimeWindows()[t];
-        tw.second = d;
-        timeWindows.push_back(tw);
-      }
-    }
-   this->sortPair(timeWindows);
-*/
+   deliveredQuantityRatio = 1.0 - deliveredQuantityRatio;
+
    irpSolution solution;
    vector <Shift> shifts;
    unsigned int time;

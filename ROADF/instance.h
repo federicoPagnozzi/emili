@@ -34,14 +34,14 @@ private:
 	vector<Customer> customers;
 	vector< vector<double> > distMatrices;
 
-    double maxCapacity;
-    double maxInitialQuantity;
+//    double maxCapacity;
+//    double maxInitialQuantity;
 
     vector< vector<double> > horizons;
     vector< vector<double> > actualQuantity;
 
     vector< pair< pair<unsigned int,unsigned int>, unsigned int > > timeWindows;
-	
+
 	
 public:
 	
@@ -57,11 +57,6 @@ public:
 	vector<Customer> getCustomers();
 	vector< vector<double> > getDistMatrices();
 
-    double getMaxCapacity();
-    double getMaxInitialQuantity();
-    void setMaxCapacity(double mc);
-    void setMaxInitialQuantity(double miq);
-
     vector< vector<double> > getHorizons();
     vector< vector<double> > getActualQuantity();
     void setHorizons(vector< vector<double> > h);
@@ -69,7 +64,7 @@ public:
 
     vector< pair< pair<unsigned int,unsigned int>, unsigned int > > getTimeWindows();
     void setTimeWindows(vector< pair< pair<unsigned int,unsigned int>, unsigned int > > tw);
-	
+
 	void loadInstance(const char *pFilename);
     bool dri01(irpSolution solution);
     bool dri03(irpSolution solution);

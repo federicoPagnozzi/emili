@@ -18,7 +18,7 @@ void g2c_info()
 }
 
 
-int main(int argc, char *argv[])
+int main2(int argc, char *argv[])
 {
 
     clock_t time = clock();
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     int randomSeed = 0;
 
     bool isDeterministic = false;
-    if(argc != 2 and argc != 8 and argc != 10){
+    if(argc != 2 and argc != 7 and argc != 9){
         cout<<"\nBad arguments\n";
         exit(0);
     }
@@ -43,24 +43,19 @@ int main(int argc, char *argv[])
             if (i + 1 != argc){
                 if (strcmp(argv[i],"-t") == 0) {
                     maxTime = atof(argv[i + 1]);
-//                    cout<<"\nTIME: "<<maxTime;
                 } else if (strcmp(argv[i],"-p") == 0) {
                     instanceName = argv[i + 1];
-//                    cout<<"\nINSTANCE: "<<instanceName;
                 } else if (strcmp(argv[i],"-o") == 0) {
                     solutionName = argv[i + 1];
-//                    cout<<"\nSOLUTION: "<<solutionName;
                 } else if (strcmp(argv[i],"-name") == 0) {
                     cout<<"\nTEAM ID: "<<teamID<<"\n";
                 } else if (strcmp(argv[i],"-s") == 0) {
                     randomSeed = atoi(argv[i + 1]);
-//                    cout<<"\nSEED: "<<randomSeed;
                     isDeterministic = true;
                 }
             }
         }
 
-//        cout<<"\n";
     }
 
 
@@ -80,7 +75,7 @@ int main(int argc, char *argv[])
     emili::Termination* pft = new emili::TimedTermination(maxTime);
     double rs = 0.1;
     double riv = -rs;
-    emili::Neighborhood* n = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs);
+    emili::Neighborhood* n = new emili::irp::irpRefuelNeighborhood(*instance, riv, rs, riv, rs);
     unsigned int num = 1;
     emili::Perturbation* prsp = new emili::RandomMovePertubation(*n,num);
     emili::Acceptance* tac = new  emili::MetropolisAcceptance(3.5);
@@ -110,7 +105,7 @@ int main(int argc, char *argv[])
 
 }
 
-int main2(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 //std::cout.setstate(std::ios_base::failbit);
 
@@ -202,14 +197,14 @@ prs::emili_header();
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;
-
+/*
     ofstream file;
     file.open ("./Ciao",fstream::app);
     file.precision(15);
     file<<"time : " << time_elapsed << std::endl;
     file<< "Objective function value: " << solution->getSolutionValue() << std::endl;
     file.close();
-
+*/
 
     string filepath;
     emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
