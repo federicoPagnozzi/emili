@@ -106,7 +106,12 @@
 #define TERMINATION_WTRUE "true"
 #define TERMINATION_SOA "soater"
 
-/* permutation flowshop neighborhoods*/
+/*
+ *  permutation flowshop neighborhoods
+ *
+ */
+
+/* Generic */
 #define NEIGHBORHOOD_INSERT "insert"
 #define NEIGHBORHOOD_BACK_INSERT "binsert"
 #define NEIGHBORHOOD_FORW_INSERT "finsert"
@@ -114,11 +119,12 @@
 #define NEIGHBORHOOD_TRANSPOSE "transpose"
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
+
+/* Weighted Tardiness*/
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
 #define NEIGHBORHOOD_HATX_EXCHANGE "hatxexchange"
 #define NEIGHBORHOOD_EATX_EXCHANGE "eatxexchange"
 #define NEIGHBORHOOD_OPT_EXCHANGE "oexchange"
-#define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
 #define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
 #define NEIGHBORHOOD_OPT_INSERT "oinsert"
@@ -131,7 +137,23 @@
 #define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
+
+/* Total Completion Time*/
+#define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
+
+/* Total Tardiness*/
+#define NEIGHBORHOOD_NATA_TT_INSERT "nttinsert"
+
+/* Makespan */
+#define NEIGHBORHOOD_TA_INSERT "tainsert"
+
+/* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
+
+/*
+ * END Neighborhoods
+ */
+
 
 /* permutation flowshop solution perturbations */
 #define PERTURBATION_RANDOM_MOVE "rndmv"
@@ -1206,6 +1228,16 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
     {
         printTab( "Insert with Taillard Acceleration for no idle make span ");
         neigh = new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NATA_TCT_INSERT))
+    {
+        printTab( "Improved Approximated Insert for Total Completion Times with 1 level approximation and online tuned threshold");
+        neigh = new emili::pfsp::NatxTCTNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NATA_TT_INSERT))
+    {
+        printTab( "Improved Approximated Insert for Total Tardiness with 1 level approximation and online tuned threshold");
+        neigh = new emili::pfsp::NatxTTNeighborhood(*istance);
     }
     else
     {
