@@ -5291,12 +5291,14 @@ void emili::pfsp::PfspTabuHashMemory::forbid(Solution *solution)
 
 std::string emili::pfsp::PermutationFlowShopSolution::getSolutionRepresentation()
 {
-    std::ostringstream oss;
+    std::ostringstream oss;    
+    int size = solution.size();
     oss << "{ ";
 
-    for (int i = 1; i < solution.size(); ++i)
+    for (int i = 1; i < size-1; ++i)
       oss << solution[i] << ", " ;
 
+    oss << solution[size-1];
     oss << " }";
     return oss.str();
 }
