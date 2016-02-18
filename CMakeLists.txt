@@ -9,7 +9,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
 
 #ADD COMMIT HASH TO SOURCE CODE
 add_custom_target(GNUM ALL git rev-parse HEAD | xargs -I cnum sed -i old s/.*"define GIT_COMMIT_NUMBER".*/"\#define GIT_COMMIT_NUMBER \\"cnum\\""/g generalParser.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
+add_custom_target(CGNUM ALL rm -f generalParser.cppold WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 #SSE
 if(USE_SSE)
 	message(STATUS "Using sse compile path") 
@@ -38,3 +38,4 @@ endif ()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} GNUM)
+add_dependencies(CGNUM GNUM)

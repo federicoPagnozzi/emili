@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "dc22845b7a5fcc8b61d68e1a7983b078ce2ac2a3"
+#define GIT_COMMIT_NUMBER "14dff763aae5550f34944d70aa7f5cfda6676c6d"
 
 int tab_level = 0;
 
@@ -54,7 +54,7 @@ void prs::emili_header()
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
     std::cout << std::endl;    
-    std::cout << "build : " << GIT_COMMIT_NUMBER << std::endl;
+    std::cout << "commit : " << GIT_COMMIT_NUMBER << std::endl;
 }
 
 void prs::info()
