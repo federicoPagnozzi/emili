@@ -2467,10 +2467,6 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
 
 #endif
         }
-
-
-
-        std::cout << start_position << " " << end_position << std::endl;
         newsol.insert(newsol.begin()+end_position,sol_i);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         long int c_max = c_cur+tail[1][end_position];
