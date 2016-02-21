@@ -1801,6 +1801,10 @@ long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
 	// number of stages
 	int stages = getNbStages();
 
+	/*if ((size == 17) && (sol[1] == 17) && (sol[2] == 12) && (sol[3] == 11) && (sol[4] == 16) && (sol[5] == 18) && (sol[6] == 4))
+		int gg = 2334;*/
+
+
 	// Stages as a vector with number of machines per stage.
 	vector< int > machinesPerStage = getStages();
 	int mInLastStage = machinesPerStage[stages];
@@ -1813,10 +1817,13 @@ long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
 	for (int j = 0; j <= permSize; j++)
 		jobAndFT.push_back(pair<int, int>(sol[j], 0));
 
+	//int maxSize = getNbJob() + 1;
+	int maxSize = processingTimesMatrix.size();
+
 	// Machine assigned to the job marked by index. 
-	vector< int > LSMA(getNbJob()+1);
+	vector< int > LSMA(maxSize);
 	// Idle Time Inserted
-	vector< int > idleTI(getNbJob() + 1);
+	vector< int > idleTI(maxSize);
 
 	// Last Stage complete representation. A Vector of pairs <job, finishingTime> for each machine. 
 	vector< vector < pair< int, int > > > LSCompleteSR(mInLastStage); 
