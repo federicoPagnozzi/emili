@@ -353,7 +353,10 @@ public:
     void testDelta(ExamTTSolution&, std::ostream &log);
 
 public:
-    ExamTT() {}
+    ExamTT() {
+
+    }
+    ExamTT(ExamTT const&) = delete;
     ExamTT(char* instance_path);
     virtual double evaluateSolution(Solution & solution);
 };
@@ -579,6 +582,7 @@ public:
     void writeTo(std::ostream &cout) const;
 
     // methods
+    void initFromAssign(InstanceRef, std::vector<std::pair<int,int>> assign);
     void initRandom(InstanceRef, Random&);
     void move(InstanceRef, ExamId e, PeriodId p, RoomId r);
     void swap(InstanceRef, ExamId i, ExamId j);
@@ -778,6 +782,71 @@ public:
     void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
+struct MixedRandomNeighborhood : emili::Neighborhood {
+protected:
+    std::vector<emili::Neighborhood*> neighborhoods;
+    std::vector<int> cumul;
+    int i = 0;
+
+public:
+
+    MixedRandomNeighborhood(std::vector<emili::Neighborhood*> n, std::vector<int> weights);
+
+    ~MixedRandomNeighborhood() {
+        for(auto p : neighborhoods)
+            delete p;
+    }
+
+    void clearVector() {
+        neighborhoods.clear();
+    }
+
+    void reset() override {
+        // undefined for random neighborhood
+    }
+
+    int size() override {
+        return 0; // undefined for random neighborhood
+    }
+
+    Solution* random(Solution* currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
+};
+
+struct MixedRandomNeighborhoodProba : emili::Neighborhood {
+protected:
+    std::vector<emili::Neighborhood*> neighborhoods;
+    std::vector<float> cumul;
+    int i = 0;
+
+public:
+
+    // proba.size = neigh.size - 1
+    MixedRandomNeighborhoodProba(std::vector<emili::Neighborhood*> n, std::vector<float> proba);
+
+    ~MixedRandomNeighborhoodProba() {
+        for(auto p : neighborhoods)
+            delete p;
+    }
+
+    void clearVector() {
+        neighborhoods.clear();
+    }
+
+    void reset() override {
+        // undefined for random neighborhood
+    }
+
+    int size() override {
+        return 0; // undefined for random neighborhood
+    }
+
+    Solution* random(Solution* currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
+};
+
 struct BruteForce : emili::LocalSearch {
     Instance& instance;
     std::vector<std::pair<PeriodId,RoomId>> firstAssign;
@@ -802,6 +871,7 @@ struct BSUSA : emili::LocalSearch {
 };
 
 void test();
+void testKempe(ExamTT& instance, std::vector<int> initPeriods);
 
 }
 }

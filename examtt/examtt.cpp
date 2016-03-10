@@ -305,6 +305,10 @@ void ExamTT::buildStructures()  {
         }
     }
 
+    for(int i = 0; i < E; i++) {
+        cout << i << ":" << hasStudentsInCommonOfExam(i) << endl;
+    }
+
     vector<ExamId> examsBySize(E);
     for(ExamId i = 0; i < E; i++)
         examsBySize[i] = i;
@@ -492,6 +496,7 @@ Two<Period const&> ExamTT::periodsOf(PeriodId a, PeriodId b) const {
 }
 
 ExamTT::ExamTT(char* instance_path) {
+    cout << "path" << this << endl;
     InstanceParser parser(instance_path);
     if(parser.file)
         parser.parse(*this);
@@ -999,7 +1004,7 @@ void InstanceParser::parse(ExamTT &i) {
         }
     }
 
-    // EXCLUSIVE, EXAM_COINCIDENCE
+    // EXCLUSIVE, EXAM_COINCIDENCE remove duplicate
     {
         for(std::vector<Two<ExamId>>* v : {&i.examsCoincidence, &i.examsExclusion}) {
             std::vector<Two<ExamId>> res;
@@ -1149,6 +1154,23 @@ std::pair<int const &, int const &> ExamTTSolution::periodsOf(int a, int b) cons
 
 std::pair<int const &, int const &> ExamTTSolution::roomsOf(int a, int b) const {
     return {rooms[a], rooms[b]};
+}
+
+void ExamTTSolution::initFromAssign(ExamTT const& instance, std::vector<std::pair<int,int>> assign) {
+    int E = instance.exams.size();
+    int P = instance.periods.size();
+    int R = instance.rooms.size();
+    periods.resize(E);
+    rooms.resize(E);
+
+    if(assign.size() != E)
+        throw invalid_argument("assign.size != E");
+
+    for(ExamId i = 0; i < E; i++)
+        assignement(i) = assign[i];
+
+    computeCost(instance);
+    buildStructures(instance);
 }
 
 void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
@@ -1416,8 +1438,8 @@ void ExamTT::presentation(ostream & log) {
         log << setw(5) << to_string(instance.exams[i].duration) << "m "
             << EPrefix(i)
             << setw(5) << "|" + to_string(instance.exams[i].students.size()) << "|" << " "
-            << setw(3) << "[" + to_string(instance.hasStudentsInCommonOfExam(i).size()) << "] : "
-            << print(M, nocomma | nobraces) << print(instance.hasStudentsInCommonOfExam(i), nocomma) << " " << print(M2, nocomma) << endl;
+            << setw(3) << "[" + to_string(instance.hasStudentsInCommonOfExam(i).size()) << "] " << EPrefix(i) << " : "
+            << /* print(M, nocomma | nobraces) << */ print(instance.hasStudentsInCommonOfExam(i), nocomma) << " " << print(M2, nocomma) << endl;
     }
 
     std::set<ExamId> setFrontloadExams(instance.frontLoadExams.begin(), instance.frontLoadExams.end());
@@ -1672,16 +1694,7 @@ void test() {
     // string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
     string filename = "../examtt-instances/Instances/art000.exam";
 
-    ExamTT inst;
-    ExamTT& instance = inst;
-    InstanceParser parser(filename);
-
-    if(! parser.file) {
-        cerr << "NO FILE" << endl;
-        return;
-    }
-
-    parser.parse(inst);
+    ExamTT inst((char*) filename.c_str());
 
     ofstream log("log");
     inst.presentation(log);
@@ -1797,6 +1810,7 @@ string ExamTTSolution::getSolutionRepresentation() {
     oss << "]";
 
     oss << "; hard = " << costs.hard.make_tuple() << "; soft = " << costs.soft.make_tuple() << ";";
+    oss << " cost_tuple = (" << costs.hard.sum() << ", " << costs.soft.sum() << ");";
 
     return oss.str();
 }
@@ -2364,7 +2378,7 @@ void SwapNeighborhood::reverseLastRandomStep(Solution* currentSolution)
 }
 
 KempeChainNeighborhood::KempeChainNeighborhood(const ExamTT &instance_)
-    : instance(instance)
+    : instance(instance_)
 {
     reset();
 }
@@ -2402,7 +2416,8 @@ Solution* KempeChainNeighborhood::computeStep(Solution *rawStep) {
 
     chain.clear();
     createChain(sol, exam);
-
+    // cout << exam = 0 << t0 = 0 << t1 = 1 << chain = [1,2,3]
+    exam, t0, t1, chain;
     // currently have a lot of duplicates and we construct a chain per computeStep
     // should do like this :
     // for i in range(P)
@@ -2414,15 +2429,19 @@ Solution* KempeChainNeighborhood::computeStep(Solution *rawStep) {
 
     for(ExamId i : chain)
         sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
+
+    return sol;
 }
 
 void KempeChainNeighborhood::createChain(ExamTTSolution* sol, ExamId x) {
     if(chain.count(x))
         return;
 
-    if(sol->periods[x] == t0 || sol->periods[x] == t1)
+    if(sol->periods[x] == t0 || sol->periods[x] == t1) {
+        chain.insert(x);
         for(ExamId j : instance.hasStudentsInCommonOfExam(x))
             createChain(sol, j);
+    }
 }
 
 void KempeChainNeighborhood::reverseLastMove(Solution *rawStep) {
@@ -2455,6 +2474,33 @@ Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
     return sol;
 }
 
+void testKempe(ExamTT& instance, std::vector<int> initPeriods) {
+    const int E = instance.E();
+    if(initPeriods.size() != E)
+        throw std::invalid_argument("initPeriods.size() != E");
+
+    KempeChainNeighborhood* neigh = new KempeChainNeighborhood(instance);
+    ExamTTSolution* sol = new ExamTTSolution;
+
+    std::vector<std::pair<int,int>> assign(E);
+    for(int i = 0; i < E; i++)
+        assign[i] = {initPeriods[i], 0};
+    sol->initFromAssign(instance, assign);
+
+    cout << sol->periods << endl;
+    emili::Neighborhood::NeighborhoodIterator x = neigh->begin(sol);
+    while(x != neigh->end()) {
+        Solution* a = *x;
+
+        ExamTTSolution* c = dynamic_cast<ExamTTSolution*>(a);
+        cout << c->periods << endl;
+        ++x;
+    }
+
+    delete neigh;
+    delete sol;
+}
+
 MixedMoveSwapNeighborhood::MixedMoveSwapNeighborhood(ExamTT const& instance_, double swapRate_)
     : move(instance_), swap(instance_), swapRate(swapRate_)
 {
@@ -2480,6 +2526,77 @@ void MixedMoveSwapNeighborhood::reverseLastRandomStep(Solution *currentSolution)
         swap.reverseLastRandomStep(currentSolution);
     else
         move.reverseLastRandomStep(currentSolution);
+}
+
+MixedRandomNeighborhood::MixedRandomNeighborhood(std::vector<Neighborhood *> n, std::vector<int> weights) : neighborhoods(n) {
+    if(weights.size() != n.size())
+        throw std::invalid_argument("weights.size != neighborhoods.size");
+    if(weights.size() == 0)
+        throw std::invalid_argument("weights.size = 0");
+    cumul.resize(weights.size());
+
+    cumul[0] = weights[0];
+    for(int i = 1; i < weights.size(); i++)
+        cumul[i] = cumul[i-1] + weights[i];
+}
+
+Solution* MixedRandomNeighborhood::random(Solution *currentSolution) {
+    auto x = emili::generateRandRange(cumul[cumul.size()-1]);
+    i = 0;
+    while(x >= cumul[i])
+        i++;
+    return neighborhoods[i]->random(currentSolution);
+}
+
+void MixedRandomNeighborhood::randomStep(Solution *currentSolution)
+{
+    auto x = emili::generateRandRange(cumul[cumul.size()-1]);
+    i = 0;
+    while(x >= cumul[i])
+        i++;
+    neighborhoods[i]->randomStep(currentSolution);
+}
+
+void MixedRandomNeighborhood::reverseLastRandomStep(Solution *currentSolution)
+{
+    neighborhoods[i]->reverseLastRandomStep(currentSolution);
+}
+
+MixedRandomNeighborhoodProba::MixedRandomNeighborhoodProba(std::vector<Neighborhood *> n, std::vector<float> weights) : neighborhoods(n) {
+    if(weights.size() != n.size() - 1)
+        throw std::invalid_argument("weights.size != neighborhoods.size - 1");
+    if(n.size() == 0)
+        throw std::invalid_argument("n.size = 0");
+    cumul.resize(n.size());
+
+    if(n.size() > 1) {
+        cumul[0] = weights[0];
+        for(int i = 1; i < weights.size(); i++)
+            cumul[i] = cumul[i-1] + weights[i];
+    }
+    cumul[cumul.size()-1] = 1.1; // in theory it's 1 but in case generateRandomNumber returns 1...
+}
+
+Solution* MixedRandomNeighborhoodProba::random(Solution *currentSolution) {
+    auto x = emili::generateRandomNumber();
+    i = 0;
+    while(x >= cumul[i])
+        i++;
+    return neighborhoods[i]->random(currentSolution);
+}
+
+void MixedRandomNeighborhoodProba::randomStep(Solution *currentSolution)
+{
+    auto x = emili::generateRandomNumber();
+    i = 0;
+    while(x >= cumul[i])
+        i++;
+    neighborhoods[i]->randomStep(currentSolution);
+}
+
+void MixedRandomNeighborhoodProba::reverseLastRandomStep(Solution *currentSolution)
+{
+    neighborhoods[i]->reverseLastRandomStep(currentSolution);
 }
 
 BruteForce::BruteForce(Instance &i)

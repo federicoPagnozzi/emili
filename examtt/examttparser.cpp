@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <iomanip>
 
 #include "../emilibase.h"
 
@@ -26,6 +27,10 @@ struct SANoExploration : SAExploration {
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution, SAStatus&) override {
         return startingSolution->clone(); // do we have to clone ?
     }
+};
+
+struct NoSearch : std::exception {
+
 };
 
 namespace prs {
@@ -75,13 +80,26 @@ std::set<std::string> PROBLEMS_DEF = {
 using std::string;
 using std::vector;
 using std::get;
+using std::setw;
 
 std::string ExamTTParser::info()
 {
     ostringstream oss;
-    oss << "Usage:\n\n";
-    oss << "EMILI INSTANCE_FILE_PATH ExamTT <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]\n\n";
+    oss << "\nUsage: ";
+    oss << "EMILI INSTANCE_FILE_PATH ExamTT <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]";
     return oss.str();
+}
+
+void ExamTTParser::genericError(string name) {
+    cerr << "ERROR: " << name << endl;
+    cout << info() << endl;
+    exit(-1);
+}
+
+void ExamTTParser::genericError(std::ostream& stream) {
+    stream << endl << "ERROR" << endl;
+    cout << info() << endl;
+    exit(-1);
 }
 
 void ExamTTParser::errorExpected(prs::TokenManager& tm, string name, const std::vector<string> &tokens)
@@ -116,7 +134,7 @@ emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 {
     const std::string SA_BSU = "SA_BSU",
-                      SA_BSU_NO_COPY = "SA_BSU_NO_COPY";
+            TEST_KEMPE = "TEST_KEMPE";
 
     prs::TabLevel level;
 
@@ -147,13 +165,21 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         auto nei = neigh(tm);
         return sa.buildSA(tm, initsol, nei);
     }
-    else if(tm.peek() == SA_BSU || tm.peek() == SA_BSU_NO_COPY){
+    else if(tm.peek() == SA_BSU){
         printTab("SA BSU");
-        bool useCopy = tm.peek() == SA_BSU;
         tm.next();
 
+        int factor = 10;
+
+        if(tm.peek() == std::string("factor")) {
+            tm.next();
+            factor = tm.getInteger();
+        }
+
+        cout << setw(20) << "Using factor " << factor << endl;
+
         int baselineitmax = 500000000; // 5e8
-        int itmax = baselineitmax / 10;
+        int itmax = baselineitmax / factor;
 
         // baseline
         double t0 = 700.00;
@@ -162,7 +188,44 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         double rho = 0.14;
         double sr = 0.70;
         double wH = 21;
-        instance.hardWeight = wH;
+
+        int Cap = 0;
+        for(emili::ExamTT::Room& r : instance.rooms)
+            Cap += r.capacity;
+
+        int PHC = instance.examsCoincidence.size() + instance.examsAfter.size() + instance.examsExclusion.size();
+        int RHC = instance.examsRoomsExclusive.size();
+        int FLP = instance.institutionalWeightings.frontload.time;
+
+        int P = instance.P(),
+            R = instance.R(),
+            E = instance.E(),
+            S = instance.students.size(),
+            PC = 0; // ?
+
+        double CD = instance.meta.ConflictDensity,
+               SxE = 0, // 1.0 * S / E, // ?
+               ExR = 0; // 1.0 * E / R; // ?
+
+        instance.hardWeight = 16.73100
+                + 102.30000 * CD
+                - 0.48330 * P
+                - 0.17740 * SxE
+                - 1.23900 * ExR
+                - 0.00076 * S
+                + 0.11590 * PHC
+                + 0.66660 * FLP
+                + 0.78080 * RHC
+                + 32.46000 * S / Cap,
+                + 0.10100 * PC;
+
+        cout << "Features as in BSU Table 2 : " << endl
+             << "E S P R PHC RHC FLP CD ExR SxE S²/Cap PC" << endl
+             << E << ' ' << S << ' ' << P << ' ' << R << ' '<< PHC << ' '<< RHC << ' '
+             << FLP << ' '<< CD << ' ' << ExR << ' ' << SxE << ' ' << 1.*S/Cap << ' ' << PC << ' '
+             << endl;
+
+        cout << setw(20) << "Hard weight " << instance.hardWeight << endl;
 
         // derived
         // double tmin = 0.50;
@@ -204,6 +267,30 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     {
         return vparams(tm);
     }
+    else if(tm.checkToken("INFO")) {
+        instance.presentation(std::cout);
+
+        throw NoSearch();
+    }
+    else if(tm.checkToken(TEST_KEMPE)) {
+
+        std::vector<int> x = {-1};
+        while(tm.checkInteger(x.back()))
+            x.push_back(-1);
+        x.pop_back();
+
+        if(x.empty())
+            genericError("ints... are expected");
+
+        const int P = instance.P();
+        for(int y : x)
+            if(!(0 <= y && y < P))
+                genericError(cerr << "int " << y << " is not a valid period in [0," << P << "[");
+
+        emili::ExamTT::testKempe(instance, x);
+
+        throw NoSearch();
+    }
     else if(tm.checkToken(TEST_INIT))
     {
         emili::InitialSolution* ini = init(tm);
@@ -211,8 +298,8 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << s->getSolutionValue() << std::endl;
         std::cerr << s->getSolutionValue() << std::endl;
-        exit(-1);
-        return nullptr;
+
+        throw NoSearch();
     }
     else if(tm.checkToken("BRUTE")) {
         int n = -1;
@@ -237,7 +324,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
                     errorExpected(tm, "]", {"]"});
                 }
             } else {
-                cerr << "(BRUTE) Even number of integers expected, got " << ints.size() << std::endl;
+                cerr << "(BRUTE) Even number of integers expected, got " << ints.size() << endl;
                 exit(-1);
             }
 
