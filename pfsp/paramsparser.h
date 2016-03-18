@@ -29,9 +29,7 @@ protected:
     emili::Termination* term(prs::TokenManager& tm);
     emili::Acceptance* acc(prs::TokenManager& tm);
     emili::Perturbation* per(prs::TokenManager& tm);
-    emili::pfsp::PfspNeighborhood* neigh(prs::TokenManager& tm);
-
-    emili::pfsp::PfspNeighborhood* neighV(prs::TokenManager& tm);
+    emili::pfsp::PfspNeighborhood* neigh(prs::TokenManager& tm,bool checkExist);
     void neighs(prs::TokenManager& tm);
     void neighs1(prs::TokenManager& tm);
     void problem(prs::TokenManager& tm);

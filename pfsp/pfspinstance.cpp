@@ -2417,7 +2417,7 @@ long int PfspInstance::computeFT(std::vector< int >& sol)
 
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
-        wt += priority[sol[j]];
+        wt += previousMachineEndTime[j];
 
     return wt;
 }
@@ -2433,7 +2433,7 @@ long int PfspInstance::computeFT(std::vector<int> &sol, int size)
 
     wt = 0;
     for ( j = 1; j<= size; ++j )
-        wt += priority[sol[j]];
+        wt += previousMachineEndTime[j];
 
     return wt;
 }

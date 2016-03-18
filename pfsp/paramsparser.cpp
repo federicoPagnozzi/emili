@@ -106,7 +106,12 @@
 #define TERMINATION_WTRUE "true"
 #define TERMINATION_SOA "soater"
 
-/* permutation flowshop neighborhoods*/
+/*
+ *  permutation flowshop neighborhoods
+ *
+ */
+
+/* Generic */
 #define NEIGHBORHOOD_INSERT "insert"
 #define NEIGHBORHOOD_BACK_INSERT "binsert"
 #define NEIGHBORHOOD_FORW_INSERT "finsert"
@@ -114,11 +119,12 @@
 #define NEIGHBORHOOD_TRANSPOSE "transpose"
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
+
+/* Weighted Tardiness*/
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
 #define NEIGHBORHOOD_HATX_EXCHANGE "hatxexchange"
 #define NEIGHBORHOOD_EATX_EXCHANGE "eatxexchange"
 #define NEIGHBORHOOD_OPT_EXCHANGE "oexchange"
-#define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_TAx_INSERT "txinsert"
 #define NEIGHBORHOOD_ATAx_INSERT "atxinsert"
 #define NEIGHBORHOOD_OPT_INSERT "oinsert"
@@ -131,7 +137,23 @@
 #define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
+
+/* Total Completion Time*/
+#define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
+
+/* Total Tardiness*/
+#define NEIGHBORHOOD_NATA_TT_INSERT "nttinsert"
+
+/* Makespan */
+#define NEIGHBORHOOD_TA_INSERT "tainsert"
+
+/* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
+
+/*
+ * END Neighborhoods
+ */
+
 
 /* permutation flowshop solution perturbations */
 #define PERTURBATION_RANDOM_MOVE "rndmv"
@@ -563,7 +585,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }else if(tm.checkToken(PERTURBATION_RANDOM_MOVE))
     {
         printTab("Random move perturbation.");
-        emili::Neighborhood* n = neigh(tm);
+        emili::Neighborhood* n = neigh(tm,true);
         int num = tm.getInteger();
         prs::incrementTabLevel();
         oss.str(""); oss  << "number of moves per perturbation step " << num;
@@ -894,7 +916,7 @@ void prs::ParamsParser::params(prs::TokenManager& tm)
 {
     in = init(tm);
     te = term(tm);
-    ne = neigh(tm);
+    ne = neigh(tm,true);
 }
 
 emili::LocalSearch* prs::ParamsParser::vparams(prs::TokenManager& tm)
@@ -1077,10 +1099,10 @@ emili::Termination* prs::ParamsParser::term(prs::TokenManager& tm)
     return term;
 }
 
-emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
+emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bool checkExist)
 {
     prs::incrementTabLevel();
-    emili::pfsp::PfspNeighborhood* neigh;
+    emili::pfsp::PfspNeighborhood* neigh = nullptr;
     if(tm.checkToken(NEIGHBORHOOD_INSERT))
     {
         printTab( "Insert Neighborhood");
@@ -1207,73 +1229,24 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm)
         printTab( "Insert with Taillard Acceleration for no idle make span ");
         neigh = new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*istance);
     }
-    else
+    else if(tm.checkToken(NEIGHBORHOOD_NATA_TCT_INSERT))
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a neighborhood specification was expected! " << std::endl;
-        std::cout << info() << std::endl;
-        exit(-1);
+        printTab( "Improved Approximated Insert for Total Completion Times with 1 level approximation and online tuned threshold");
+        neigh = new emili::pfsp::NatxTCTNeighborhood(*istance);
     }
-    prs::decrementTabLevel();
-    return neigh;
-}
-
-emili::pfsp::PfspNeighborhood* prs::ParamsParser::neighV(prs::TokenManager& tm)
-{
-    prs::incrementTabLevel();
-    emili::pfsp::PfspNeighborhood* neigh;
-    if(tm.checkToken(NEIGHBORHOOD_INSERT))
+    else if(tm.checkToken(NEIGHBORHOOD_NATA_TT_INSERT))
     {
-        printTab( "Insert Neighborhood");
-        neigh = new emili::pfsp::PfspInsertNeighborhood(*istance);
-    }
-    else  if(tm.checkToken(NEIGHBORHOOD_FORW_INSERT))
-    {
-        printTab( "Forward insert Neighborhood");
-        neigh = new emili::pfsp::PfspForwardInsertNeighborhood(*istance);
-    }
-    else  if(tm.checkToken(NEIGHBORHOOD_BACK_INSERT))
-    {
-        printTab( "Backward Insert Neighborhood");
-        neigh = new emili::pfsp::PfspBackwardInsertNeighborhood(*istance);
-    }
-    else if(tm.checkToken(NEIGHBORHOOD_EXCHANGE))
-    {
-        printTab( "Exchange neighborhood");
-        neigh = new emili::pfsp::PfspExchangeNeighborhood(*istance);
-    }
-    else if(tm.checkToken(NEIGHBORHOOD_TRANSPOSE))
-    {
-        printTab( "Transpose neighborhood");
-        neigh = new emili::pfsp::PfspTransposeNeighborhood(*istance);
-    }
-    else if(tm.checkToken(NEIGHBORHOOD_TWO_INSERT))
-    {
-        printTab( "Two insert neighborhood");
-        neigh = new emili::pfsp::PfspTwoInsertNeighborhood(*istance);
-    }
-    else if(tm.checkToken(NEIGHBORHOOD_XTRANSPOSE))
-    {
-        printTab( "XTranspose neighborhood");
-        neigh = new emili::pfsp::XTransposeNeighborhood(*istance);
-    }
-    else if(tm.checkToken(NEIGHBORHOOD_TA_INSERT))
-    {
-        printTab( "Insert with Taillard Acceleration");
-        neigh = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*istance);
-    }
-    else if(tm.checkToken(NEIGHBORHOOD_TAx_INSERT))
-    {
-        printTab( "Insert with Taillard Acceleration");
-        neigh = new emili::pfsp::TAxInsertNeighborhood(*istance);
-    }    
-    else if(tm.checkToken(NEIGHBORHOOD_NITA_INSERT))
-    {
-        printTab( "Insert with Taillard Acceleration for no idle make span ");
-        neigh = new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*istance);
+        printTab( "Improved Approximated Insert for Total Tardiness with 1 level approximation and online tuned threshold");
+        neigh = new emili::pfsp::NatxTTNeighborhood(*istance);
     }
     else
-    {	
-        neigh =  nullptr;
+    {
+        if(checkExist)
+        {
+            std::cerr<< "'" << *tm << "' -> ERROR a neighborhood specification was expected! " << std::endl;
+            std::cout << info() << std::endl;
+            exit(-1);
+        }
     }
     prs::decrementTabLevel();
     return neigh;
@@ -1282,14 +1255,14 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neighV(prs::TokenManager& tm)
 void prs::ParamsParser::neighs(prs::TokenManager& tm)
 {
     std::vector<emili::Neighborhood*> vnds;
-    vnds.push_back(neigh(tm));
+    vnds.push_back(neigh(tm,true));
     nes = vnds;
     neighs1(tm);
 }
 
 void prs::ParamsParser::neighs1(prs::TokenManager& tm)
 {
-    emili::Neighborhood* n = neighV(tm);
+    emili::Neighborhood* n = neigh(tm,false);
 	if(n!=nullptr)
 	{
            nes.push_back(n);

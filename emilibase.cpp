@@ -84,13 +84,18 @@ float emili::generateRealRandomNumber()
 /*
  * TIMED SEARCH CODE
  */
-
+bool print;
 bool keep_going;
 bool timer_keep_going;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch;
+
+void emili::set_print(bool p)
+{
+    print = p;
+}
 
 double emili::getCurrentExecutionTime()
 {
@@ -106,12 +111,19 @@ static void finalise (int _)
     if(s_cap != nullptr)
     {
         double sol_val = s_cap->getSolutionValue();
-        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-        std::cout << sol_val << std::endl;
-       //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-        //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
-        std::cerr << std::fixed << sol_val << std::endl;
+        if(print)
+        {
+            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+            std::cout << "objective function value : "<< sol_val << std::endl;
+            std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+            //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+        }
+        else
+        {
+        std::cerr << sol_val << std::endl;
         std::cerr << std::flush;
+        }
     }
     else
     {

@@ -696,7 +696,7 @@ public:
 };
 
 /*
- * One level approximation no threshold
+ * One level approximation no threshold for Weigthed Tardiness
  */
 class HeavilyApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
@@ -709,7 +709,7 @@ public:
 };
 
 /* This Insert recomputes the objective function value only for the modified parts of the solution
- *
+ * for Weigthed Tardiness
  * */
 class OptInsert: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
@@ -815,6 +815,36 @@ protected:
     virtual Solution* computeStep(Solution *value);
 public:
     TatxNeighborhood(float approximation_start_threshold, PermutationFlowShop& problem):emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),aptre(approximation_start_threshold*problem.getNjobs()) { }
+};
+
+/* Neighborhoods based on approximation speed-up for other objectives
+ *
+ * */
+
+/*
+ * Total Completion Time
+ * One level approximation with experimental performance improvement tricks
+ */
+class NatxTCTNeighborhood: public emili::pfsp::Natx2Neighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NatxTCTNeighborhood(PermutationFlowShop& problem):emili::pfsp::Natx2Neighborhood(problem){ }
+    NatxTCTNeighborhood(PermutationFlowShop& problem, int starting_threshold):emili::pfsp::Natx2Neighborhood(problem,starting_threshold) { }
+};
+
+/*
+ * Total Tardiness
+ * One level approximation with experimental performance improvement tricks
+ */
+class NatxTTNeighborhood: public emili::pfsp::Natx2Neighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NatxTTNeighborhood(PermutationFlowShop& problem):emili::pfsp::Natx2Neighborhood(problem){ }
+    NatxTTNeighborhood(PermutationFlowShop& problem, int starting_threshold):emili::pfsp::Natx2Neighborhood(problem,starting_threshold) { }
 };
 
 class NoIdleAcceleratedInsertNeighborhood: public TaillardAcceleratedInsertNeighborhood
