@@ -127,6 +127,8 @@ public:
      *it should be possible to reset the state ( e.g. counters) of a Termination rule.
      */
     virtual void reset()=0;
+
+    virtual ~Termination() {}
 };
 
 /*
@@ -283,7 +285,7 @@ public:
 */
 class LocalSearch
 {
-protected:
+public:
 InitialSolution* init;
 Termination* termcriterion;
 Neighborhood* neighbh;

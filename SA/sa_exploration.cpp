@@ -1,5 +1,7 @@
 #include "sa_exploration.h"
 
+#include <cassert>
+
 emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolution,
                                                    SAStatus& status) {
 
@@ -31,9 +33,12 @@ emili::Solution* SARandomExplorationNoCopy::nextSolution(emili::Solution *starti
 
    if(! acceptance->acceptViaDelta(startingSolution, delta)) {
        neigh->reverseLastRandomStep(startingSolution);
+       assert(costBefore == startingSolution->getSolutionValue());
        status.not_accepted_sol();
+       nnacc++;
    } else {
        status.accepted_sol(startingSolution->getSolutionValue());
+       nacc++;
    }
 
    return startingSolution;

@@ -322,6 +322,8 @@ public:
     bool correctPeriod(PeriodId) const;
     bool correctRoom(RoomId) const;
 
+    int numberOfExamsOfStudent(int student);
+
     // true iff all penalties are 0 or positive
     bool nonNegativePenalties();
 
@@ -555,7 +557,7 @@ public:
 
     void buildStructures(InstanceRef);
 
-    static int numberOfClones;
+    static int numberOfClones, numberOfTotalCompute;
 
     /**
      * return the difference in cost for a move/swap
@@ -747,7 +749,7 @@ public:
 };
 
 struct MixedMoveSwapNeighborhood : emili::Neighborhood {
-protected:
+public:
     MoveNeighborhood move;
     SwapNeighborhood swap;
 

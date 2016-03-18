@@ -7,6 +7,8 @@
 #define GENERALPARSER_H
 #include "emilibase.h"
 
+#include <exception>
+
 namespace prs
 {
 void emili_header();
@@ -74,6 +76,10 @@ public:
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm) {return nullptr;}
     virtual std::string info() {return std::string("Iamabstract!");}
     virtual bool operator ==(const AlgoBuilder& b);
+};
+
+class NoSearch : public std::exception {
+
 };
 
 class GeneralParser

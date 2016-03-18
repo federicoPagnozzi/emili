@@ -33,6 +33,7 @@ public:
      */
     SAInitTemp(void):
         solution(nullptr) { }
+    virtual ~SAInitTemp() {}
     /**
      * Constructor: set initial temperature starting from a valid solution.
      */

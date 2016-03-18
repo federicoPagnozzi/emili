@@ -33,6 +33,8 @@ public:
         tc_type(_term->getType()),
         type(_type) { }
 
+    virtual ~SAExploration() {}
+
     std::string getType(void) {
         return type;
     }
@@ -72,6 +74,8 @@ public:
         : SAExploration(_neigh, _acceptance, _term, "SARANDOMEXPLORATIONNOCOPY") {
 
     }
+
+    int nacc = 0, nnacc = 0;
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution, SAStatus &status);
 };

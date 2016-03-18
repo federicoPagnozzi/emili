@@ -95,15 +95,37 @@ public:
 
 struct SAMaxIterTerminationDebug : SAMaxIterTermination {
     double stepRatio = 0.0;
+    double stepRatioBis = 0.0;
+
+    std::function<void ()> onEachPercent = [](){};
+    int onEachPercentFactor = 1;
 
     SAMaxIterTerminationDebug(int maxBadIterations)
         : SAMaxIterTermination(maxBadIterations) {
+    }
 
+    void setOnEachPercent(std::function<void ()> onEachPercent_) {
+        onEachPercent = onEachPercent_;
+    }
+
+    void setOnEachPercent(int factor, std::function<void ()> onEachPercent_) {
+        onEachPercent = onEachPercent_;
+        onEachPercentFactor = factor;
+    }
+
+    void setOnEachPercentFactor(int x) {
+        onEachPercentFactor = x;
     }
 
     bool terminate(SAStatus& status) override {
 
         double ratio = (double) status.total_counter / maxIterations;
+
+        if(ratio >= stepRatioBis) {
+            onEachPercent();
+            stepRatioBis += 0.01 / onEachPercentFactor;
+        }
+
         if(ratio >= stepRatio) {
             std::cout << "percent=" << (int)(100 * (double)status.total_counter / maxIterations) << "%"
                       << "&cost=" << status.best_cost

@@ -42,6 +42,7 @@ public:
                 temperature(initial_temperature),
                 start_temp(initial_temperature),
                 status(nullptr) { }
+    virtual ~SAAcceptance() {}
 
     /**
      * Acceptance method
@@ -93,6 +94,9 @@ public:
                                     emili::Solution *new_solution);
 
     virtual bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
+
+    int nnotimproving = 0;
+    double sumprob = 0;
 }; // SAMetropolisAcceptance
 
 

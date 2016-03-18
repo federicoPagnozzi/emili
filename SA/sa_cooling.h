@@ -37,6 +37,7 @@ public:
                 std::swap(a, b);
             }
         }
+    virtual ~SACooling() {}
 
     /**
      * SA cooling scheme

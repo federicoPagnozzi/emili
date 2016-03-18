@@ -15,6 +15,7 @@ protected:
 public:
     SATempRestart(std::string type):
         type(type) { }
+    virtual ~SATempRestart() {}
 
     virtual float adjust(float temp)=0;
 

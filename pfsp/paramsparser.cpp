@@ -654,7 +654,7 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
 
 
         emili::accept_candidates accc;
-        char* t1;
+        const char* t1;
         if(tm.checkToken(ACCEPTANCE_INTENSIFY))
         {
             accc = emili::ACC_INTENSIFICATION;

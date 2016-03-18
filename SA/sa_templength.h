@@ -19,6 +19,8 @@ public:
         type(type),
         length(length) { }
 
+    virtual ~SATempLength() {}
+
     void set_status(SAStatus* _status) {
         status = _status;
     }

@@ -23,7 +23,7 @@
 class SimulatedAnnealing: public emili::LocalSearch
 {
 
-protected:
+public:
     double            temp;
     double            init_temp;
     double            final_temp;

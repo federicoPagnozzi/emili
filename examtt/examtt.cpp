@@ -14,7 +14,7 @@ namespace emili
 namespace ExamTT
 {
 
-int ExamTTSolution::numberOfClones = 0;
+int ExamTTSolution::numberOfClones = 0, ExamTTSolution::numberOfTotalCompute = 0;
 
 template<typename Type, unsigned N, unsigned Last>
 struct tuple_operations {
@@ -305,10 +305,6 @@ void ExamTT::buildStructures()  {
         }
     }
 
-    for(int i = 0; i < E; i++) {
-        cout << i << ":" << hasStudentsInCommonOfExam(i) << endl;
-    }
-
     vector<ExamId> examsBySize(E);
     for(ExamId i = 0; i < E; i++)
         examsBySize[i] = i;
@@ -341,6 +337,13 @@ bool ExamTT::correctPeriod(int i) const {
 
 bool ExamTT::correctRoom(int i) const {
     return 0 <= i && i < (int)rooms.size();
+}
+
+int ExamTT::numberOfExamsOfStudent(int student) {
+    int s = 0;
+    for(Exam& e : exams)
+        s += e.students.count(student);
+    return s;
 }
 
 bool ExamTT::correctIndexes() const {
@@ -1241,6 +1244,7 @@ void ExamTTSolution::computeCost(ExamTT const& instance) {
 }
 
 void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) const {
+    numberOfTotalCompute++;
     int E = instance.exams.size();
     int R = instance.rooms.size();
     int P = instance.periods.size();
@@ -1577,7 +1581,7 @@ void interactiveSolution(ExamTTSolution& sol, ExamTT& inst) {
                         sol.movePeriod(inst, exam, periodBefore);
                     }
                 } else
-                    cout << "Wront exam id or period id !";
+                    cout << "Wrong exam id or period id !";
             }
             else if(isRoom || isRoomC) {
                 int exam, room;
@@ -2254,9 +2258,9 @@ void MoveNeighborhood::randomStep(Solution *currentSolution)
 
     Random r;
     re = r.randrange(E);
-    rp = r.randrange(P);
-    rr = r.randrange(R);
-    sol->move(instance, re, rp, rr);
+    rp = sol->periods[re];
+    rr = sol->rooms[re];
+    sol->move(instance, re, r.randrange(P), r.randrange(R));
 }
 
 void MoveNeighborhood::reverseLastRandomStep(Solution *currentSolution)
@@ -2385,7 +2389,7 @@ KempeChainNeighborhood::KempeChainNeighborhood(const ExamTT &instance_)
 
 void KempeChainNeighborhood::reset() {
     exam = 0;
-    t1 = -1; // so that +1 = 0
+    t1 = -1; // so that t1+1 = 0
     chain.clear();
 }
 
