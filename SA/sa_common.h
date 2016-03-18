@@ -102,7 +102,7 @@ public:
         best_temp = temp;
         //std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
         //std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
-        std::cout << std::fixed << cost << " " << total_counter << " ";// << temp << " ";
+        std::cout << std::fixed << cost << " " << total_counter << " " << temp << " ";
         std::cout << std::fixed << emili::getCurrentExecutionTime() << std::endl;
         not_improved = 0;
         counter = 0;
