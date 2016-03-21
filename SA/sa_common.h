@@ -128,6 +128,21 @@ public:
         }
     }
 
+    void print(void) {
+        std::cout << "\nSA Status: \n"
+                  << "  initial temperature : " << init_temp << "\n"
+                  << "  final temperature :   " << final_temp << "\n"
+                  << "  current temperature : " << temp << "\n"
+                  << "  initial probability : " << init_prob << "\n\n"
+                  << "  total # of moves :    " << total_counter << "\n"
+                  << "  # of accepted moves : " << accepted << "\n"
+                  << "  # of steps :          " << step << "\n"
+                  << "  # of temp restarts :  " << temp_restarts << "\n"
+                  << "  neighbourhood size :  " << neigh_size << "\n\n"
+                  << "  best cost :           " << best_cost << "\n"
+                  << "  best solution temp :  " << best_temp << "\n" << std::endl;
+    }
+
 }; // SAStatus;
 
 #endif

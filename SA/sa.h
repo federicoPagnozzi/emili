@@ -109,6 +109,8 @@ public:
                         tempLength->set_status(status);
                         coolingScheme->set_status(status);
                         initialTemperature->set_status(status);
+
+                        status->print();
                       }
 
     virtual emili::Solution* search(emili::Solution* initial);
