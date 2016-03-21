@@ -127,6 +127,41 @@ public:
 }; // SANeighSizeIterTermination
 
 
+// Burkard-Rendl
+class SASquaredNeighSizeIterTermination: public SATermination {
+
+protected:
+    double coeff;
+    emili::Neighborhood *neigh;
+    long maxIterations;
+
+public:
+    SASquaredNeighSizeIterTermination(emili::Neighborhood *nei, double _coeff):
+        neigh(nei),
+        coeff(_coeff),
+        SATermination(SQUAREDNSITERTERM) {
+            double n = ceil(sqrt(2 * neigh->size()));
+            maxIterations = _coeff * n * n;
+        }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return true;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.total_counter >= maxIterations) return true;
+        return false;
+    }
+
+    // does nothing
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SASquaredNeighSizeIterTermination
+
+
 class SAWhileTrueTermination: public SATermination {
 
 public:

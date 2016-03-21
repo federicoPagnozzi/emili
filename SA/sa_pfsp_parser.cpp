@@ -187,6 +187,9 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZEITERTERM)) {
         float co = tm.getDecimal();
         return new SANeighSizeIterTermination(nei, co);
+    } else if (tm.checkToken(SQUAREDNSITERTERM)) {
+        float co = tm.getDecimal();
+        return new SASquaredNeighSizeIterTermination(nei, co);
     } else if (tm.checkToken(LOCALMINTERM)) {
         int te = tm.getInteger();
         return new SALocalMinTermination(te);
