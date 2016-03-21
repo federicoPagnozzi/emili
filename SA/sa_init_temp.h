@@ -184,7 +184,7 @@ public:
     }
 
     virtual double getInit_prob(void) {
-        return std::exp(maxdelta / init_temp);
+        return std::exp(-maxdelta / init_temp);
     }
 
 }; // RandomWalkInitTemp
@@ -246,7 +246,7 @@ public:
     }
 
     virtual double getInit_prob(void) {
-        return std::exp(maxdelta / init_temp);
+        return std::exp(-maxdelta / init_temp);
     }
 
 }; // ConnollyRandomWalkInitTemp
@@ -304,7 +304,7 @@ public:
     }
 
     virtual double getInit_prob(void) {
-        return std::exp(maxdelta / init_temp);
+        return std::exp(-maxdelta / init_temp);
     }
 
 }; // RandomWalkAvgInitTemp
