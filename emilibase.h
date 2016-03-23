@@ -623,7 +623,8 @@ public:
 
 
 void initializeRandom(int seed);
-void initializeRandomFromTime();
+void initializeRandomFromRandom();
+int getRandomSeedFromRandom();
 #ifdef NOC11
 std::tr1::mt19937& getRandomGenerator();
 #else

@@ -34,12 +34,16 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 }
  */
 
-void emili::initializeRandomFromTime() {
+void emili::initializeRandomFromRandom() {
+    initializeRandom( getRandomSeedFromRandom() );
+}
+
+int emili::getRandomSeedFromRandom() {
 #ifndef NOC11
     std::random_device rd;
-    initializeRandom( rd() );
+    return rd();
 #else
-    srand(time(0));
+    return time(0);
 #endif
 }
 

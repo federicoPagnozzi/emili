@@ -266,7 +266,7 @@ int getSeed(prs::TokenManager& tm)
     if(tm.checkToken(RNDSEED))
     {
         if(tm.checkToken("random")) {
-            emili::initializeRandomFromTime();
+            rnds = emili::getRandomSeedFromRandom();
         } else {
             rnds = tm.getInteger();
         }

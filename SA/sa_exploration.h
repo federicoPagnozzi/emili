@@ -75,7 +75,7 @@ public:
 
     }
 
-    int nacc = 0, nnacc = 0;
+    // int nacc = 0, nnacc = 0;
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution, SAStatus &status);
 };

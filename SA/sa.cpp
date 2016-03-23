@@ -10,7 +10,6 @@ emili::Solution* SimulatedAnnealing::search() {
 } // end search
 
 emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
-    std::cout << "SEARCH" << std::endl;
     emili::Solution* incumbent = init->generateEmptySolution();
     // emili::Solution* accepted;
     *incumbent = *initial;

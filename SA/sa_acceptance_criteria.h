@@ -95,8 +95,8 @@ public:
 
     virtual bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
-    int nnotimproving = 0;
-    double sumprob = 0;
+    // int nnotimproving = 0;
+    // double sumprob = 0;
 }; // SAMetropolisAcceptance
 
 

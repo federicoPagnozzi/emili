@@ -122,12 +122,16 @@ struct SAMaxIterTerminationDebug : SAMaxIterTermination {
         double ratio = (double) status.total_counter / maxIterations;
 
         if(ratio >= stepRatioBis) {
-            onEachPercent();
-            stepRatioBis += 0.01 / onEachPercentFactor;
+            if(onEachPercentFactor == 0) {
+                stepRatioBis = 1.5;
+            } else {
+                onEachPercent();
+                stepRatioBis += 0.01 / onEachPercentFactor;
+            }
         }
 
         if(ratio >= stepRatio) {
-            std::cout << "percent=" << (int)(100 * (double)status.total_counter / maxIterations) << "%"
+            std::cout << "&percent=" << (int)(100 * (double)status.total_counter / maxIterations)
                       << "&cost=" << status.best_cost
                       << std::endl;
             stepRatio += 0.01; // every 1%

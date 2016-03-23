@@ -31,8 +31,8 @@ bool SAMetropolisAcceptance::acceptViaDelta(emili::Solution *new_solution, doubl
     if(delta > 0) {
         // not improving
         double prob = std::exp(- delta / temperature); // (1.3806503e-23 * temperature) ?
-        nnotimproving++;
-        sumprob += prob;
+        // nnotimproving++;
+        // sumprob += prob;
 
         if(prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return false;

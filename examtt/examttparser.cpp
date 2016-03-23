@@ -130,8 +130,9 @@ emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
 
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 {
-    const std::string SA_BSU = "SA_BSU",
-            TEST_KEMPE = "TEST_KEMPE";
+    const std::string SA_BSU = "SA_BSU";
+    const std::string TEST_KEMPE = "TEST_KEMPE";
+    const std::string TEST_DELTA = "TEST_DELTA";
 
     prs::TabLevel level;
 
@@ -167,18 +168,18 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         tm.next();
 
         int factor = 1;
-        int freq = 1;
+        int freq = 0;
+        bool percent = true;
 
         for(;;) {
-            if(tm.peek() == std::string("factor")) {
-                tm.next();
+            if(tm.checkToken("factor"))
                 factor = tm.getInteger();
-            } else if(tm.peek() == std::string("freq")) {
-                tm.next();
+            else if(tm.checkToken("freq"))
                 freq = tm.getInteger();
-            } else {
+            else if(tm.checkToken("nopercent"))
+                percent = false;
+            else
                 break;
-            }
         }
 
         cout << setw(20) << "factor " << factor << endl;
@@ -284,7 +285,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         auto init = new emili::ExamTT::RandomInitialSolution(instance);
         auto neigh = new emili::ExamTT::MixedMoveSwapNeighborhood(instance, sr);
         auto acc = new SAMetropolisAcceptance(t0);
-        auto term = new SAMaxIterTerminationDebug(itmax);
+
+        auto term = percent ?
+                    (SAMaxIterTermination*) new SAMaxIterTerminationDebug(itmax) :
+                    (SAMaxIterTermination*) new SAMaxIterTermination(itmax);
 
         auto initialTemperature = new FixedInitTemp();
         initialTemperature->set(t0);
@@ -300,23 +304,25 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 
         auto sa = new SimulatedAnnealing(init, initialTemperature, acc, cooling, tempRestart, term, tempLength, explo, neigh);
 
-        term->setOnEachPercent(freq, [sa,explo,acc]{
-            cout << std::setprecision(10) << std::fixed <<
-                "&bestcost=" << sa->status->best_cost <<
-                "&curcost=" << sa->bestSoFar->getSolutionValue() <<
-                "&temp=" << sa->status->temp <<
-                "&nacc=" << explo->nacc <<
-                "&nnacc=" << explo->nnacc <<
-                "&tot=" << sa->status->total_counter <<
-                "&sumprob=" << acc->sumprob <<
-                "&nnotimproving=" << acc->nnotimproving <<
-            endl;
+        if(percent) {
+            ((SAMaxIterTerminationDebug*)term)->setOnEachPercent(freq, [sa,explo,acc]{
+                cout << std::setprecision(10) << std::fixed <<
+                    "&bestcost=" << sa->status->best_cost <<
+                    "&curcost=" << sa->bestSoFar->getSolutionValue() <<
+                    "&temp=" << sa->status->temp <<
+                    // "&nacc=" << explo->nacc <<
+                    // "&nnacc=" << explo->nnacc <<
+                    "&tot=" << sa->status->total_counter <<
+                    // "&sumprob=" << acc->sumprob <<
+                    // "&nnotimproving=" << acc->nnotimproving <<
+                endl;
 
-            explo->nacc = 0;
-            explo->nnacc = 0;
-            acc->nnotimproving = 0;
-            acc->sumprob = 0;
-        });
+                // explo->nacc = 0;
+                // explo->nnacc = 0;
+                // acc->nnotimproving = 0;
+                // acc->sumprob = 0;
+            });
+        }
 
         return sa;
     }
@@ -327,6 +333,31 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     else if(tm.checkToken("INFO")) {
         instance.presentation(std::cout);
 
+        throw NoSearch();
+    }
+    else if(tm.checkToken(TEST_DELTA)) {
+
+        int N = 1000;
+        bool checkEachMove = true;
+
+        for(;;) {
+            if(tm.checkToken("N")) {
+                N = tm.getInteger();
+            } else if(tm.checkToken("no-each-move")) {
+                checkEachMove = false;
+            } else if(tm.checkToken("each-move")) {
+                checkEachMove = true;
+            } else {
+                break;
+            }
+        }
+
+        cout
+            << setw(20) << "N " << N << endl
+            << setw(20) << "each-move " << boolalpha << checkEachMove << endl
+        ;
+
+        emili::ExamTT::test(instance, N, checkEachMove);
         throw NoSearch();
     }
     else if(tm.checkToken(TEST_KEMPE)) {

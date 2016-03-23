@@ -11,7 +11,7 @@ aux_source_directory(./pfsp PFSP_SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3 -g")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-reorder -Wno-sign-compare -Wno-unused -Wno-parentheses -g") # remove O3 to debug easily !
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-reorder -Wno-sign-compare -Wno-unused -O3 -Wno-parentheses") # switch between -g and -O3 to debug easily !
 
 #SSE
 if(USE_SSE)

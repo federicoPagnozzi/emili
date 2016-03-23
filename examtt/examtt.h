@@ -131,10 +131,35 @@ void makeIntersection(std::set<T> const& one, std::set<T> const& two, U& res) {
     set_intersection(one.begin(), one.end(), two.begin(), two.end(), inserter(res, res.end()));
 }
 
+template <typename T, typename U>
+void makeIntersectionBack(std::set<T> const& one, std::set<T> const& two, U& res) {
+    set_intersection(one.begin(), one.end(), two.begin(), two.end(), std::back_inserter(res));
+}
+
+template <typename T>
+void makeIntersectionWithReserve(std::set<T> const& one, std::set<T> const& two, std::vector<T>& res) {
+    res.reserve(std::min(one.size(), two.size()));
+    set_intersection(one.begin(), one.end(), two.begin(), two.end(), back_inserter(res));
+}
+
 template <typename T>
 std::set<T> intersection(std::set<T> const& one, std::set<T> const& two) {
     std::set<T> res;
     set_intersection(one.begin(), one.end(), two.begin(), two.end(), inserter(res, res.end()));
+    return res;
+}
+
+template <typename T>
+std::vector<T> intersectionBack(std::set<T> const& one, std::set<T> const& two) {
+    std::vector<T> res;
+    makeIntersectionBack(one, two, res);
+    return res;
+}
+
+template <typename T>
+std::vector<T> intersectionWithReserve(std::set<T> const& one, std::set<T> const& two) {
+    std::vector<T> res;
+    makeIntersectionWithReserve(one, two, res);
     return res;
 }
 
@@ -351,8 +376,8 @@ public:
     int P() const { return periods.size(); }
     int R() const { return rooms.size(); }
 
-    void presentation(std::ostream&);
-    void testDelta(ExamTTSolution&, std::ostream &log);
+    void presentation(std::ostream&) const;
+    void testDelta(ExamTTSolution&, std::ostream &log, int N = 1000, bool checkEachMove = true) const;
 
 public:
     ExamTT() {
@@ -550,6 +575,7 @@ public:
     CostComponents costs;
 
     // structures
+    static constexpr bool USE_STRUCTURES = true;
     MapVec<PeriodId, std::set<ExamId>> examsByPeriods;
     MapVec<ExamId, std::set<ExamId>::iterator> examsByPeriodsIterators;
     MapVec<RoomId, std::set<ExamId>> examsByRooms;
@@ -872,7 +898,7 @@ struct BSUSA : emili::LocalSearch {
     void searchInPlace(Solution* initial) override;
 };
 
-void test();
+void test(const ExamTT &inst, int N, bool checkEachMove);
 void testKempe(ExamTT& instance, std::vector<int> initPeriods);
 
 }

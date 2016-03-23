@@ -33,12 +33,12 @@ emili::Solution* SARandomExplorationNoCopy::nextSolution(emili::Solution *starti
 
    if(! acceptance->acceptViaDelta(startingSolution, delta)) {
        neigh->reverseLastRandomStep(startingSolution);
-       assert(costBefore == startingSolution->getSolutionValue());
+       // assert(costBefore == startingSolution->getSolutionValue());
        status.not_accepted_sol();
-       nnacc++;
+       // nnacc++;
    } else {
        status.accepted_sol(startingSolution->getSolutionValue());
-       nacc++;
+       // nacc++;
    }
 
    return startingSolution;

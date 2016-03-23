@@ -1211,11 +1211,13 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
         setSolutionValue(costs.total(instance.hardWeight));
     }
 
-    examsByPeriods[prevP].erase(examsByPeriodsIterators[e]);
-    examsByRooms[prevR].erase(examsByRoomsIterators[e]);
+    if(USE_STRUCTURES) {
+        examsByPeriods[prevP].erase(examsByPeriodsIterators[e]);
+        examsByRooms[prevR].erase(examsByRoomsIterators[e]);
 
-    examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
-    examsByRoomsIterators[e] = examsByRooms[nextR].insert(e).first;
+        examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
+        examsByRoomsIterators[e] = examsByRooms[nextR].insert(e).first;
+    }
 
     periods[e] = nextP;
     rooms[e] = nextR;
@@ -1378,7 +1380,7 @@ void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) 
     }
 }
 
-void ExamTT::presentation(ostream & log) {
+void ExamTT::presentation(ostream & log) const {
     auto& inst = *this;
     auto& instance = *this;
 
@@ -1463,22 +1465,20 @@ void ExamTT::presentation(ostream & log) {
          << inst.institutionalWeightings << endl;
 }
 
-void ExamTT::testDelta(ExamTTSolution& sol, std::ostream& log) {
+void ExamTT::testDelta(ExamTTSolution& sol, std::ostream& log, int N, bool checkEachMove) const {
     auto& inst = *this;
-    constexpr bool CHECK_EACH_MOVE = true;
 
     int E = inst.exams.size(),
         P = inst.periods.size(),
         R = inst.rooms.size();
 
     Random ran;
-    ran.seed(89);
-    for(int i = 0; i < 1000; i++) {
+    for(int i = 0; i < N; i++) {
         int e = ran.randrange(E), p = ran.randrange(P), r = ran.randrange(R);
         int bp = sol.periods[e], br = sol.rooms[e];
         sol.move(inst, e,p,r);
 
-        if(CHECK_EACH_MOVE) {
+        if(checkEachMove) {
             if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
                 log << "Error " << "Real " << sol.computeAndGetCost(inst).print(inst)
                      << "vs diffed " << sol.costs.print(inst) << endl
@@ -1514,7 +1514,7 @@ string lower(string s) {
     return s;
 }
 
-void interactiveSolution(ExamTTSolution& sol, ExamTT& inst) {
+void interactiveSolution(ExamTTSolution& sol, ExamTT const& inst) {
     auto& instance = inst;
 
     bool isHelp = true;
@@ -1523,17 +1523,17 @@ void interactiveSolution(ExamTTSolution& sol, ExamTT& inst) {
         if(isHelp)
             cout
              << "Change solution, C in front means compute and print difference in cost" << endl
-             << "[C]Period <exam> <period>      : move <exam> to period <period>" << endl
-             << "[C]Room <exam> <room>          : move <exam> to room <room>" << endl
-             << "[C]Move <exam> <period> <room> : move <exam> to <period> <room>" << endl
-             << "[C]Swap <exam1> <exam2>        : swap <exam> and <exam>" << endl
-             << "Display                     : display current solution" << endl
-             << "Write <filename>            : write current solution to <file>" << endl
-             << "WriteVerbose <filename>     : write current solution verbosly <file>" << endl
-             << "DCost                       : display current solution cost" << endl
-             << "ReCalculate                 : recalculate cost of current solution" << endl
-             << "Help                        : display help" << endl
-             << "Quit                        : quit" << endl
+             << "[p | cp] Period <exam> <period>      : move <exam> to period <period>" << endl
+             << "[r | cr] Room <exam> <room>          : move <exam> to room <room>" << endl
+             << "[m | cm] Move <exam> <period> <room> : move <exam> to <period> <room>" << endl
+             << "[s | cs] Swap <exam1> <exam2>        : swap <exam> and <exam>" << endl
+             << "     [d] Display                     : display current solution" << endl
+             << "     [w] Write <filename>            : write current solution to <file>" << endl
+             << "    [wv] WriteVerbose <filename>     : write current solution verbosly <file>" << endl
+             << "    [dc] DCost                       : display current solution cost" << endl
+             << "    [rc] ReCalculate                 : recalculate cost of current solution" << endl
+             << "     [h] Help                        : display help" << endl
+             << "     [q] Quit                        : quit" << endl
             ;
         getline(cin, str);
         if(! cin)
@@ -1693,12 +1693,12 @@ void interactiveSolution(ExamTTSolution& sol, ExamTT& inst) {
     }
 }
 
-void test() {
+void test(ExamTT const& inst, int N, bool checkEachMove) {
     // string filename = "../simple1.exam"; // "../itc2007-exam-instances/exam_comp_set3.exam"; // args[0];
     // string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
-    string filename = "../examtt-instances/Instances/art000.exam";
 
-    ExamTT inst((char*) filename.c_str());
+    // string filename = "../examtt-instances/Instances/art000.exam";
+    // ExamTT inst((char*) filename.c_str());
 
     ofstream log("log");
     inst.presentation(log);
@@ -1710,9 +1710,11 @@ void test() {
     log << endl << "* Solution" << endl;
     sol.printTo(inst, log);
 
-    inst.testDelta(sol, log);
+    inst.testDelta(sol, log, N, checkEachMove);
 
     log.close();
+
+    cout << "Printed to log" << endl;
 
     interactiveSolution(sol, inst);
 }
@@ -1733,17 +1735,19 @@ void ExamTTSolution::setRawData(const void *data) {
 
     setSolutionValue(const_cast<ExamTTSolution*>(other)->getSolutionValue());
 
-    costs = other->costs;
-    periods = other->periods;
-    rooms = other->rooms;
+    costs = other->costs; // O(1)
+    periods = other->periods; // O(P)
+    rooms = other->rooms; // O(R)
 
-    examsByPeriodsIterators.resize(periods.size());
-    examsByRoomsIterators.resize(rooms.size());
+    examsByPeriodsIterators.resize(periods.size()); // O(1)
+    examsByRoomsIterators.resize(rooms.size()); // O(1)
 
     // Using inner copy
 
-    examsByPeriods = other->examsByPeriods;
-    examsByRooms = other->examsByRooms;
+    examsByPeriods = other->examsByPeriods; // O(E)
+    examsByRooms = other->examsByRooms; // O(E)
+
+    // O(E)
 
     for(set<ExamId>& S : examsByPeriods)
         for(auto it = S.begin() ; it != S.end(); ++it)
@@ -1755,27 +1759,11 @@ void ExamTTSolution::setRawData(const void *data) {
 }
 
 Solution* ExamTTSolution::clone() {
-    numberOfClones++;
+    // The difference with setRawData is that new solution is empty. Here it doesn't change anything
 
     ExamTTSolution* other = new ExamTTSolution(getSolutionValue());
 
-    other->costs = costs;
-    other->periods = periods;
-    other->rooms = rooms;
-
-    other->examsByPeriodsIterators.resize(periods.size());
-    other->examsByRoomsIterators.resize(rooms.size());
-
-    other->examsByPeriods = examsByPeriods;
-    other->examsByRooms = examsByRooms;
-
-    for(set<ExamId>& S : other->examsByPeriods)
-        for(auto it = S.begin(); it != S.end(); ++it)
-            other->examsByPeriodsIterators[*it] = it;
-
-    for(set<ExamId>& S : other->examsByRooms)
-        for(auto it = S.begin(); it != S.end(); ++it)
-            other->examsByRoomsIterators[*it] = it;
+    other->setRawData(this);
 
     return other;
 }
@@ -1825,6 +1813,9 @@ string ExamTTSolution::getSolutionRepresentation() {
 
 void ExamTTSolution::buildStructures(InstanceRef instance)
 {
+    if(! USE_STRUCTURES)
+        return;
+
     int P = instance.periods.size();
     int E = instance.exams.size();
     int R = instance.rooms.size();
@@ -1918,7 +1909,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         costs.soft.periodsPenalty += instance.periods[nextP].penalty;
 
         // after
-        if(0) {
+        if(1) {
             // remove
             for(ExamId j : related.afters)
                 if(periods[j] >= prevP)
@@ -2071,10 +2062,33 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
     // comparing assignement before and after
 
-    set<ExamId> leaving = intersection(examsByRooms[prevR], examsByPeriods[prevP]); // exams that I am leaving
-    leaving.erase(leaving.find(ex)); // I am not included in the leaving
 
-    set<ExamId> meeting = intersection(examsByRooms[nextR], examsByPeriods[nextP]); // exams that I will meet
+    // Option 1) set intersection
+    // set<ExamId> leaving = intersection(examsByRooms[prevR], examsByPeriods[prevP]); // exams that I am leaving
+    // leaving.erase(leaving.find(ex)); // I am not included in the leaving
+    // set<ExamId> meeting = intersection(examsByRooms[nextR], examsByPeriods[nextP]); // exams that I will meet
+
+    // Option 2) (sorted) vector, we know max size
+    vector<ExamId> leaving, meeting;
+    leaving.reserve(min(examsByPeriods[prevP].size(), examsByRooms[prevR].size()));
+    meeting.reserve(min(examsByPeriods[nextP].size(), examsByRooms[nextR].size()));
+
+    // Option 2.1) simple filter on rooms
+    for(int x : examsByPeriods[prevP])
+        if(rooms[x] == prevR)
+            leaving.push_back(x);
+    for(int x : examsByPeriods[nextP])
+        if(rooms[x] == nextR)
+            meeting.push_back(x);
+
+    // Option 2.2) makeIntersection
+    // makeIntersectionBack(examsByRooms[prevR], examsByPeriods[prevP], leaving);
+    // makeIntersectionBack(examsByRooms[nextR], examsByPeriods[nextP], meeting);
+
+    // Option 2) sorted vector : swap pop_back of lower_bound
+    std::iter_swap(std::lower_bound(leaving.begin(), leaving.end(), ex), leaving.end() - 1);
+    leaving.pop_back(); // I am not included in the leaving
+    // vector is not sorted anymore
 
     // room exclusive
     {
@@ -2464,8 +2478,6 @@ Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
 
     int E = instance.exams.size();
     int P = instance.periods.size();
-
-    // when is random called ?
 
     Random r;
     exam = r.randrange(E);
