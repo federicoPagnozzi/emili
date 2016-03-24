@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <set>
+#include <unordered_set>
 #include <list>
 #include <string>
 #include <fstream>
@@ -587,6 +588,7 @@ public:
 
     MapVec<PeriodId, MapVec<RoomId, std::list<ExamId>>> examsByPeriodRoom;
     MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
+    bool hasStructure = false;
 
     void buildStructures(InstanceRef);
 
