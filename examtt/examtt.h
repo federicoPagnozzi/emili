@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 #include <string>
 #include <fstream>
 #include <algorithm>
@@ -118,7 +119,7 @@ int countIntersection(std::set<T> const& one, std::set<T> const& two) {
             }
             else {
                 ++n, ++a, ++b;
-                if(a == A || ++b == B)
+                if(a == A || b == B)
                     break;
             }
         }
@@ -576,10 +577,16 @@ public:
 
     // structures
     static constexpr bool USE_STRUCTURES = true;
+
+    /*
     MapVec<PeriodId, std::set<ExamId>> examsByPeriods;
     MapVec<ExamId, std::set<ExamId>::iterator> examsByPeriodsIterators;
     MapVec<RoomId, std::set<ExamId>> examsByRooms;
     MapVec<ExamId, std::set<ExamId>::iterator> examsByRoomsIterators;
+    */
+
+    MapVec<PeriodId, MapVec<RoomId, std::list<ExamId>>> examsByPeriodRoom;
+    MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
 
     void buildStructures(InstanceRef);
 

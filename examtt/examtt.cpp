@@ -81,9 +81,9 @@ struct SetPrinter {
     int unsigned flags;
 };
 
-template <typename T>
+template <typename U>
 struct VectorPrinter {
-    std::vector<T> const& self;
+    U const& self;
     unsigned int flags;
 };
 
@@ -103,13 +103,13 @@ SetPrinter<T> print(std::set<T> const& t, unsigned int flags) {
     return {t, flags};
 }
 
-template <typename T>
-VectorPrinter<T> print(std::vector<T> const& t) {
+template <typename U>
+VectorPrinter<U> print(U const& t) {
     return {t, 0};
 }
 
-template <typename T>
-VectorPrinter<T> print(std::vector<T> const& t, unsigned int flags) {
+template <typename U>
+VectorPrinter<U> print(U const& t, unsigned int flags) {
     return {t, flags};
 }
 
@@ -613,10 +613,11 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
 
         for(RoomId r = 0; r < R; r++) {
             Room const& room = instance.rooms[r];
-            std::set<ExamId> exams = intersection(sol.examsByPeriods[p], sol.examsByRooms[r]);
+            // std::set<ExamId> exams = intersection(sol.examsByPeriods[p], sol.examsByRooms[r]);
+            std::list<ExamId> const& exams = examsByPeriodRoom[p][r];
 
             out << setw(5) << " " << RPrefix(r)
-                << " : " << exams;
+                << " : " << print(exams);
 
             std::vector<NumberOfStudents> sizes;
             for(ExamId i : exams)
@@ -753,6 +754,7 @@ void ExamTTSolution::printTo(ExamTT const& instance, std::ostream& out) const {
 
     printTimelineTo(instance, out);
 
+    /*
     out << endl << "* ExamsByPeriods " << endl;
     for(PeriodId i = 0; i < P; i++)
         out << PPrefix(i) << setw(7) << "[" + to_string(sol.examsByPeriods[i].size()) + "]"
@@ -762,6 +764,7 @@ void ExamTTSolution::printTo(ExamTT const& instance, std::ostream& out) const {
     for(RoomId i = 0; i < R; i++)
         out << RPrefix(i) << setw(7) << "[" + to_string(sol.examsByRooms[i].size()) + "]"
              << " " << print(sol.examsByRooms[i], nocomma) << endl;
+    */
 
     out << endl << costs.print(instance) << endl;
 }
@@ -1212,11 +1215,18 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
     }
 
     if(USE_STRUCTURES) {
+        /*
         examsByPeriods[prevP].erase(examsByPeriodsIterators[e]);
         examsByRooms[prevR].erase(examsByRoomsIterators[e]);
 
         examsByPeriodsIterators[e] = examsByPeriods[nextP].insert(e).first;
         examsByRoomsIterators[e] = examsByRooms[nextR].insert(e).first;
+        */
+        examsByPeriodRoom[nextP][nextR].splice(
+            examsByPeriodRoom[nextP][nextR].end(),
+            examsByPeriodRoom[prevP][prevR],
+            examsByPeriodRoomIterators[e]
+        );
     }
 
     periods[e] = nextP;
@@ -1739,6 +1749,7 @@ void ExamTTSolution::setRawData(const void *data) {
     periods = other->periods; // O(P)
     rooms = other->rooms; // O(R)
 
+    /*
     examsByPeriodsIterators.resize(periods.size()); // O(1)
     examsByRoomsIterators.resize(rooms.size()); // O(1)
 
@@ -1756,6 +1767,18 @@ void ExamTTSolution::setRawData(const void *data) {
     for(set<ExamId>& S : examsByRooms)
         for(auto it = S.begin() ; it != S.end(); ++it)
             examsByRoomsIterators[*it] = it;
+    */
+    examsByPeriodRoomIterators.resize(periods.size()); // O(1) E
+
+    // inner copy
+
+    examsByPeriodRoom = other->examsByPeriodRoom;
+
+    // O(E)
+    for(auto & a : examsByPeriodRoom)
+        for(auto & b : a)
+            for(auto it = b.begin(); it != b.end(); ++it)
+                examsByPeriodRoomIterators[*it] = it;
 }
 
 Solution* ExamTTSolution::clone() {
@@ -1780,10 +1803,16 @@ void ExamTTSolution::swap(Solution * rawOther) {
     std::swap(other->costs, costs);
     other->periods.swap(periods);
     other->rooms.swap(rooms);
+
+    /*
     other->examsByPeriodsIterators.swap(examsByPeriodsIterators);
     other->examsByRoomsIterators.swap(examsByRoomsIterators);
     other->examsByPeriods.swap(examsByPeriods);
     other->examsByRooms.swap(examsByRooms);
+    */
+
+    other->examsByPeriodRoom.swap(examsByPeriodRoom);
+    other->examsByPeriodRoomIterators.swap(examsByPeriodRoomIterators);
 }
 
 string ExamTTSolution::getSolutionRepresentation() {
@@ -1820,10 +1849,16 @@ void ExamTTSolution::buildStructures(InstanceRef instance)
     int E = instance.exams.size();
     int R = instance.rooms.size();
 
+    /*
     examsByPeriodsIterators.resize(E);
     examsByRoomsIterators.resize(E);
     examsByPeriods.assign(P, set<ExamId>());
     examsByRooms.assign(R, set<ExamId>());
+    */
+    examsByPeriodRoomIterators.resize(E);
+    examsByPeriodRoom.assign(P, std::vector<std::list<ExamId>>(R, std::list<ExamId>()));
+
+    /*
 
     // O(n log n)
 
@@ -1831,6 +1866,10 @@ void ExamTTSolution::buildStructures(InstanceRef instance)
         examsByPeriodsIterators[e] = examsByPeriods[periods[e]].insert(e).first;
         examsByRoomsIterators[e] = examsByRooms[rooms[e]].insert(e).first;
     }
+    */
+
+    for(ExamId e = 0; e < E; e++)
+        examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
 }
 
 CostComponents ExamTTSolution::differenceCostMove(Instance const& instance, ExamId ex, PeriodId nextP, RoomId nextR) const
@@ -1861,13 +1900,14 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     PeriodId prevP = periods[ex];
     RoomId prevR = rooms[ex];
 
-    if(make_pair(prevP, prevR) == make_pair(nextP, nextR))
+    if(prevP == nextP && prevR == nextR) // if(make_pair(prevP, prevR) == make_pair(nextP, nextR))
         return;
 
     InstitutionalWeightings const& weightings = instance.institutionalWeightings;
 
     // logging
     if(0) {
+        /*
         cout << endl << "* Move " << EPrefix(ex) << " from "
              << PPrefix(prevP) << "," << RPrefix(prevR) << " to "
              << PPrefix(nextP) << "," << RPrefix(nextR) << endl;
@@ -1894,6 +1934,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
             cout << " -- " << print(examsByPeriods[p], nocomma) << endl;
         }
+        */
     }
 
     Instance::ExamsRelated const& related = instance.examsRelated[ex];
@@ -1963,15 +2004,18 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
         // for coincidence/exclusion, here is a different method : by counting intersections
         if(0){
+            /*
             costs.hard.periodConstraintCoincidence += countIntersection(examsByPeriods[prevP], related.coincidences);
             costs.hard.periodConstraintCoincidence -= countIntersection(examsByPeriods[nextP], related.coincidences);
 
             costs.hard.periodConstraintExclusion -= countIntersection(examsByPeriods[prevP], related.exclusions);
             costs.hard.periodConstraintExclusion += countIntersection(examsByPeriods[nextP], related.exclusions);
+            */
         }
 
         // logging
         if(0) {
+            /*
             cout << "Passing through" << endl;
 
             for(int i = prevP + s; (nextP - i) * s >= 0; i += s) {
@@ -1991,6 +2035,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
                 // costs.hard.periodConstraintAfter -= s * countIntersection(examsByPeriods[i], instance.afterOfExam[e]);
                 // costs.hard.periodConstraintAfter += s * countIntersection(examsByPeriods[i], instance.beforeEqualOfExam[e]);
             }
+            */
         }
     }
 
@@ -2068,6 +2113,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     // leaving.erase(leaving.find(ex)); // I am not included in the leaving
     // set<ExamId> meeting = intersection(examsByRooms[nextR], examsByPeriods[nextP]); // exams that I will meet
 
+    /*
     // Option 2) (sorted) vector, we know max size
     vector<ExamId> leaving, meeting;
     leaving.reserve(min(examsByPeriods[prevP].size(), examsByRooms[prevR].size()));
@@ -2089,12 +2135,15 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     std::iter_swap(std::lower_bound(leaving.begin(), leaving.end(), ex), leaving.end() - 1);
     leaving.pop_back(); // I am not included in the leaving
     // vector is not sorted anymore
+    */
+    std::list<ExamId> const& leavingAndMe = examsByPeriodRoom[prevP][prevR];
+    std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
 
     // room exclusive
     {
-        if(leaving.size() == 1 && instance.examIsRoomExclusive[*leaving.begin()])
+        if(leavingAndMe.size() - 1 == 1 && instance.examIsRoomExclusive[leavingAndMe.front() == ex ? leavingAndMe.back() : leavingAndMe.front()]) // if(leaving.size() == 1 && instance.examIsRoomExclusive[*leaving.begin()])
             costs.hard.roomConstraint--;
-        if(leaving.size() > 0 && instance.examIsRoomExclusive[ex])
+        if(leavingAndMe.size() - 1 > 0 && instance.examIsRoomExclusive[ex]) // if(leaving.size() > 0 && instance.examIsRoomExclusive[ex])
             costs.hard.roomConstraint--;
 
         if(meeting.size() == 1 && instance.examIsRoomExclusive[*meeting.begin()])
@@ -2111,8 +2160,9 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         int capLeaving = instance.rooms[prevR].capacity;
 
         int leavingSum = 0; // = sum(instance.exams[j].students.size() for j in leaving)
-        for(ExamId j : leaving)
+        for(ExamId j : leavingAndMe)
             leavingSum += instance.exams[j].students.size();
+        leavingSum -= instance.exams[ex].students.size();
 
         if(leavingSum + mySize <= capLeaving) // was not in overcapacity
             ;
@@ -2136,7 +2186,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             ; // no overcapacity created
 
         if(0) {
-            cout << "Leaving " << leaving << " Meeting " << meeting << endl;
+            // cout << "Leaving " << leaving << " Meeting " << meeting << endl;
         }
     }
 
@@ -2146,7 +2196,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     std::set<Minutes> durationsLeaving;
     std::set<Minutes> durationsMeeting;
 
-    for(ExamId j : leaving)
+    for(ExamId j : leavingAndMe) if(j != ex)
         durationsLeaving.insert(instance.exams[j].duration);
     for(ExamId j : meeting)
         durationsMeeting.insert(instance.exams[j].duration);
