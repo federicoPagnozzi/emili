@@ -614,8 +614,6 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
         for(RoomId r = 0; r < R; r++) {
             Room const& room = instance.rooms[r];
             // std::set<ExamId> exams = intersection(sol.examsByPeriods[p], sol.examsByRooms[r]);
-            if(! USE_STRUCTURES)
-                continue;
             std::list<ExamId> const& exams = examsByPeriodRoom[p][r];
 
             out << setw(5) << " " << RPrefix(r)
@@ -1216,13 +1214,11 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
         setSolutionValue(costs.total(instance.hardWeight));
     }
 
-    if(USE_STRUCTURES) {
-        examsByPeriodRoom[nextP][nextR].splice(
-            examsByPeriodRoom[nextP][nextR].end(),
-            examsByPeriodRoom[prevP][prevR],
-            examsByPeriodRoomIterators[e]
-        );
-    }
+    examsByPeriodRoom[nextP][nextR].splice(
+        examsByPeriodRoom[nextP][nextR].end(),
+        examsByPeriodRoom[prevP][prevR],
+        examsByPeriodRoomIterators[e]
+    );
 
     periods[e] = nextP;
     rooms[e] = nextR;
@@ -1698,7 +1694,8 @@ void interactiveSolution(ExamTTSolution& sol, ExamTT const& inst) {
     }
 }
 
-void test(ExamTT const& inst, int N, bool checkEachMove) {
+namespace test {
+void delta(ExamTT const& inst, int N, bool checkEachMove) {
     // string filename = "../simple1.exam"; // "../itc2007-exam-instances/exam_comp_set3.exam"; // args[0];
     // string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
 
@@ -1720,8 +1717,14 @@ void test(ExamTT const& inst, int N, bool checkEachMove) {
     log.close();
 
     cout << "Printed to log" << endl;
+}
 
+void interactive(ExamTT const& inst) {
+    ExamTTSolution sol;
+    Random ran;
+    sol.initRandom(inst, ran);
     interactiveSolution(sol, inst);
+}
 }
 
 ExamTTSolution::~ExamTTSolution()
@@ -1744,38 +1747,17 @@ void ExamTTSolution::setRawData(const void *data) {
     periods = other->periods; // O(P)
     rooms = other->rooms; // O(R)
 
-    /*
-    examsByPeriodsIterators.resize(periods.size()); // O(1)
-    examsByRoomsIterators.resize(rooms.size()); // O(1)
+    examsByPeriodRoomIterators.resize(periods.size()); // O(1) E
 
-    // Using inner copy
+    // inner copy
 
-    examsByPeriods = other->examsByPeriods; // O(E)
-    examsByRooms = other->examsByRooms; // O(E)
+    examsByPeriodRoom = other->examsByPeriodRoom;
 
-    // O(E)
-
-    for(set<ExamId>& S : examsByPeriods)
-        for(auto it = S.begin() ; it != S.end(); ++it)
-            examsByPeriodsIterators[*it] = it;
-
-    for(set<ExamId>& S : examsByRooms)
-        for(auto it = S.begin() ; it != S.end(); ++it)
-            examsByRoomsIterators[*it] = it;
-    */
-    if(USE_STRUCTURES) {
-        examsByPeriodRoomIterators.resize(periods.size()); // O(1) E
-
-        // inner copy
-
-        examsByPeriodRoom = other->examsByPeriodRoom;
-
-        // O(E P R)
-        for(auto & a : examsByPeriodRoom)
-            for(auto & b : a)
-                for(auto it = b.begin(); it != b.end(); ++it)
-                    examsByPeriodRoomIterators[*it] = it;
-    }
+    // O(E P R)
+    for(auto & a : examsByPeriodRoom)
+        for(auto & b : a)
+            for(auto it = b.begin(); it != b.end(); ++it)
+                examsByPeriodRoomIterators[*it] = it;
 }
 
 Solution* ExamTTSolution::clone() {
@@ -1839,35 +1821,15 @@ string ExamTTSolution::getSolutionRepresentation() {
 
 void ExamTTSolution::buildStructures(InstanceRef instance)
 {
-    if(! USE_STRUCTURES)
-        return;
-
     int P = instance.periods.size();
     int E = instance.exams.size();
     int R = instance.rooms.size();
 
-    /*
-    examsByPeriodsIterators.resize(E);
-    examsByRoomsIterators.resize(E);
-    examsByPeriods.assign(P, set<ExamId>());
-    examsByRooms.assign(R, set<ExamId>());
-    */
     examsByPeriodRoomIterators.resize(E);
     examsByPeriodRoom.assign(P, std::vector<std::list<ExamId>>(R, std::list<ExamId>()));
 
-    /*
-
-    // O(n log n)
-
-    for(ExamId e = 0; e < E; e++) {
-        examsByPeriodsIterators[e] = examsByPeriods[periods[e]].insert(e).first;
-        examsByRoomsIterators[e] = examsByRooms[rooms[e]].insert(e).first;
-    }
-    */
-
     for(ExamId e = 0; e < E; e++)
         examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
-
 }
 
 CostComponents ExamTTSolution::differenceCostMove(Instance const& instance, ExamId ex, PeriodId nextP, RoomId nextR) const
@@ -2038,59 +2000,19 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     // comparing assignement before and after
 
     // room exclusive
-    if(USE_STRUCTURES) {
-        std::list<ExamId> const& leavingAndMe = examsByPeriodRoom[prevP][prevR];
-        std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
+    std::list<ExamId> const& leavingAndMe = examsByPeriodRoom[prevP][prevR];
+    std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
 
-        if(leavingAndMe.size() - 1 == 1 && instance.examIsRoomExclusive[leavingAndMe.front() == ex ? leavingAndMe.back() : leavingAndMe.front()])
-            costs.hard.roomConstraint--;
-        if(leavingAndMe.size() - 1 > 0 && instance.examIsRoomExclusive[ex])
-            costs.hard.roomConstraint--;
+    if(leavingAndMe.size() - 1 == 1 && instance.examIsRoomExclusive[leavingAndMe.front() == ex ? leavingAndMe.back() : leavingAndMe.front()])
+        costs.hard.roomConstraint--;
+    if(leavingAndMe.size() - 1 > 0 && instance.examIsRoomExclusive[ex])
+        costs.hard.roomConstraint--;
 
-        if(meeting.size() == 1 && instance.examIsRoomExclusive[*meeting.begin()])
-            costs.hard.roomConstraint++;
-        if(meeting.size() > 0 && instance.examIsRoomExclusive[ex])
-            costs.hard.roomConstraint++;
-    } else {
-        bool emptyLeaving = true;
-        bool emptyMeeting = true;
-        ExamId onlyLeaving = (ExamId) -1; // leaving.front() if size 1 else -1
-        ExamId onlyMeeting = (ExamId) -1; // meeting.front() if size 1 else -1
+    if(meeting.size() == 1 && instance.examIsRoomExclusive[*meeting.begin()])
+        costs.hard.roomConstraint++;
+    if(meeting.size() > 0 && instance.examIsRoomExclusive[ex])
+        costs.hard.roomConstraint++;
 
-        for(ExamId j = 0; j < instance.E(); j++) {
-            if(periods[j] == prevP && rooms[j] == prevR && j != ex) {
-                emptyLeaving = false;
-                if(onlyLeaving == -1)
-                    onlyLeaving = j;
-                else {
-                    onlyLeaving = -1;
-                    break;
-                }
-            }
-        }
-
-        for(ExamId j = 0; j < instance.E(); j++) {
-            if(periods[j] == nextP && rooms[j] == nextR) {
-                emptyMeeting = false;
-                if(onlyMeeting == -1)
-                    onlyMeeting = j;
-                else {
-                    onlyMeeting = -1;
-                    break;
-                }
-            }
-        }
-
-        if(onlyLeaving != -1 && instance.examIsRoomExclusive[onlyLeaving])
-            costs.hard.roomConstraint--;
-        if(! emptyLeaving && instance.examIsRoomExclusive[ex])
-            costs.hard.roomConstraint--;
-
-        if(onlyMeeting != -1 && instance.examIsRoomExclusive[onlyMeeting])
-            costs.hard.roomConstraint++;
-        if(!emptyMeeting && instance.examIsRoomExclusive[ex])
-            costs.hard.roomConstraint++;
-    }
 
     // overcapacity
     {
@@ -2100,18 +2022,9 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         int capLeaving = instance.rooms[prevR].capacity;
 
         int leavingSum = 0; // = sum(instance.exams[j].students.size() for j in leaving)
-
-        if(USE_STRUCTURES) {
-            std::list<ExamId> const& leavingAndMe = examsByPeriodRoom[prevP][prevR];
-
-            for(ExamId j : leavingAndMe)
-                leavingSum += instance.exams[j].students.size();
-            leavingSum -= instance.exams[ex].students.size();
-        } else {
-            for(ExamId j = 0; j < instance.E(); j++) if(periods[j] == prevP && rooms[j] == prevR)
-                leavingSum += instance.exams[j].students.size();
-            leavingSum -= instance.exams[ex].students.size();
-        }
+        for(ExamId j : leavingAndMe)
+            leavingSum += instance.exams[j].students.size();
+        leavingSum -= instance.exams[ex].students.size();
 
         if(leavingSum + mySize <= capLeaving) // was not in overcapacity
             ;
@@ -2125,15 +2038,10 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
         int meetingSum = 0; // = sum(instance.exams[j].students.size() for j in meeting)
 
-        if(USE_STRUCTURES) {
-            std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
+        std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
 
-            for(ExamId j : meeting)
-                meetingSum += instance.exams[j].students.size();
-        } else {
-            for(ExamId j = 0; j < instance.E(); j++) if(periods[j] == nextP && rooms[j] == nextR)
-                meetingSum += instance.exams[j].students.size();
-        }
+        for(ExamId j : meeting)
+            meetingSum += instance.exams[j].students.size();
 
         if(meetingSum > capMeeting) // already over capacity
             costs.hard.overCapacity += mySize;
@@ -2147,34 +2055,68 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     {
         int myDuration = instance.exams[ex].duration;
 
-        std::set<Minutes> durationsLeaving;
-        std::set<Minutes> durationsMeeting;
+        int NLeavingWithoutMe, NMeetingWithoutMe, NLeavingWithMe, NMeetingWithMe;
 
-        if(USE_STRUCTURES) {
-            std::list<ExamId> const& leavingAndMe = examsByPeriodRoom[prevP][prevR];
+        if(0) {
+            std::set<Minutes> durationsLeaving;
+            std::set<Minutes> durationsMeeting;
 
             for(ExamId j : leavingAndMe) if(j != ex)
                 durationsLeaving.insert(instance.exams[j].duration);
-        } else {
-            for(ExamId j = 0; j < instance.E(); j++) if(periods[j] == prevP && rooms[j] == prevR) if(j != ex)
-                durationsLeaving.insert(instance.exams[j].duration);
-        }
-
-
-        if(USE_STRUCTURES) {
-            std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
 
             for(ExamId j : meeting)
                 durationsMeeting.insert(instance.exams[j].duration);
-        } else {
-            for(ExamId j = 0; j < instance.E(); j++) if(periods[j] == nextP && rooms[j] == nextR)
-                durationsMeeting.insert(instance.exams[j].duration);
-        }
 
-        int NLeavingWithoutMe = durationsLeaving.size();
-        int NMeetingWithoutMe = durationsMeeting.size();
-        int NLeavingWithMe = durationsLeaving.size() + (durationsLeaving.count(myDuration) ? 0 : 1);
-        int NMeetingWithMe = durationsMeeting.size() + (durationsMeeting.count(myDuration) ? 0 : 1);
+            NLeavingWithoutMe = durationsLeaving.size();
+            NMeetingWithoutMe = durationsMeeting.size();
+            NLeavingWithMe = durationsLeaving.size() + (durationsLeaving.count(myDuration) ? 0 : 1);
+            NMeetingWithMe = durationsMeeting.size() + (durationsMeeting.count(myDuration) ? 0 : 1);
+        } else {
+
+            int durationsLeavingDuplicates = 0;
+            bool myDurationInLeaving = false;
+            for(auto i = leavingAndMe.begin(); i != leavingAndMe.end(); ++i) {
+                if(*i == ex)
+                    continue;
+                if(instance.exams[*i].duration == myDuration)
+                    myDurationInLeaving = true;
+
+                auto j = i;
+                ++j;
+                for( ; j != leavingAndMe.end(); ++j) {
+                    if(*j == ex)
+                        continue;
+
+                    if(instance.exams[*i].duration == instance.exams[*j].duration) {
+                        ++durationsLeavingDuplicates;
+                        break;
+                    }
+                }
+            }
+
+            int durationsMeetingDuplicates = 0;
+            bool myDurationInMeeting = false;
+            for(auto i = meeting.begin(); i != meeting.end(); ++i) {
+                if(instance.exams[*i].duration == myDuration)
+                    myDurationInMeeting = true;
+                auto j = i;
+                ++j;
+                for( ; j != meeting.end(); ++j) {
+                    if(instance.exams[*i].duration == instance.exams[*j].duration) {
+                        ++durationsMeetingDuplicates;
+                        break;
+                    }
+                }
+            }
+
+            int durationsLeavingSize = leavingAndMe.size() - 1 - durationsLeavingDuplicates;
+            int durationsMeetingSize = meeting.size() - durationsMeetingDuplicates;
+
+            NLeavingWithoutMe = durationsLeavingSize;
+            NMeetingWithoutMe = durationsMeetingSize;
+            NLeavingWithMe = durationsLeavingSize + (myDurationInLeaving ? 0 : 1);
+            NMeetingWithMe = durationsMeetingSize + (myDurationInMeeting ? 0 : 1);
+        }
 
         if(NLeavingWithoutMe > 0)
             costs.soft.mixedDuration += (NLeavingWithoutMe - NLeavingWithMe) * weightings.nonMixedDurations;
@@ -2501,7 +2443,7 @@ Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
     return sol;
 }
 
-void testKempe(ExamTT& instance, std::vector<int> initPeriods) {
+void test::kempe(ExamTT& instance, std::vector<int> initPeriods) {
     const int E = instance.E();
     if(initPeriods.size() != E)
         throw std::invalid_argument("initPeriods.size() != E");

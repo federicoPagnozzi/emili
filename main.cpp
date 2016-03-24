@@ -62,12 +62,20 @@ int main(int argc, const char *argv[])
     
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
-    emili::LocalSearch* ls = ps.parseParams();
+
+    emili::LocalSearch* ls = nullptr;
+
+    try {
+        ls = ps.parseParams();
+    } catch(prs::NoSearch) {
+        std::cout << "No Search" << std::endl;
+    }
 
     // testHeuritstic(ps.getInstance());
 
-    if(ls == nullptr)
+    if(ls == nullptr) {
         return -1;
+    }
 
     int pls = ls->getSearchTime(); // ps.ils_time;
 #else

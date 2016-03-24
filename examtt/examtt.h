@@ -577,18 +577,9 @@ public:
     CostComponents costs;
 
     // structures
-    static constexpr bool USE_STRUCTURES = true;
-
-    /*
-    MapVec<PeriodId, std::set<ExamId>> examsByPeriods;
-    MapVec<ExamId, std::set<ExamId>::iterator> examsByPeriodsIterators;
-    MapVec<RoomId, std::set<ExamId>> examsByRooms;
-    MapVec<ExamId, std::set<ExamId>::iterator> examsByRoomsIterators;
-    */
 
     MapVec<PeriodId, MapVec<RoomId, std::list<ExamId>>> examsByPeriodRoom;
     MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
-    bool hasStructure = false;
 
     void buildStructures(InstanceRef);
 
@@ -907,8 +898,11 @@ struct BSUSA : emili::LocalSearch {
     void searchInPlace(Solution* initial) override;
 };
 
-void test(const ExamTT &inst, int N, bool checkEachMove);
-void testKempe(ExamTT& instance, std::vector<int> initPeriods);
+namespace test {
+void delta(const ExamTT &inst, int N, bool checkEachMove);
+void interactive(const ExamTT &inst, int N, bool checkEachMove);
+void kempe(ExamTT& instance, std::vector<int> initPeriods);
+}
 
 }
 }

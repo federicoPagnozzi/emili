@@ -132,6 +132,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 {
     const std::string SA_BSU = "SA_BSU";
     const std::string TEST_KEMPE = "TEST_KEMPE";
+    const std::string INTERACTIVE = "INTERACTIVE";
     const std::string TEST_DELTA = "TEST_DELTA";
 
     prs::TabLevel level;
@@ -357,8 +358,11 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
             << setw(20) << "each-move " << boolalpha << checkEachMove << endl
         ;
 
-        emili::ExamTT::test(instance, N, checkEachMove);
+        emili::ExamTT::test::delta(instance, N, checkEachMove);
         throw NoSearch();
+    }
+    else if(tm.checkToken(INTERACTIVE)) {
+
     }
     else if(tm.checkToken(TEST_KEMPE)) {
 
@@ -375,7 +379,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
             if(!(0 <= y && y < P))
                 genericError(cerr << "int " << y << " is not a valid period in [0," << P << "[");
 
-        emili::ExamTT::testKempe(instance, x);
+        emili::ExamTT::test::kempe(instance, x);
 
         throw NoSearch();
     }
@@ -430,6 +434,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         errorExpected(tm, "SEARCH", {ILS, TABU, FIRST, BEST, "SA_BSU", VND, TEST_INIT, "BRUTE"});
         return nullptr;
     }
+    return nullptr;
 }
 
 SimulatedAnnealing* ExamTTParser::SAParser::buildSA(prs::TokenManager& tm, emili::InitialSolution* initsol, emili::Neighborhood* nei) {
