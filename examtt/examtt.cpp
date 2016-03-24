@@ -325,6 +325,18 @@ void ExamTT::buildStructures()  {
     examIsRoomExclusive.resize(E, false);
     for(ExamId i : examsRoomsExclusive)
         examIsRoomExclusive[i] = true;
+
+    for(Exam& e : exams)
+        colorsOfMinute.insert(make_pair(e.duration, colorsOfMinute.size()));
+
+    // for convenience, increasing minutes have increasing colors
+    int x = 0;
+    for(auto& p : colorsOfMinute) // sorted because colorsOfMinute is a map
+        p.second = x++;
+
+    durationColorOfExam.resize(E);
+    for(ExamId i = 0; i < E; i++)
+         durationColorOfExam[i] = colorsOfMinute[exams[i].duration];
 }
 
 bool ExamTT::correctExam(int i) const {
@@ -590,6 +602,9 @@ void ExamTTSolution::writeTo(std::ostream& out) const {
 }
 
 void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) const {
+    if(! hasStructures)
+        const_cast<ExamTTSolution*>(this)->buildStructures(instance);
+
     int E = instance.exams.size();
     int P = instance.periods.size();
     int R = instance.rooms.size();
@@ -1209,9 +1224,17 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
 
     constexpr bool USE_DELTA = true;
 
+    if(! hasStructures)
+        buildStructures(instance);
+
     if(USE_DELTA) {
         updateMove(instance, e, nextP, nextR, this->costs);
         setSolutionValue(costs.total(instance.hardWeight));
+    }
+
+    if(USE_COLOR_STRUCTURE) {
+        durationColorUsed[prevP][prevR][instance.durationColorOfExam[e]]--;
+        durationColorUsed[nextP][nextR][instance.durationColorOfExam[e]]++;
     }
 
     examsByPeriodRoom[nextP][nextR].splice(
@@ -1747,11 +1770,18 @@ void ExamTTSolution::setRawData(const void *data) {
     periods = other->periods; // O(P)
     rooms = other->rooms; // O(R)
 
+    if(USE_LAZY_STRUCTURES) {
+        hasStructures = false;
+        return;
+    }
+    // structures
+
     examsByPeriodRoomIterators.resize(periods.size()); // O(1) E
 
     // inner copy
 
     examsByPeriodRoom = other->examsByPeriodRoom;
+    durationColorUsed = other->durationColorUsed;
 
     // O(E P R)
     for(auto & a : examsByPeriodRoom)
@@ -1792,6 +1822,7 @@ void ExamTTSolution::swap(Solution * rawOther) {
 
     other->examsByPeriodRoom.swap(examsByPeriodRoom);
     other->examsByPeriodRoomIterators.swap(examsByPeriodRoomIterators);
+    other->durationColorUsed.swap(durationColorUsed);
 }
 
 string ExamTTSolution::getSolutionRepresentation() {
@@ -1830,6 +1861,12 @@ void ExamTTSolution::buildStructures(InstanceRef instance)
 
     for(ExamId e = 0; e < E; e++)
         examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
+
+    durationColorUsed.assign(P, std::vector<MapVec<Color,int>>(R, std::vector<int>(instance.numberOfDurations(), 0)));
+    for(ExamId e = 0; e < E; e++)
+        durationColorUsed[periods[e]][rooms[e]][instance.durationColorOfExam[e]]++;
+
+    hasStructures = true;
 }
 
 CostComponents ExamTTSolution::differenceCostMove(Instance const& instance, ExamId ex, PeriodId nextP, RoomId nextR) const
@@ -2055,73 +2092,105 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
     {
         int myDuration = instance.exams[ex].duration;
 
-        int NLeavingWithoutMe, NMeetingWithoutMe, NLeavingWithMe, NMeetingWithMe;
+        if(USE_COLOR_STRUCTURE) {
+            // no heap allocated, incremental info
 
-        if(0) {
-            std::set<Minutes> durationsLeaving;
-            std::set<Minutes> durationsMeeting;
+            Color myDurationColor = instance.durationColorOfExam[ex];
+            auto const& leavingDuration = durationColorUsed[prevP][prevR];
+            auto const& meetingDuration = durationColorUsed[nextP][nextR];
 
-            for(ExamId j : leavingAndMe) if(j != ex)
-                durationsLeaving.insert(instance.exams[j].duration);
+            const_cast<MapVec<Color,int>&>(leavingDuration)[myDurationColor]--;
 
-            for(ExamId j : meeting)
-                durationsMeeting.insert(instance.exams[j].duration);
+            int countLeaving = 0;
+            for(int x : leavingDuration)
+                if(x > 0)
+                    countLeaving++;
 
-            NLeavingWithoutMe = durationsLeaving.size();
-            NMeetingWithoutMe = durationsMeeting.size();
-            NLeavingWithMe = durationsLeaving.size() + (durationsLeaving.count(myDuration) ? 0 : 1);
-            NMeetingWithMe = durationsMeeting.size() + (durationsMeeting.count(myDuration) ? 0 : 1);
+            if(leavingDuration[myDurationColor] == 0 && countLeaving > 0)
+                costs.soft.mixedDuration -= weightings.nonMixedDurations;
+
+            const_cast<MapVec<Color,int>&>(meetingDuration)[myDurationColor]++;
+            int countMeeting = 0;
+            for(int x : meetingDuration)
+                if(x > 0)
+                    countMeeting++;
+
+            if(meetingDuration[myDurationColor] == 1 && countMeeting > 1)
+                costs.soft.mixedDuration += weightings.nonMixedDurations;
+            const_cast<MapVec<Color,int>&>(meetingDuration)[myDurationColor]--;
+
+            const_cast<MapVec<Color,int>&>(leavingDuration)[myDurationColor]++;
+
         } else {
+            int NLeavingWithoutMe, NMeetingWithoutMe, NLeavingWithMe, NMeetingWithMe;
 
-            int durationsLeavingDuplicates = 0;
-            bool myDurationInLeaving = false;
-            for(auto i = leavingAndMe.begin(); i != leavingAndMe.end(); ++i) {
-                if(*i == ex)
-                    continue;
-                if(instance.exams[*i].duration == myDuration)
-                    myDurationInLeaving = true;
+            if(1) {
+                // set implementation
+                std::set<Minutes> durationsLeaving;
+                std::set<Minutes> durationsMeeting;
 
-                auto j = i;
-                ++j;
-                for( ; j != leavingAndMe.end(); ++j) {
-                    if(*j == ex)
+                for(ExamId j : leavingAndMe) if(j != ex)
+                    durationsLeaving.insert(instance.exams[j].duration);
+
+                for(ExamId j : meeting)
+                    durationsMeeting.insert(instance.exams[j].duration);
+
+                NLeavingWithoutMe = durationsLeaving.size();
+                NMeetingWithoutMe = durationsMeeting.size();
+                NLeavingWithMe = durationsLeaving.size() + (durationsLeaving.count(myDuration) ? 0 : 1);
+                NMeetingWithMe = durationsMeeting.size() + (durationsMeeting.count(myDuration) ? 0 : 1);
+            } else {
+                // N² implementation, no heap allocated
+                int durationsLeavingDuplicates = 0;
+                bool myDurationInLeaving = false;
+                for(auto i = leavingAndMe.begin(); i != leavingAndMe.end(); ++i) {
+                    if(*i == ex)
                         continue;
+                    if(instance.exams[*i].duration == myDuration)
+                        myDurationInLeaving = true;
 
-                    if(instance.exams[*i].duration == instance.exams[*j].duration) {
-                        ++durationsLeavingDuplicates;
-                        break;
+                    auto j = i;
+                    ++j;
+                    for( ; j != leavingAndMe.end(); ++j) {
+                        if(*j == ex)
+                            continue;
+
+                        if(instance.exams[*i].duration == instance.exams[*j].duration) {
+                            ++durationsLeavingDuplicates;
+                            break;
+                        }
                     }
                 }
-            }
 
-            int durationsMeetingDuplicates = 0;
-            bool myDurationInMeeting = false;
-            for(auto i = meeting.begin(); i != meeting.end(); ++i) {
-                if(instance.exams[*i].duration == myDuration)
-                    myDurationInMeeting = true;
-                auto j = i;
-                ++j;
-                for( ; j != meeting.end(); ++j) {
-                    if(instance.exams[*i].duration == instance.exams[*j].duration) {
-                        ++durationsMeetingDuplicates;
-                        break;
+                int durationsMeetingDuplicates = 0;
+                bool myDurationInMeeting = false;
+                for(auto i = meeting.begin(); i != meeting.end(); ++i) {
+                    if(instance.exams[*i].duration == myDuration)
+                        myDurationInMeeting = true;
+                    auto j = i;
+                    ++j;
+                    for( ; j != meeting.end(); ++j) {
+                        if(instance.exams[*i].duration == instance.exams[*j].duration) {
+                            ++durationsMeetingDuplicates;
+                            break;
+                        }
                     }
                 }
+
+                int durationsLeavingSize = leavingAndMe.size() - 1 - durationsLeavingDuplicates;
+                int durationsMeetingSize = meeting.size() - durationsMeetingDuplicates;
+
+                NLeavingWithoutMe = durationsLeavingSize;
+                NMeetingWithoutMe = durationsMeetingSize;
+                NLeavingWithMe = durationsLeavingSize + (myDurationInLeaving ? 0 : 1);
+                NMeetingWithMe = durationsMeetingSize + (myDurationInMeeting ? 0 : 1);
             }
 
-            int durationsLeavingSize = leavingAndMe.size() - 1 - durationsLeavingDuplicates;
-            int durationsMeetingSize = meeting.size() - durationsMeetingDuplicates;
-
-            NLeavingWithoutMe = durationsLeavingSize;
-            NMeetingWithoutMe = durationsMeetingSize;
-            NLeavingWithMe = durationsLeavingSize + (myDurationInLeaving ? 0 : 1);
-            NMeetingWithMe = durationsMeetingSize + (myDurationInMeeting ? 0 : 1);
+            if(NLeavingWithoutMe > 0)
+                costs.soft.mixedDuration += (NLeavingWithoutMe - NLeavingWithMe) * weightings.nonMixedDurations;
+            if(NMeetingWithoutMe > 0)
+                costs.soft.mixedDuration -= (NMeetingWithoutMe - NMeetingWithMe) * weightings.nonMixedDurations;
         }
-
-        if(NLeavingWithoutMe > 0)
-            costs.soft.mixedDuration += (NLeavingWithoutMe - NLeavingWithMe) * weightings.nonMixedDurations;
-        if(NMeetingWithoutMe > 0)
-            costs.soft.mixedDuration -= (NMeetingWithoutMe - NMeetingWithMe) * weightings.nonMixedDurations;
     }
 }
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <unordered_set>
+#include <map>
 #include <list>
 #include <string>
 #include <fstream>
@@ -176,6 +177,7 @@ typedef int PeriodId;
 typedef int RoomId;
 
 typedef int Minutes;
+typedef int Color;
 typedef int Cost; // A soft or hard cost
 typedef int HCost; // Hard
 typedef int SCost; // Soft
@@ -321,6 +323,8 @@ public:
 
     std::vector<ExamId> frontLoadExams; // all exams that are in the largest
     MapVec<ExamId,bool> isInFrontLoad; // isInFrontLoad[i] iff i in frontLoadExams
+    MapVec<ExamId,int> durationColorOfExam; // all durations are mapped to a color
+    std::map<Minutes, Color> colorsOfMinute;
 
     bool periodInTheEnd(PeriodId p) const;
     int sizeOfExam(ExamId e) const;
@@ -377,6 +381,7 @@ public:
     int E() const { return exams.size(); }
     int P() const { return periods.size(); }
     int R() const { return rooms.size(); }
+    int numberOfDurations() const { return colorsOfMinute.size(); }
 
     void presentation(std::ostream&) const;
     void testDelta(ExamTTSolution&, std::ostream &log, int N = 1000, bool checkEachMove = true) const;
@@ -580,6 +585,11 @@ public:
 
     MapVec<PeriodId, MapVec<RoomId, std::list<ExamId>>> examsByPeriodRoom;
     MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
+    MapVec<PeriodId, MapVec<RoomId, MapVec<Color,int>>> durationColorUsed;
+
+    const bool USE_LAZY_STRUCTURES = true;
+    const bool USE_COLOR_STRUCTURE = true;
+    bool hasStructures = false;
 
     void buildStructures(InstanceRef);
 
