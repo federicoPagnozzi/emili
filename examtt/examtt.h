@@ -194,6 +194,7 @@ typedef std::pair<PeriodId const&, RoomId const&> AssignementConstRef;
 class Exam {
 public:
     Minutes duration;
+    Color durationColor;
     std::set<StudentId> students;
 
     static bool compareDuration(Exam const& e1, Exam const& e2) {
@@ -213,13 +214,14 @@ public:
 
 class Period {
 public:
-    Date date;
+    Date dateRaw;
+    int dateid;
     Time time;
     Minutes duration;
     SCost penalty;
 
     static bool compareDateTime(Period const& p1, Period const& p2) {
-        return std::make_tuple(p1.date, p2.time) < std::make_tuple(p2.date, p2.time);
+        return std::make_tuple(p1.dateid, p2.time) < std::make_tuple(p2.dateid, p2.time);
     }
 
     static bool compareDuration(Period const& p1, Period const& p2) {
@@ -299,32 +301,34 @@ public:
 
     // structures
     struct ExamsRelated {
-        std::set<ExamId> coincidences,
+        std::vector<ExamId> coincidences,
                          exclusions,
                          afters,
                          befores,
                          hasStudentsInCommon;
+
+        void removeDuplicates();
     };
 
     MapVec<ExamId,ExamsRelated> examsRelated;
 
-    std::set<ExamId>& coincidenceOfExam(ExamId i)         { return examsRelated[i].coincidences; }
-    std::set<ExamId>& exclusionOfExam(ExamId i)           { return examsRelated[i].exclusions; }
-    std::set<ExamId>& afterOfExam(ExamId i)               { return examsRelated[i].afters; }
-    std::set<ExamId>& beforeOfExam(ExamId i)              { return examsRelated[i].befores; }
-    std::set<ExamId>& hasStudentsInCommonOfExam(ExamId i) { return examsRelated[i].hasStudentsInCommon; }
+    std::vector<ExamId>& coincidenceOfExam(ExamId i)         { return examsRelated[i].coincidences; }
+    std::vector<ExamId>& exclusionOfExam(ExamId i)           { return examsRelated[i].exclusions; }
+    std::vector<ExamId>& afterOfExam(ExamId i)               { return examsRelated[i].afters; }
+    std::vector<ExamId>& beforeOfExam(ExamId i)              { return examsRelated[i].befores; }
+    std::vector<ExamId>& hasStudentsInCommonOfExam(ExamId i) { return examsRelated[i].hasStudentsInCommon; }
 
     // const versions
-    std::set<ExamId> const& coincidenceOfExam(ExamId i)         const { return examsRelated[i].coincidences; }
-    std::set<ExamId> const& exclusionOfExam(ExamId i)           const { return examsRelated[i].exclusions; }
-    std::set<ExamId> const& afterOfExam(ExamId i)               const { return examsRelated[i].afters; }
-    std::set<ExamId> const& beforeOfExam(ExamId i)              const { return examsRelated[i].befores; }
-    std::set<ExamId> const& hasStudentsInCommonOfExam(ExamId i) const { return examsRelated[i].hasStudentsInCommon; }
+    std::vector<ExamId> const& coincidenceOfExam(ExamId i)         const { return examsRelated[i].coincidences; }
+    std::vector<ExamId> const& exclusionOfExam(ExamId i)           const { return examsRelated[i].exclusions; }
+    std::vector<ExamId> const& afterOfExam(ExamId i)               const { return examsRelated[i].afters; }
+    std::vector<ExamId> const& beforeOfExam(ExamId i)              const { return examsRelated[i].befores; }
+    std::vector<ExamId> const& hasStudentsInCommonOfExam(ExamId i) const { return examsRelated[i].hasStudentsInCommon; }
+
+    std::map<Minutes, Color> colorsOfMinute;
 
     std::vector<ExamId> frontLoadExams; // all exams that are in the largest
     MapVec<ExamId,bool> isInFrontLoad; // isInFrontLoad[i] iff i in frontLoadExams
-    MapVec<ExamId,int> durationColorOfExam; // all durations are mapped to a color
-    std::map<Minutes, Color> colorsOfMinute;
 
     bool periodInTheEnd(PeriodId p) const;
     int sizeOfExam(ExamId e) const;
@@ -587,7 +591,7 @@ public:
     MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
     MapVec<PeriodId, MapVec<RoomId, MapVec<Color,int>>> durationColorUsed;
 
-    const bool USE_LAZY_STRUCTURES = true;
+    const bool USE_LAZY_STRUCTURES = false; // will not copy structures on clone, but will build structures when modified
     const bool USE_COLOR_STRUCTURE = true;
     bool hasStructures = false;
 

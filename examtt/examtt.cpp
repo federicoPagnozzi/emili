@@ -277,34 +277,53 @@ int ExamTT::sizeOfExam(ExamId e) const {
     return exams[e].students.size();
 }
 
+namespace {
+void removeDuplicate(std::vector<int> & vec) {
+    std::set<int> s(vec.begin(), vec.end());
+    vec.assign(s.begin(), s.end());
+}
+}
+
+void ExamTT::ExamsRelated::removeDuplicates() {
+    removeDuplicate(coincidences);
+    removeDuplicate(exclusions);
+    removeDuplicate(afters);
+    removeDuplicate(befores);
+    removeDuplicate(hasStudentsInCommon);
+}
+
 void ExamTT::buildStructures()  {
     int E = exams.size();
 
     examsRelated.resize(E);
 
     for(Two<ExamId> p : examsCoincidence) {
-        coincidenceOfExam(p.first).insert(p.second);
-        coincidenceOfExam(p.second).insert(p.first);
+        coincidenceOfExam(p.first).push_back(p.second);
+        coincidenceOfExam(p.second).push_back(p.first);
     }
 
     for(Two<ExamId> p : examsExclusion) {
-        exclusionOfExam(p.first).insert(p.second);
-        exclusionOfExam(p.second).insert(p.first);
+        exclusionOfExam(p.first).push_back(p.second);
+        exclusionOfExam(p.second).push_back(p.first);
     }
 
     for(Two<ExamId> p : examsAfter) {
-        afterOfExam(p.first).insert(p.second);
-        beforeOfExam(p.second).insert(p.first);
+        afterOfExam(p.first).push_back(p.second);
+        beforeOfExam(p.second).push_back(p.first);
     }
 
     for(ExamId i = 0; i < E; i++)
     for(ExamId j = i + 1; j < E; j++) {
         if(numberStudentsInCommon[i][j]) {
-            hasStudentsInCommonOfExam(i).insert(j);
-            hasStudentsInCommonOfExam(j).insert(i);
+            hasStudentsInCommonOfExam(i).push_back(j);
+            hasStudentsInCommonOfExam(j).push_back(i);
         }
     }
 
+    for(ExamId e = 0; e < E; e++)
+        examsRelated[e].removeDuplicates();
+
+    // frontLoadExams
     vector<ExamId> examsBySize(E);
     for(ExamId i = 0; i < E; i++)
         examsBySize[i] = i;
@@ -325,18 +344,6 @@ void ExamTT::buildStructures()  {
     examIsRoomExclusive.resize(E, false);
     for(ExamId i : examsRoomsExclusive)
         examIsRoomExclusive[i] = true;
-
-    for(Exam& e : exams)
-        colorsOfMinute.insert(make_pair(e.duration, colorsOfMinute.size()));
-
-    // for convenience, increasing minutes have increasing colors
-    int x = 0;
-    for(auto& p : colorsOfMinute) // sorted because colorsOfMinute is a map
-        p.second = x++;
-
-    durationColorOfExam.resize(E);
-    for(ExamId i = 0; i < E; i++)
-         durationColorOfExam[i] = colorsOfMinute[exams[i].duration];
 }
 
 bool ExamTT::correctExam(int i) const {
@@ -455,7 +462,7 @@ bool ExamTT::periodsSorted() const {
 
 bool ExamTT::allPeriodsConsecutives() const {
     for(size_t i = 0; i < periods.size() - 1; i++)
-        if(periods[i].date == periods[i+1].date)
+        if(periods[i].dateid == periods[i+1].dateid)
             if(seconds(periods[i].time) + periods[i].duration * 60 != seconds(periods[i+1].time))
                 return false;
 
@@ -614,7 +621,7 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
     out << "* Timeline" << endl;
     int day = 0;
     for(PeriodId p = 0; p < P; p++) {
-        if(p == 0 || instance.periods[p].date != instance.periods[p-1].date)
+        if(p == 0 || instance.periods[p].dateid != instance.periods[p-1].dateid)
             out << string(5, '-') << "Day " << setw(3) << (day++) << string(5, '-') << endl;
 
         Period const& period = instance.periods[p];
@@ -682,7 +689,7 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
                     } else {
                         NumberOfPeriods diff = abs(periodsId.first - periodsId.second);
 
-                        if(periodObjects.first.date == periodObjects.second.date) {
+                        if(periodObjects.first.dateid == periodObjects.second.dateid) {
                             if(diff == 1) {
                                 out << string(12, ' ') << "(" << i << "," << j << ")[twoInARow:" << cost << "]" << endl;
                             } else {
@@ -855,6 +862,15 @@ void InstanceParser::readline(std::string &line) {
         line.pop_back();
 }
 
+namespace {
+template <typename T>
+void mapToSortedInt(std::map<T, int> & M) {
+    int x = 0;
+    for(auto& p : M)
+        p.second = x++;
+}
+}
+
 void InstanceParser::parse(ExamTT &i) {
     string line;
 
@@ -871,16 +887,35 @@ void InstanceParser::parse(ExamTT &i) {
         }
     }
 
+    for(Exam& e : i.exams)
+        i.colorsOfMinute.insert(make_pair(e.duration, i.colorsOfMinute.size()));
+
+    mapToSortedInt(i.colorsOfMinute);
+
+
+
+    for(Exam& e : i.exams)
+        e.durationColor = i.colorsOfMinute[e.duration];
+
     i.periods.resize(readHeaderInt("Periods"));
 
     for(Period& period : i.periods){
         readline(line);
         CommaSpaceSeparated tok(line);
-        period.date = makeDateFromITCFormat(tok.next());
+        period.dateRaw = makeDateFromITCFormat(tok.next());
         period.time = makeTimeFromITCFormat(tok.next());
         period.duration = tok.nextInt();
         period.penalty = tok.nextInt();
     }
+
+    std::map<Date, int> dateToDateId;
+    for(Period& period : i.periods)
+        dateToDateId.insert(std::make_pair(period.dateRaw, dateToDateId.size()));
+
+    mapToSortedInt(dateToDateId);
+
+    for(Period& period : i.periods)
+        period.dateid = dateToDateId[period.dateRaw];
 
     Minutes maxExams = max_element(i.exams.begin(), i.exams.end(), &Exam::compareDuration)->duration;
     Minutes maxPeriods = max_element(i.periods.begin(), i.periods.end(), &Period::compareDuration)->duration;
@@ -1233,8 +1268,8 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
     }
 
     if(USE_COLOR_STRUCTURE) {
-        durationColorUsed[prevP][prevR][instance.durationColorOfExam[e]]--;
-        durationColorUsed[nextP][nextR][instance.durationColorOfExam[e]]++;
+        durationColorUsed[prevP][prevR][instance.exams[e].durationColor]--;
+        durationColorUsed[nextP][nextR][instance.exams[e].durationColor]++;
     }
 
     examsByPeriodRoom[nextP][nextR].splice(
@@ -1316,7 +1351,7 @@ void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) 
         } else {
             int diff = abs(periodsId.first - periodsId.second);
 
-            if(periodObjects.first.date == periodObjects.second.date) {
+            if(periodObjects.first.dateid == periodObjects.second.dateid) {
                 if(diff == 1) {
                     costs.soft.twoExamsInARow += cost;
                 } else {
@@ -1864,7 +1899,7 @@ void ExamTTSolution::buildStructures(InstanceRef instance)
 
     durationColorUsed.assign(P, std::vector<MapVec<Color,int>>(R, std::vector<int>(instance.numberOfDurations(), 0)));
     for(ExamId e = 0; e < E; e++)
-        durationColorUsed[periods[e]][rooms[e]][instance.durationColorOfExam[e]]++;
+        durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
 
     hasStructures = true;
 }
@@ -1981,13 +2016,12 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
         // remove
 
-        Two<Period const&> before = {instance.periods[relatedP], instance.periods[prevP]};
         if(prevP == relatedP) {
             costs.hard.simultaneousExams -= cost;
         } else {
             int prevDiff = abs(relatedP - prevP);
 
-            if(before.first.date == before.second.date) {
+            if(instance.periods[relatedP].dateid == instance.periods[prevP].dateid) {
                 if(prevDiff == 1)
                     costs.soft.twoExamsInARow -= cost * weightings.twoInARow;
                 else
@@ -2000,13 +2034,12 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
         // add
 
-        Two<Period const&> after = {instance.periods[relatedP], instance.periods[nextP]};
         if(nextP == relatedP) {
             costs.hard.simultaneousExams += cost;
         } else {
             int nextDiff = abs(relatedP - nextP);
 
-            if(after.first.date == after.second.date) {
+            if(instance.periods[relatedP].dateid == instance.periods[nextP].dateid) {
                 if(nextDiff == 1)
                     costs.soft.twoExamsInARow += cost * weightings.twoInARow;
                 else
@@ -2095,7 +2128,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         if(USE_COLOR_STRUCTURE) {
             // no heap allocated, incremental info
 
-            Color myDurationColor = instance.durationColorOfExam[ex];
+            Color myDurationColor = instance.exams[ex].durationColor;
             auto const& leavingDuration = durationColorUsed[prevP][prevR];
             auto const& meetingDuration = durationColorUsed[nextP][nextR];
 
