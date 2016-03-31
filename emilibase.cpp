@@ -111,19 +111,16 @@ static void finalise (int _)
     if(s_cap != nullptr)
     {
         double sol_val = s_cap->getSolutionValue();
-        if(print)
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        std::cout << std::fixed << sol_val << std::endl;
+        if (print)
         {
-            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            std::cout << "objective function value : "<< sol_val << std::endl;
-            std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
-            //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+           //std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+           //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+           //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
-        else
-        {
-        std::cerr << sol_val << std::endl;
+        std::cerr << std::fixed << sol_val << std::endl;
         std::cerr << std::flush;
-        }
     }
     else
     {

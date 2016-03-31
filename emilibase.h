@@ -43,7 +43,6 @@ Neighborhood and Perturbation.
 
 namespace emili{
 
-/* iterations counter that is used in the neighborhoods to keep track of how many solutions are generated*/
 void iteration_counter_zero();
 int iteration_counter();
 void iteration_increment();

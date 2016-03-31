@@ -32,7 +32,6 @@
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"*/
 
-
 // char* problem_type;
 
 //using namespace prs;
