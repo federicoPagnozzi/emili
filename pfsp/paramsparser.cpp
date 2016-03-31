@@ -93,6 +93,7 @@
 #define INITIAL_RZ "rz"
 #define INITIAL_NRZ "nrz"
 #define INITIAL_NRZ2 "nrz2"
+#define INITIAL_NRZ2FF "nrz2ff"
 #define INITIAL_LR "lr"
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
@@ -993,6 +994,12 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             printTab( "neh rz initial solution without improvement phase");
             //return new testIS(*istance);
             init = new emili::pfsp::NeRZ2Solution(*istance);
+        }
+    else if(tm.checkToken(INITIAL_NRZ2FF))
+        {
+            printTab( "nehff rz initial solution without improvement phase");
+            //return new testIS(*istance);
+            init = new emili::pfsp::NfRZ2Solution(*istance);
         }
     else if(tm.checkToken(INITIAL_LR))
         {
