@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "e3f88dd0976cce7ef53b1c50c48597f024bd6eea"
+#define GIT_COMMIT_NUMBER "c3db6136ffc199219fc14e53c334972f12153466"
 
 int tab_level = 0;
 
