@@ -14,7 +14,7 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
             return current_solution;
         }
 
-        std::cout << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob;
+        std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
 
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);
@@ -68,7 +68,7 @@ emili::Solution* SAPrecomputedMetropolisWithForcedAcceptance::accept(emili::Solu
             return current_solution;
         }
 
-    std::cout << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob;
+    std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
 
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);
