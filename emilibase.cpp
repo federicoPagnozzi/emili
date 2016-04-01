@@ -88,8 +88,8 @@ float emili::generateRealRandomNumber()
 bool print;
 bool keep_going;
 bool timer_keep_going;
-std::ostringstream messages;
-std::string lastMessage;
+// std::ostringstream messages;
+//std::string lastMessage;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
@@ -110,7 +110,8 @@ static void finalise (int _)
     keep_going = false;
     endTime = clock();
 
-    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+    // with the messages variable it gets stuck again...
+    std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* s_cap = localsearch->getBestSoFar();
     if(s_cap != nullptr)
     {
@@ -119,7 +120,7 @@ static void finalise (int _)
         std::cout << std::fixed << sol_val << std::endl;
         if (print)
         {
-            std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+            // std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
              //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
@@ -128,10 +129,9 @@ static void finalise (int _)
     }
     else
     {
-        messages << "No valid solution found!" << std::endl;
+        std::cout << "No valid solution found!" << std::endl;
     }
-    //std::cout << std::flush;
-    lastMessage = messages.str();
+    std::cout << std::flush;
     exit(0);
 }
 
@@ -172,10 +172,10 @@ static inline bool isTimerUp()
 
 }
 
-void lastPrint()
+/*void lastPrint()
 {
     std::cout << lastMessage << std::endl;
-}
+}*/
 
 int max_time = -1 ;
 static inline void setTimer(int maxTime)
@@ -193,7 +193,7 @@ static inline void setTimer(int maxTime)
         exit(10);
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
-        atexit(lastPrint);
+        //atexit(lastPrint);
         max_time = maxTime;
     }
 }
