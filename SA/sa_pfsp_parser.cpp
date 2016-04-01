@@ -266,6 +266,12 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(NEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
         return new NeighSizeTempLength(neigh, a);
+    } else if (tm.checkToken(PROBSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new ProblemSizeTempLength(neigh, a);
+    } else if (tm.checkToken(SQUAREDPROBSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new SquaredProblemSizeTempLength(neigh, a);
     } else if (tm.checkToken(BRNEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
         return new BurkardRendlNeighSizeTempLength(neigh, a);
@@ -306,7 +312,6 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
         std::cerr << tm.peek() << std::endl;
         exit(1);
     }
-
 }
 
 

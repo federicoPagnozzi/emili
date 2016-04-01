@@ -86,6 +86,61 @@ public:
 
 
 /**
+ * Length dependant on the size of the problem:
+ * alpha * |n|
+ * PROBSIZETEMPLEN
+ */
+class ProblemSizeTempLength: public SATempLength {
+
+protected:
+    emili::Neighborhood* neigh;
+    float alpha;
+
+public:
+    ProblemSizeTempLength(emili::Neighborhood* neigh,
+                       float alpha):
+        neigh(neigh),
+        alpha(alpha),
+        SATempLength(NEIGHSIZETEMPLEN,
+                     (int)std::lrint(alpha * std::ceil(std::sqrt(neigh->size())))) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length)
+            return true;
+        return false;
+    }
+
+}; // ProblemSizeTempLength
+
+/**
+ * Length dependant on the size of the problem:
+ * alpha * |n|^2
+ * SQUAREDPROBSIZETEMPLEN
+ */
+class SquaredProblemSizeTempLength: public SATempLength {
+
+protected:
+    emili::Neighborhood* neigh;
+    float alpha;
+
+public:
+    SquaredProblemSizeTempLength(emili::Neighborhood* neigh,
+                       float alpha):
+        neigh(neigh),
+        alpha(alpha),
+        SATempLength(NEIGHSIZETEMPLEN,
+                     (int)std::lrint(alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())))) { }
+
+    bool isCoolingTime(int counter) {
+        if (counter >= length)
+            return true;
+        return false;
+    }
+
+}; // SquaredProblemSizeTempLength
+
+
+/**
  * Length dependant on the size of the instance:
  * Burkard-Rendl (From COnnolly Paper)
  * 1/2 * |n|^2
