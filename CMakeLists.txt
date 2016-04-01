@@ -12,12 +12,19 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
 #ADD COMMIT HASH TO SOURCE CODE
 # add_custom_target(GNUM ALL git rev-parse HEAD | xargs -I cnum sed -ie s/.*"define GIT_COMMIT_NUMBER".*/"\#define GIT_COMMIT_NUMBER \\"cnum\\""/g generalParser.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 # add_custom_target(CGNUM ALL rm -f generalParser.cppe WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 #SSE
 if(USE_SSE)
 	message(STATUS "Using sse compile path") 
 	add_definitions(-DENABLE_SSE)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
 endif(USE_SSE)
+
+#Solution stats
+if(WITH_STATS)
+    message(STATUS "Solution stats enabled")
+    add_definitions(-DWITH_STATS)
+endif(WITH_STATS)
 
 #C++ 11 detection
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")

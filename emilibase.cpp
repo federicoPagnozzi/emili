@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
+#include <sstream>
 
 #if defined(_WIN32) || defined(_WIN64)
 //no signals compilation path for windows.
@@ -87,6 +88,8 @@ float emili::generateRealRandomNumber()
 bool print;
 bool keep_going;
 bool timer_keep_going;
+std::ostringstream messages;
+std::string lastMessage;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
@@ -106,7 +109,8 @@ static void finalise (int _)
 {
     keep_going = false;
     endTime = clock();
-    std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+
+    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* s_cap = localsearch->getBestSoFar();
     if(s_cap != nullptr)
     {
@@ -115,23 +119,20 @@ static void finalise (int _)
         std::cout << std::fixed << sol_val << std::endl;
         if (print)
         {
-           //std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
-           //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-           //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+            messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+            //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
         std::cerr << std::fixed << sol_val << std::endl;
         std::cerr << std::flush;
     }
     else
     {
-        std::cout << "No valid solution found!" << std::endl;
+        messages << "No valid solution found!" << std::endl;
     }
-    std::cout << std::flush;
-#ifndef NOSIG
-    _Exit(EXIT_SUCCESS);
-#else
+    //std::cout << std::flush;
+    lastMessage = messages.str();
     exit(0);
-#endif
 }
 
 
@@ -170,6 +171,12 @@ static inline bool isTimerUp()
               current_timer.it_value.tv_usec != 0);
 
 }
+
+void lastPrint()
+{
+    std::cout << lastMessage << std::endl;
+}
+
 int max_time = -1 ;
 static inline void setTimer(int maxTime)
 {
@@ -186,6 +193,7 @@ static inline void setTimer(int maxTime)
         exit(10);
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
+        atexit(lastPrint);
         max_time = maxTime;
     }
 }
@@ -237,6 +245,20 @@ void emili::iteration_increment(){
 
 void emili::iteration_decrement(){
     iteration_counter_--;
+}
+
+/*
+ * Print Solution info
+ */
+
+inline void emili::printSolstats(emili::Solution* sol)
+{
+#ifdef WITH_STATS
+    if(print)
+    {
+      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << std::endl;
+    }
+#endif
 }
 
 /*
@@ -480,7 +502,6 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
 /*
  * First improvement local search
  */
-
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 {
         termcriterion->reset();
@@ -492,7 +513,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
         Neighborhood::NeighborhoodIterator end = neighbh->end();
         do{
 
-            *bestSoFar = *incumbent;
+            *bestSoFar = *incumbent;            
             Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
             ithSolution = *iter;            
 
@@ -801,6 +822,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         if(*s_s < *bestSoFar)
         {
             *bestSoFar = *s_s;
+         printSolstats(bestSoFar);
             //s_time = clock();
         }
         //acceptance step
@@ -841,6 +863,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
             if(*s_s < *bestSoFar)
             {
                 *bestSoFar = *s_s;
+                printSolstats(bestSoFar);
                 //s_time = clock();
             }
             //acceptance step
@@ -881,7 +904,8 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
             //best solution
             if(*s_s < *bestSoFar)
             {
-                *bestSoFar = *s_s;
+                *bestSoFar = *s_s;             
+                printSolstats(bestSoFar);
                 //s_time = clock();
             }
             //acceptance step

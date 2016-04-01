@@ -1279,6 +1279,17 @@ emili::Solution* emili::pfsp::NeRZ2Solution::generate()
     return s;
 }
 
+emili::Solution* emili::pfsp::NfRZ2Solution::generate()
+{
+    std::vector< int > initial = rz_seed_sequence(pis);
+    //initial = rz_improvement_phase(initial,pis);
+    initial = nehff(initial,pis.getNjobs(),pis);
+
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
 emili::Solution* emili::pfsp::MNEH::generate()
 {
     std::vector< int > initial = std_start_sequence(pis);
@@ -5209,7 +5220,7 @@ emili::Solution* emili::pfsp::SOAacceptance::accept(Solution *intensification_so
 bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
     if(currentStep < numberOfSteps){
-        currentStep++;        
+        currentStep++;
         return false;
     }
     else

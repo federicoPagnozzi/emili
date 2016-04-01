@@ -93,6 +93,13 @@ public:
     virtual ~Solution() {}
 };
 
+/* Function to print solution info in the form "time, object function value, iteration"
+ *
+ * NOTE:
+ * WITH_STATS must be defined when running cmake.
+*/
+inline void printSolstats(emili::Solution* sol);
+
 /*
     The initial solution generator
 */
