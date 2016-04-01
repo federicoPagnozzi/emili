@@ -119,7 +119,7 @@ static void finalise (int _)
         std::cout << std::fixed << sol_val << std::endl;
         if (print)
         {
-            messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+            std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
              //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
