@@ -483,7 +483,8 @@ public:
             // std::cout << status->temp_counter << " " << status->temp_restarts << " " << init_temp << "  *****" << std::endl;
             return init_temp;
         }
-            // std::cout << status->temp_counter << " " << status->temp_restarts << " " << temp << std::endl;
+
+        // std::cout << status->temp_counter << " " << status->temp_restarts << " " << temp << std::endl;
         return temp;
     }
 
