@@ -13,6 +13,9 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
+
+        std::cout << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob;
+
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);
     }
@@ -64,6 +67,9 @@ emili::Solution* SAPrecomputedMetropolisWithForcedAcceptance::accept(emili::Solu
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
+
+    std::cout << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob;
+
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);
     }
