@@ -480,8 +480,10 @@ public:
         if (status->temp_counter > tenure) {
             status->temp_counter = 0;
             status->temp_restarts += 1;
+            // std::cout << status->temp_counter << " " << status->temp_restarts << " " << init_temp << "  *****" << std::endl;
             return init_temp;
         }
+            // std::cout << status->temp_counter << " " << status->temp_restarts << " " << temp << std::endl;
         return temp;
     }
 

@@ -74,7 +74,7 @@ public:
         neigh(neigh),
         alpha(alpha),
         SATempLength(NEIGHSIZETEMPLEN,
-                     (int)std::lrint(alpha * neigh->size())) { }
+                     std::lrint(alpha * neigh->size())) { }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)
@@ -102,7 +102,9 @@ public:
         neigh(neigh),
         alpha(alpha),
         SATempLength(NEIGHSIZETEMPLEN,
-                     (int)std::lrint(alpha * std::ceil(std::sqrt(neigh->size())))) { }
+                     std::lrint(alpha * std::ceil(std::sqrt(neigh->size())))) {
+            // std::cout << "initial temp length: " << length << std::endl << std::endl;
+        }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)
@@ -129,7 +131,7 @@ public:
         neigh(neigh),
         alpha(alpha),
         SATempLength(NEIGHSIZETEMPLEN,
-                     (int)std::lrint(alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())))) { }
+                     std::lrint(alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())))) { }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)
@@ -157,7 +159,9 @@ public:
         neigh(neigh),
         alpha(alpha),
         SATempLength(BRNEIGHSIZETEMPLEN,
-                     (int)alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size()))) { }
+                     std::lrint(alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())))) {
+            // std::cout << "initial temp length: " << length << std::endl << std::endl;
+        }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)
@@ -177,7 +181,10 @@ public:
     BurkardRendlGeomTempLength(emili::Neighborhood* neigh, float _c):
         c(_c),
         SATempLength(BRGEOMTEMPLEN,
-            (int)0.5 * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size()))) { }
+            std::lrint(0.5 * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())))) {
+            // std::cout << std::ceil(std::sqrt(neigh->size())) << " " << 0.5 * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())) << " " << std::lrint(0.5 * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size()))) << std::endl;
+            // std::cout << "initial temp length: " << length << std::endl << std::endl;
+        }
 
     bool isCoolingTime(int counter) {
         if (counter >= length) {
@@ -252,9 +259,9 @@ public:
                        long _cap):
         neigh(neigh),
         alpha(alpha),
-        cap(_cap * (int)std::lrint(alpha * neigh->size())),
+        cap(_cap * std::lrint(alpha * neigh->size())),
         SATempLength(NEIGHCAPPEDMAXACCEPTEDTEMPLEN,
-                     (int)std::lrint(alpha * neigh->size())) { }
+                     std::lrint(alpha * neigh->size())) { }
 
     bool isCoolingTime(int counter) {
         if (status->curr_accepted >= length || counter >= cap) {
