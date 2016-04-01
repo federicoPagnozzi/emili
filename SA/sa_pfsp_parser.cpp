@@ -614,7 +614,7 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         float ep = tm.getDecimal();
         return new SALocalMinEnhancedReheat(it, te, va, ep);
-    } else  if (tm.checkToken(SAMAXITERSTEMPRESTART)) {
+    } else if (tm.checkToken(SAMAXITERSTEMPRESTART)) {
         int   te = tm.getInteger();
         return new SAMaxItersTempRestart(it, te);
     } else if (tm.checkToken(SAMAXITERSREHEAT)) {
@@ -622,10 +622,13 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         return new SAMaxItersReheat(it, te, va);
     } else if (tm.checkToken(SANEIGHSIZEMAXITERSTEMPRESTART)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         return new SANeighSizeMaxItersTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SASQUAREDNEIGHSIZEMAXITERSTEMPRESTART)) {
+        float   te = tm.getDecimal();
+        return new SASquaredNeighSizeMaxItersTempRestart(it, neigh, te);
     } else if (tm.checkToken(SANEIGHSIZEMAXITERSREHEAT)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         float va = tm.getDecimal();
         return new SANeighSizeMaxItersReheat(it, neigh, te, va);
     } else if (tm.checkToken(SAMAXSTEPSTEMPRESTART)) {
@@ -636,10 +639,10 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         return new SAMaxStepsReheat(it, te, va);
     } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSTEMPRESTART)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         return new SANeighSizeMaxStepsTempRestart(it, neigh, te);
     } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSREHEAT)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         float va = tm.getDecimal();
         return new SANeighSizeMaxStepsReheat(it, neigh, te, va);
     } else {
@@ -647,7 +650,6 @@ SATempRestart* SAPFSPParser::TEMPRESTART(prs::TokenManager& tm,
         std::cerr << tm.peek() << std::endl;
         exit(1);
     }
-
 }
 
 emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {

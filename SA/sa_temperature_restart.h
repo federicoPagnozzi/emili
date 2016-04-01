@@ -459,6 +459,39 @@ public:
 }; // SANeighSizeMaxItersTempRestart
 
 
+class SASquaredNeighSizeMaxItersTempRestart: public SATempRestart {
+
+protected:
+    int tenure;
+    float init_temp;
+
+public:
+    SASquaredNeighSizeMaxItersTempRestart(SAInitTemp *it,
+                                          emili::Neighborhood* neigh,
+                                          float _coeff):
+        tenure(_coeff * neigh->size()),
+        init_temp(it->get()),
+        SATempRestart(SASQUAREDNEIGHSIZEMAXITERSTEMPRESTART) {
+            double n = ceil(sqrt(2 * neigh->size()));
+            tenure = (int)_coeff * n * n;
+        }
+
+    virtual float adjust(float temp) {
+        if (status->temp_counter > tenure) {
+            status->temp_counter = 0;
+            status->temp_restarts += 1;
+            return init_temp;
+        }
+        return temp;
+    }
+
+    virtual int getTenure(void) {
+        return tenure;
+    }
+
+}; // SASquaredNeighSizeMaxItersTempRestart
+
+
 class SAMaxItersReheat: public SATempRestart {
 
 protected:

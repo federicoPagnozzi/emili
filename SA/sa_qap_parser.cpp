@@ -414,10 +414,13 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         return new SAMaxItersReheat(it, te, va);
     } else if (tm.checkToken(SANEIGHSIZEMAXITERSTEMPRESTART)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         return new SANeighSizeMaxItersTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SASQUAREDNEIGHSIZEMAXITERSTEMPRESTART)) {
+        float   te = tm.getDecimal();
+        return new SASquaredNeighSizeMaxItersTempRestart(it, neigh, te);
     } else if (tm.checkToken(SANEIGHSIZEMAXITERSREHEAT)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         float va = tm.getDecimal();
         return new SANeighSizeMaxItersReheat(it, neigh, te, va);
     } else if (tm.checkToken(SAMAXSTEPSTEMPRESTART)) {
@@ -428,10 +431,10 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         float va = tm.getDecimal();
         return new SAMaxStepsReheat(it, te, va);
     } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSTEMPRESTART)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         return new SANeighSizeMaxStepsTempRestart(it, neigh, te);
     } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSREHEAT)) {
-        float   te = tm.getInteger();
+        float   te = tm.getDecimal();
         float va = tm.getDecimal();
         return new SANeighSizeMaxStepsReheat(it, neigh, te, va);
     } else {
