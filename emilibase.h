@@ -215,6 +215,7 @@ public:
                if(startSolution != nullptr )
                {
                   line_ = base_->clone();
+                  base_value = base_->getSolutionValue();
                   line_ = n->computeStep(line_);
                }
                else
@@ -230,6 +231,7 @@ public:
            emili::Solution* operator*();           
        private:
            emili::Solution* base_;
+           double base_value;
            emili::Solution* line_;
            emili::Neighborhood* n;
        };

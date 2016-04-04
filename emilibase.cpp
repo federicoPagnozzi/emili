@@ -334,7 +334,7 @@ bool emili::Neighborhood::NeighborhoodIterator::operator !=(const emili::Neighbo
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator++()
 {
     n->reverseLastMove(line_);
-    line_->setSolutionValue(this->base_->getSolutionValue());
+    line_->setSolutionValue(base_value);
     this->line_ = n->computeStep(this->line_);
     return *this;
 }
