@@ -109,14 +109,13 @@ static void finalise (int _)
 {
     keep_going = false;
     endTime = clock();
-
-    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* s_cap = localsearch->getBestSoFar();
     if(s_cap != nullptr)
     {
         double sol_val = s_cap->getSolutionValue();
         if(print)
         {
+    	    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
             messages << "objective function value : "<< sol_val << std::endl;
             messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
@@ -125,16 +124,28 @@ static void finalise (int _)
         }
         else
         {
-        std::cerr << sol_val << std::endl;
-        std::cerr << std::flush;
+            std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+            std::cerr << sol_val << std::endl;
+            std::cerr << std::flush;
         }
     }
     else
     {
-        messages << "No valid solution found!" << std::endl;
+        if(print)
+	{
+		messages << "No valid solution found!" << std::endl;
+    	}
+	else
+	{
+		std::cout  << "No valid solution found!" << std::endl;
+
+	}
     }
     //std::cout << std::flush;
-    lastMessage = messages.str();
+    if(print)
+      lastMessage = messages.str();
+    
     exit(0);
 }
 
@@ -196,7 +207,8 @@ static inline void setTimer(int maxTime)
         exit(10);
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
-        atexit(lastPrint);
+        if(print)
+	   atexit(lastPrint);
         max_time = maxTime;
     }
 }
