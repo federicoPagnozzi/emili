@@ -171,6 +171,7 @@
 #define PERTURBATION_RS "rsper"
 #define PERTURBATION_RSFF "rsff"
 #define PERTURBATION_IGIO "igio"
+#define PERTURBATION_RSIO "rsio"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -638,9 +639,19 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
 
-        oss.str(""); oss  << "IGIO PERTURBATION. Number of job erased " << n <<".\n\t";
+        oss.str(""); oss  << "Iterated greedy perturbation that inserts first the removed job with max sum of completion times. Number of job erased " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGIOPerturbation(n,*istance);
+    }
+    else if(tm.checkToken(PERTURBATION_RSIO))
+    {
+        int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+
+        oss.str(""); oss  << "Iterated greedy perturbation that inserts first the removed job with max sum of completion times using taillard acceleration. Number of job erased " << n <<".\n\t";
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::RSIOPerturbation(n,*istance);
     }
     else
     {

@@ -594,6 +594,17 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class RSIOPerturbation: public emili::pfsp::IGIOPerturbation
+{
+protected:
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+public:
+    RSIOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):emili::pfsp::IGIOPerturbation(d_parameter,problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) {}
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class RSPerturbation: public emili::Perturbation
 {
 protected:
@@ -711,8 +722,10 @@ class HeavilyApproximatedTaillardAcceleratedInsertNeighborhood: public emili::pf
 protected:
     virtual void computeHead(std::vector<int>& sol);
     virtual Solution* computeStep(Solution *value);
+    std::vector< long int >& duedates;
+    std::vector< long int >& priorities;
 public:
-    HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
+    HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),priorities(problem.getPriorities()),duedates(problem.getDueDates()) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
