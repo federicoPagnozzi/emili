@@ -1,3 +1,8 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
 #include "generalParser.h"
 #include <cstdlib>
 #include <cstdio>
@@ -11,9 +16,11 @@
 #define RO "-ro"
 #define IT "-it"
 #define RNDSEED "rnds"
+#define PRINT_SOLUTION "ps"
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
+#define GIT_COMMIT_NUMBER "056df82046350f455f351487d71fada789155f12"
 
 int tab_level = 0;
 
@@ -46,14 +53,15 @@ void prs::emili_header()
     std::cout << "\t|  __| | |\\/| | | | | |      | |  " << std::endl;
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
-    std::cout << std::endl;
+    std::cout << std::endl;    
+    std::cout << "commit : " << GIT_COMMIT_NUMBER << std::endl;
 }
 
 void prs::info()
 {
     std::cout << "Usage:" << std::endl;
     std::cout << std::endl;
-    std::cout << "EMILI INSTANCE_FILE_PATH PROBLEM <PROBLEM OPTIONS> [-it|-ro time] [rnds seed]" << std::endl;
+    std::cout << "EMILI INSTANCE_FILE_PATH PROBLEM <PROBLEM OPTIONS> [-it|-ro time] [rnds seed] [ps]" << std::endl;
     std::cout << std::endl;
 }
 
@@ -243,6 +251,17 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
             emili::LocalSearch* ls = bld->buildAlgo(tm);
             ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
             emili::initializeRandom(getSeed(tm));
+            if(tm.checkToken(PRINT_SOLUTION))
+            {
+                emili::set_print(true);
+                if(ls->getSearchTime() > 0){
+                    std::cout << "The solution will be print at the end of the execution" << std::endl;
+                }
+            }
+            else
+            {
+                emili::set_print(false);
+            }
             return ls;
         }
     }

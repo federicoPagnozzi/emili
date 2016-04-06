@@ -19,18 +19,19 @@
  ***************************************************************************/
 
 
-#ifndef _PFSPINSTANCEWT_H_
-#define _PFSPINSTANCEWT_H_
+#ifndef _HFSPINSTANCEWT_H_
+#define _HFSPINSTANCEWT_H_
 
 #include <string>
 #include <vector>
+#include "pfspinstance.h"
 
 using namespace std;
+namespace old_code {
 
-class PfspInstance{
-  private:
-    int nbJob;
-    int nbMac;
+
+class HfspInstance: public PfspInstance{
+  protected:
 #pragma region NEWCODE
 	int nbStages;
 	std::vector< int > stages;
@@ -39,17 +40,9 @@ class PfspInstance{
 	std::vector< long int > earlinessDD;
 	std::vector< long int > tardinessDD;
 #pragma endregion NEWCODE
-    std::vector< long int > dueDates;
-    std::vector< long int > priority;
-    bool silence;
-    std::vector< std::vector <long int> > processingTimesMatrix;
-    std::vector< std::vector < std::vector< int > > > setUpTimes;
-    void computeTails(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail);
   public:
-    PfspInstance(PfspInstance& is)
+    HfspInstance(HfspInstance& is):PfspInstance(is)
     {
-        this->nbJob = is.getNbJob();
-        this->nbMac = is.getNbMac();
 #pragma region NEWCODE
 		this->stages = is.getStages();
 		this->nbStages = is.getNbStages();
@@ -58,15 +51,10 @@ class PfspInstance{
 		this->earlinessDD = is.getEarlinessDD();
 		this->tardinessDD = is.getTardinessDD();
 #pragma endregion NEWCODE
-        this->dueDates = is.getDueDates();
-        this->priority = is.getPriorities();
-        this->processingTimesMatrix = is.getProcessingTimesMatrix();
-        this->silence = is.silence;
-        this->setUpTimes = is.setUpTimes;
     }
 
-    PfspInstance();
-    ~PfspInstance();
+    HfspInstance();
+    ~HfspInstance();
 
     /* Read write privates attributes : */
     int getNbJob();
@@ -303,5 +291,5 @@ class PfspInstance{
 
 
 };
-
+}
 #endif

@@ -35,7 +35,7 @@
 #include <exception>
 #include <stdexcept>
 #include <algorithm>
-#include "pfspinstance.h"
+#include "hfspinstance.h"
 #include <numeric>
 
 // #define ENABLE_SSE 10
@@ -48,55 +48,57 @@
 #endif
 
 using namespace std;
+namespace old_code {
 
-PfspInstance::PfspInstance()
+
+HfspInstance::HfspInstance()
 {
   silence = false;
 }
 
 
-PfspInstance::~PfspInstance()
+HfspInstance::~HfspInstance()
 {
 }
 
-int PfspInstance::getNbJob()
+int HfspInstance::getNbJob()
 {
   return nbJob;
 }
 
-void PfspInstance::setNbJob(int jobCount)
+void HfspInstance::setNbJob(int jobCount)
 {
     this->nbJob = jobCount;
 }
 
-int PfspInstance::getNbMac()
+int HfspInstance::getNbMac()
 {
   return nbMac;
 }
 
-void PfspInstance::setNbMac(int machineCount)
+void HfspInstance::setNbMac(int machineCount)
 {
     this->nbMac = machineCount;
 }
 
 #pragma region NEWCODE
 
-int PfspInstance::getNbStages()
+int HfspInstance::getNbStages()
 {
 	return nbStages;
 }
 
-void PfspInstance::setNbStages(int stagesCount)
+void HfspInstance::setNbStages(int stagesCount)
 {
 	this->nbStages = stagesCount;
 }
 
-vector<int>& PfspInstance::getStages()
+vector<int>& HfspInstance::getStages()
 {
 	return stages;
 }
 
-void PfspInstance::setStages(vector< int > &stages)
+void HfspInstance::setStages(vector< int > &stages)
 {
 	this->stages = stages;
 }
@@ -170,13 +172,13 @@ std::string printPairedVector(vector< pair< int, int > >& vec)
 }
 #pragma endregion NEWCODE
 
-void PfspInstance::setSilence(bool s)
+void HfspInstance::setSilence(bool s)
 {
     this->silence = s;
 }
 
 /* Allow the memory for the processing times matrix : */
-void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
+void HfspInstance::allowMatrixMemory(int nbJ, int nbM)
 {
   processingTimesMatrix.resize(nbJ+1);          // 1st dimension
 
@@ -194,7 +196,7 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 }
 
 
-long int PfspInstance::getTime(int job, int machine)
+long int HfspInstance::getTime(int job, int machine)
 {
   if (job == 0)
     return 0;
@@ -225,7 +227,7 @@ void cheatingCodeToInitializePriorityAndWeights(vector<long int>& priority, vect
 }
 
 /* Read the instance from file : */
-bool PfspInstance::readDataFromFile(char * fileName)
+bool HfspInstance::readDataFromFile(char * fileName)
 {
 	string code = "No Code";
 	bool everythingOK = true;
@@ -408,7 +410,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 }
 
 
-bool PfspInstance::readSeqDepDataFromFile(char* fileName)
+bool HfspInstance::readSeqDepDataFromFile(char* fileName)
 {
     bool everythingOK = true;
     int j, m; // iterators
@@ -615,7 +617,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 }
 
 // Weird exception to read some weird instances.
-bool PfspInstance::readDataFromFile(const string _fileName)
+bool HfspInstance::readDataFromFile(const string _fileName)
 {
           std::string buffer;
           std::string::size_type start, end;
@@ -773,7 +775,7 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
 }
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeWT(vector< int > & sol)
+long int HfspInstance::computeWT(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -833,7 +835,7 @@ long int PfspInstance::computeWT(vector< int > & sol)
 #endif
 
 /*compute partial weighted tardiness*/
-long int PfspInstance::computeWT(vector<int> &sol, int size)
+long int HfspInstance::computeWT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -856,12 +858,12 @@ long int PfspInstance::computeWT(vector<int> &sol, int size)
 
 
 
-long int PfspInstance::getDueDate(int job)
+long int HfspInstance::getDueDate(int job)
 {
     return dueDates[job];
 }
 
-long int PfspInstance::getPriority(int job)
+long int HfspInstance::getPriority(int job)
 {
     return priority[job];
 }
@@ -997,37 +999,37 @@ vector< vector < int > > createJaggedVector(vector<int> machinesPerStage)
 
 /*	Function to compute makespan for a Hybrid Flowshop, right now is just a test that takes 
 all data like is a simple FS and considers 2-3 stages with same data (m machines per stage). */
-long int PfspInstance::computeHMS(vector<int> &sol)
+long int HfspInstance::computeHMS(vector<int> &sol)
 {
-	return PfspInstance::computeHMS(sol, nbJob);
+	return HfspInstance::computeHMS(sol, nbJob);
 }
 
 /* Compute the Total Completion Time of a given solution */
-long int PfspInstance::computeHTCT(vector< int > & sol)
+long int HfspInstance::computeHTCT(vector< int > & sol)
 {
 	return computeHTCT(sol, nbJob);
 }
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeHWT(vector< int > & sol)
+long int HfspInstance::computeHWT(vector< int > & sol)
 {
 	return computeHWT(sol, nbJob);
 }
 
 /* Compute the weighted earliness of a given solution */
-long int PfspInstance::computeHWE(vector< int > & sol)
+long int HfspInstance::computeHWE(vector< int > & sol)
 {
 	return computeHWE(sol, nbJob);
 }
 
 /* Compute the weighted earliness tardines of a given solution */
-long int PfspInstance::computeHWET(vector< int > & sol)
+long int HfspInstance::computeHWET(vector< int > & sol)
 {
 	return computeHWET(sol, nbJob);
 }
 
 /* Compute the weighted earliness tardines with Due Date Windows of a given solution */
-long int PfspInstance::computeHWETDDW(vector< int > & sol)
+long int HfspInstance::computeHWETDDW(vector< int > & sol)
 {
 	return computeHWETDDW(sol, nbJob);
 }
@@ -1259,7 +1261,7 @@ inline void sortPairVectorSlackTieBreak(vector< pair< int, int > > &jobAndFT, st
 }
 
 /*	Function to compute makespan (PARTIAL SOLUTION) for a Hybrid Flowshop */
-long int PfspInstance::computeHMS(vector<int> &sol, int size)
+long int HfspInstance::computeHMS(vector<int> &sol, int size)
 {
 	int permSize = size;
 	// number of stages
@@ -1321,7 +1323,7 @@ long int PfspInstance::computeHMS(vector<int> &sol, int size)
 }
 
 /*	Function to compute Total Completion Time (PARTIAL SOLUTION) for a Hybrid Flowshop */
-long int PfspInstance::computeHTCT(vector<int> &sol, int size)
+long int HfspInstance::computeHTCT(vector<int> &sol, int size)
 {
 	int permSize = size;
 	// number of stages
@@ -1385,7 +1387,7 @@ long int PfspInstance::computeHTCT(vector<int> &sol, int size)
 }
 
 /*compute partial weighted tardiness*/
-long int PfspInstance::computeHWT(vector<int> &sol, int size)
+long int HfspInstance::computeHWT(vector<int> &sol, int size)
 {
 	int permSize = size;
 	// number of stages
@@ -1456,7 +1458,7 @@ long int PfspInstance::computeHWT(vector<int> &sol, int size)
 }
 
 /*compute partial weighted earliness*/
-long int PfspInstance::computeHWE(vector<int> &sol, int size)
+long int HfspInstance::computeHWE(vector<int> &sol, int size)
 {
 	int permSize = size;
 	// number of stages
@@ -1527,7 +1529,7 @@ long int PfspInstance::computeHWE(vector<int> &sol, int size)
 }
 
 /*compute partial weighted earliness tardiness*/
-long int PfspInstance::computeHWET(vector<int> &sol, int size)
+long int HfspInstance::computeHWET(vector<int> &sol, int size)
 {
 	int permSize = size;
 	// number of stages
@@ -1781,7 +1783,7 @@ long int inline complexIdleInsertion(vector<vector<pair<int, int>>>& LSCompleteS
 
 
 /*compute partial weighted earliness tardiness with Due Date Windows*/
-long int PfspInstance::computeHWETDDW(vector<int> &sol, int size)
+long int HfspInstance::computeHWETDDW(vector<int> &sol, int size)
 {
 	// 613 613
 	//sol = { 0, 9, 1, 4, 5, 6, 8, 2, 3, 7, 10 }; // Best for Instance0
@@ -2273,7 +2275,7 @@ long int PfspInstance::computeHWT(vector<int> &sol, int size)
 
 #pragma endregion NEWCODE
 
-long int PfspInstance::computeMS(vector<int> &sol)
+long int HfspInstance::computeMS(vector<int> &sol)
 {
     int j, m;
     int jobNumber;
@@ -2319,7 +2321,7 @@ long int PfspInstance::computeMS(vector<int> &sol)
 }
 
 
-long int PfspInstance::computeMS(vector<int> &sol,int size)
+long int HfspInstance::computeMS(vector<int> &sol,int size)
 {
     int j, m;
     int jobNumber;
@@ -2365,7 +2367,7 @@ long int PfspInstance::computeMS(vector<int> &sol,int size)
 
 /* Compute the weighted tardiness of a given solution starting from a given machine end time table and a starting index */
 /**/
-long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i)
+long int HfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i)
 {    
    int j,m;
    long int wt;
@@ -2410,7 +2412,7 @@ long int PfspInstance::computeWT(vector< int > & sol, vector< vector<int > >& pr
     return wt;
 }
 
-void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
+void HfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
 {
     int j,m;
 
@@ -2468,7 +2470,7 @@ void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vec
     }
 }
 
-void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
+void HfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
 {
     int j,m;
 
@@ -2532,7 +2534,7 @@ void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vec
 }
 
 
-void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
+void HfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
 {
     int j,m;
 
@@ -2647,7 +2649,7 @@ void inline computeTailss(std::vector<int> &sol, int size,std::vector< std::vect
     }
 }
 
-void PfspInstance::computeTails(std::vector<int> &sol, std::vector<std::vector<std::vector<int> > > &tails)
+void HfspInstance::computeTails(std::vector<int> &sol, std::vector<std::vector<std::vector<int> > > &tails)
 {
     for (int j = nbJob-1 ; j > 1; --j) {
         computeTailss(sol,j-1,tails[j],processingTimesMatrix,nbMac);
@@ -2678,7 +2680,7 @@ void PfspInstance::computeTails(std::vector<int> &sol, std::vector<std::vector<s
   }*/
 
 
-long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+long int HfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
 {
     int j, m;
     int jobNumber;
@@ -2742,7 +2744,7 @@ long int PfspInstance::computeWT(vector<int> &sol,vector<int>& prevJob,int job,v
 }
 
 //this function sets up the prevJob and previousMachineEndTime vector so that they can be used by the function above
-void PfspInstance::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
+void HfspInstance::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vector<int>& previousMachineEndTime)
 {
     int j, m;
     int jobNumber;
@@ -2786,7 +2788,7 @@ void PfspInstance::computeWTs(vector<int> &sol,vector<int>& prevJob,int job,vect
 
 }
 
-int PfspInstance::computeIdleTimeCoeff(vector<int>& prevJob, int job)
+int HfspInstance::computeIdleTimeCoeff(vector<int>& prevJob, int job)
 {
     int alpha = 0;
 
@@ -2812,7 +2814,7 @@ int PfspInstance::computeIdleTimeCoeff(vector<int>& prevJob, int job)
 
 }
 /*Compute flowtime*/
-long int PfspInstance::computeFT(vector< int >& sol)
+long int HfspInstance::computeFT(vector< int >& sol)
 {
     /*TO MODIFY IF WE HAVE TO DEAL WITH RELEASE DATES!!!*/
     int j;
@@ -2829,7 +2831,7 @@ long int PfspInstance::computeFT(vector< int >& sol)
     return wt;
 }
 
-long int PfspInstance::computeFT(vector<int> &sol, int size)
+long int HfspInstance::computeFT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -2846,7 +2848,7 @@ long int PfspInstance::computeFT(vector<int> &sol, int size)
 }
 
 /* Compute the weighted completion time of a given solution */
-long int PfspInstance::computeWCT(vector< int > & sol)
+long int HfspInstance::computeWCT(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -2863,7 +2865,7 @@ long int PfspInstance::computeWCT(vector< int > & sol)
 }
 
 /*compute partial weighted completion time*/
-long int PfspInstance::computeWCT(vector<int> &sol, int size)
+long int HfspInstance::computeWCT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -2884,7 +2886,7 @@ long int PfspInstance::computeWCT(vector<int> &sol, int size)
 }
 
 /* total completion time*/
-long int PfspInstance::computeTCT(vector< int > &sol)
+long int HfspInstance::computeTCT(vector< int > &sol)
 {
     int j;
     long int wt;
@@ -2903,7 +2905,7 @@ long int PfspInstance::computeTCT(vector< int > &sol)
     return wt;
 }
 
-long int PfspInstance::computeTCT(vector< int > &sol,int size)
+long int HfspInstance::computeTCT(vector< int > &sol,int size)
 {
     int j;
     long int wt;
@@ -2923,7 +2925,7 @@ long int PfspInstance::computeTCT(vector< int > &sol,int size)
 }
 
 /* Compute the weighted earliness of a given solution */
-long int PfspInstance::computeWE(vector< int > & sol)
+long int HfspInstance::computeWE(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -2941,7 +2943,7 @@ long int PfspInstance::computeWE(vector< int > & sol)
 }
 
 /*compute partial weighted tardiness*/
-long int PfspInstance::computeWE(vector<int> &sol, int size)
+long int HfspInstance::computeWE(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -2963,7 +2965,7 @@ long int PfspInstance::computeWE(vector<int> &sol, int size)
 }
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeT(vector< int > & sol)
+long int HfspInstance::computeT(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -2980,7 +2982,7 @@ long int PfspInstance::computeT(vector< int > & sol)
 }
 
 /*compute partial  tardiness*/
-long int PfspInstance::computeT(vector<int> &sol, int size)
+long int HfspInstance::computeT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3001,7 +3003,7 @@ long int PfspInstance::computeT(vector<int> &sol, int size)
 }
 
 /* Compute the earliness of a given solution */
-long int PfspInstance::computeE(vector< int > & sol)
+long int HfspInstance::computeE(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -3018,7 +3020,7 @@ long int PfspInstance::computeE(vector< int > & sol)
 }
 
 /*compute partial earliness */
-long int PfspInstance::computeE(vector<int> &sol, int size)
+long int HfspInstance::computeE(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3071,7 +3073,7 @@ inline void computeNoWaitTimeDistances(vector<int> &sol, int nbMac, int size,vec
 
 /* makespan */
 
-long int PfspInstance::computeNWMS(vector<int> &sol)
+long int HfspInstance::computeNWMS(vector<int> &sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3088,7 +3090,7 @@ long int PfspInstance::computeNWMS(vector<int> &sol)
 
 /*partial makespan*/
 
-long int PfspInstance::computeNWMS(vector<int> &sol, int size)
+long int HfspInstance::computeNWMS(vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3104,7 +3106,7 @@ long int PfspInstance::computeNWMS(vector<int> &sol, int size)
 }
 
 /* No wait weighted tardiness*/
-long int PfspInstance::computeNWWT(vector< int > &sol)
+long int HfspInstance::computeNWWT(vector< int > &sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3121,7 +3123,7 @@ long int PfspInstance::computeNWWT(vector< int > &sol)
 	return wt;
 }
 
-long int PfspInstance::computeNWWT(vector< int > &sol, int size)
+long int HfspInstance::computeNWWT(vector< int > &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3139,7 +3141,7 @@ long int PfspInstance::computeNWWT(vector< int > &sol, int size)
 }
 
 /*No wait weighted earliness*/
-long int PfspInstance::computeNWWE(std::vector< int > & sol)
+long int HfspInstance::computeNWWE(std::vector< int > & sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3156,7 +3158,7 @@ long int PfspInstance::computeNWWE(std::vector< int > & sol)
     return wt;
 }
 
-long int PfspInstance::computeNWWE(std::vector<int> &sol, int size)
+long int HfspInstance::computeNWWE(std::vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3176,7 +3178,7 @@ long int PfspInstance::computeNWWE(std::vector<int> &sol, int size)
 
 /* No wait earliness*/
 
-long int PfspInstance::computeNWE(std::vector< int > & sol)
+long int HfspInstance::computeNWE(std::vector< int > & sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3194,7 +3196,7 @@ long int PfspInstance::computeNWE(std::vector< int > & sol)
     return wt;
 }
 
-long int PfspInstance::computeNWE(std::vector<int> &sol, int size)
+long int HfspInstance::computeNWE(std::vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3214,7 +3216,7 @@ long int PfspInstance::computeNWE(std::vector<int> &sol, int size)
 
 /*No wait tardiness*/
 
-long int PfspInstance::computeNWT(std::vector<int> &sol)
+long int HfspInstance::computeNWT(std::vector<int> &sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3232,7 +3234,7 @@ long int PfspInstance::computeNWT(std::vector<int> &sol)
     return wt;
 }
 
-long int PfspInstance::computeNWT(std::vector<int> &sol, int size)
+long int HfspInstance::computeNWT(std::vector<int> &sol, int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3251,7 +3253,7 @@ long int PfspInstance::computeNWT(std::vector<int> &sol, int size)
 }
 
 /* total completion time*/
-long int PfspInstance::computeNWTCT(vector< int > &sol)
+long int HfspInstance::computeNWTCT(vector< int > &sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3269,7 +3271,7 @@ long int PfspInstance::computeNWTCT(vector< int > &sol)
     return wt;
 }
 
-long int PfspInstance::computeNWTCT(vector< int > &sol,int size)
+long int HfspInstance::computeNWTCT(vector< int > &sol,int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3287,7 +3289,7 @@ long int PfspInstance::computeNWTCT(vector< int > &sol,int size)
     return wt;
 }
 
-long int PfspInstance::computeNWWCT(vector< int > &sol)
+long int HfspInstance::computeNWWCT(vector< int > &sol)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3305,7 +3307,7 @@ long int PfspInstance::computeNWWCT(vector< int > &sol)
     return wt;
 }
 
-long int PfspInstance::computeNWWCT(vector< int > &sol,int size)
+long int HfspInstance::computeNWWCT(vector< int > &sol,int size)
 {
     std::vector < int > completionTimeDistance(nbJob+1,0);
 
@@ -3367,7 +3369,7 @@ inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >&
 }
 
 
-long int PfspInstance::computeNIMS(std::vector<int> &sol)
+long int HfspInstance::computeNIMS(std::vector<int> &sol)
 {
    long int nims = processingTimesMatrix[sol[1]][1];
 
@@ -3394,7 +3396,7 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol)
 
 
 
-long int PfspInstance::computeNIMS(vector<int> &sol, long int nims)
+long int HfspInstance::computeNIMS(vector<int> &sol, long int nims)
 {
     std::vector< int > minimumDiff(nbMac,0);
     for(int m=1;m<nbMac;++m)
@@ -3417,7 +3419,7 @@ long int PfspInstance::computeNIMS(vector<int> &sol, long int nims)
     return nims;
 }
 
-long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
+long int HfspInstance::computeNIMS(std::vector<int> &sol,int size)
 {
    long int nims = processingTimesMatrix[sol[1]][1];;
 
@@ -3444,7 +3446,7 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
    return nims;
 }
 // Compute no idle weighted tardiness
-long int PfspInstance::computeNIWT(std::vector<int> &sol)
+long int HfspInstance::computeNIWT(std::vector<int> &sol)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
     long int wt = 0;
@@ -3454,7 +3456,7 @@ long int PfspInstance::computeNIWT(std::vector<int> &sol)
     return wt;
 }
 
-long int PfspInstance::computeNIWT(std::vector<int> &sol, int size)
+long int HfspInstance::computeNIWT(std::vector<int> &sol, int size)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
@@ -3465,7 +3467,7 @@ long int PfspInstance::computeNIWT(std::vector<int> &sol, int size)
 }
 
 // Compute no idle weighted earliness
-long int PfspInstance::computeNIWE(std::vector< int > & sol)
+long int HfspInstance::computeNIWE(std::vector< int > & sol)
 {
     std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
     long int wt = 0;
@@ -3475,7 +3477,7 @@ long int PfspInstance::computeNIWE(std::vector< int > & sol)
     return wt;
 }
 
-long int PfspInstance::computeNIWE(std::vector<int> &sol, int size)
+long int HfspInstance::computeNIWE(std::vector<int> &sol, int size)
 {
     std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
@@ -3487,7 +3489,7 @@ long int PfspInstance::computeNIWE(std::vector<int> &sol, int size)
 
 // Compute no idle earliness
 
-long int PfspInstance::computeNIE(std::vector< int > & sol)
+long int HfspInstance::computeNIE(std::vector< int > & sol)
 {
     std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
     long int wt = 0;
@@ -3497,7 +3499,7 @@ long int PfspInstance::computeNIE(std::vector< int > & sol)
     return wt;
 }
 
-long int PfspInstance::computeNIE(std::vector<int> &sol, int size)
+long int HfspInstance::computeNIE(std::vector<int> &sol, int size)
 {
     std::vector< long int > previousMachineEndTime = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
@@ -3509,7 +3511,7 @@ long int PfspInstance::computeNIE(std::vector<int> &sol, int size)
 
 // Compute no idle tardiness
 
-long int PfspInstance::computeNIT(std::vector<int> &sol)
+long int HfspInstance::computeNIT(std::vector<int> &sol)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
     long int wt = 0;
@@ -3519,7 +3521,7 @@ long int PfspInstance::computeNIT(std::vector<int> &sol)
     return wt;
 }
 
-long int PfspInstance::computeNIT(std::vector<int> &sol, int size)
+long int HfspInstance::computeNIT(std::vector<int> &sol, int size)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
@@ -3531,7 +3533,7 @@ long int PfspInstance::computeNIT(std::vector<int> &sol, int size)
 
 // Compute no idle total completion time
 
-long int PfspInstance::computeNITCT(std::vector<int> &sol)
+long int HfspInstance::computeNITCT(std::vector<int> &sol)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
     long int wt = 0;
@@ -3541,7 +3543,7 @@ long int PfspInstance::computeNITCT(std::vector<int> &sol)
     return wt;
 }
 
-long int PfspInstance::computeNITCT(std::vector<int> &sol, int size)
+long int HfspInstance::computeNITCT(std::vector<int> &sol, int size)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
@@ -3551,7 +3553,7 @@ long int PfspInstance::computeNITCT(std::vector<int> &sol, int size)
     return wt;
 }
 
-long int PfspInstance::computeNIWCT(std::vector<int> &sol)
+long int HfspInstance::computeNIWCT(std::vector<int> &sol)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
     long int wt = 0;
@@ -3561,7 +3563,7 @@ long int PfspInstance::computeNIWCT(std::vector<int> &sol)
     return wt;
 }
 
-long int PfspInstance::computeNIWCT(std::vector<int> &sol, int size)
+long int HfspInstance::computeNIWCT(std::vector<int> &sol, int size)
 {
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
@@ -3573,7 +3575,7 @@ long int PfspInstance::computeNIWCT(std::vector<int> &sol, int size)
 
 // Compute sequence dependent setup times
 
-long int PfspInstance::computeSDSTMS(vector<int> &sol)
+long int HfspInstance::computeSDSTMS(vector<int> &sol)
 {
     int j, m;
     int jobNumber;
@@ -3618,7 +3620,7 @@ long int PfspInstance::computeSDSTMS(vector<int> &sol)
     return previousMachineEndTime[nbJob];
 }
 
-long int PfspInstance::computeSDSTMS(vector<int> &sol, int size)
+long int HfspInstance::computeSDSTMS(vector<int> &sol, int size)
 {
     int j, m;
     int jobNumber;
@@ -3704,7 +3706,7 @@ inline void computePartialSDSTMakespans( vector< int >& sol, vector< long int >&
 }
 
 /* Compute the weighted completion time of a given solution */
-long int PfspInstance::computeSDSTWCT(vector< int > & sol)
+long int HfspInstance::computeSDSTWCT(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -3721,7 +3723,7 @@ long int PfspInstance::computeSDSTWCT(vector< int > & sol)
 }
 
 /*compute partial weighted completion time*/
-long int PfspInstance::computeSDSTWCT(vector<int> &sol, int size)
+long int HfspInstance::computeSDSTWCT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3742,7 +3744,7 @@ long int PfspInstance::computeSDSTWCT(vector<int> &sol, int size)
 }
 
 /* total completion time*/
-long int PfspInstance::computeSDSTTCT(vector< int > &sol)
+long int HfspInstance::computeSDSTTCT(vector< int > &sol)
 {
     int j;
     long int wt;
@@ -3761,7 +3763,7 @@ long int PfspInstance::computeSDSTTCT(vector< int > &sol)
     return wt;
 }
 
-long int PfspInstance::computeSDSTTCT(vector< int > &sol,int size)
+long int HfspInstance::computeSDSTTCT(vector< int > &sol,int size)
 {
     int j;
     long int wt;
@@ -3781,7 +3783,7 @@ long int PfspInstance::computeSDSTTCT(vector< int > &sol,int size)
 }
 
 /* Compute the weighted earliness of a given solution */
-long int PfspInstance::computeSDSTWE(vector< int > & sol)
+long int HfspInstance::computeSDSTWE(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -3799,7 +3801,7 @@ long int PfspInstance::computeSDSTWE(vector< int > & sol)
 }
 
 /*compute partial weighted tardiness*/
-long int PfspInstance::computeSDSTWE(vector<int> &sol, int size)
+long int HfspInstance::computeSDSTWE(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3821,7 +3823,7 @@ long int PfspInstance::computeSDSTWE(vector<int> &sol, int size)
 }
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeSDSTT(vector< int > & sol)
+long int HfspInstance::computeSDSTT(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -3838,7 +3840,7 @@ long int PfspInstance::computeSDSTT(vector< int > & sol)
 }
 
 /*compute partial  tardiness*/
-long int PfspInstance::computeSDSTT(vector<int> &sol, int size)
+long int HfspInstance::computeSDSTT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3859,7 +3861,7 @@ long int PfspInstance::computeSDSTT(vector<int> &sol, int size)
 }
 
 /* Compute the earliness of a given solution */
-long int PfspInstance::computeSDSTE(vector< int > & sol)
+long int HfspInstance::computeSDSTE(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -3876,7 +3878,7 @@ long int PfspInstance::computeSDSTE(vector< int > & sol)
 }
 
 /*compute partial earliness */
-long int PfspInstance::computeSDSTE(vector<int> &sol, int size)
+long int HfspInstance::computeSDSTE(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3897,7 +3899,7 @@ long int PfspInstance::computeSDSTE(vector<int> &sol, int size)
 }
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeSDSTWT(vector< int > & sol)
+long int HfspInstance::computeSDSTWT(vector< int > & sol)
 {
     int j;
     long int wt;
@@ -3914,7 +3916,7 @@ long int PfspInstance::computeSDSTWT(vector< int > & sol)
 }
 
 /*compute partial weighted tardiness*/
-long int PfspInstance::computeSDSTWT(vector<int> &sol, int size)
+long int HfspInstance::computeSDSTWT(vector<int> &sol, int size)
 {
     int j;
     long int wt;
@@ -3936,5 +3938,5 @@ long int PfspInstance::computeSDSTWT(vector<int> &sol, int size)
 }
 
 
-
+}
 

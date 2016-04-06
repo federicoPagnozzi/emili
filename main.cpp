@@ -1,3 +1,9 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
+
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
@@ -5,7 +11,7 @@
 #include <cstring>
 #include <algorithm>
 #include "generalParser.h"
-#include "paramsparser.h"
+#include "pfsp/paramsparser.h"
 #include "setup.h"
 
 
@@ -14,6 +20,7 @@ void g2c_info()
     std::cout << "usage in grammar2code mode : \n\tEMILI instance_file_path time random_seed" << std::endl;
     exit(0);
 }
+
 
 int main(int argc, char *argv[])
 {
@@ -81,15 +88,18 @@ prs::emili_header();
 #else
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
-#endif    
+#endif
+    solution = ls->getBestSoFar();    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-    cout << "time : " << time_elapsed << std::endl;
-    cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+    std::cout << "time : " << time_elapsed << std::endl;
+    std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+    std::cerr << solution->getSolutionValue() << std::endl;
     //cerr << time_elapsed << " ";    
-    cout << "Objective function value: " << solution->getSolutionValue() << endl;
-    cout << "Found solution: ";
-    cout << solution->getSolutionRepresentation() << std::endl;
-    cout << endl;
-
-	cin.get();
+    std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;        
+    std::cout << "Found solution: ";
+    std::cout << solution->getSolutionRepresentation() << std::endl;
+    std::cout << std::endl;
+    delete ls;
+    //delete solution;
+    std::cin.get();
 }

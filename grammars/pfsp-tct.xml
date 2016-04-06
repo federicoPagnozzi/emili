@@ -3,7 +3,7 @@
 <!--
      17/06/2015
 
-     Grammar for PFSP Weighted Tardiness,
+     Grammar for PFSP Total Completion Time
      without time related termination and optimized for simple algorithms
  -->
 
@@ -66,8 +66,7 @@
 	<or/>
 	   <![CDATA[transpose ]]>
 	<or/>
-	   <!--<![CDATA[insert ]]>-->
-	   <![CDATA[natxinsert ]]>
+	   <![CDATA[ntctinsert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
@@ -96,10 +95,10 @@
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
-		<or/>
+	<!--	<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 		<or/>
-		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>
+		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>-->
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
@@ -277,7 +276,7 @@
 			#define GRAMMAR2CODE
 		]]>
 	-->
-                <![CDATA[PFSP_WT ]]>
+                <![CDATA[PFSP_TCT ]]>
         	<pfsp:main/>     
            <!--<![CDATA[
                 /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);

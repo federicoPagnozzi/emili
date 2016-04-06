@@ -1,6 +1,11 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
+
 #ifndef EMILIBASE_H
 #define EMILIBASE_H
-#define SHIT
 
 /*
 
@@ -40,10 +45,13 @@ Neighborhood and Perturbation.
 
 namespace emili{
 
+/* iterations counter that is used in the neighborhoods to keep track of how many solutions are generated*/
 void iteration_counter_zero();
 int iteration_counter();
 void iteration_increment();
 void iteration_decrement();
+/* Function to tell the system timer hook if it has to print solution info*/
+void set_print(bool p);
 class Solution;
 /*
  * The istance of the problem to solve.
@@ -87,6 +95,13 @@ public:
     virtual Solution* clone()=0;
     virtual ~Solution() {}
 };
+
+/* Function to print solution info in the form "time, object function value, iteration"
+ *
+ * NOTE:
+ * WITH_STATS must be defined when running cmake.
+*/
+inline void printSolstats(emili::Solution* sol);
 
 /*
     The initial solution generator
@@ -184,7 +199,14 @@ public:
 class Neighborhood
 {
 protected:
+    /*
+     * Takes step wich is a pointer to the base solution of the neighborhood
+     * and applies the move.
+     */
     virtual Solution* computeStep(Solution* step)=0;
+    /*
+     * Takes a solution and undoes the last move
+     */
     virtual void reverseLastMove(Solution* step)=0;
 public:
     //unsigned long num();
@@ -195,6 +217,7 @@ public:
                if(startSolution != nullptr )
                {
                   line_ = base_->clone();
+                  base_value = base_->getSolutionValue();
                   line_ = n->computeStep(line_);
                }
                else
@@ -210,6 +233,7 @@ public:
            emili::Solution* operator*();           
        private:
            emili::Solution* base_;
+           double base_value;
            emili::Solution* line_;
            emili::Neighborhood* n;
        };
@@ -307,12 +331,13 @@ class EmptyLocalSearch: public emili::LocalSearch
 {
 public:
     EmptyLocalSearch(InitialSolution& in):emili::LocalSearch() {
+        this->init = &in;
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
         }
-    virtual Solution* search(Solution* initial) { return initial;}
-    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial;}
-    virtual Solution* timedSearch(Solution* initial) {return initial;}
+    virtual Solution* search(Solution* initial) { return initial->clone();}
+    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
+    virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
 };
 
 /*
@@ -323,7 +348,7 @@ class BestImprovementSearch : public emili::LocalSearch
 {
 public:
     BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
-    virtual Solution* search(emili::Solution* initial);
+    virtual Solution* search(emili::Solution* initial);   
 };
 
 /*
@@ -350,26 +375,26 @@ class Perturbation
  * NO pertubation
  */
 
-class NoPertubation: public emili::Perturbation
+class NoPerturbation: public emili::Perturbation
 {
 public:
-    virtual Solution* perturb(Solution *solution) { return solution;}
+    virtual Solution* perturb(Solution *solution) { return solution->clone();}
 };
 
 /*
     Performs a series of random steps in the given neighborhood.
 */
-class RandomMovePertubation : public emili::Perturbation
+class RandomMovePerturbation : public emili::Perturbation
 {
 protected:
     Neighborhood& explorer;
     int numberOfSteps;
 public:
-    RandomMovePertubation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
+    RandomMovePerturbation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
     virtual Solution* perturb(Solution* solution);
 };
 
-class VNRandomMovePertubation : public emili::Perturbation
+class VNRandomMovePerturbation : public emili::Perturbation
 {
 protected:
   std::vector< Neighborhood* > explorers;
@@ -378,7 +403,7 @@ protected:
   int currentIteration;
   int currentExplorer;
 public:
-  VNRandomMovePertubation(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations):explorers(neighborhoods),numberOfSteps(number_of_steps),numberOfIterations(number_of_iterations),currentIteration(0),currentExplorer(0) { }
+  VNRandomMovePerturbation(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations):explorers(neighborhoods),numberOfSteps(number_of_steps),numberOfIterations(number_of_iterations),currentIteration(0),currentExplorer(0) { }
   virtual Solution* perturb(Solution *solution);
 };
 
@@ -590,6 +615,11 @@ std::mt19937& getRandomGenerator();
 #endif
 int generateRandomNumber();
 float generateRealRandomNumber();
+
+/*TIME RELATED STUFF */
+// this function returns the time from the beginning of the execution in seconds
+double getCurrentExecutionTime();
+
 
 /*
  * Metropolis acceptance criterion implementation (fixed temperature)
