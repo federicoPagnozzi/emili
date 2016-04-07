@@ -42,7 +42,7 @@ public:
     /* This method returns the number of jobs*/
     int getNjobs();
     /* This method returns the number of machines*/
-    int getNmachines();
+    virtual int getNmachines();
     /* This method returns the due date given the job*/
     int getDueDate(int job);
     /* This method returns the priority given the job*/
@@ -90,7 +90,7 @@ class HybridFlowShop : public PermutationFlowShop
 public:
     HybridFlowShop(PfspInstance& problem_instance) :PermutationFlowShop(problem_instance) { }
 	HybridFlowShop(char* instance_path) :PermutationFlowShop(instance_path) { }
-	int getNmachines();
+    virtual int getNmachines();
     virtual std::vector<int> getStages();
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution, int size) = 0;
 	virtual int computeObjectiveFunction(std::vector<int> &partial_solution) = 0;

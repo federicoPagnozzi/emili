@@ -101,6 +101,7 @@ public:
  * NOTE:
  * WITH_STATS must be defined when running cmake.
 */
+
 inline void printSolstats(emili::Solution* sol);
 
 /*

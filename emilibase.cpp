@@ -111,9 +111,10 @@ static void finalise (int _)
     keep_going = false;
     endTime = clock();
     emili::Solution* s_cap = localsearch->getBestSoFar();
+
     if(s_cap != nullptr)
     {
-        double sol_val = s_cap->getSolutionValue();
+        double sol_val = s_cap->getSolutionValue();        
         if(print)
         {
     	    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
@@ -121,7 +122,7 @@ static void finalise (int _)
             messages << "objective function value : "<< sol_val << std::endl;
             messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";            
         }
         else
         {
@@ -146,8 +147,7 @@ static void finalise (int _)
     //std::cout << std::flush;
     if(print)
       lastMessage = messages.str();
-    
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 #ifndef NOSIG
@@ -210,7 +210,7 @@ static inline void setTimer(int maxTime)
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
         if(print)
-	   atexit(lastPrint);
+        std::atexit(lastPrint);
         max_time = maxTime;
     }
 }

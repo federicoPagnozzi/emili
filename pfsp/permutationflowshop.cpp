@@ -1421,8 +1421,7 @@ emili::Solution* emili::pfsp::NeRZ2Solution::generate()
 {
     std::vector< int > initial = rz_seed_sequence(pis);
     //initial = rz_improvement_phase(initial,pis);
-    initial = neh2(initial,pis.getNjobs(),pis);
-
+    initial = neh2(initial,pis.getNjobs(),pis);    
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
     pis.evaluateSolution(*s);
     return s;
@@ -1713,6 +1712,11 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
 
     std::vector< int > removed;
     std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    if(std::find(solPartial.begin()+1,solPartial.end(),0)!=solPartial.end())
+    {
+        std::cout << "at the start" << std::endl;
+        exit(-123);
+    }
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
@@ -1757,6 +1761,12 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
 
 		//std::cout << "end insert " << solPartial.size() << std::endl;
 	}
+
+    if(std::find(solPartial.begin()+1,solPartial.end(),0)!=solPartial.end())
+    {
+        std::cout << "at the end" << std::endl;
+        exit(-123);
+    }
 
     //assert(min == instance.computeObjectiveFunction(solPartial));
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);

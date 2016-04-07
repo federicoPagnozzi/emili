@@ -301,6 +301,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
         int nbRows = nbMac;
         if (nbStages > 0) nbRows = nbStages;
+        createJaggedVector(stages,machineFreeingTimes_S_M);
 #pragma endregion NEWCODE
         allowMatrixMemory(nbJob, nbRows);
         if(!silence){
@@ -478,6 +479,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
 
         int nbRows = nbMac;
         if (nbStages > 0) nbRows = nbStages;
+        createJaggedVector(stages,machineFreeingTimes_S_M);
 #pragma endregion NEWCODE
 
         allowMatrixMemory(nbJob, nbRows);
@@ -3952,6 +3954,7 @@ std::vector<std::vector < int > > createJaggedVector(std::vector<int> machinesPe
 }
 
 
+
 /*	Function to compute makespan for a Hybrid Flowshop, right now is just a test that takes
 all data like is a simple FS and considers 2-3 stages with same data (m machines per stage). */
 long int PfspInstance::computeHMS(std::vector<int> &sol)
@@ -4220,13 +4223,14 @@ long int PfspInstance::computeHMS(std::vector<int> &sol, int size)
 {
     int permSize = size;
     // number of stages
-    int stages = getNbStages();
+    int nstages = getNbStages();
 
     // Stages as a vector with number of machines per stage.
-   std::vector< int > machinesPerStage = getStages();
+   //std::vector< int > machinesPerStage = getStages();
 
     // Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage.
-   std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+   //std::vector<std::vector< int > > machineFreeingTimes_S_M;
+   //createJaggedVector(stages,machineFreeingTimes_S_M);
 
     // With the pair (jobId, PreviousStageFinishingTimes);
    std::vector<std::pair< int, int > > jobAndFT;
@@ -4242,8 +4246,9 @@ long int PfspInstance::computeHMS(std::vector<int> &sol, int size)
     //string XXX;
     // In first stage all our previous task finishing times are 0. (no previous task)
     // In consecuent stages we will use a pair based vector with (jobId, finishingTime).
-    for (i = 1; i <= stages; ++i)
+    for (i = 1; i <= nstages; ++i)
     {
+        std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         for (j = 1; j <= permSize; ++j)
         {
             jobNumber = jobAndFT[j].first; // Get Job number
@@ -4274,7 +4279,7 @@ long int PfspInstance::computeHMS(std::vector<int> &sol, int size)
     string x = printJaggedVector(machineFreeingTimes_S_M);
 #endif
     // Makespan
-    return maxValue(machineFreeingTimes_S_M[stages]);// Makespan
+    return maxValue(machineFreeingTimes_S_M[nstages]);// Makespan
 }
 
 /*	Function to compute Total Completion Time (PARTIAL SOLUTION) for a Hybrid Flowshop */
@@ -4282,13 +4287,13 @@ long int PfspInstance::computeHTCT(std::vector<int> &sol, int size)
 {
     int permSize = size;
     // number of stages
-    int stages = getNbStages();
+    int nstages = getNbStages();
 
     // Stages as a vector with number of machines per stage.
-   std::vector< int > machinesPerStage = getStages();
+   //std::vector< int > machinesPerStage = getStages();
 
     // Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage.
-   std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+   //std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
 
     // With the pair (jobId, PreviousStageFinishingTimes);
    std::vector<std::pair< int, int > > jobAndFT;
@@ -4303,8 +4308,9 @@ long int PfspInstance::computeHTCT(std::vector<int> &sol, int size)
 
     // In first stage all our previous task finishing times are 0. (no previous task)
     // In consecuent stages we will use a pair based vector with (jobId, finishingTime).
-    for (i = 1; i <= stages; ++i)
+    for (i = 1; i <= nstages; ++i)
     {
+        std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         for (j = 1; j <= permSize; ++j)
         {
             jobNumber = jobAndFT[j].first; // Get Job number
@@ -4349,10 +4355,10 @@ long int PfspInstance::computeHWT(std::vector<int> &sol, int size)
     int stages = getNbStages();
 
     // Stages as a vector with number of machines per stage.
-   std::vector< int > machinesPerStage = getStages();
+ //  std::vector< int > machinesPerStage = getStages();
 
     // Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage.
-   std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+  // std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
 
     // With the pair (jobId, PreviousStageFinishingTimes);
    std::vector<std::pair< int, int > > jobAndFT;
@@ -4372,6 +4378,7 @@ long int PfspInstance::computeHWT(std::vector<int> &sol, int size)
     // In consecuent stages we will use a pair based vector with (jobId, finishingTime).
     for (i = 1; i <= stages; ++i)
     {
+        std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         if (i == stages) lastStage = true;
 #ifdef _DEBUG
         string tmp = printPairedVector(jobAndFT) + "\n";
@@ -4420,10 +4427,10 @@ long int PfspInstance::computeHWE(std::vector<int> &sol, int size)
     int stages = getNbStages();
 
     // Stages as a vector with number of machines per stage.
-   std::vector< int > machinesPerStage = getStages();
+   //std::vector< int > machinesPerStage = getStages();
 
     // Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage.
-   std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+   //std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
 
     // With the pair (jobId, PreviousStageFinishingTimes);
    std::vector<std::pair< int, int > > jobAndFT;
@@ -4443,6 +4450,7 @@ long int PfspInstance::computeHWE(std::vector<int> &sol, int size)
     // In consecuent stages we will use a pair based vector with (jobId, finishingTime).
     for (i = 1; i <= stages; ++i)
     {
+        std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         if (i == stages) lastStage = true;
 #ifdef _DEBUG
         string tmp = printPairedVector(jobAndFT) + "\n";
@@ -4491,10 +4499,10 @@ long int PfspInstance::computeHWET(std::vector<int> &sol, int size)
     int stages = getNbStages();
 
     // Stages as a vector with number of machines per stage.
-   std::vector< int > machinesPerStage = getStages();
+   //std::vector< int > machinesPerStage = getStages();
 
     // Create a jagged vector [Stages][Machines] to store the finishing times of each machine in each stage.
-   std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
+   //std::vector<std::vector< int > > machineFreeingTimes_S_M = createJaggedVector(machinesPerStage);
 
     // With the tuple (jobId, PreviousStageFinishingTimes);
    std::vector<std::pair< int, int > > jobAndFT;
@@ -4514,6 +4522,7 @@ long int PfspInstance::computeHWET(std::vector<int> &sol, int size)
     // In consecuent stages we will use a pair based vector with (jobId, finishingTime).
     for (i = 1; i <= stages; ++i)
     {
+        std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         if (i == stages) lastStage = true;
 #ifdef _DEBUG
         string tmp = printPairedVector(jobAndFT) + "\n";

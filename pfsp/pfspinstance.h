@@ -10,6 +10,23 @@
 #include <string>
 #include <vector>
 
+/*Using this version of the function we save 2 copies
+*( machinePerStage copied in the argument and
+*  machineFreeingTimes_S_M copied back at the return)
+*and we create one vector less
+*/
+inline void createJaggedVector(std::vector<int>& machinesPerStage,std::vector<std::vector< int > >& machineFreeingTimes_S_M)
+{
+        //= vector<std::vector< int > >(machinesPerStage.size());
+
+    for (int i = 0; i < machinesPerStage.size(); i++)
+    {
+       std::vector<int> temp(machinesPerStage[i], 0);
+        machineFreeingTimes_S_M.push_back(temp);
+    }
+
+   // return machineFreeingTimes_S_M;
+}
 
 class PfspInstance{
   protected:
@@ -28,6 +45,7 @@ class PfspInstance{
     std::vector< long int > releaseDates;
     std::vector< long int > earlinessDD;
     std::vector< long int > tardinessDD;
+    std::vector<std::vector< int > > machineFreeingTimes_S_M;
 #pragma endregion NEWCODE
   public:
     PfspInstance(PfspInstance& is)
@@ -46,6 +64,7 @@ class PfspInstance{
         this->releaseDates = is.getReleaseDates();
         this->earlinessDD = is.getEarlinessDD();
         this->tardinessDD = is.getTardinessDD();
+        createJaggedVector(stages,machineFreeingTimes_S_M);
 #pragma endregion NEWCODE
     }
 
