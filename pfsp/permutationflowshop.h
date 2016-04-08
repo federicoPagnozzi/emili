@@ -60,8 +60,8 @@ public:
     /*this method computes the makespan for the given solution.
     * The method is here because there are some heuristics that use it.
     */
-    int computeMS(std::vector< int > & partial_solution);
-    int computeMS(std::vector< int >& partial, int size);
+    virtual int computeMS(std::vector< int > & partial_solution);
+    virtual int computeMS(std::vector< int >& partial, int size);
     /*
      * The classes that extends this class to implement a PFSP objective
      * should implement these methods to calculate the objective functions

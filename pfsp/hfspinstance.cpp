@@ -717,7 +717,7 @@ inline void computePartialMakespans( vector< int >& sol, vector< long int >& pre
 
 //NEWCODE GOOD
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeWT(vector< int > & sol)
+long int HfspInstance::computeWT(vector< int > & sol)
 {
     int j;
     long int wt;
