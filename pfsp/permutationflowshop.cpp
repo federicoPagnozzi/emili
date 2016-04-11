@@ -2161,7 +2161,6 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
 
     solPartial = s_n->getJobSchedule();
-    assert(solPartial.size() >= 1);
     delete s_n;
     for(int l=0;l<removed.size();l++){
         sops++;
