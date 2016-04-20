@@ -965,7 +965,7 @@ struct BSUSA : emili::LocalSearch {
 
 namespace test {
 void delta(const ExamTT &inst, int N, bool checkEachMove);
-void deltaRemoveAdd(const ExamTT &inst, int N, bool checkEachMove, int G);
+void deltaRemoveAdd(const ExamTT &inst, int N, bool checkEachMove, int G, bool checkEachMovePartial);
 void interactive(const ExamTT &inst);
 void kempe(ExamTT& instance, std::vector<int> initPeriods);
 

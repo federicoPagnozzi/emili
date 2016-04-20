@@ -1991,7 +1991,7 @@ void test::delta(ExamTT const& inst, int N, bool checkEachMove) {
     cout << "Printed to log" << endl;
 }
 
-void test::deltaRemoveAdd(ExamTT const& inst, int N, bool checkEachMove, int G) {
+void test::deltaRemoveAdd(ExamTT const& inst, int N, bool checkEachMove, int G, bool checkEachMovePartial) {
     ExamTTSolution sol;
     Random ran;
     sol.initRandom(inst, ran);

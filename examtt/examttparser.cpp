@@ -133,6 +133,74 @@ emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
         return search(tm);
 }
 
+struct ArgParser {
+    std::map<std::string, int> dataInt;
+    std::map<std::string, bool> dataBool;
+
+    void addInt(std::string s, int d) {
+        dataInt[s] = d;
+    }
+
+    void addBool(std::string s, bool d) {
+        dataBool[s] = d;
+    }
+
+    void operator()(prs::TokenManager& tm) {
+        parse(tm);
+    }
+
+    void parse(prs::TokenManager& tm) {
+        /*
+         * Simple Algo : for(;;) if(tm.checkToken("A")) A = tm.getInteger() else if()... else break;
+         */
+
+        for(;;) {
+            bool found = false;
+
+            for(auto& p : dataInt) {
+                if(tm.checkToken(p.first)) {
+                    p.second = tm.getInteger();
+                    found = true;
+                }
+            }
+
+            for(auto& p : dataBool) {
+                if(tm.checkToken(p.first)) {
+                    p.second = true;
+                    found = true;
+                }
+                else if(tm.checkToken("no-" + p.first)) {
+                    p.second = false;
+                    found = true;
+                }
+            }
+
+            if(! found)
+                break;
+        }
+    }
+
+    void print() {
+        for(auto& p : dataInt)
+            cout << setw(20) << p.first << ": " << p.second << endl;
+        for(auto& p : dataBool)
+            cout << setw(20) << p.first << ": " << boolalpha << p.second << endl;
+    }
+
+    int Int(std::string s) {
+        if(! dataInt.count(s))
+            throw std::invalid_argument("Missing int " + s);
+        return dataInt[s];
+    }
+
+    bool Bool(std::string s) {
+        if(! dataBool.count(s))
+            throw std::invalid_argument("Missing bool " + s);
+        return dataBool[s];
+    }
+
+};
+
 
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 {
@@ -182,24 +250,17 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         printTab(SA_BSU);
         tm.next();
 
-        int factor = 1;
-        int freq = 0;
-        bool percent = true;
+        ArgParser p;
+        p.addInt("factor", 1);
+        p.addInt("freq", 0);
+        p.addBool("percent", true);
 
-        for(;;) {
-            if(tm.checkToken("factor"))
-                factor = tm.getInteger();
-            else if(tm.checkToken("freq"))
-                freq = tm.getInteger();
-            else if(tm.checkToken("no-percent"))
-                percent = false;
-            else
-                break;
-        }
+        p.parse(tm);
+        p.print();
 
-        cout << setw(20) << "factor " << factor << endl;
-        cout << setw(20) << "freq " << freq << endl;
-        cout << setw(20) << "percent " << boolalpha << percent << endl;
+        int factor = p.Int("factor");
+        int freq = p.Int("freq");
+        bool percent = p.Bool("percent");
 
         int baselineitmax = 500000000; // 5e8
         int itmax = baselineitmax / factor;
@@ -356,36 +417,28 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         bool isTestDeltaRemoveAdd = tm.peek() == TEST_DELTA_REMOVE_ADD;
         tm.next();
 
-        int N = 1000;
-        int G = 1;
-        bool checkEachMove = true;
+        ArgParser p;
 
-        for(;;)
-            if(tm.checkToken("N"))
-                N = tm.getInteger();
-            else if(tm.checkToken("no-each-move"))
-                checkEachMove = false;
-            else if(tm.checkToken("each-move"))
-                checkEachMove = true;
-            else if(isTestDeltaRemoveAdd && tm.checkToken("G"))
-                G = tm.getInteger();
-            else
-                break;
+        p.addInt("N", 1000);
+        p.addBool("each-move", true);
 
-        cout
-            << setw(20) << "N " << N << endl
-            << setw(20) << "each-move " << boolalpha << checkEachMove << endl
-        ;
+        if(isTestDeltaRemoveAdd) {
+            p.addInt("G", 1);
+            p.addBool("each-move-partial", false);
+        }
 
-        if(isTestDeltaRemoveAdd)
-            cout
-                << setw(20) << "G " << G << endl
-            ;
+        p.parse(tm);
+        p.print();
+
+        int N = p.Int("N");
+        int G = p.Int("G");
+        bool checkEachMove = p.Bool("each-move");
+        bool checkEachMovePartial = p.Bool("each-move-partial");
 
         if(isTestDelta)
             emili::ExamTT::test::delta(instance, N, checkEachMove);
         else if(isTestDeltaRemoveAdd)
-            emili::ExamTT::test::deltaRemoveAdd(instance, N, checkEachMove, G);
+            emili::ExamTT::test::deltaRemoveAdd(instance, N, checkEachMove, G, checkEachMovePartial);
 
         throw NoSearch();
     }
