@@ -13,7 +13,6 @@
 #include "generalParser.h"
 #include "examtt/examttparser.h"
 #include "setup.h"
-#include "algorithm.h"
 
 #include "examtt/examtt.h"
 #include "SA/sa_pfsp_parser.h"
@@ -21,6 +20,70 @@
 #include "QAP/qapinitialsolution.h"
 #include "QAP/qapneighborhood.h"
 #include "QAP/qap.h"
+
+#ifndef GRAMMAR2CODE
+
+int main(int argc, const char *argv[])
+{
+    // prs::emili_header();
+
+    srand(time(0)); // will probably changed by the parser
+
+    clock_t time = clock();
+
+    if(argc < 3)
+    {
+        prs::info();
+        return 1;
+    }
+
+    prs::ExamTT::ExamTTParser p;
+
+    prs::GeneralParser ps(argv,argc);
+    ps.registerBuilder(&p);
+
+    emili::LocalSearch* ls = nullptr;
+
+    try {
+        ls = ps.parseParams();
+    } catch(prs::NoSearch) {
+        std::cout << "No Search" << std::endl;
+    }
+
+    if(ls == nullptr) {
+        return -1;
+    }
+
+    int pls = ls->getSearchTime(); // ps.ils_time;
+
+    emili::Solution* returnedSolution = pls > 0 ? ls->timedSearch(pls) : ls->search();
+
+    emili::Solution* solution = ls->getBestSoFar();
+
+    using std::cout;
+    using std::cerr;
+    using std::endl;
+
+    if(returnedSolution != solution) {
+        cout << "Warning: " << "LocalSearch::search did not returned the same as BestSoFar" << endl;
+    }
+
+    cout
+        << "time : " << ((double)(clock() - time)/CLOCKS_PER_SEC) << endl
+        << "iteration counter : " << std::fixed << emili::iteration_counter()<< endl
+        << "Objective function value: " << std::fixed << solution->getSolutionValue() << endl
+        << "Found solution: " << std::fixed << solution->getSolutionRepresentation() << endl
+        << "numberOfClones: " << emili::ExamTT::ExamTTSolution::numberOfClones << endl
+        << "numberOfTotalCompute: " << emili::ExamTT::ExamTTSolution::numberOfTotalCompute << endl
+    ;
+
+    cerr << std::fixed << solution->getSolutionValue() << endl;
+
+    return 0;
+}
+
+#else
+
 
 void g2c_info()
 {
@@ -42,57 +105,24 @@ int main(int argc, const char *argv[])
 
     /* Read data from file */
     if (argc < 3 )
-    {        
-        #ifndef GRAMMAR2CODE
-            prs::info();
-        #else
-            g2c_info();
-        #endif
+    {
+        g2c_info();
         return 1;
     }
     // testNewEvaluationFunction(instance);
     // emili::pfsp::NWPFSP_MS problem(instance);
     // testHeuritstic(problem);
 
-#ifndef GRAMMAR2CODE
 
-    prs::ExamTT::ExamTTParser p;
-    // SAPFSPParser p;
-    // SAQAPParser p;
-    
-    prs::GeneralParser ps(argv,argc);
-    ps.registerBuilder(&p);
-
-    emili::LocalSearch* ls = nullptr;
-
-    try {
-        ls = ps.parseParams();
-    } catch(prs::NoSearch) {
-        std::cout << "No Search" << std::endl;
-    }
-
-    // testHeuritstic(ps.getInstance());
-
-    if(ls == nullptr) {
-        return -1;
-    }
-
-    int pls = ls->getSearchTime(); // ps.ils_time;
-#else
     pls = atoi(argv[2]);
     int seed = atoi(argv[3]);
     emili::initializeRandom(seed);
     time = clock();
-#endif
 
     emili::Solution* returnedSolution = pls > 0 ? ls->timedSearch(pls) : ls->search();
 
-#ifndef GRAMMAR2CODE
-
-#else
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
-#endif
 
     emili::Solution* solution = ls->getBestSoFar();
 
@@ -116,3 +146,5 @@ int main(int argc, const char *argv[])
 
     return 0;
 }
+
+#endif

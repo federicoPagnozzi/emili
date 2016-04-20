@@ -99,6 +99,12 @@ void ExamTTParser::genericError(std::ostream& stream) {
     exit(-1);
 }
 
+void ExamTTParser::genericError(std::ostringstream& stream) {
+    cerr << endl << "ERROR: " << stream.str() << endl;
+    cout << info() << endl;
+    exit(-1);
+}
+
 void ExamTTParser::errorExpected(prs::TokenManager& tm, string name, const std::vector<string> &tokens)
 {
     cerr << "'" << *tm << "' -> ERROR a " << name << " is expected : ";
@@ -130,10 +136,18 @@ emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
 
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 {
-    const std::string SA_BSU = "SA_BSU";
-    const std::string TEST_KEMPE = "TEST_KEMPE";
-    const std::string INTERACTIVE = "INTERACTIVE";
-    const std::string TEST_DELTA = "TEST_DELTA";
+    const std::string SA_BSU = "sa_bsu";
+    const std::string INTERACTIVE = "interactive";
+    const std::string TEST_KEMPE = "test_kempe";
+    const std::string TEST_DELTA = "test_delta";
+    const std::string TEST_DELTA_REMOVE_ADD = "test_delta_remove_add";
+    const std::string INFO = "info";
+    const std::string BRUTE = "brute";
+
+    const std::vector<std::string> available = {
+        ILS, TABU, FIRST, BEST, SA_BSU, VND,
+        BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD
+    };
 
     prs::TabLevel level;
 
@@ -165,7 +179,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         return sa.buildSA(tm, initsol, nei);
     }
     else if(tm.peek() == SA_BSU){
-        printTab("SA BSU");
+        printTab(SA_BSU);
         tm.next();
 
         int factor = 1;
@@ -177,7 +191,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
                 factor = tm.getInteger();
             else if(tm.checkToken("freq"))
                 freq = tm.getInteger();
-            else if(tm.checkToken("nopercent"))
+            else if(tm.checkToken("no-percent"))
                 percent = false;
             else
                 break;
@@ -185,6 +199,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 
         cout << setw(20) << "factor " << factor << endl;
         cout << setw(20) << "freq " << freq << endl;
+        cout << setw(20) << "percent " << boolalpha << percent << endl;
 
         int baselineitmax = 500000000; // 5e8
         int itmax = baselineitmax / factor;
@@ -331,38 +346,52 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     {
         return vparams(tm);
     }
-    else if(tm.checkToken("INFO")) {
+    else if(tm.checkToken(INFO)) {
         instance.presentation(std::cout);
 
         throw NoSearch();
     }
-    else if(tm.checkToken(TEST_DELTA)) {
+    else if(tm.peek() == TEST_DELTA || tm.peek() == TEST_DELTA_REMOVE_ADD) {
+        bool isTestDelta = tm.peek() == TEST_DELTA;
+        bool isTestDeltaRemoveAdd = tm.peek() == TEST_DELTA_REMOVE_ADD;
+        tm.next();
 
         int N = 1000;
+        int G = 1;
         bool checkEachMove = true;
 
-        for(;;) {
-            if(tm.checkToken("N")) {
+        for(;;)
+            if(tm.checkToken("N"))
                 N = tm.getInteger();
-            } else if(tm.checkToken("no-each-move")) {
+            else if(tm.checkToken("no-each-move"))
                 checkEachMove = false;
-            } else if(tm.checkToken("each-move")) {
+            else if(tm.checkToken("each-move"))
                 checkEachMove = true;
-            } else {
+            else if(isTestDeltaRemoveAdd && tm.checkToken("G"))
+                G = tm.getInteger();
+            else
                 break;
-            }
-        }
 
         cout
             << setw(20) << "N " << N << endl
             << setw(20) << "each-move " << boolalpha << checkEachMove << endl
         ;
 
-        emili::ExamTT::test::delta(instance, N, checkEachMove);
+        if(isTestDeltaRemoveAdd)
+            cout
+                << setw(20) << "G " << G << endl
+            ;
+
+        if(isTestDelta)
+            emili::ExamTT::test::delta(instance, N, checkEachMove);
+        else if(isTestDeltaRemoveAdd)
+            emili::ExamTT::test::deltaRemoveAdd(instance, N, checkEachMove, G);
+
         throw NoSearch();
     }
     else if(tm.checkToken(INTERACTIVE)) {
-
+        emili::ExamTT::test::interactive(instance);
+        throw NoSearch();
     }
     else if(tm.checkToken(TEST_KEMPE)) {
 
@@ -393,7 +422,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 
         throw NoSearch();
     }
-    else if(tm.checkToken("BRUTE")) {
+    else if(tm.checkToken(BRUTE)) {
         int n = -1;
         if(tm.checkToken("n")) {
             n = tm.getInteger();
@@ -431,7 +460,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     }
     else
     {
-        errorExpected(tm, "SEARCH", {ILS, TABU, FIRST, BEST, "SA_BSU", VND, TEST_INIT, "BRUTE"});
+        errorExpected(tm, "SEARCH", available);
         return nullptr;
     }
     return nullptr;

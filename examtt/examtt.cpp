@@ -6,6 +6,9 @@
 #include <functional>
 #include <tuple>
 #include <memory>
+#include <set>
+#include <unordered_set>
+#include <cassert>
 
 using namespace std;
 
@@ -892,8 +895,6 @@ void InstanceParser::parse(ExamTT &i) {
 
     mapToSortedInt(i.colorsOfMinute);
 
-
-
     for(Exam& e : i.exams)
         e.durationColor = i.colorsOfMinute[e.duration];
 
@@ -908,9 +909,9 @@ void InstanceParser::parse(ExamTT &i) {
         period.penalty = tok.nextInt();
     }
 
-    std::map<Date, int> dateToDateId;
+    std::map<Date, Day> dateToDateId;
     for(Period& period : i.periods)
-        dateToDateId.insert(std::make_pair(period.dateRaw, dateToDateId.size()));
+        dateToDateId.insert(make_pair(period.dateRaw, dateToDateId.size()));
 
     mapToSortedInt(dateToDateId);
 
@@ -1183,6 +1184,10 @@ std::pair<int &, int &> ExamTTSolution::roomsOf(int a, int b) {
     return {rooms[a], rooms[b]};
 }
 
+int ExamTTSolution::sizeOfPartialSolution() const {
+    return (int)rooms.size() - (int)unAssignedExamList.size();
+}
+
 // access const
 std::pair<PeriodId const &, RoomId const &> ExamTTSolution::assignement(ExamId exam) const {
     return {periods[exam], rooms[exam]};
@@ -1229,6 +1234,15 @@ void ExamTTSolution::initFromAssign(ExamTT const& instance, std::vector<std::pai
     buildStructures(instance);
 }
 
+void ExamTTSolution::initFromPeriodsAndZeroRoom(ExamTT const& instance, const std::vector<int> &initPeriods) {
+    const int E = instance.E();
+
+    std::vector<std::pair<int,int>> assign(E);
+    for(int i = 0; i < E; i++)
+        assign[i] = {initPeriods[i], 0};
+    initFromAssign(instance, assign);
+}
+
 void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
     int E = instance.exams.size();
     int P = instance.periods.size();
@@ -1254,18 +1268,27 @@ void ExamTTSolution::moveRoom(ExamTT const& instance, ExamId e, RoomId r) {
 }
 
 void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, RoomId nextR) {
-    PeriodId prevP = periods[e];
-    RoomId prevR = rooms[e];
-
-    constexpr bool USE_DELTA = true;
-
     if(! hasStructures)
         buildStructures(instance);
 
-    if(USE_DELTA) {
+    if(USE_DELTA)
         updateMove(instance, e, nextP, nextR, this->costs);
-        setSolutionValue(costs.total(instance.hardWeight));
-    }
+
+    applyMove(instance, e, nextP, nextR);
+
+    if(! USE_DELTA)
+        computeCost(instance);
+
+    refreshSolutionValue(instance);
+}
+
+void ExamTTSolution::refreshSolutionValue(InstanceRef instance) {
+    setSolutionValue(costs.total(instance.hardWeight));
+}
+
+void ExamTTSolution::applyMove(InstanceRef instance, ExamId e, PeriodId nextP, RoomId nextR) {
+    PeriodId prevP = periods[e];
+    RoomId prevR = rooms[e];
 
     if(USE_COLOR_STRUCTURE) {
         durationColorUsed[prevP][prevR][instance.exams[e].durationColor]--;
@@ -1277,14 +1300,69 @@ void ExamTTSolution::move(ExamTT const& instance, ExamId e, PeriodId nextP, Room
         examsByPeriodRoom[prevP][prevR],
         examsByPeriodRoomIterators[e]
     );
+    // iterators are still valid !
 
     periods[e] = nextP;
     rooms[e] = nextR;
-
-    if(! USE_DELTA) {
-        computeCost(instance);
-    }
 }
+
+void ExamTTSolution::removeExam(ExamTT const& instance, ExamId e) {
+    if(! USE_DELTA)
+        throw std::invalid_argument("! USE_DELTA");
+
+    int prevP = periods[e];
+    int prevR = rooms[e];
+
+    if(1) {
+        updateRemove(instance, e);
+        applyRemoveExam(instance, e, prevP, prevR);
+    } else {
+        applyRemoveExam(instance, e, prevP, prevR);
+        updateRemoveOutOfStructures(instance, e, prevP, prevR);
+    }
+
+    periods[e] = -1;
+    rooms[e] = -1;
+
+    refreshSolutionValue(instance);
+}
+
+void ExamTTSolution::applyRemoveExam(InstanceRef instance, ExamId e, PeriodId prevP, RoomId prevR) {
+    if(USE_COLOR_STRUCTURE)
+        durationColorUsed[prevP][prevR][instance.exams[e].durationColor]--;
+
+    unAssignedExamList.splice(
+        unAssignedExamList.end(),
+        examsByPeriodRoom[prevP][prevR],
+        examsByPeriodRoomIterators[e]
+    );
+}
+
+void ExamTTSolution::addExam(InstanceRef instance, ExamId e, PeriodId p, RoomId r) {
+    if(! USE_DELTA)
+        throw std::invalid_argument("! USE_DELTA");
+
+    updateAdd(instance, e, p, r);
+    applyAddExam(instance, e, p, r);
+
+    refreshSolutionValue(instance);
+}
+
+void ExamTTSolution::applyAddExam(InstanceRef instance, ExamId e, PeriodId p, RoomId r) {
+    if(USE_COLOR_STRUCTURE)
+        durationColorUsed[p][r][instance.exams[e].durationColor]++;
+
+    examsByPeriodRoom[p][r].splice(
+        examsByPeriodRoom[p][r].end(),
+        unAssignedExamList,
+        examsByPeriodRoomIterators[e]
+    );
+
+    periods[e] = p;
+    rooms[e] = r;
+}
+
+
 
 void ExamTTSolution::swap(ExamTT const& instance, ExamId e1, ExamId e2) {
     PeriodId p1 = periods[e1], p2 = periods[e2];
@@ -1301,11 +1379,17 @@ CostComponents ExamTTSolution::computeAndGetCost(ExamTT const& instance) const {
 
 void ExamTTSolution::computeCost(ExamTT const& instance) {
     computeCost(instance, costs);
-    setSolutionValue(costs.total(instance.hardWeight));
+    refreshSolutionValue(instance);
 }
 
 void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) const {
     numberOfTotalCompute++;
+
+    if(unAssignedExamList.size()) {
+        computeCostPartial(instance, costs);
+        return;
+    }
+
     int E = instance.exams.size();
     int R = instance.rooms.size();
     int P = instance.periods.size();
@@ -1439,6 +1523,143 @@ void ExamTTSolution::computeCost(ExamTT const& instance, CostComponents& costs) 
     }
 }
 
+void ExamTTSolution::computeCostPartial(ExamTT const& instance, CostComponents& costs) const {
+    numberOfTotalCompute++;
+    int E = instance.exams.size();
+    int R = instance.rooms.size();
+    int P = instance.periods.size();
+
+    InstitutionalWeightings const& institutionalWeightings = instance.institutionalWeightings;
+    FrontLoadParams const& frontload = institutionalWeightings.frontload;
+
+    // period constraints : pair of exams
+
+    costs.hard.periodConstraintAfter = 0;
+    costs.hard.periodConstraintExclusion = 0;
+    costs.hard.periodConstraintCoincidence = 0;
+
+    for(Two<ExamId> exams : instance.examsAfter) if(periods[exams.first] != -1 && periods[exams.second] != 1)
+        if(periods[exams.first] <= periods[exams.second])
+            costs.hard.periodConstraintAfter++;
+
+    for(Two<ExamId> exams : instance.examsExclusion) if(periods[exams.first] != -1 && periods[exams.second] != 1)
+        if(periods[exams.first] == periods[exams.second])
+            costs.hard.periodConstraintExclusion++;
+
+    for(Two<ExamId> exams : instance.examsCoincidence) if(periods[exams.first] != -1 && periods[exams.second] != 1)
+        if(periods[exams.first] != periods[exams.second])
+            costs.hard.periodConstraintCoincidence++;
+
+    // pairs of exams with students in common, edges in graph
+
+    costs.hard.simultaneousExams = 0;
+
+    costs.soft.twoExamsInARow = 0;
+    costs.soft.twoExamsInADay = 0;
+    costs.soft.periodSpread = 0;
+
+    for(ExamId i = 0; i < E; i++)
+    if(periods[i] != -1)
+    for(ExamId j = i + 1; j < E; j++)
+    if(periods[j] != -1)
+    if(instance.numberStudentsInCommon[i][j]) {
+        Two<PeriodId> periodsId = periodsOf(i,j);
+        Two<Period const&> periodObjects = instance.periodsOf(periodsId);
+
+        Cost cost = instance.numberStudentsInCommon[i][j];
+        if(periodsId.first == periodsId.second) {
+            costs.hard.simultaneousExams += cost;
+        } else {
+            int diff = abs(periodsId.first - periodsId.second);
+
+            if(periodObjects.first.dateid == periodObjects.second.dateid) {
+                if(diff == 1) {
+                    costs.soft.twoExamsInARow += cost;
+                } else {
+                    costs.soft.twoExamsInADay += cost;
+                }
+            }
+
+            if(diff <= institutionalWeightings.periodSpread) {
+                costs.soft.periodSpread += cost;
+            }
+        }
+    }
+
+    costs.soft.twoExamsInARow *= institutionalWeightings.twoInARow;
+    costs.soft.twoExamsInADay *= institutionalWeightings.twoInADay;
+
+    // frontload
+
+    costs.soft.frontload = 0;
+
+    // select the frontload.largestExams biggest exams
+    // and give cost that the period is too late
+    // aka period + frontload.time is out of range
+
+    for(ExamId e : instance.frontLoadExams) if(periods[e] != -1)
+        if(instance.periodInTheEnd(periods[e]))
+            costs.soft.frontload++;
+
+    costs.soft.frontload *= frontload.penalty;
+
+    // directly from assignement
+
+    costs.hard.excessiveDuration = 0;
+
+    costs.soft.periodsPenalty = 0;
+    costs.soft.roomsPenalty = 0;
+
+    MapVec<PeriodId, MapVec<RoomId, int>> numberStudentsInRoom(P, MapVec<RoomId, int>(R,0));
+    MapVec<PeriodId, MapVec<RoomId, set<int>>> mixedDurations(P, MapVec<RoomId, set<int>>(R));
+
+    PeriodId p;
+    RoomId r;
+    for(ExamId i = 0; i < E; i++) if(periods[i] != -1 && rooms[i] != -1) {
+        tie(p,r) = assignement(i);
+        numberStudentsInRoom[p][r] += instance.exams[i].students.size();
+        mixedDurations[p][r].insert(instance.exams[i].duration);
+
+        costs.soft.periodsPenalty += instance.periods[p].penalty;
+        costs.soft.roomsPenalty += instance.rooms[r].penalty;
+        if(instance.exams[i].duration > instance.periods[p].duration)
+            costs.hard.excessiveDuration++;
+    }
+
+    // linked between period and room : overCapacity and mixedDurations
+
+    costs.hard.overCapacity = 0;
+
+    costs.soft.mixedDuration = 0;
+
+    for(PeriodId p = 0; p < P; p++)
+    for(RoomId r = 0; r < R; r++) {
+        int neededSeats = numberStudentsInRoom[p][r] - instance.rooms[r].capacity;
+        if(neededSeats > 0)
+            costs.hard.overCapacity += neededSeats;
+
+        if(mixedDurations[p][r].size() > 1)
+            costs.soft.mixedDuration += mixedDurations[p][r].size() - 1;
+    }
+
+    costs.soft.mixedDuration *= institutionalWeightings.nonMixedDurations;
+
+    // exams that are room exclusive
+
+    costs.hard.roomConstraint = 0;
+
+    for(ExamId i : instance.examsRoomsExclusive) if(periods[i] != -1 && rooms[i] != -1) {
+        auto a = assignement(i);
+
+        for(ExamId j = 0; j < E; j++) if(periods[j] != -1 && rooms[j] != -1) {
+            if(a == assignement(j) && i != j) {
+                costs.hard.roomConstraint++;
+                break;
+            }
+        }
+    }
+}
+
 void ExamTT::presentation(ostream & log) const {
     auto& inst = *this;
     auto& instance = *this;
@@ -1539,7 +1760,7 @@ void ExamTT::testDelta(ExamTTSolution& sol, std::ostream& log, int N, bool check
 
         if(checkEachMove) {
             if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
-                log << "Error " << "Real " << sol.computeAndGetCost(inst).print(inst)
+                log << "Error " << i << " Real " << sol.computeAndGetCost(inst).print(inst)
                      << "vs diffed " << sol.costs.print(inst) << endl
                      << " e p r; bp br = " << e << " " << p << " " << r << ";" << bp << " " << br << endl;
 
@@ -1752,19 +1973,12 @@ void interactiveSolution(ExamTTSolution& sol, ExamTT const& inst) {
     }
 }
 
-namespace test {
-void delta(ExamTT const& inst, int N, bool checkEachMove) {
-    // string filename = "../simple1.exam"; // "../itc2007-exam-instances/exam_comp_set3.exam"; // args[0];
-    // string filename = "../itc2007-exam-instances/exam_comp_set3.exam";
-
-    // string filename = "../examtt-instances/Instances/art000.exam";
-    // ExamTT inst((char*) filename.c_str());
-
+void test::delta(ExamTT const& inst, int N, bool checkEachMove) {
     ofstream log("log");
     inst.presentation(log);
 
     ExamTTSolution sol;
-    Random ran(89);
+    Random ran;
     sol.initRandom(inst, ran);
 
     log << endl << "* Solution" << endl;
@@ -1777,6 +1991,80 @@ void delta(ExamTT const& inst, int N, bool checkEachMove) {
     cout << "Printed to log" << endl;
 }
 
+void test::deltaRemoveAdd(ExamTT const& inst, int N, bool checkEachMove, int G) {
+    ExamTTSolution sol;
+    Random ran;
+    sol.initRandom(inst, ran);
+
+    int E = inst.exams.size(),
+        P = inst.periods.size(),
+        R = inst.rooms.size();
+
+    if(G > E)
+        throw std::invalid_argument("G > E");
+
+    vector<int> bps(G), brs(G);
+    vector<int> ps(G), rs(G);
+    std::vector<ExamId> es(G);
+
+    for(int i = 0; i < N; i++) {
+
+        if(G == 1) {
+            int e = ran.randrange(E), p = ran.randrange(P), r = ran.randrange(R);
+            int bp = sol.periods[e], br = sol.rooms[e];
+
+            sol.removeExam(inst, e);
+            sol.addExam(inst, e, p, r);
+
+            if(checkEachMove) {
+                if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
+                    cerr << "Error " << i << " Real " << sol.computeAndGetCost(inst).print(inst)
+                         << "vs diffed " << sol.costs.print(inst) << " = " << (sol.costs - sol.computeAndGetCost(inst)).print(inst) << endl
+                         << " e p r; bp br = " << e << " " << p << " " << r << ";" << bp << " " << br << endl;
+
+                    exit(1);
+                }
+            }
+        } else {
+            std::set<ExamId> removed;
+
+            for(int j = 0; j < G; j++) {
+                int e = ran.randrange(E);
+                while(removed.count(e))
+                    e = ran.randrange(E);
+
+                bps[j] = sol.periods[e];
+                brs[j] = sol.rooms[e];
+                es[j] = e;
+
+                sol.removeExam(inst, e);
+
+                removed.insert(e);
+            }
+
+            for(int j = 0; j < G; j++) {
+                int p = ps[j] = ran.randrange(P), r = rs[j] = ran.randrange(R);
+                sol.addExam(inst, es[j], p, r);
+            }
+
+            if(checkEachMove) {
+                if(! sol.costs.exactlyEqual(sol.computeAndGetCost(inst))) {
+                    cerr << "Error " << i << " Real " << sol.computeAndGetCost(inst).print(inst)
+                         << "vs diffed " << sol.costs.print(inst) << " = " << (sol.costs - sol.computeAndGetCost(inst)).print(inst) << endl
+                         << " es ps rs; bps brs = " << es << " " << ps << " " << rs << "; " << bps << " " << brs << endl;
+
+                    exit(1);
+                }
+            }
+        }
+    }
+
+    auto real = sol.computeAndGetCost(inst);
+    if(! sol.costs.exactlyEqual(real))
+        cerr << "Error " << endl;
+}
+
+namespace test {
 void interactive(ExamTT const& inst) {
     ExamTTSolution sol;
     Random ran;
@@ -1805,20 +2093,21 @@ void ExamTTSolution::setRawData(const void *data) {
     periods = other->periods; // O(P)
     rooms = other->rooms; // O(R)
 
+    // structures
+
     if(USE_LAZY_STRUCTURES) {
         hasStructures = false;
         return;
     }
-    // structures
 
     examsByPeriodRoomIterators.resize(periods.size()); // O(1) E
 
     // inner copy
 
-    examsByPeriodRoom = other->examsByPeriodRoom;
-    durationColorUsed = other->durationColorUsed;
+    examsByPeriodRoom = other->examsByPeriodRoom; // O(P R + E)
+    durationColorUsed = other->durationColorUsed; // O(P R NoD)
 
-    // O(E P R)
+    // O(P R + E) because sum(list.size() for row in examsByPeriodRoom for list in row) == E
     for(auto & a : examsByPeriodRoom)
         for(auto & b : a)
             for(auto it = b.begin(); it != b.end(); ++it)
@@ -1973,7 +2262,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             int m = min(prevP, nextP);
             int M = max(prevP, nextP);
 
-            for(ExamId j : related.afters)
+            for(ExamId j : related.afters) // very small vector : [min_max_mean([len(i.related[j].afters) for j in range(i.E)]) for i in I]
                 if(m <= periods[j] && periods[j] < M)
                     costs.hard.periodConstraintAfter -= s;
 
@@ -1985,11 +2274,11 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
         // exclusion/coincidences
 
         //// remove
-        for(ExamId j : related.exclusions)
+        for(ExamId j : related.exclusions) // very small vector : [min_max_mean([len(i.related[j].exclusions) for j in range(i.E)]) for i in I]
             if(periods[j] == prevP)
                 costs.hard.periodConstraintExclusion--;
 
-        for(ExamId j : related.coincidences)
+        for(ExamId j : related.coincidences) // very small vector : [min_max_mean([len(i.related[j].coincidences) for j in range(i.E)]) for i in I]
             if(periods[j] != prevP)
                 costs.hard.periodConstraintCoincidence--;
 
@@ -2009,7 +2298,7 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
 
     // about students in common : (twoExamsInARow, twoExamsInADay, periodSpread, simultaneousExams)
 
-    for(ExamId j : related.hasStudentsInCommon) {
+    for(ExamId j : related.hasStudentsInCommon) if(periods[j] != -1) {
         Cost cost = instance.numberStudentsInCommon[ex][j];
 
         int relatedP = periods[j];
@@ -2220,11 +2509,432 @@ void ExamTTSolution::updateMove(Instance const& instance, ExamId ex, PeriodId ne
             }
 
             if(NLeavingWithoutMe > 0)
-                costs.soft.mixedDuration += (NLeavingWithoutMe - NLeavingWithMe) * weightings.nonMixedDurations;
+                costs.soft.mixedDuration -= (NLeavingWithMe - NLeavingWithoutMe) * weightings.nonMixedDurations;
             if(NMeetingWithoutMe > 0)
-                costs.soft.mixedDuration -= (NMeetingWithoutMe - NMeetingWithMe) * weightings.nonMixedDurations;
+                costs.soft.mixedDuration += (NMeetingWithMe - NMeetingWithoutMe) * weightings.nonMixedDurations;
         }
     }
+}
+
+void ExamTTSolution::updateRemoveOutOfStructures(InstanceRef instance, ExamId ex, PeriodId prevP, RoomId prevR) {
+    InstitutionalWeightings const& weightings = instance.institutionalWeightings;
+
+    Instance::ExamsRelated const& related = instance.examsRelated[ex];
+
+    // period penalty
+    costs.soft.periodsPenalty -= instance.periods[prevP].penalty;
+
+    // remove
+    for(ExamId j : related.afters) if(periods[j] != -1)
+        if(periods[j] >= prevP)
+            costs.hard.periodConstraintAfter--;
+
+    for(ExamId j : related.befores) if(periods[j] != -1)
+        if(periods[j] <= prevP)
+            costs.hard.periodConstraintAfter--;
+
+    // exclusion/coincidences
+
+    //// remove
+    for(ExamId j : related.exclusions) if(periods[j] != -1) // very small vector : [min_max_mean([len(i.related[j].exclusions) for j in range(i.E)]) for i in I]
+        if(periods[j] == prevP)
+            costs.hard.periodConstraintExclusion--;
+
+    for(ExamId j : related.coincidences) if(periods[j] != -1) // very small vector : [min_max_mean([len(i.related[j].coincidences) for j in range(i.E)]) for i in I]
+        if(periods[j] != prevP)
+            costs.hard.periodConstraintCoincidence--;
+
+    // room penalty
+    costs.soft.roomsPenalty -= instance.rooms[prevR].penalty;
+
+    // about students in common : (twoExamsInARow, twoExamsInADay, periodSpread, simultaneousExams)
+
+    for(ExamId j : related.hasStudentsInCommon) {
+        Cost cost = instance.numberStudentsInCommon[ex][j];
+
+        int relatedP = periods[j];
+
+        // remove
+
+        if(prevP == relatedP) {
+            costs.hard.simultaneousExams -= cost;
+        } else {
+            int prevDiff = abs(relatedP - prevP);
+
+            if(instance.periods[relatedP].dateid == instance.periods[prevP].dateid) {
+                if(prevDiff == 1)
+                    costs.soft.twoExamsInARow -= cost * weightings.twoInARow;
+                else
+                    costs.soft.twoExamsInADay -= cost * weightings.twoInADay;
+            }
+
+            if(prevDiff <= weightings.periodSpread)
+                costs.soft.periodSpread -= cost;
+        }
+    }
+
+    // frontload
+    if(instance.isInFrontLoad[ex])
+        if(instance.periodInTheEnd(prevP))
+            costs.soft.frontload -= weightings.frontload.penalty;
+
+    // excessiveDuration
+    if(instance.exams[ex].duration > instance.periods[prevP].duration)
+        costs.hard.excessiveDuration--;
+
+    // comparing assignement before and after
+
+    // room exclusive
+    std::list<ExamId> const& leaving = examsByPeriodRoom[prevP][prevR];
+
+    if(leaving.size() == 1 && instance.examIsRoomExclusive[leaving.front()])
+        costs.hard.roomConstraint--;
+    if(leaving.size() > 0 && instance.examIsRoomExclusive[ex])
+        costs.hard.roomConstraint--;
+
+    // overcapacity
+    {
+        int mySize = instance.exams[ex].students.size();
+
+        // remove
+        int capLeaving = instance.rooms[prevR].capacity;
+
+        int leavingSum = 0; // = sum(instance.exams[j].students.size() for j in leaving)
+        for(ExamId j : leaving)
+            leavingSum += instance.exams[j].students.size();
+
+        if(leavingSum + mySize <= capLeaving) // was not in overcapacity
+            ;
+        else if(leavingSum > capLeaving) // was in overcapacity, still in overcapacity
+            costs.hard.overCapacity -= mySize;
+        else // was in overcapacity, not in overcapacity now
+            costs.hard.overCapacity -= leavingSum + mySize - capLeaving;
+    }
+
+    // mixedDurations
+    {
+        int myDuration = instance.exams[ex].duration;
+
+        if(USE_COLOR_STRUCTURE) {
+            // no heap allocated, incremental info
+
+            Color myDurationColor = instance.exams[ex].durationColor;
+            auto const& leavingDuration = durationColorUsed[prevP][prevR];
+
+            int countLeaving = 0;
+            for(int x : leavingDuration)
+                if(x > 0)
+                    countLeaving++;
+
+            if(leavingDuration[myDurationColor] == 0 && countLeaving > 0)
+                costs.soft.mixedDuration -= weightings.nonMixedDurations;
+
+        } else {
+            int NLeavingWithoutMe, NLeavingWithMe;
+
+            if(1) {
+                // set implementation
+                std::set<Minutes> durationsLeaving;
+
+                for(ExamId j : leaving)
+                    durationsLeaving.insert(instance.exams[j].duration);
+
+                NLeavingWithoutMe = durationsLeaving.size();
+                NLeavingWithMe = durationsLeaving.size() + (durationsLeaving.count(myDuration) ? 0 : 1);
+            } else {
+                // N² implementation, no heap allocated
+                throw std::invalid_argument("not implemented");
+            }
+
+            if(NLeavingWithoutMe > 0)
+                costs.soft.mixedDuration -= (NLeavingWithMe - NLeavingWithoutMe) * weightings.nonMixedDurations;
+        }
+    }
+}
+
+void ExamTTSolution::updateRemove(InstanceRef instance, ExamId ex) {
+    PeriodId prevP = periods[ex];
+    RoomId prevR = rooms[ex];
+
+    InstitutionalWeightings const& weightings = instance.institutionalWeightings;
+
+    Instance::ExamsRelated const& related = instance.examsRelated[ex];
+
+    // period penalty
+    costs.soft.periodsPenalty -= instance.periods[prevP].penalty;
+
+    // remove
+    for(ExamId j : related.afters) if(periods[j] != -1)
+        if(periods[j] >= prevP)
+            costs.hard.periodConstraintAfter--;
+
+    for(ExamId j : related.befores) if(periods[j] != -1)
+        if(periods[j] <= prevP)
+            costs.hard.periodConstraintAfter--;
+
+    // exclusion/coincidences
+
+    //// remove
+    for(ExamId j : related.exclusions) if(periods[j] != -1) // very small vector : [min_max_mean([len(i.related[j].exclusions) for j in range(i.E)]) for i in I]
+        if(periods[j] == prevP)
+            costs.hard.periodConstraintExclusion--;
+
+    for(ExamId j : related.coincidences) if(periods[j] != -1) // very small vector : [min_max_mean([len(i.related[j].coincidences) for j in range(i.E)]) for i in I]
+        if(periods[j] != prevP)
+            costs.hard.periodConstraintCoincidence--;
+
+    // room penalty
+    costs.soft.roomsPenalty -= instance.rooms[prevR].penalty;
+
+    // about students in common : (twoExamsInARow, twoExamsInADay, periodSpread, simultaneousExams)
+
+    for(ExamId j : related.hasStudentsInCommon) if(periods[j] != -1) {
+        Cost cost = instance.numberStudentsInCommon[ex][j];
+
+        int relatedP = periods[j];
+
+        // remove
+
+        if(prevP == relatedP) {
+            costs.hard.simultaneousExams -= cost;
+        } else {
+            int prevDiff = abs(relatedP - prevP);
+
+            if(instance.periods[relatedP].dateid == instance.periods[prevP].dateid) {
+                if(prevDiff == 1)
+                    costs.soft.twoExamsInARow -= cost * weightings.twoInARow;
+                else
+                    costs.soft.twoExamsInADay -= cost * weightings.twoInADay;
+            }
+
+            if(prevDiff <= weightings.periodSpread)
+                costs.soft.periodSpread -= cost;
+        }
+    }
+
+    // frontload
+    if(instance.isInFrontLoad[ex])
+        if(instance.periodInTheEnd(prevP))
+            costs.soft.frontload -= weightings.frontload.penalty;
+
+    // excessiveDuration
+    if(instance.exams[ex].duration > instance.periods[prevP].duration)
+        costs.hard.excessiveDuration--;
+
+    // comparing assignement before and after
+
+    // room exclusive
+    std::list<ExamId> const& leavingAndMe = examsByPeriodRoom[prevP][prevR];
+
+    if(leavingAndMe.size() - 1 == 1 && instance.examIsRoomExclusive[leavingAndMe.front() == ex ? leavingAndMe.back() : leavingAndMe.front()])
+        costs.hard.roomConstraint--;
+    if(leavingAndMe.size() - 1 > 0 && instance.examIsRoomExclusive[ex])
+        costs.hard.roomConstraint--;
+
+    // overcapacity
+    {
+        int mySize = instance.exams[ex].students.size();
+
+        // remove
+        int capLeaving = instance.rooms[prevR].capacity;
+
+        int leavingSum = 0; // = sum(instance.exams[j].students.size() for j in leaving)
+        for(ExamId j : leavingAndMe)
+            leavingSum += instance.exams[j].students.size();
+        leavingSum -= instance.exams[ex].students.size();
+
+        if(leavingSum + mySize <= capLeaving) // was not in overcapacity
+            ;
+        else if(leavingSum > capLeaving) // was in overcapacity, still in overcapacity
+            costs.hard.overCapacity -= mySize;
+        else // was in overcapacity, not in overcapacity now
+            costs.hard.overCapacity -= leavingSum + mySize - capLeaving;
+    }
+
+    // mixedDurations
+    {
+        int myDuration = instance.exams[ex].duration;
+
+        if(USE_COLOR_STRUCTURE) {
+            // no heap allocated, incremental info
+
+            Color myDurationColor = instance.exams[ex].durationColor;
+            auto const& leavingDuration = durationColorUsed[prevP][prevR];
+
+            const_cast<MapVec<Color,int>&>(leavingDuration)[myDurationColor]--;
+
+            int countLeaving = 0;
+            for(int x : leavingDuration)
+                if(x > 0)
+                    countLeaving++;
+
+            if(leavingDuration[myDurationColor] == 0 && countLeaving > 0)
+                costs.soft.mixedDuration -= weightings.nonMixedDurations;
+
+            const_cast<MapVec<Color,int>&>(leavingDuration)[myDurationColor]++;
+
+        } else {
+            int NLeavingWithoutMe, NLeavingWithMe;
+
+            if(1) {
+                // set implementation
+                std::set<Minutes> durationsLeaving;
+
+                for(ExamId j : leavingAndMe) if(j != ex)
+                    durationsLeaving.insert(instance.exams[j].duration);
+
+                NLeavingWithoutMe = durationsLeaving.size();
+                NLeavingWithMe = durationsLeaving.size() + (durationsLeaving.count(myDuration) ? 0 : 1);
+            } else {
+                // N² implementation, no heap allocated
+                throw std::invalid_argument("not implemented");
+            }
+
+            if(NLeavingWithoutMe > 0)
+                costs.soft.mixedDuration -= (NLeavingWithMe - NLeavingWithoutMe) * weightings.nonMixedDurations;
+        }
+    }
+}
+
+void ExamTTSolution::updateAdd(InstanceRef instance, ExamId ex, PeriodId nextP, RoomId nextR) {
+    InstitutionalWeightings const& weightings = instance.institutionalWeightings;
+
+    Instance::ExamsRelated const& related = instance.examsRelated[ex];
+
+    // period penalty
+    costs.soft.periodsPenalty += instance.periods[nextP].penalty;
+
+    // add
+    for(ExamId j : related.afters) if(periods[j] != -1)
+        if(periods[j] >= nextP)
+            costs.hard.periodConstraintAfter++;
+
+    for(ExamId j : related.befores) if(periods[j] != -1)
+        if(periods[j] <= nextP)
+            costs.hard.periodConstraintAfter++;
+
+    // exclusion/coincidences
+
+    //// add
+    for(ExamId j : related.exclusions) if(periods[j] != -1)
+        if(periods[j] == nextP)
+            costs.hard.periodConstraintExclusion++;
+
+    for(ExamId j : related.coincidences) if(periods[j] != -1)
+        if(periods[j] != nextP)
+            costs.hard.periodConstraintCoincidence++;
+
+    // room penalty
+    costs.soft.roomsPenalty += instance.rooms[nextR].penalty;
+
+    // about students in common : (twoExamsInARow, twoExamsInADay, periodSpread, simultaneousExams)
+
+    for(ExamId j : related.hasStudentsInCommon) if(periods[j] != -1) {
+        Cost cost = instance.numberStudentsInCommon[ex][j];
+
+        int relatedP = periods[j];
+
+        // add
+
+        if(nextP == relatedP) {
+            costs.hard.simultaneousExams += cost;
+        } else {
+            int nextDiff = abs(relatedP - nextP);
+
+            if(instance.periods[relatedP].dateid == instance.periods[nextP].dateid) {
+                if(nextDiff == 1)
+                    costs.soft.twoExamsInARow += cost * weightings.twoInARow;
+                else
+                    costs.soft.twoExamsInADay += cost * weightings.twoInADay;
+            }
+
+            if(nextDiff <= weightings.periodSpread)
+                costs.soft.periodSpread += cost;
+        }
+    }
+
+    // frontload
+    if(instance.isInFrontLoad[ex])
+        if(instance.periodInTheEnd(nextP))
+            costs.soft.frontload += weightings.frontload.penalty;
+
+    // excessiveDuration
+    if(instance.exams[ex].duration > instance.periods[nextP].duration)
+        costs.hard.excessiveDuration++;
+
+    // comparing assignement before and after
+
+    // room exclusive
+    std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
+
+    if(meeting.size() == 1 && instance.examIsRoomExclusive[*meeting.begin()])
+        costs.hard.roomConstraint++;
+    if(meeting.size() > 0 && instance.examIsRoomExclusive[ex])
+        costs.hard.roomConstraint++;
+
+    // overcapacity
+    {
+        int mySize = instance.exams[ex].students.size();
+
+        // add
+        int capMeeting = instance.rooms[nextR].capacity;
+
+        int meetingSum = 0; // = sum(instance.exams[j].students.size() for j in meeting)
+
+        std::list<ExamId> const& meeting = examsByPeriodRoom[nextP][nextR];
+
+        for(ExamId j : meeting)
+            meetingSum += instance.exams[j].students.size();
+
+        if(meetingSum > capMeeting) // already over capacity
+            costs.hard.overCapacity += mySize;
+        else if(meetingSum + mySize > capMeeting)
+            costs.hard.overCapacity += meetingSum + mySize - capMeeting;
+        else
+            ; // no overcapacity created
+    }
+
+    // mixedDurations
+    {
+        int myDuration = instance.exams[ex].duration;
+
+        if(USE_COLOR_STRUCTURE) {
+            // no heap allocated, incremental info
+
+            Color myDurationColor = instance.exams[ex].durationColor;
+            auto const& meetingDuration = durationColorUsed[nextP][nextR];
+
+            const_cast<MapVec<Color,int>&>(meetingDuration)[myDurationColor]++;
+            int countMeeting = 0;
+            for(int x : meetingDuration)
+                if(x > 0)
+                    countMeeting++;
+
+            if(meetingDuration[myDurationColor] == 1 && countMeeting > 1)
+                costs.soft.mixedDuration += weightings.nonMixedDurations;
+            const_cast<MapVec<Color,int>&>(meetingDuration)[myDurationColor]--;
+        } else {
+            int NMeetingWithoutMe, NMeetingWithMe;
+
+            if(1) {
+                // set implementation
+                std::set<Minutes> durationsMeeting;
+
+                for(ExamId j : meeting)
+                    durationsMeeting.insert(instance.exams[j].duration);
+
+                NMeetingWithoutMe = durationsMeeting.size();
+                NMeetingWithMe = durationsMeeting.size() + (durationsMeeting.count(myDuration) ? 0 : 1);
+            } else {
+                // N² implementation, no heap allocated
+                throw std::invalid_argument("not implemented");
+            }
+
+            if(NMeetingWithoutMe > 0)
+                costs.soft.mixedDuration += (NMeetingWithMe - NMeetingWithoutMe) * weightings.nonMixedDurations;
+        }
+    }
+
 }
 
 int seconds(const Time &time) {
@@ -2479,8 +3189,11 @@ Solution* KempeChainNeighborhood::computeStep(Solution *rawStep) {
     ++t1;
     if(t1 == sol->periods[exam])
         ++t1;
-    if(t1 == P)
+
+    if(t1 == P) {
         ++exam;
+        t1 = sol->periods[exam] == 0 ? 1 : 0;
+    }
 
     if(exam == instance.E())
         return nullptr;
@@ -2545,18 +3258,19 @@ Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
     return sol;
 }
 
-void test::kempe(ExamTT& instance, std::vector<int> initPeriods) {
-    const int E = instance.E();
-    if(initPeriods.size() != E)
-        throw std::invalid_argument("initPeriods.size() != E");
+void KempeChainNeighborhood::randomStep(Solution *currentSolution) {
 
+}
+
+void KempeChainNeighborhood::reverseLastRandomStep(Solution *currentSolution) {
+
+}
+
+void test::kempe(ExamTT& instance, std::vector<int> initPeriods) {
     KempeChainNeighborhood* neigh = new KempeChainNeighborhood(instance);
     ExamTTSolution* sol = new ExamTTSolution;
 
-    std::vector<std::pair<int,int>> assign(E);
-    for(int i = 0; i < E; i++)
-        assign[i] = {initPeriods[i], 0};
-    sol->initFromAssign(instance, assign);
+    sol->initFromPeriodsAndZeroRoom(instance, initPeriods);
 
     cout << sol->periods << endl;
     emili::Neighborhood::NeighborhoodIterator x = neigh->begin(sol);
@@ -2570,6 +3284,54 @@ void test::kempe(ExamTT& instance, std::vector<int> initPeriods) {
 
     delete neigh;
     delete sol;
+}
+
+void test::kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N) {
+    ExamTTSolution* sol = new ExamTTSolution;
+    sol->initFromPeriodsAndZeroRoom(instance, initPeriods);
+    kempe_iteration_vs_random(instance, *sol, N);
+}
+
+void test::kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& s, int N) {
+
+    ExamTTSolution* sol = &s;
+
+    KempeChainNeighborhood* neigh = new KempeChainNeighborhood(instance);
+
+    std::set<std::vector<int>> iteratedNeighborhood;
+
+    emili::Neighborhood::NeighborhoodIterator x = neigh->begin(sol);
+    while(x != neigh->end()) {
+        Solution* a = *x;
+        ExamTTSolution* c = dynamic_cast<ExamTTSolution*>(a);
+        iteratedNeighborhood.insert(c->periods);
+        ++x;
+    }
+
+    delete neigh;
+    neigh = new KempeChainNeighborhood(instance);
+
+    auto costBefore = sol->costs;
+
+    for(int i = 0; i < N; i++) {
+        neigh->randomStep(sol);
+
+        if(! iteratedNeighborhood.count(sol->periods)) {
+            ostringstream oss;
+            oss << "random neighborhood not in iterated neighborhood";
+            if(sol->periods.size() < 20)
+                oss << "&periods=" << sol->periods;
+            if(iteratedNeighborhood.size() < 100)
+                oss << "&neighb=" << iteratedNeighborhood;
+            throw std::invalid_argument(oss.str());
+        }
+
+        neigh->reverseLastRandomStep(sol);
+
+        if(costBefore != sol->costs) {
+            throw std::invalid_argument("reverse last random step not reversing the step");
+        }
+    }
 }
 
 MixedMoveSwapNeighborhood::MixedMoveSwapNeighborhood(ExamTT const& instance_, double swapRate_)
@@ -2612,7 +3374,7 @@ MixedRandomNeighborhood::MixedRandomNeighborhood(std::vector<Neighborhood *> n, 
 }
 
 Solution* MixedRandomNeighborhood::random(Solution *currentSolution) {
-    auto x = emili::generateRandRange(cumul[cumul.size()-1]);
+    auto x = emili::generateRandRange(cumul.back());
     i = 0;
     while(x >= cumul[i])
         i++;
@@ -2621,7 +3383,7 @@ Solution* MixedRandomNeighborhood::random(Solution *currentSolution) {
 
 void MixedRandomNeighborhood::randomStep(Solution *currentSolution)
 {
-    auto x = emili::generateRandRange(cumul[cumul.size()-1]);
+    auto x = emili::generateRandRange(cumul.back());
     i = 0;
     while(x >= cumul[i])
         i++;
@@ -2645,7 +3407,7 @@ MixedRandomNeighborhoodProba::MixedRandomNeighborhoodProba(std::vector<Neighborh
         for(int i = 1; i < weights.size(); i++)
             cumul[i] = cumul[i-1] + weights[i];
     }
-    cumul[cumul.size()-1] = 1.1; // in theory it's 1 but in case generateRandomNumber returns 1...
+    cumul.back() = 1.1; // in theory it's 1 but in case generateRandomNumber returns 1...
 }
 
 Solution* MixedRandomNeighborhoodProba::random(Solution *currentSolution) {
@@ -2656,8 +3418,7 @@ Solution* MixedRandomNeighborhoodProba::random(Solution *currentSolution) {
     return neighborhoods[i]->random(currentSolution);
 }
 
-void MixedRandomNeighborhoodProba::randomStep(Solution *currentSolution)
-{
+void MixedRandomNeighborhoodProba::randomStep(Solution *currentSolution) {
     auto x = emili::generateRandomNumber();
     i = 0;
     while(x >= cumul[i])
@@ -2665,8 +3426,7 @@ void MixedRandomNeighborhoodProba::randomStep(Solution *currentSolution)
     neighborhoods[i]->randomStep(currentSolution);
 }
 
-void MixedRandomNeighborhoodProba::reverseLastRandomStep(Solution *currentSolution)
-{
+void MixedRandomNeighborhoodProba::reverseLastRandomStep(Solution *currentSolution) {
     neighborhoods[i]->reverseLastRandomStep(currentSolution);
 }
 

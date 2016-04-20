@@ -20,8 +20,10 @@ namespace  ExamTT
 class ExamTTParser: public AlgoBuilder
 {
 protected:
+    std::ostringstream generic;
     void genericError(std::ostream&);
     void genericError(std::string name);
+    void genericError(std::ostringstream&);
     void errorExpected(prs::TokenManager& tm, std::string name, std::vector<std::string> const& tokens);
 protected:    
     //insert a variable to hold the problem instance

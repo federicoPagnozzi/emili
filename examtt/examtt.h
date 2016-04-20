@@ -178,6 +178,8 @@ typedef int RoomId;
 
 typedef int Minutes;
 typedef int Color;
+typedef int DurationColor;
+typedef int Day;
 typedef int Cost; // A soft or hard cost
 typedef int HCost; // Hard
 typedef int SCost; // Soft
@@ -194,7 +196,7 @@ typedef std::pair<PeriodId const&, RoomId const&> AssignementConstRef;
 class Exam {
 public:
     Minutes duration;
-    Color durationColor;
+    DurationColor durationColor;
     std::set<StudentId> students;
 
     static bool compareDuration(Exam const& e1, Exam const& e2) {
@@ -215,7 +217,7 @@ public:
 class Period {
 public:
     Date dateRaw;
-    int dateid;
+    Day dateid; // day
     Time time;
     Minutes duration;
     SCost penalty;
@@ -533,6 +535,14 @@ struct CostComponents {
         return hard.exactlyEqual(other.hard) && soft.exactlyEqual(other.soft);
     }
 
+    bool operator ==(CostComponents const& other) const {
+        return exactlyEqual(other);
+    }
+
+    bool operator !=(CostComponents const& other) const {
+        return ! exactlyEqual(other);
+    }
+
     typedef std::tuple<HardCostComponents::Tuple, SoftCostComponents::Tuple> Tuple;
     typedef std::tuple<HCost, SCost> ComparableTuple;
 
@@ -588,11 +598,15 @@ public:
     // structures
 
     MapVec<PeriodId, MapVec<RoomId, std::list<ExamId>>> examsByPeriodRoom;
+    std::list<ExamId> unAssignedExamList;
+
     MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
     MapVec<PeriodId, MapVec<RoomId, MapVec<Color,int>>> durationColorUsed;
 
-    const bool USE_LAZY_STRUCTURES = false; // will not copy structures on clone, but will build structures when modified
-    const bool USE_COLOR_STRUCTURE = true;
+    static constexpr bool USE_LAZY_STRUCTURES = true; // will not copy structures on clone, but will build structures when modified
+    static constexpr bool USE_COLOR_STRUCTURE = true;
+    static constexpr bool USE_DELTA = true;
+
     bool hasStructures = false;
 
     void buildStructures(InstanceRef);
@@ -607,8 +621,27 @@ public:
 
     /**
      * Compute the difference in cost for <move> and update costs (+= -=).
+     * Structures will be updated AFTER
+     * update(...)
+     * apply(...)
      */
     void updateMove(InstanceRef, ExamId ex, PeriodId nextP, RoomId nextR, CostComponents& costs) const;
+
+    /**
+     * @brief Compute the difference in cost for <remove/add>, does not update structures.
+     * Structures will be updated AFTER
+     * update(...)
+     * apply(...)
+     */
+    void updateRemove(InstanceRef, ExamId);
+    void updateAdd(InstanceRef, ExamId, PeriodId, RoomId);
+
+    /**
+     * @brief same as updateRemove but the exam is already removed from structures
+     * apply(...)
+     * update(...)
+     */
+    void updateRemoveOutOfStructures(InstanceRef, ExamId, PeriodId, RoomId);
 
     struct Printer { ExamTTSolution const& self; InstanceRef instance; };
     struct Writer { ExamTTSolution const& self; };
@@ -624,18 +657,34 @@ public:
     void writeTo(std::ostream &cout) const;
 
     // methods
+    void initFromPeriodsAndZeroRoom(InstanceRef, std::vector<int> const& periods);
     void initFromAssign(InstanceRef, std::vector<std::pair<int,int>> assign);
     void initRandom(InstanceRef, Random&);
-    void move(InstanceRef, ExamId e, PeriodId p, RoomId r);
-    void swap(InstanceRef, ExamId i, ExamId j);
 
-    void movePeriod(InstanceRef, ExamId e, PeriodId p);
-    void moveRoom(InstanceRef, ExamId e, RoomId r);
+    void move(InstanceRef, ExamId, PeriodId, RoomId);
+    void swap(InstanceRef, ExamId, ExamId);
+    void movePeriod(InstanceRef, ExamId, PeriodId);
+    void moveRoom(InstanceRef, ExamId, RoomId);
+
+    void removeExam(InstanceRef, ExamId);
+    void addExam(InstanceRef, ExamId, PeriodId, RoomId);
+
+    void refreshSolutionValue(InstanceRef);
+
+    void applyMove(InstanceRef, ExamId, PeriodId, RoomId);
+    void applyRemoveExam(InstanceRef, ExamId, PeriodId prevP, RoomId prevR);
+    void applyAddExam(InstanceRef, ExamId, PeriodId, RoomId);
 
     // compute
+    /**
+     * @brief full compute of cost, if unassigned list is not empty, will change to computeCostPartial
+     * @param costs
+     */
     void computeCost(InstanceRef, CostComponents& costs) const;
     void computeCost(InstanceRef);
     CostComponents computeAndGetCost(InstanceRef) const;
+
+    void computeCostPartial(InstanceRef, CostComponents& costs) const;
 
     // read
     AssignementRef assignement(ExamId exam);
@@ -658,6 +707,8 @@ public:
     Two<AssignementConstRef> assignementOf(ExamId exam1, ExamId exam2) const;
     Two<PeriodId const&> periodsOf(ExamId exam1, ExamId exam2) const;
     Two<RoomId const&> roomsOf(ExamId exam1, ExamId exam2) const;
+
+    int sizeOfPartialSolution() const;;
 
 public:
     ExamTTSolution(double solution_value = 0):emili::Solution(solution_value) { }
@@ -784,8 +835,8 @@ public:
     int size() override;
 
     Solution* random(Solution *currentSolution) override;
-    // void randomStep(Solution* currentSolution) override;
-    // void reverseLastRandomStep(Solution *currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
 struct MixedMoveSwapNeighborhood : emili::Neighborhood {
@@ -914,8 +965,12 @@ struct BSUSA : emili::LocalSearch {
 
 namespace test {
 void delta(const ExamTT &inst, int N, bool checkEachMove);
-void interactive(const ExamTT &inst, int N, bool checkEachMove);
+void deltaRemoveAdd(const ExamTT &inst, int N, bool checkEachMove, int G);
+void interactive(const ExamTT &inst);
 void kempe(ExamTT& instance, std::vector<int> initPeriods);
+
+void kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N=1000);
+void kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& sol, int N=1000);
 }
 
 }
