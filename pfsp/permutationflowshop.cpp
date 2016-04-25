@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <limits>
-#include "sse_functions.h"
+//#include "sse_functions.h"
 
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
@@ -2814,7 +2814,7 @@ emili::Solution* emili::pfsp::OptInsert::computeStep(emili::Solution *value)
 #endif
         }
         newsol.insert(newsol.begin()+end_position,sol_i);
-        int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
         long int c_max = c_cur+tail[1][end_position];
@@ -3219,8 +3219,8 @@ emili::Solution* emili::pfsp::AtxNeighborhood::computeStep(emili::Solution *valu
 
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-        //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+        std::vector< int > ins_pos(nmac+1,0);
+       //int ins_pos[nmac+1];
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -3321,7 +3321,8 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
 /*#ifdef ENABLE_SSE
         float ins_pos[nmac+1];
 #else*/
-        int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
+       // int ins_pos[nmac+1];
 //#endif
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
@@ -3598,8 +3599,8 @@ emili::Solution* emili::pfsp::ThatxNeighborhood::computeStep(emili::Solution *va
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
-
+        //int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -3726,8 +3727,8 @@ emili::Solution* emili::pfsp::FatxNeighborhood::computeStep(emili::Solution *val
 
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-        //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+		//int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -3856,7 +3857,8 @@ emili::Solution* emili::pfsp::PatxNeighborhood::computeStep(emili::Solution *val
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+		//int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -3988,7 +3990,8 @@ emili::Solution* emili::pfsp::SatxNeighborhood::computeStep(emili::Solution *val
 
         newsol.insert(newsol.begin()+end_position,sol_i);
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+		//int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -4123,7 +4126,8 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
          newsol.insert(newsol.begin()+end_position,sol_i);
 
         //std::vector< int > ins_pos(nmac+1,0);
-        int ins_pos[nmac+1];
+		 //int ins_pos[nmac+1];
+		 std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -4253,7 +4257,8 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
 /*#ifdef ENABLE_SSE
         float ins_pos[nmac+1];
 #else*/
-        int ins_pos[nmac+1];
+		//int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
 //#endif
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
@@ -4402,7 +4407,8 @@ emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *v
 /*#ifdef ENABLE_SSE
         float ins_pos[nmac+1];
 #else*/
-        int ins_pos[nmac+1];
+		//int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
 //#endif
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
@@ -5014,7 +5020,7 @@ emili::Solution* emili::pfsp::HaxtExchange::computeStep(emili::Solution *value)
         int ms_pos = start_position>end_position?end_position:start_position;
         sol_i = newsol[ms_pos];
 
-        int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][ms_pos-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 
@@ -5125,7 +5131,8 @@ emili::Solution* emili::pfsp::EaxtExchange::computeStep(emili::Solution *value)
         int ms_pos = start_position>end_position?end_position:start_position;
         sol_i = newsol[ms_pos];
 
-        int ins_pos[nmac+1];
+		//int ins_pos[nmac+1];
+		std::vector< int > ins_pos(nmac + 1, 0);
         long int c_cur = head[1][ms_pos-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;
 

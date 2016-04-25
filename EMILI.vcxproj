@@ -44,6 +44,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <SourcePath>C:\Proyectos\IRIDIA\EMILI\pfsp;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -83,18 +84,20 @@
     <ClInclude Include="algorithm.h" />
     <ClInclude Include="emilibase.h" />
     <ClInclude Include="generalParser.h" />
-    <ClInclude Include="paramsparser.h" />
-    <ClInclude Include="permutationflowshop.h" />
-    <ClInclude Include="pfspinstance.h" />
+    <ClInclude Include="pfsp\hfspinstance.h" />
+    <ClInclude Include="pfsp\paramsparser.h" />
+    <ClInclude Include="pfsp\permutationflowshop.h" />
+    <ClInclude Include="pfsp\pfspinstance.h" />
     <ClInclude Include="setup.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="emilibase.cpp" />
     <ClCompile Include="generalParser.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="paramsparser.cpp" />
-    <ClCompile Include="permutationflowshop.cpp" />
-    <ClCompile Include="pfspinstance.cpp" />
+    <ClCompile Include="pfsp\hfspinstance.cpp" />
+    <ClCompile Include="pfsp\paramsparser.cpp" />
+    <ClCompile Include="pfsp\permutationflowshop.cpp" />
+    <ClCompile Include="pfsp\pfspinstance.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

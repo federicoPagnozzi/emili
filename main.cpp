@@ -101,5 +101,5 @@ prs::emili_header();
     std::cout << std::endl;
     delete ls;
     //delete solution;
-    std::cin.get();
+    //std::cin.get();
 }
