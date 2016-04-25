@@ -1306,13 +1306,25 @@ long int HfspInstance::computeHMS(vector<int> &sol, int size)
 			machineFreeingTimes_S_M[i][FAM_ID] = endingTime;
 
 			jobAndFT[j].second = endingTime;
-		}
+		}        
 		//XXX += printPairedVector(jobAndFT) + "\n";
 		// Sounds crazy but doesnt improve... if (i != stages)
 		// Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
 		std::sort(jobAndFT.begin(), jobAndFT.end(),
 			[](const std::pair<int, int> &left, const std::pair<int, int> &right) {
-			return left.second < right.second; });
+/*            if(left.second == right.second) TIE braking?
+            {
+                int k = rand()%100;
+                if(k<50)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }*/
+            return left.second < right.second; });
 			
 	}
 #ifdef _DEBUG

@@ -1,5 +1,6 @@
 //
 //  Created by by Jérémie Dubois-Lacoste and Federico Pagnozzi on 28/11/14.
+//  Hybrid flowshop code by Pedro Alfaro Fernandez
 //  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
 //  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
 //  for details.

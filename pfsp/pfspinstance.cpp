@@ -1,5 +1,6 @@
 //
-//  Created by by Jérémie Dubois-Lacoste and Federico Pagnozzi on 28/11/14.
+//  Created by by Jérémie Dubois-Lacoste,Federico Pagnozzi on 28/11/14.
+//  Hybrid flowshop code by Pedro Alfaro Fernandez
 //  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
 //  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
 //  for details.
@@ -4653,9 +4654,9 @@ long int inline simpleIdleInsertion(std::vector<std::vector<std::pair<int, int>>
 
 
 
-long int inline complexIdleInsertion(std::vector<std::vector<std::pair<int, int>>>& LSCompleteSR,
-   std::vector< int >& idleTI,std::vector< int >& machinesPerStage,std::vector<std::vector<long int>>& processingTimesMatrix,
-   std::vector<long int>& earlinessDD,std::vector<long int>& tardinessDD,std::vector<long int>& priority,std::vector<long int>& weightsE)
+long int inline complexIdleInsertion(std::vector<std::vector<std::pair<int, int> > >& LSCompleteSR,
+        std::vector< int >& idleTI, std::vector< int >& machinesPerStage, std::vector<std::vector<long> >& processingTimesMatrix
+                                     ,std::vector<long int>& earlinessDD, std::vector<long int>& tardinessDD, std::vector<long int>& priority, std::vector<long int>& weightsE)
 {
 ////////////////////////////////////////////////////////////////////////
 //////   Problemo con los indices... Al meter el job final   ///////////
@@ -4674,108 +4675,112 @@ long int inline complexIdleInsertion(std::vector<std::vector<std::pair<int, int>
 // a maximum number of positions equivalent to the minimum of all the changeing states of that formula
 // (when we fill the gap with next job or one of the jobs changes of state(early, tardy or on time))
 
-    int stages = machinesPerStage.size() - 1;
-    int mInLastStage = machinesPerStage[stages];
-    int improvements = 0;
-
-    // Foreach machine
-    for (int i = 0; i < mInLastStage; i++)
-    {
-        int dimSize = LSCompleteSR[i].size();
-
-        // Foreach job in this machine, starting from the second to last.
-        for (int j = dimSize - 2; j >= 0; j--)
+        int stages = machinesPerStage.size()-1;
+        int mInLastStage = machinesPerStage[stages];
+        int ret_improvements = 0;
+        int improvements = 0;
+        do{
+        ret_improvements+=improvements;
+        improvements = 0;
+        // Foreach machine
+        for (int i = 0; i < mInLastStage ; i++)
         {
-            //int k = j + 1; // His follower
-            int jobj = LSCompleteSR[i][j].first;
+                int dimSize = LSCompleteSR[i].size();
 
-            int gap = 0;
-            int minMovementToChange = std::numeric_limits<int>::max();
-            int weightsBalance = 0;
-            int endOfBlock = 0;
-
-            int k = -1;
-            // Elaborate the block checking gaps between elements and his following
-            for (k = j; k < dimSize - 1; k++)
-            {
-                gap = 0;
-                int jobk = LSCompleteSR[i][k].first;
-                int nextJob = LSCompleteSR[i][k + 1].first;
-
-                // Gap is the distance between finishing one job and starting next one.
-                int endk = LSCompleteSR[i][k].second + idleTI[jobk];
-                int nextStart = (LSCompleteSR[i][k + 1].second - processingTimesMatrix[nextJob][stages]) + idleTI[nextJob];
-
-                int movementToChange = 0;
-
-                // Distance to tardiness due date, negative means, there is not tardiness yet.
-                int tardiness = endk - tardinessDD[jobk];
-                int earliness = earlinessDD[jobk] - endk;
-
-                // If early, save distance to end of earliness and Earliness Weight * -1.
-                if (earliness > 0)
+                // Foreach job in this machine, starting from the second to last.
+                for (int j = dimSize - 2; j >= 0; j--)
                 {
-                    movementToChange = earliness;
-                    weightsBalance += weightsE[jobk] * -1;
-                    // Its negative because we are reducing Objective function value when inserting idle times.
+                        //int k = j + 1; // His follower
+                        //int jobj = LSCompleteSR[i][j].first;
+
+
+                        int minMovementToChange = std::numeric_limits<int>::max();
+                        int weightsBalance = 0;
+
+
+                        int k = -1;
+                        // Elaborate the block checking gaps between elements and his following
+                        for (k = j; k < dimSize - 1; k++)
+                        {
+                                //gap = 0;
+                                int jobk = LSCompleteSR[i][k].first;
+                                int nextJob = LSCompleteSR[i][k + 1].first;
+
+                                // Gap is the distance between finishing one job and starting next one.
+                                int endk = LSCompleteSR[i][k].second + idleTI[jobk];
+
+                                int nextStart = (LSCompleteSR[i][k + 1].second - processingTimesMatrix[nextJob][stages]) + idleTI[nextJob];
+
+                                int movementToChange = 0;
+
+                                // Distance to tardiness due date, negative means, there is not tardiness yet.
+                                int tardiness = endk - tardinessDD[jobk];
+                                int earliness = earlinessDD[jobk] - endk;
+
+                                // If early, save distance to end of earliness and Earliness Weight * -1.
+                                if (earliness > 0)
+                                {
+                                        movementToChange = earliness;
+                                        weightsBalance += weightsE[jobk] * -1;
+                                        // Its negative because we are reducing Objective function value when inserting idle times.
+                                }
+                                // Else if tardy. Save distance to tardiness and Tardiness Weight
+                                else if (tardiness >= 0)
+                                {
+                                        movementToChange = std::numeric_limits<int>::max();
+                                        weightsBalance += priority[jobk];
+                                 }
+                                // Else, If on time, save distance to tardiness and weight 0.
+                                 else
+                                 {
+                                        movementToChange = tardiness * -1;
+                                        weightsBalance += 0;
+                                 }
+
+
+                                int gap = nextStart - endk;
+
+                                if(minMovementToChange > movementToChange)
+                                minMovementToChange = movementToChange;
+
+                                if (gap > 0)
+                                {
+                                        if(gap < minMovementToChange)
+                                            minMovementToChange =  gap;
+                                        // We break for, because we already have a block.
+                                        break;
+                                }
+                        }
+
+                        // Now we have a block j to k (j =< k)
+                        // We have the movement until the balance of weights change.
+                        // And we have the change of the objective function per unit moved (can be 0 or negative)
+
+                        // If movement is not beneficial, continue studing next element.
+                        // if (weightsBalance >= 0) continue;
+                        // If movement
+                        if (weightsBalance < 0)
+                        {
+                                // Move the elements with idle time insertion
+                                for (int x = j; x <= k; x++)
+                                {
+                                        int jobx = LSCompleteSR[i][x].first;
+                                        idleTI[jobx] += minMovementToChange;
+                                }
+
+                                improvements += minMovementToChange * weightsBalance;
+
+                                // BECAUSE WE HAD IMPROVED, BUT COULD BE REQUIRED ANOTHER MOVE IN SAME BLOCK TO IMRPOVE MORE
+                                // I DO THIS DIRTY SHIT UNTILL I SWAP TO DoWhile with conditional incrementation
+                                //j = j++;
+                        }
+
                 }
-                else
-                {
-                    // Else if tardy. Save distance to tardiness and Tardiness Weight
-                    if (tardiness >= 0)
-                    {
-                        movementToChange = std::numeric_limits<int>::max();
-                        weightsBalance += priority[jobk];
-                    }
-                    // Else, If on time, save distance to tardiness and weight 0.
-                    else
-                    {
-                        movementToChange = tardiness * -1;
-                        weightsBalance += 0;
-                    }
-                }
-
-                gap = nextStart - endk;
-
-                minMovementToChange = std::min(minMovementToChange, movementToChange);
-
-                if (gap > 0)
-                {
-                    endOfBlock = k;
-                    minMovementToChange = std::min(minMovementToChange, gap);
-
-                    // We break for, because we already have a block.
-                    break;
-                }
-            }
-
-            // Now we have a block j to k (j =< k)
-            // We have the movement until the balance of weights change.
-            // And we have the change of the objective function per unit moved (can be 0 or negative)
-
-            // If movement is not beneficial, continue studing next element.
-            // if (weightsBalance >= 0) continue;
-            // If movement
-            if (weightsBalance > 0) continue;
-            else
-            {
-                // Move the elements with idle time insertion
-                for (int x = j; x <= k; x++)
-                {
-                    int jobx = LSCompleteSR[i][x].first;
-                    idleTI[jobx] += minMovementToChange;
-                }
-
-                improvements += minMovementToChange * weightsBalance;
-
-                // BECAUSE WE HAD IMPROVED, BUT COULD BE REQUIRED ANOTHER MOVE IN SAME BLOCK TO IMRPOVE MORE
-                // I DO THIS DIRTY SHIT UNTILL I SWAP TO DoWhile with conditional incrementation
-                j = j++;
-            }
 
         }
-    }
-    return improvements;
+        }
+        while(improvements<0);
+        return ret_improvements;
 }
 
 
@@ -4819,7 +4824,7 @@ long int PfspInstance::computeHWETDDW(std::vector<int> &sol, int size)
     int maxSize = processingTimesMatrix.size();
 
     // Machine assigned to the job marked by index.
-   std::vector< int > LSMA(maxSize);
+ //  std::vector< int > LSMA(maxSize);
     // Idle Time Inserted
    std::vector< int > idleTI(maxSize);
 
@@ -4860,9 +4865,24 @@ long int PfspInstance::computeHWETDDW(std::vector<int> &sol, int size)
 
         }
             // Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
+            int jct1 = jobAndFT[1].second;
+            std::vector< long >& dd = dueDates;
             std::sort(jobAndFT.begin(), jobAndFT.end(),
-                [](const std::pair<int, int> &left, const std::pair<int, int> &right) {
-                return left.second < right.second; });
+                [jct1,dd](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+
+                if (left.second < right.second)
+                    return true;
+                else if (left.second > right.second)
+                    return false;
+                else
+                {
+                    int k1 = dd[left.first] - jct1;
+                    int k2 = dd[right.first] - jct1;
+                    return k1<k2;
+                }
+                }
+
+                 );
 
 //END FIRST STAGE
 
@@ -4905,9 +4925,23 @@ long int PfspInstance::computeHWETDDW(std::vector<int> &sol, int size)
         }
 
             // Sort pairs Job/FinishingTimes acordint to finishing times, that way we modify permutation for next stage in order of released jobs.
-            std::sort(jobAndFT.begin(), jobAndFT.end(),
-                [](const std::pair<int, int> &left, const std::pair<int, int> &right) {
-                return left.second < right.second; });
+        jct1 = jobAndFT[1].second;
+        std::sort(jobAndFT.begin(), jobAndFT.end(),
+            [jct1,dd](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+
+            if (left.second < right.second)
+                return true;
+            else if (left.second > right.second)
+                return false;
+            else
+            {
+                int k1 = dd[left.first] - jct1;
+                int k2 = dd[right.first] - jct1;
+                return k1<k2;
+            }
+            }
+
+             );
 
 
     }
@@ -4938,7 +4972,7 @@ long int PfspInstance::computeHWETDDW(std::vector<int> &sol, int size)
     wET += wE + wT;
 
     // Save the id of the machine used to assign
-    LSMA[jobNumber] = FAM_ID;
+    //LSMA[jobNumber] = FAM_ID;
 
     // SR direct representation for last stage:
     LSCompleteSR[FAM_ID].push_back(std::pair<int, int>(jobNumber, endingTime));
