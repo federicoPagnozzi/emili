@@ -667,22 +667,22 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
                     << " " << "[" << exams.size() << "x" << "(" << instance.periods[p].penalty << "+" << instance.rooms[r].penalty << ")" << "]"
                 << endl;
 
-            for(ExamId i : exams) {
-                for(ExamId j : instance.afterOfExam(i))
+            for(ExamId i : exams) if(periods[i] != -1) {
+                for(ExamId j : instance.afterOfExam(i)) if(periods[j] != -1)
                     if(periods[i] <= periods[j])
                         out << string(12, ' ') << "(" << i << "," << j << ")[after]" << endl;
 
-                for(ExamId j : instance.exclusionOfExam(i))
+                for(ExamId j : instance.exclusionOfExam(i)) if(periods[j] != -1)
                     if(periods[i] == periods[j])
                         out << string(12, ' ') << "(" << i << "," << j << ")[exclu]" << endl;
 
-                for(ExamId j : instance.coincidenceOfExam(i))
+                for(ExamId j : instance.coincidenceOfExam(i)) if(periods[j] != -1)
                     if(periods[i] != periods[j])
                         out << string(12, ' ') << "(" << i << "," << j << ")[coinc]" << endl;
             }
 
-            for(ExamId i : exams) {
-                for(ExamId j : instance.hasStudentsInCommonOfExam(i)) {
+            for(ExamId i : exams) if(periods[i] != -1) {
+                for(ExamId j : instance.hasStudentsInCommonOfExam(i)) if(periods[j] != -1) {
                     Two<PeriodId> periodsId = periodsOf(i,j);
                     Two<Period const&> periodObjects = instance.periodsOf(periodsId);
 
@@ -708,12 +708,12 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
             }
 
             if(instance.periodInTheEnd(p))
-                for(ExamId i : exams)
+                for(ExamId i : exams) if(isAssigned(i))
                     if(instance.isInFrontLoad[i])
                         out << string(12, ' ') << "(" << i << ")" << " [frontload]" << endl;
 
             if(exams.size() > 1)
-                for(ExamId i : exams)
+                for(ExamId i : exams) if(isAssigned(i))
                     if(instance.examIsRoomExclusive[i])
                         out << string(12, ' ') << "(" << i << ")" << " [room exclusive]" << endl;
 
@@ -765,10 +765,10 @@ void ExamTTSolution::printTo(ExamTT const& instance, std::ostream& out) const {
         out << EPrefix(i)
              << PPrefix(sol.periods[i])
              << RPrefix(sol.rooms[i])
-             << (instance.periods[p].penalty ? " " + to_string(instance.periods[p].penalty) + ".P$" : string(""))
-             << (instance.rooms[r].penalty ? " " + to_string(instance.rooms[r].penalty) + ".R$" : string(""))
+             << (p != -1 && instance.periods[p].penalty ? " " + to_string(instance.periods[p].penalty) + ".P$" : string(""))
+             << (r != -1 && instance.rooms[r].penalty ? " " + to_string(instance.rooms[r].penalty) + ".R$" : string(""))
              << (costExclusive[i] ? " [rE]" : "")
-             << (instance.exams[i].duration > instance.periods[p].duration ? " [eD]" : "")
+             << (p != -1 && instance.exams[i].duration > instance.periods[p].duration ? " [eD]" : "")
              << endl;
     }
 
@@ -1538,15 +1538,15 @@ void ExamTTSolution::computeCostPartial(ExamTT const& instance, CostComponents& 
     costs.hard.periodConstraintExclusion = 0;
     costs.hard.periodConstraintCoincidence = 0;
 
-    for(Two<ExamId> exams : instance.examsAfter) if(periods[exams.first] != -1 && periods[exams.second] != 1)
+    for(Two<ExamId> exams : instance.examsAfter) if(isAssigned(exams.first) && isAssigned(exams.second))
         if(periods[exams.first] <= periods[exams.second])
             costs.hard.periodConstraintAfter++;
 
-    for(Two<ExamId> exams : instance.examsExclusion) if(periods[exams.first] != -1 && periods[exams.second] != 1)
+    for(Two<ExamId> exams : instance.examsExclusion) if(isAssigned(exams.first) && isAssigned(exams.second))
         if(periods[exams.first] == periods[exams.second])
             costs.hard.periodConstraintExclusion++;
 
-    for(Two<ExamId> exams : instance.examsCoincidence) if(periods[exams.first] != -1 && periods[exams.second] != 1)
+    for(Two<ExamId> exams : instance.examsCoincidence) if(isAssigned(exams.first) && isAssigned(exams.second))
         if(periods[exams.first] != periods[exams.second])
             costs.hard.periodConstraintCoincidence++;
 
@@ -1559,9 +1559,9 @@ void ExamTTSolution::computeCostPartial(ExamTT const& instance, CostComponents& 
     costs.soft.periodSpread = 0;
 
     for(ExamId i = 0; i < E; i++)
-    if(periods[i] != -1)
+    if(isAssigned(i))
     for(ExamId j = i + 1; j < E; j++)
-    if(periods[j] != -1)
+    if(isAssigned(j))
     if(instance.numberStudentsInCommon[i][j]) {
         Two<PeriodId> periodsId = periodsOf(i,j);
         Two<Period const&> periodObjects = instance.periodsOf(periodsId);
@@ -1597,7 +1597,7 @@ void ExamTTSolution::computeCostPartial(ExamTT const& instance, CostComponents& 
     // and give cost that the period is too late
     // aka period + frontload.time is out of range
 
-    for(ExamId e : instance.frontLoadExams) if(periods[e] != -1)
+    for(ExamId e : instance.frontLoadExams) if(isAssigned(e))
         if(instance.periodInTheEnd(periods[e]))
             costs.soft.frontload++;
 
@@ -1615,7 +1615,7 @@ void ExamTTSolution::computeCostPartial(ExamTT const& instance, CostComponents& 
 
     PeriodId p;
     RoomId r;
-    for(ExamId i = 0; i < E; i++) if(periods[i] != -1 && rooms[i] != -1) {
+    for(ExamId i = 0; i < E; i++) if(isFullyAssigned(i)) {
         tie(p,r) = assignement(i);
         numberStudentsInRoom[p][r] += instance.exams[i].students.size();
         mixedDurations[p][r].insert(instance.exams[i].duration);
@@ -1648,10 +1648,10 @@ void ExamTTSolution::computeCostPartial(ExamTT const& instance, CostComponents& 
 
     costs.hard.roomConstraint = 0;
 
-    for(ExamId i : instance.examsRoomsExclusive) if(periods[i] != -1 && rooms[i] != -1) {
+    for(ExamId i : instance.examsRoomsExclusive) if(isFullyAssigned(i)) {
         auto a = assignement(i);
 
-        for(ExamId j = 0; j < E; j++) if(periods[j] != -1 && rooms[j] != -1) {
+        for(ExamId j = 0; j < E; j++) if(isFullyAssigned(j)) {
             if(a == assignement(j) && i != j) {
                 costs.hard.roomConstraint++;
                 break;
@@ -2064,6 +2064,24 @@ void test::deltaRemoveAdd(ExamTT const& inst, int N, bool checkEachMove, int G, 
         cerr << "Error " << endl;
 }
 
+void test::iterateVsComputeStep(ExamTTSolution* solution, Neighborhood* neigh) {
+    ExamTTSolution* sol1 = (ExamTTSolution*) solution->clone();
+    std::set<std::pair<std::vector<int>, std::vector<int>>> first, second;
+
+    neigh->iterate(solution, [sol1,&first](){
+        first.insert(std::make_pair(sol1->periods, sol1->rooms));
+    });
+
+    neigh->reset();
+
+    ExamTTSolution* sol2 = (ExamTTSolution*) solution->clone();
+    for(auto it = neigh->begin(sol2); it != neigh->end(); ++it)
+        second.insert(std::make_pair(sol2->periods, sol2->rooms));
+
+    if(first != second)
+        throw std::invalid_argument("two ways of iterating differ ! " + to_string(first.size()) + " vs " + to_string(second.size()) + " neighbors");
+}
+
 namespace test {
 void interactive(ExamTT const& inst) {
     ExamTTSolution sol;
@@ -2106,6 +2124,7 @@ void ExamTTSolution::setRawData(const void *data) {
 
     examsByPeriodRoom = other->examsByPeriodRoom; // O(P R + E)
     durationColorUsed = other->durationColorUsed; // O(P R NoD)
+    unAssignedExamList = other->unAssignedExamList;
 
     // O(P R + E) because sum(list.size() for row in examsByPeriodRoom for list in row) == E
     for(auto & a : examsByPeriodRoom)
@@ -2953,11 +2972,28 @@ ostream &operator <<(ostream &out, const FrontLoadParams &w){
     return out << w.largestExams << "e " << w.time << "p " << w.penalty << "$";
 }
 
+void MoveNeighborhood::iterate(Solution *rawStep, std::function<void ()> yield) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+    int E = instance.E(), P = instance.P(), R = instance.R();
+
+    for(exam = 0; exam < E; exam++) {
+        bperiod = sol->periods[exam];
+        broom = sol->periods[exam];
+        for(period = 0; period < P; period++) {
+            for(room = 0; room < R; room++) {
+                sol->move(instance, exam, period, room);
+                yield();
+                sol->move(instance, exam, bperiod, broom);
+            }
+        }
+    }
+}
+
 Solution *MoveNeighborhood::computeStep(Solution *rawStep) {
     emili::iteration_increment();
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
 
-    int E = instance.exams.size();
+    int E = instance.E();
 
     if(exam == E)
         return nullptr;
@@ -3090,6 +3126,19 @@ Solution *ZeroInitialSolution::generateEmptySolution()
     return new ExamTTSolution;
 }
 
+void SwapNeighborhood::iterate(Solution *rawStep, std::function<void ()> yield) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+    int E = instance.students.size();
+
+    for(e1 = 0; e1 < E; e1++) {
+        for(e2 = e1 + 1; e2 < E; e2++) {
+            sol->swap(instance, e1, e2);
+            yield();
+            sol->swap(instance, e1, e2);
+        }
+    }
+}
+
 Solution *SwapNeighborhood::computeStep(Solution *rawStep) {
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
     int E = instance.students.size();
@@ -3166,6 +3215,24 @@ KempeChainNeighborhood::KempeChainNeighborhood(const ExamTT &instance_)
     reset();
 }
 
+void KempeChainNeighborhood::iterate(Solution* rawStep, std::function<void ()> yield) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+    int E = instance.exams.size(), R = instance.rooms.size(), P = instance.periods.size();
+
+    for(exam = 0; exam < E; exam++) {
+        t0 = sol->periods[exam];
+        for(t1 = 0; t1 < P; t1++) {
+            if(t1 != sol->periods[exam]) {
+                chain.clear();
+                createChain(sol, exam);
+                swapPeriodsInChain(sol);
+                yield();
+                swapPeriodsInChain(sol);
+            }
+        }
+    }
+}
+
 void KempeChainNeighborhood::reset() {
     exam = 0;
     t1 = -1; // so that t1+1 = 0
@@ -3181,10 +3248,7 @@ int KempeChainNeighborhood::size() {
 
 Solution* KempeChainNeighborhood::computeStep(Solution *rawStep) {
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
-
-    int E = instance.exams.size();
-    int R = instance.rooms.size();
-    int P = instance.periods.size();
+    int E = instance.exams.size(), R = instance.rooms.size(), P = instance.periods.size();
 
     ++t1;
     if(t1 == sol->periods[exam])
@@ -3202,21 +3266,19 @@ Solution* KempeChainNeighborhood::computeStep(Solution *rawStep) {
 
     chain.clear();
     createChain(sol, exam);
-    // cout << exam = 0 << t0 = 0 << t1 = 1 << chain = [1,2,3]
-    exam, t0, t1, chain;
-    // currently have a lot of duplicates and we construct a chain per computeStep
-    // should do like this :
-    // for i in range(P)
-    //   for j in range(i+1,P)
-    //     chains = components(C[i] | C[j])
-    //     for chain in chains:
-    //       apply(chain, i, j)
-    //       reverse(chain, i, j)
-
-    for(ExamId i : chain)
-        sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
+    swapPeriodsInChain(sol);
 
     return sol;
+}
+
+void KempeChainNeighborhood::swapPeriodsInChain(ExamTTSolution* sol) {
+    for(ExamId i : chain)
+        sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
+}
+
+void KempeChainNeighborhoodFastIter::swapPeriodsInChainList(ExamTTSolution* sol) {
+    for(ExamId i : chainList)
+        sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
 }
 
 void KempeChainNeighborhood::createChain(ExamTTSolution* sol, ExamId x) {
@@ -3232,9 +3294,7 @@ void KempeChainNeighborhood::createChain(ExamTTSolution* sol, ExamId x) {
 
 void KempeChainNeighborhood::reverseLastMove(Solution *rawStep) {
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
-
-    for(ExamId i : chain)
-        sol->movePeriod(instance, i, t0 == sol->periods[i] ? t1 : t0);
+    swapPeriodsInChain(sol);
 }
 
 Solution *KempeChainNeighborhood::step(Solution *currentSolution) {
@@ -3243,9 +3303,7 @@ Solution *KempeChainNeighborhood::step(Solution *currentSolution) {
 
 Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
     ExamTTSolution* sol = (ExamTTSolution*) currentSolution->clone();
-
-    int E = instance.exams.size();
-    int P = instance.periods.size();
+    int E = instance.E(), P = instance.P();
 
     Random r;
     exam = r.randrange(E);
@@ -3255,61 +3313,80 @@ Solution* KempeChainNeighborhood::random(Solution *currentSolution) {
 
     chain.clear();
     createChain(sol, exam);
+    swapPeriodsInChain(sol);
     return sol;
 }
 
 void KempeChainNeighborhood::randomStep(Solution *currentSolution) {
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
+    int E = instance.E(), P = instance.P();
 
+    Random r;
+    exam = r.randrange(E);
+    t0 = sol->periods[exam];
+    t1 = r.randrange(P-1);
+    t1 += t1 >= t0;
+
+    chain.clear();
+    createChain(sol, exam);
+    swapPeriodsInChain(sol);
 }
 
 void KempeChainNeighborhood::reverseLastRandomStep(Solution *currentSolution) {
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
 
+    swapPeriodsInChain(sol);
 }
 
-void test::kempe(ExamTT& instance, std::vector<int> initPeriods) {
-    KempeChainNeighborhood* neigh = new KempeChainNeighborhood(instance);
+void kempe_print_iteration(ExamTT& instance, std::vector<int> initPeriods, bool useFastIter, bool useIterate) {
+    emili::Neighborhood* neigh = useFastIter ? (emili::Neighborhood*)new KempeChainNeighborhoodFastIter(instance) : (emili::Neighborhood*)new KempeChainNeighborhood(instance);
     ExamTTSolution* sol = new ExamTTSolution;
 
     sol->initFromPeriodsAndZeroRoom(instance, initPeriods);
 
     cout << sol->periods << endl;
-    emili::Neighborhood::NeighborhoodIterator x = neigh->begin(sol);
-    while(x != neigh->end()) {
-        Solution* a = *x;
-
-        ExamTTSolution* c = dynamic_cast<ExamTTSolution*>(a);
-        cout << c->periods << endl;
-        ++x;
+    if(useIterate) {
+        neigh->iterate(sol, [sol](){
+            cout << sol->periods << endl;
+        });
+    } else {
+        for(Solution* a : neigh->stdIterate(sol)) {
+            ExamTTSolution* c = dynamic_cast<ExamTTSolution*>(a);
+            cout << c->periods << endl;
+        }
     }
 
     delete neigh;
     delete sol;
 }
 
-void test::kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N) {
+void test::kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N, bool useFastIter, bool useIterate) {
     ExamTTSolution* sol = new ExamTTSolution;
     sol->initFromPeriodsAndZeroRoom(instance, initPeriods);
-    kempe_iteration_vs_random(instance, *sol, N);
+    kempe_iteration_vs_random(instance, *sol, N, useFastIter, useIterate);
 }
 
-void test::kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& s, int N) {
+void test::kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& s, int N, bool useFastIter, bool useIterate) {
 
     ExamTTSolution* sol = &s;
 
-    KempeChainNeighborhood* neigh = new KempeChainNeighborhood(instance);
+    emili::Neighborhood* neigh = useFastIter ? (emili::Neighborhood*)new KempeChainNeighborhoodFastIter(instance) : (emili::Neighborhood*)new KempeChainNeighborhood(instance);
 
     std::set<std::vector<int>> iteratedNeighborhood;
 
-    emili::Neighborhood::NeighborhoodIterator x = neigh->begin(sol);
-    while(x != neigh->end()) {
-        Solution* a = *x;
-        ExamTTSolution* c = dynamic_cast<ExamTTSolution*>(a);
-        iteratedNeighborhood.insert(c->periods);
-        ++x;
+    if(useIterate) {
+        neigh->iterate(sol, [sol, &iteratedNeighborhood]{
+            iteratedNeighborhood.insert(sol->periods);
+        });
+    } else {
+        for(Solution* a : neigh->stdIterate(sol)) {
+            ExamTTSolution* c = dynamic_cast<ExamTTSolution*>(a);
+            iteratedNeighborhood.insert(c->periods);
+        }
     }
 
     delete neigh;
-    neigh = new KempeChainNeighborhood(instance);
+    neigh = useFastIter ? (emili::Neighborhood*) new KempeChainNeighborhoodFastIter(instance) : (emili::Neighborhood*) new KempeChainNeighborhood(instance);
 
     auto costBefore = sol->costs;
 
@@ -3318,7 +3395,7 @@ void test::kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& s, int N)
 
         if(! iteratedNeighborhood.count(sol->periods)) {
             ostringstream oss;
-            oss << "random neighborhood not in iterated neighborhood";
+            oss << "random neighborhood not in iterated neighborhood: ";
             if(sol->periods.size() < 20)
                 oss << "&periods=" << sol->periods;
             if(iteratedNeighborhood.size() < 100)
@@ -3544,6 +3621,192 @@ void BSUSA::searchInPlace(Solution *initial) {
 
     best->swap(initial);
     delete best;
+}
+
+Solution* IteratedGreedyNeihborhood::computeStep(Solution *step){
+    throw std::invalid_argument("not implemented");
+}
+
+void IteratedGreedyNeihborhood::reverseLastMove(Solution *step){
+    throw std::invalid_argument("not implemented");
+}
+
+void IteratedGreedyNeihborhood::reset() {
+    inserted.resize(G);
+}
+
+Solution *IteratedGreedyNeihborhood::random(Solution *currentSolution) {
+    auto s = currentSolution->clone();
+    randomStep(s);
+    return s;
+}
+
+void IteratedGreedyNeihborhood::randomStep(Solution *currentSolution) {
+    ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
+
+    Random ran;
+
+    int E = instance.E(), P = instance.P(), R = instance.R();
+
+    for(int i = 0; i < G; i++) {
+        int e = ran.randrange(E);
+        while(sol->periods[e] == -1)
+            e = ran.randrange(E);
+
+        inserted[i] = e;
+        sol->removeExam(instance, e);
+    }
+
+    // greedy construct, random order
+    ran.shuffle(inserted);
+
+    for(ExamId e : inserted) {
+        // greedy insert
+        auto before = sol->getSolutionValue();
+
+        int bestP = 0, bestR = 0;
+        double bestDelta = 1e9;
+
+        for(int p = 0; p < P; p++)
+        for(int r = 0; r < R; r++) {
+            sol->addExam(instance, e, p, r);
+
+            auto delta = sol->getSolutionValue() - before;
+            if(delta < bestDelta) {
+                bestDelta = delta;
+                bestP = p;
+                bestR = r;
+            }
+
+            sol->removeExam(instance, e);
+        }
+
+        sol->addExam(instance, e, bestP, bestR);
+    }
+}
+
+namespace {
+template <typename T>
+inline T pop_from_set(std::set<T> & S) {
+    auto it = S.begin();
+    T r = *it;
+    S.erase(it);
+    return r;
+}
+}
+
+void IteratedGreedyNeihborhood::reverseLastRandomStep(Solution *currentSolution) {
+    throw std::invalid_argument("not implemented");
+}
+
+/**
+ * Implement iteration as :
+    for i in range(P)
+        for j in range(i+1,P)
+            chains = components(C[i] | C[j])
+            for chain in chains:
+                apply(chain, i, j)
+                reverse(chain, i, j)
+                ...
+
+ * Implementation :
+    examsByPeriod = [set() for p in range(P)]
+    for e in range(E)
+        examsByPeriod[periods[e]].insert(e)
+
+    for i in range(P)
+        for j in range(i+1,P)
+            A,B = examsByPeriod[i], examsByPeriod[j] // copy
+            while A and B
+                e = A.pop() if A else B.pop()
+                chain = createChainDestruct(e,A,B) # elements go from A and B to chain
+                apply(chain, i, j)
+                reverse(chain, i, j)
+                ...
+ */
+void KempeChainNeighborhoodFastIter::iterate(Solution *base, std::function<void ()> yield) {
+    ExamTTSolution* sol = (ExamTTSolution*) base;
+
+    int E = instance.E(), P = instance.P();
+
+    examsByPeriod.assign(P, {});
+    for(ExamId e = 0; e < E; e++)
+        examsByPeriod[sol->periods[e]].insert(e);
+
+    for(t0 = 0; t0 < P; t0++) {
+        for(t1 = t0+1; t1 < P; t1++) {
+            A = examsByPeriod[t0]; // copy
+            A.insert(examsByPeriod[t1].begin(), examsByPeriod[t1].end());
+            while(A.size()) {
+                chainList.clear();
+                createChainDestruct(*A.begin());
+                swapPeriodsInChainList(sol);
+                yield(); // may throw an exception
+                swapPeriodsInChainList(sol);
+            }
+        }
+    }
+}
+
+void KempeChainNeighborhoodFastIter::reset() {
+    t1 = -1;
+    t0 = 0;
+    chainList.clear();
+}
+
+Solution *KempeChainNeighborhoodFastIter::computeStep(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    int E = instance.E(), P = instance.P(), R = instance.R();
+
+    if(examsByPeriod.empty()) {
+        examsByPeriod.resize(P); // assign each color to a set of exam of that color
+        for(ExamId e = 0; e < E; e++)
+            examsByPeriod[sol->periods[e]].insert(e);
+    }
+
+    if(A.empty()) {
+        for(;;) {
+            if(t1 == -1) {
+                t1 = 1;
+                t0 = 0;
+            }
+            else if(++t1 == P) {
+                if(++t0 >= P-1)
+                    return nullptr;
+                t1 = t0 + 1;
+            }
+
+            A = examsByPeriod[t0]; // copy
+            A.insert(examsByPeriod[t1].begin(), examsByPeriod[t1].end());
+
+            if(A.size())
+                break;
+        }
+    }
+
+    chainList.clear();
+    createChainDestruct(*A.begin());
+
+    swapPeriodsInChainList(sol);
+
+    return sol;
+}
+
+void KempeChainNeighborhoodFastIter::createChainDestruct(ExamId e) {
+    auto itA = A.find(e);
+    if(itA != A.end()) {
+        A.erase(itA);
+        chainList.push_back(e);
+        for(ExamId j : instance.hasStudentsInCommonOfExam(e))
+            createChainDestruct(j);
+    }
+}
+
+void KempeChainNeighborhoodFastIter::reverseLastMove(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    swapPeriodsInChainList(sol);
 }
 
 }

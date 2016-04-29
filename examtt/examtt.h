@@ -11,6 +11,7 @@
 #include <fstream>
 #include <algorithm>
 #include <utility>
+#include <functional>
 
 // SA
 #include "../SA/sa.h"
@@ -99,6 +100,13 @@ struct Random {
 
     int randint(int a, int b) {
         return emili::generateRandInt(a,b);
+    }
+
+    template <typename T>
+    void shuffle(std::vector<T>& vec) {
+        int N = vec.size();
+        for(int i = 0; i < N; i++)
+            std::swap(vec[N - i], vec[randrange(N - i)]);
     }
 };
 
@@ -708,7 +716,9 @@ public:
     Two<PeriodId const&> periodsOf(ExamId exam1, ExamId exam2) const;
     Two<RoomId const&> roomsOf(ExamId exam1, ExamId exam2) const;
 
-    int sizeOfPartialSolution() const;;
+    int sizeOfPartialSolution() const;
+    inline bool isAssigned(ExamId e) const { return ~periods[e]; /* periods[e] != -1; */ }
+    inline bool isFullyAssigned(ExamId e) const { return ~periods[e] & ~rooms[e]; /* periods[e] != -1 && rooms[e] != -1; */ }
 
 public:
     ExamTTSolution(double solution_value = 0):emili::Solution(solution_value) { }
@@ -746,6 +756,27 @@ struct InstanceParser {
 std::ostream& operator <<(std::ostream&, ExamTTSolution::Printer);
 std::ostream& operator <<(std::ostream&, ExamTTSolution::Writer);
 
+struct RandomInitialSolution : emili::InitialSolution {
+    Random random;
+
+    RandomInitialSolution(ExamTT& inst) : emili::InitialSolution(inst) {}
+
+    Solution* generateSolution() override;
+    Solution* generateEmptySolution() override;
+};
+
+struct ZeroInitialSolution : emili::InitialSolution {
+    ZeroInitialSolution(ExamTT& inst) : ZeroInitialSolution(inst, {}) {}
+
+    ZeroInitialSolution(ExamTT& inst, std::vector<Assignement> firstAssign_)
+        : emili::InitialSolution(inst), firstAssign(firstAssign_) {}
+
+    std::vector<Assignement> firstAssign;
+
+    Solution* generateSolution() override;
+    Solution* generateEmptySolution() override;
+};
+
 struct MoveNeighborhood : emili::Neighborhood {
 protected:
     ExamTT const& instance;
@@ -754,6 +785,7 @@ protected:
     PeriodId bperiod, period, rp;
     RoomId broom, room, rr;
 
+    void iterate(Solution *base, std::function<void ()> yield) override;
     Solution* computeStep(Solution *step) override;
     void reverseLastMove(Solution *step) override;
 public:
@@ -778,6 +810,7 @@ protected:
 
     ExamId re1, re2;
 
+    void iterate(Solution *base, std::function<void ()> yield) override;
     Solution* computeStep(Solution *rawStep) override;
     void reverseLastMove(Solution *rawStep) override;
 
@@ -793,43 +826,50 @@ public:
     void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
-struct RandomInitialSolution : emili::InitialSolution {
-    Random random;
+/**
+ * Implements iteration as :
+    for exam in range(E)
+        t0 = periods[exam]
+        for t1 in range(P)
+            if t1 != t0
+                chain = createChain(exam, t0, t1)
+                swapColors(chain, t0, t1)
+                yield()
+                swapColors(chain, t0, t1)
 
-    RandomInitialSolution(ExamTT& inst) : emili::InitialSolution(inst) {}
+    This creates multiple duplicates, see FastIter
 
-    Solution* generateSolution() override;
-    Solution* generateEmptySolution() override;
-};
-
-struct ZeroInitialSolution : emili::InitialSolution {
-    ZeroInitialSolution(ExamTT& inst) : ZeroInitialSolution(inst, {}) {}
-
-    ZeroInitialSolution(ExamTT& inst, std::vector<Assignement> firstAssign_)
-        : emili::InitialSolution(inst), firstAssign(firstAssign_) {}
-
-    std::vector<Assignement> firstAssign;
-
-    Solution* generateSolution() override;
-    Solution* generateEmptySolution() override;
-};
-
+ * Implements random as :
+   e = randrange(E)
+   t0 = periods[e]
+   t1 = randrange_different(P, t0)
+   chain = createChain(e, t0, t1)
+   swapInChain(chain, t0, t1)
+ */
 struct KempeChainNeighborhood : emili::Neighborhood {
 protected:
     ExamTT const& instance;
 
     ExamId exam;
-    int t0, t1;
+    PeriodId t0, t1;
     std::set<ExamId> chain;
 
+    /**
+     * assert period[x] in (t0,t1)
+     * insert x to chain
+     * repeat with neighbors of x with period[j] in (t0,t1)
+     */
     void createChain(ExamTTSolution* sol, ExamId x);
 
     Solution* computeStep(Solution *rawStep) override;
     void reverseLastMove(Solution *rawStep) override;
 
+    void swapPeriodsInChain(ExamTTSolution *sol);
+
 public:
     KempeChainNeighborhood(ExamTT const& instance);
 
+    void iterate(Solution*, std::function<void()>) override;
     Solution* step(Solution *currentSolution) override;
     void reset() override;
     int size() override;
@@ -837,6 +877,33 @@ public:
     Solution* random(Solution *currentSolution) override;
     void randomStep(Solution* currentSolution) override;
     void reverseLastRandomStep(Solution *currentSolution) override;
+};
+
+/**
+ * Implement iteration as :
+    for i in range(P)
+        for j in range(i+1,P)
+            chains = components(C[i] | C[j]) # C[i] = all exams at period i
+            for chain in chains:
+                swapColors(chain, i, j)
+                yield()
+                swapColors(chain, i, j)
+ */
+struct KempeChainNeighborhoodFastIter : KempeChainNeighborhood {
+private:
+    std::vector<std::set<ExamId>> examsByPeriod;
+    std::set<ExamId> A;
+    std::list<ExamId> chainList;
+
+    void swapPeriodsInChainList(ExamTTSolution *sol);
+public:
+    KempeChainNeighborhoodFastIter(ExamTT const& instance) : KempeChainNeighborhood(instance) {}
+
+    void reset() override;
+    void iterate(Solution* base, std::function<void()> yield) override;
+    Solution* computeStep(Solution *rawStep) override;
+    void reverseLastMove(Solution *rawStep) override;
+    void createChainDestruct(ExamId e);
 };
 
 struct MixedMoveSwapNeighborhood : emili::Neighborhood {
@@ -940,6 +1007,37 @@ public:
     void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
+/**
+ * @brief Destruct randomly, constructs by greedy method
+ */
+struct IteratedGreedyNeihborhood : public emili::Neighborhood {
+protected:
+    ExamTT const& instance;
+
+    Solution* computeStep(Solution *step) override;
+    void reverseLastMove(Solution *step) override;
+
+    const int G;
+    std::vector<ExamId> inserted;
+public:
+    IteratedGreedyNeihborhood(ExamTT const& instance_, const int G_) : instance(instance_), G(G_) {
+        reset();
+    }
+
+    ~IteratedGreedyNeihborhood() {}
+
+    void reset() override;
+
+
+    int size() override {
+        return 0;
+    }
+
+    Solution* random(Solution* currentSolution) override;
+    void randomStep(Solution* currentSolution) override;
+    void reverseLastRandomStep(Solution *currentSolution) override;
+};
+
 struct BruteForce : emili::LocalSearch {
     Instance& instance;
     std::vector<std::pair<PeriodId,RoomId>> firstAssign;
@@ -963,14 +1061,17 @@ struct BSUSA : emili::LocalSearch {
     void searchInPlace(Solution* initial) override;
 };
 
+void kempe_print_iteration(ExamTT& instance, std::vector<int> initPeriods, bool useFastIter=false, bool useIterate=false);
+
 namespace test {
 void delta(const ExamTT &inst, int N, bool checkEachMove);
 void deltaRemoveAdd(const ExamTT &inst, int N, bool checkEachMove, int G, bool checkEachMovePartial);
 void interactive(const ExamTT &inst);
-void kempe(ExamTT& instance, std::vector<int> initPeriods);
 
-void kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N=1000);
-void kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& sol, int N=1000);
+void kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N=1000, bool useFastIter=false, bool useIterate=false);
+void kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& sol, int N=1000, bool useFastIter=false, bool useIterate=false);
+
+void iterateVsComputeStep(ExamTTSolution* solution, Neighborhood* neigh);
 }
 
 }

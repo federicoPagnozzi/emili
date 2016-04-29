@@ -54,7 +54,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
     emili::Solution* ithSolution;
 
     emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
-    ithSolution = *iter; // isn't there a mistake ? ithSolution does not vary
+    ithSolution = *iter;
 
     for(;
         iter!=neigh->end();

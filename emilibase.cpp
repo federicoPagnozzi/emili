@@ -315,6 +315,7 @@ void emili::Solution::swap(emili::Solution * other) {
 /*
  * Base implementation of Neighborhood class
  */
+
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator =(const emili::Neighborhood::NeighborhoodIterator& iter)
 {
     line_ = iter.line_;
@@ -353,6 +354,14 @@ emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::begin(emili::Solu
 emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::end()
 {
     return emili::Neighborhood::NeighborhoodIterator(this,nullptr);
+}
+
+void emili::Neighborhood::iterate(emili::Solution *base, std::function<void ()> yield) {
+    auto it = begin(base);
+    while(it != end()) {
+        yield();
+        ++it;
+    }
 }
 
 /*

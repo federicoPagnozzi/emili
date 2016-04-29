@@ -136,13 +136,20 @@ emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
 struct ArgParser {
     std::map<std::string, int> dataInt;
     std::map<std::string, bool> dataBool;
+    std::vector<std::string> order;
 
     void addInt(std::string s, int d) {
+        if(dataInt.count(s) || dataBool.count(s))
+            throw std::invalid_argument(" argument " + s + " already exist !");
         dataInt[s] = d;
+        order.push_back(s);
     }
 
     void addBool(std::string s, bool d) {
+        if(dataInt.count(s) || dataBool.count(s))
+            throw std::invalid_argument(" argument " + s + " already exist !");
         dataBool[s] = d;
+        order.push_back(s);
     }
 
     void operator()(prs::TokenManager& tm) {
@@ -180,11 +187,25 @@ struct ArgParser {
         }
     }
 
-    void print() {
+    /**
+     * @brief Sort by type, then name
+     */
+    void printTypeAlpha() {
         for(auto& p : dataInt)
             cout << setw(20) << p.first << ": " << p.second << endl;
         for(auto& p : dataBool)
             cout << setw(20) << p.first << ": " << boolalpha << p.second << endl;
+    }
+
+    /**
+     * @brief Insertion order
+     */
+    void print() {
+        for(auto x : order)
+            if(dataInt.count(x))
+                cout << setw(20) << x << ": " << dataInt[x] << endl;
+            else if(dataBool.count(x))
+                cout << setw(20) << x << ": " << boolalpha << dataBool[x] << endl;
     }
 
     int Int(std::string s) {
@@ -207,14 +228,17 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     const std::string SA_BSU = "sa_bsu";
     const std::string INTERACTIVE = "interactive";
     const std::string TEST_KEMPE = "test_kempe";
+    const std::string TEST_KEMPE_RANDOM_VS_ITER = "test_kempe_random_vs_iter";
     const std::string TEST_DELTA = "test_delta";
     const std::string TEST_DELTA_REMOVE_ADD = "test_delta_remove_add";
     const std::string INFO = "info";
     const std::string BRUTE = "brute";
+    const std::string TEST_ITERATION_YIELD_VS_STATE = "test_iteration_yield_vs_state";
 
     const std::vector<std::string> available = {
         ILS, TABU, FIRST, BEST, SA_BSU, VND,
-        BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD
+        BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
+        TEST_KEMPE_RANDOM_VS_ITER, TEST_ITERATION_YIELD_VS_STATE
     };
 
     prs::TabLevel level;
@@ -446,7 +470,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         emili::ExamTT::test::interactive(instance);
         throw NoSearch();
     }
-    else if(tm.checkToken(TEST_KEMPE)) {
+    else if(tm.peek() == TEST_KEMPE || tm.peek() == TEST_KEMPE_RANDOM_VS_ITER) {
+        bool isTestKempe = tm.peek() == TEST_KEMPE;
+        bool isTestKempeRandomVsIter = tm.peek() == TEST_KEMPE_RANDOM_VS_ITER;
+        tm.next();
 
         std::vector<int> x = {-1};
         while(tm.checkInteger(x.back()))
@@ -461,7 +488,48 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
             if(!(0 <= y && y < P))
                 genericError(cerr << "int " << y << " is not a valid period in [0," << P << "[");
 
-        emili::ExamTT::test::kempe(instance, x);
+        ArgParser p;
+        p.addBool("use-fast-iter", false);
+        p.addBool("use-iterate", false);
+
+        if(isTestKempeRandomVsIter)
+            p.addInt("N", 1000);
+
+        p.parse(tm);
+        p.print();
+
+        if(isTestKempe) {
+            emili::ExamTT::kempe_print_iteration(instance, x, p.Bool("use-fast-iter"), p.Bool("use-iterate"));
+        } else if(isTestKempeRandomVsIter) {
+            emili::ExamTT::test::kempe_iteration_vs_random(instance, x, p.Int("N"), p.Bool("use-fast-iter"), p.Bool("use-iterate"));
+        }
+
+        throw NoSearch();
+    }
+    else if(tm.checkToken(TEST_ITERATION_YIELD_VS_STATE)) {
+        ArgParser p;
+        p.addBool("use-fast-iter", false);
+
+        p.parse(tm);
+        p.print();
+
+        emili::ExamTT::ExamTTSolution sol;
+
+        emili::ExamTT::Random r;
+        sol.initRandom(instance, r);
+
+        emili::Neighborhood* n = p.Bool("use-fast-iter")
+            ? new emili::ExamTT::KempeChainNeighborhoodFastIter(instance)
+            : new emili::ExamTT::KempeChainNeighborhood(instance);
+
+        try {
+            emili::ExamTT::test::iterateVsComputeStep(&sol, n);
+        } catch(std::exception& e) {
+            delete n;
+            throw e;
+        }
+
+        delete n;
 
         throw NoSearch();
     }

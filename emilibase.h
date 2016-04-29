@@ -77,7 +77,7 @@ protected:
     virtual const void* getRawData()const=0;
     virtual void setRawData(const void* data)=0;    
 public:
-    Solution(double value):solution_value(value)    {    }
+    Solution(double value):solution_value(value) {}
     virtual Solution& operator=(const Solution& a);    
     virtual bool operator<(Solution& a);
     virtual bool operator<=(Solution& a);
@@ -184,8 +184,9 @@ public:
 };
 
 /*
-    The class models a neighborhood of a solution
-
+ * The class models a neighborhood of a solution
+ * A basic neighborhood is ITERABLE
+ * A random neighborhood can produce one RANDOM neighbor (SimulatedAnnealing)
 */
 class Neighborhood
 {
@@ -195,56 +196,121 @@ protected:
      * and applies the move.
      */
     virtual Solution* computeStep(Solution* step)=0;
+
+    /**
+     * First call to computeStep will be computeFirstStep
+     * Useful when the neighborhood wants to setup init variables
+     *
+     * defaults to computeStep
+     */
+    virtual Solution* computeFirstStep(Solution* step) {
+        return computeStep(step);
+    }
+
     /*
      * Takes a solution and undoes the last move
+     * Asserts computeStep or computeFirstStep was last non const method called
+     * Asserts solution has not been changed since
      */
     virtual void reverseLastMove(Solution* step)=0;
 public:
     //unsigned long num();
-       class NeighborhoodIterator : public std::iterator<std::forward_iterator_tag, emili::Solution> {
-       public:
-           NeighborhoodIterator(emili::Neighborhood* n,emili::Solution* startSolution):base_(startSolution),n(n)
-           {
-               if(startSolution != nullptr )
-               {
-                  line_ = base_->clone();
-                  line_ = n->computeStep(line_);
-               }
-               else
-               {
-                   line_=nullptr;
-               }
-           }
-           NeighborhoodIterator& operator=(const NeighborhoodIterator& iter);
-           bool operator==(const NeighborhoodIterator& iter);
-           bool operator != (const NeighborhoodIterator& iter);
-           NeighborhoodIterator& operator++();
-           //NeighborhoodIterator& operator++(int);
-           emili::Solution* operator*();           
-       private:
-           emili::Solution* base_;
-           emili::Solution* line_;
-           emili::Neighborhood* n;
-       };
-       virtual NeighborhoodIterator begin(emili::Solution* base);
-       virtual NeighborhoodIterator end();
-    /*this method returns a solution in the decided neighborhood
+
+    class NeighborhoodIterator : public std::iterator<std::forward_iterator_tag, emili::Solution> {
+    public:
+        NeighborhoodIterator(emili::Neighborhood* n,emili::Solution* startSolution) : base_(startSolution), n(n)
+        {
+            if(startSolution != nullptr){
+                line_ = base_->clone();
+                line_ = n->computeFirstStep(line_);
+            } else {
+                line_ = nullptr;
+            }
+        }
+
+        NeighborhoodIterator& operator=(const NeighborhoodIterator& iter);
+        bool operator ==(const NeighborhoodIterator& iter);
+        bool operator !=(const NeighborhoodIterator& iter);
+        NeighborhoodIterator& operator++(); // only ++x semantics (iterator not copiable)
+        emili::Solution* operator*();
+    private:
+        emili::Solution* base_;
+        emili::Solution* line_;
+        emili::Neighborhood* n;
+    };
+
+    /**
+     * Used in iterator based iteration :
+     * for(auto it = begin(base); it != end(); ++it)
+     *    yield(*it);
+     */
+    virtual NeighborhoodIterator begin(emili::Solution* base);
+
+    /**
+     * Used in iterator based iteration
+     */
+    virtual NeighborhoodIterator end();
+
+    /**
+     * @brief see stdIterate
+     */
+    struct StdReadyToIterate {
+        Neighborhood* self;
+        emili::Solution* sol;
+
+        NeighborhoodIterator begin() { return self->begin(sol); }
+        NeighborhoodIterator end() { return self->end(); }
+    };
+
+    /**
+     * for(Solution* s : neigh->stdIterate(base))
+     *      yield(s)
+     */
+    StdReadyToIterate stdIterate(emili::Solution* base) { return {this, base}; }
+
+
+    /** this method returns a solution in the decided neighborhood
      * of the currentSolution */
     virtual Solution* step(Solution* currentSolution)=0;
+
     /*
      * The state of the Neighborhood object may need to be restored to
      * initial conditions between local search calls
      * (e.g. first improvement strategies for permutation flow shop).
+     *
+     * After reset, the state should the same as the one on creation.
+     * In the constructor, reset() should be called
      */
     virtual void reset()=0;
 
+   /**
+     * Alternative to computeStep and reverseLastStep
+     * Iterate the neighborhood by modifying the state of <base>
+     * yield will be called when the solution is been switched in a neighbor
+     * yield may throw an exception if the iteration wants to stop
+     *
+     * generally an iterate function is way more easy to code than computeStep/reverseLastStep
+     */
+    virtual void iterate(Solution* base, std::function<void()> yield);
+
     /*
-     * A method that returns a (new) random solution in the neighborhood has to be provided
+     * @brief returns a new random solution in the neighborhood has to be provided
+     * Used in simulated annealing.
+     * computeStep in more preferred because it's generally fast and does not copy.
      */
     virtual Solution* random(Solution* currentSolution) = 0;
 
+    /* // I suggest this default implementation
+    {
+        Solution* sol = currentSolution->clone();
+        randomStep(sol);
+        return sol;
+    }
+    */
+
     /**
-     * @brief Do a random step on the solution
+     * @brief Do a random step on the solution.
+     * May be called multiple times on multiple solutions.
      */
     virtual void randomStep(Solution* currentSolution) {
         throw std::invalid_argument("not implemented");
@@ -253,6 +319,7 @@ public:
     /**
      * @brief reverse last random step.
      * Asserts the last non const call was randomStep()
+     * Asserts the solution has not been changed since
      */
     virtual void reverseLastRandomStep(Solution *currentSolution) {
         throw std::invalid_argument("not implemented");
@@ -265,6 +332,7 @@ public:
     virtual ~Neighborhood() {}
 };
 
+typedef Neighborhood::NeighborhoodIterator NeighborhoodIterator;
 
 class EmptyNeighBorHood: public emili::Neighborhood
 {
