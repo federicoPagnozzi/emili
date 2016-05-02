@@ -136,21 +136,53 @@ emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
 struct ArgParser {
     std::map<std::string, int> dataInt;
     std::map<std::string, bool> dataBool;
+    std::map<std::string, float> dataFloat;
     std::vector<std::string> order;
 
+    // add
+
     void addInt(std::string s, int d) {
-        if(dataInt.count(s) || dataBool.count(s))
+        if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
             throw std::invalid_argument(" argument " + s + " already exist !");
         dataInt[s] = d;
         order.push_back(s);
     }
 
+    void addFloat(std::string s, float d) {
+        if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
+            throw std::invalid_argument(" argument " + s + " already exist !");
+        dataFloat[s] = d;
+        order.push_back(s);
+    }
+
     void addBool(std::string s, bool d) {
-        if(dataInt.count(s) || dataBool.count(s))
+        if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
             throw std::invalid_argument(" argument " + s + " already exist !");
         dataBool[s] = d;
         order.push_back(s);
     }
+
+    // get
+
+    int Int(std::string s) {
+        if(! dataInt.count(s))
+            throw std::invalid_argument("Missing int " + s);
+        return dataInt[s];
+    }
+
+    float Float(std::string s) {
+        if(! dataFloat.count(s))
+            throw std::invalid_argument("Missing int " + s);
+        return dataFloat[s];
+    }
+
+    bool Bool(std::string s) {
+        if(! dataBool.count(s))
+            throw std::invalid_argument("Missing bool " + s);
+        return dataBool[s];
+    }
+
+    // methods
 
     void operator()(prs::TokenManager& tm) {
         parse(tm);
@@ -167,6 +199,13 @@ struct ArgParser {
             for(auto& p : dataInt) {
                 if(tm.checkToken(p.first)) {
                     p.second = tm.getInteger();
+                    found = true;
+                }
+            }
+
+            for(auto& p : dataFloat) {
+                if(tm.checkToken(p.first)) {
+                    p.second = tm.getDecimal();
                     found = true;
                 }
             }
@@ -193,6 +232,8 @@ struct ArgParser {
     void printTypeAlpha() {
         for(auto& p : dataInt)
             cout << setw(20) << p.first << ": " << p.second << endl;
+        for(auto& p : dataFloat)
+            cout << setw(20) << p.first << ": " << p.second << endl;
         for(auto& p : dataBool)
             cout << setw(20) << p.first << ": " << boolalpha << p.second << endl;
     }
@@ -204,20 +245,10 @@ struct ArgParser {
         for(auto x : order)
             if(dataInt.count(x))
                 cout << setw(20) << x << ": " << dataInt[x] << endl;
+            else if(dataFloat.count(x))
+                cout << setw(20) << x << ": " << dataInt[x] << endl;
             else if(dataBool.count(x))
                 cout << setw(20) << x << ": " << boolalpha << dataBool[x] << endl;
-    }
-
-    int Int(std::string s) {
-        if(! dataInt.count(s))
-            throw std::invalid_argument("Missing int " + s);
-        return dataInt[s];
-    }
-
-    bool Bool(std::string s) {
-        if(! dataBool.count(s))
-            throw std::invalid_argument("Missing bool " + s);
-        return dataBool[s];
     }
 
 };
@@ -234,11 +265,12 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     const std::string INFO = "info";
     const std::string BRUTE = "brute";
     const std::string TEST_ITERATION_YIELD_VS_STATE = "test_iteration_yield_vs_state";
+    const std::string TEST_KEMPE_LARGE_COUNT = "test_kempe_large_count";
 
     const std::vector<std::string> available = {
         ILS, TABU, FIRST, BEST, SA_BSU, VND,
         BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
-        TEST_KEMPE_RANDOM_VS_ITER, TEST_ITERATION_YIELD_VS_STATE
+        TEST_KEMPE_RANDOM_VS_ITER, TEST_ITERATION_YIELD_VS_STATE, TEST_KEMPE_LARGE_COUNT
     };
 
     prs::TabLevel level;
@@ -278,6 +310,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         p.addInt("factor", 1);
         p.addInt("freq", 0);
         p.addBool("percent", true);
+        p.addInt("percent-kempe", 0);
 
         p.parse(tm);
         p.print();
@@ -384,7 +417,25 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         // 206_134: assign = [[33, 6], [50, 3], [15, 3], [51, 3], [13, 0], [11, 2], [21, 5], [38, 4], [14, 2], [25, 6], [53, 3], [9, 2], [45, 3], [36, 2], [18, 2], [21, 6], [47, 0], [42, 1], [23, 1], [9, 0], [21, 5], [53, 2], [28, 2], [41, 0], [17, 3], [8, 3], [45, 3], [32, 3], [38, 6], [29, 3], [3, 2], [45, 0], [27, 2], [49, 3], [17, 3], [33, 2], [12, 0], [18, 6], [6, 4], [52, 5], [41, 4], [51, 6], [48, 6], [39, 3], [6, 2], [51, 1], [5, 5], [19, 0], [39, 6], [6, 4], [11, 5], [50, 2], [11, 1], [27, 0], [11, 6], [53, 0], [29, 3], [19, 0], [42, 0], [5, 6], [37, 4], [3, 5], [3, 0], [18, 6], [19, 4], [22, 6], [5, 3], [8, 6], [12, 4], [2, 1], [1, 3], [45, 5], [49, 3], [33, 1], [29, 5], [49, 4], [3, 4], [1, 4], [49, 2], [4, 0], [7, 6], [6, 2], [23, 1], [35, 2], [14, 5], [20, 2], [4, 0], [51, 0], [44, 2], [40, 4], [6, 1], [3, 0], [34, 2], [21, 3], [50, 4], [6, 2], [18, 1], [43, 6], [5, 5], [0, 2], [17, 6], [6, 4], [51, 5], [52, 3], [50, 3], [25, 6], [13, 4], [51, 2], [28, 4], [29, 5], [7, 1], [6, 3], [19, 3], [11, 3], [9, 4], [41, 5], [42, 0], [32, 5], [23, 5], [23, 4], [6, 3], [18, 3], [39, 6], [21, 2], [8, 4], [34, 4], [12, 4], [13, 5], [21, 6], [40, 1], [42, 3], [47, 0], [18, 6], [27, 2], [17, 1], [38, 1], [7, 1], [46, 3], [25, 2], [17, 0], [49, 4], [50, 1], [8, 5], [3, 2], [43, 5], [31, 6], [16, 2], [13, 5], [52, 0], [8, 0], [46, 1], [12, 1], [4, 4], [4, 2], [33, 5], [39, 3], [39, 3], [51, 2], [28, 3], [28, 3], [14, 4], [45, 0], [1, 6], [33, 4], [5, 2], [9, 0], [40, 0], [6, 1], [44, 4], [48, 3], [9, 4], [21, 2], [1, 5], [26, 6], [27, 5], [12, 4], [23, 1], [28, 2], [28, 2], [15, 5], [37, 3], [26, 2], [13, 1], [14, 6], [1, 3], [38, 6], [5, 4], [10, 5], [20, 0], [8, 3], [49, 1], [17, 2], [10, 1], [2, 1], [12, 1], [32, 3], [48, 4], [22, 0], [41, 0], [24, 2], [50, 4], [2, 4], [19, 1], [35, 2], [2, 1], [13, 5], [24, 4], [6, 6], [48, 0], [51, 4], [0, 3], [48, 3], [43, 6], [37, 5], [26, 4], [46, 5], [13, 6], [41, 1], [31, 3], [14, 0], [49, 6], [41, 2], [53, 6], [23, 1], [13, 3], [34, 2], [10, 2], [10, 3], [31, 2], [34, 3], [16, 1], [23, 1], [37, 4], [23, 3], [32, 3], [3, 5], [14, 4], [40, 3], [38, 1], [24, 0], [17, 2], [43, 3], [33, 2], [16, 0], [38, 0], [14, 6], [1, 4], [36, 2], [13, 4], [42, 6], [47, 0], [47, 6], [2, 5], [8, 5], [25, 3], [11, 4], [35, 3], [2, 2], [7, 0], [27, 5], [1, 6], [16, 4], [17, 1], [31, 6], [4, 6], [34, 0], [43, 0], [24, 4], [30, 4], [2, 6], [27, 0], [36, 6], [11, 5], [44, 1], [39, 5], [12, 1], [25, 1], [4, 5], [41, 3], [7, 0], [47, 3], [52, 5], [42, 2], [3, 2], [49, 5], [28, 4], [0, 6], [24, 1], [24, 6], [7, 0], [50, 4], [7, 2], [20, 4], [43, 2], [33, 3], [2, 3], [20, 5], [44, 4], [4, 2], [14, 0], [38, 5], [1, 3], [34, 0], [9, 3], [44, 2], [32, 2], [44, 4], [52, 4], [46, 3], [12, 6], [9, 6], [31, 3], [41, 4], [43, 6], [24, 6], [36, 3], [25, 6], [12, 0], [32, 5], [17, 5], [47, 4], [14, 2], [53, 6], [33, 2], [38, 5], [14, 6], [52, 2], [47, 3], [35, 1], [45, 3], [24, 5], [9, 3], [1, 6], [8, 2], [33, 6], [20, 1], [15, 6], [7, 1], [18, 6], [35, 1], [15, 5], [5, 6], [30, 2], [3, 2], [7, 1], [7, 6], [53, 0], [12, 2], [3, 5], [11, 4], [21, 1], [31, 6], [9, 4], [34, 1], [50, 0], [32, 6], [10, 4], [5, 0], [27, 2], [45, 3], [18, 2], [39, 0], [50, 1], [2, 4], [37, 2], [4, 1], [14, 1], [52, 4], [50, 4], [32, 0], [39, 5], [17, 0], [20, 1], [30, 2], [12, 6], [11, 2], [17, 0], [47, 6], [12, 4], [42, 0], [53, 2], [4, 5], [3, 6], [11, 2], [44, 6], [31, 5], [38, 5], [41, 1], [26, 4], [53, 5], [21, 0], [6, 5], [35, 3], [0, 6], [19, 1], [45, 4], [9, 1], [3, 3], [41, 2], [51, 5], [30, 6], [6, 0], [46, 4], [32, 6], [8, 2], [27, 1], [52, 0], [51, 5], [38, 1], [5, 4], [31, 3], [41, 2], [32, 4], [49, 4], [43, 6], [45, 4], [42, 2], [40, 2], [1, 2], [50, 1], [53, 3], [19, 2], [53, 6], [35, 6], [10, 5], [8, 6], [52, 0], [19, 6], [26, 0], [40, 6], [9, 6], [2, 5], [46, 5], [32, 1], [15, 2], [0, 6], [31, 0], [23, 6], [28, 1], [33, 3], [9, 4], [8, 0], [20, 1], [0, 1], [44, 1], [1, 6], [6, 2], [17, 5], [28, 4], [5, 3], [29, 3], [46, 5], [9, 3], [14, 6], [33, 2], [42, 5], [52, 4], [8, 5], [27, 2], [16, 3], [8, 1], [31, 0], [3, 4], [8, 4], [37, 3], [33, 4], [32, 0], [6, 5], [2, 0], [4, 6], [21, 4], [27, 4], [9, 0], [8, 5], [22, 6], [52, 4], [52, 0], [49, 6], [13, 5], [39, 0], [44, 4], [25, 0], [15, 6], [51, 2], [24, 6], [16, 5], [20, 1], [29, 4], [27, 6], [8, 1], [38, 2], [30, 1], [35, 3], [45, 3], [14, 6], [50, 2], [5, 1], [8, 4], [5, 3], [28, 4], [20, 2], [42, 5], [25, 1], [19, 5], [31, 2], [14, 0], [36, 1], [49, 0], [19, 5], [29, 5], [17, 0], [15, 4], [43, 4], [4, 6], [43, 6], [0, 1], [5, 4], [12, 4], [23, 5], [43, 6], [51, 0], [41, 3], [30, 6], [3, 6], [50, 5], [38, 5], [46, 3], [6, 2], [11, 0], [48, 4], [24, 1], [46, 0], [16, 4], [48, 0], [53, 1], [3, 0], [34, 1], [18, 4], [14, 2], [51, 4], [34, 0], [43, 5], [5, 4], [37, 6], [26, 3], [23, 1], [2, 6], [7, 5], [8, 3], [39, 3], [20, 2], [24, 6], [45, 6], [4, 0], [10, 4], [4, 5], [0, 4], [6, 4], [46, 3], [45, 4], [31, 5], [24, 6], [46, 6], [27, 0], [50, 2], [1, 5], [38, 5], [53, 1], [2, 0], [26, 2], [20, 1], [6, 2], [48, 0], [39, 4], [21, 3], [9, 3], [2, 0], [42, 4], [8, 0], [32, 4], [29, 6], [28, 4], [45, 1], [20, 5], [18, 1], [49, 0], [11, 1], [25, 3], [22, 4], [9, 0], [23, 6], [27, 6], [21, 3], [49, 6], [7, 4], [33, 0], [24, 0], [27, 0], [33, 0], [43, 5], [32, 6], [20, 6], [50, 0], [14, 2], [44, 2], [52, 4], [11, 3]]; hard = (455, 7843, 0, 6, 2, 0, 0); soft = (3059, 0, 9062, 9062, 8700, 265, 1560);
 
         auto init = new emili::ExamTT::RandomInitialSolution(instance);
-        auto neigh = new emili::ExamTT::MixedMoveSwapNeighborhood(instance, sr);
+
+        emili::Neighborhood* neigh = nullptr;
+        if(p.Int("percent-kempe") == 0) {
+            neigh = new emili::ExamTT::MixedMoveSwapNeighborhood(instance, sr);
+        } else {
+            double k = p.Int("percent-kempe") / 100.0;
+            neigh = new emili::ExamTT::MixedRandomNeighborhoodProba(
+                {
+                    new emili::ExamTT::KempeChainNeighborhood(instance),
+                    new emili::ExamTT::SwapNeighborhood(instance),
+                    new emili::ExamTT::MoveNeighborhood(instance),
+                },
+                {
+                    (float) k,
+                    (float) (sr * (1 - k))
+                } // (1 - sr) * (1 - k)
+            );
+        }
+
         auto acc = new SAMetropolisAcceptance(t0);
 
         auto term = percent ?
@@ -470,6 +521,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         emili::ExamTT::test::interactive(instance);
         throw NoSearch();
     }
+    else if(tm.checkToken(TEST_KEMPE_LARGE_COUNT)) {
+        emili::ExamTT::stats::kempe_compare_size_fast_iter(instance);
+        throw NoSearch();
+    }
     else if(tm.peek() == TEST_KEMPE || tm.peek() == TEST_KEMPE_RANDOM_VS_ITER) {
         bool isTestKempe = tm.peek() == TEST_KEMPE;
         bool isTestKempeRandomVsIter = tm.peek() == TEST_KEMPE_RANDOM_VS_ITER;
@@ -499,7 +554,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         p.print();
 
         if(isTestKempe) {
-            emili::ExamTT::kempe_print_iteration(instance, x, p.Bool("use-fast-iter"), p.Bool("use-iterate"));
+            emili::ExamTT::stats::kempe_print_iteration(instance, x, p.Bool("use-fast-iter"), p.Bool("use-iterate"));
         } else if(isTestKempeRandomVsIter) {
             emili::ExamTT::test::kempe_iteration_vs_random(instance, x, p.Int("N"), p.Bool("use-fast-iter"), p.Bool("use-iterate"));
         }
@@ -514,9 +569,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         p.print();
 
         emili::ExamTT::ExamTTSolution sol;
-
-        emili::ExamTT::Random r;
-        sol.initRandom(instance, r);
+        sol.initRandom(instance);
 
         emili::Neighborhood* n = p.Bool("use-fast-iter")
             ? new emili::ExamTT::KempeChainNeighborhoodFastIter(instance)
@@ -833,7 +886,7 @@ emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm)
         return new emili::ExamTT::SwapNeighborhood(instance);
     }
     else if(tm.checkToken("kempe")) {
-        return new emili::ExamTT::KempeChainNeighborhood(instance);
+        return new emili::ExamTT::KempeChainNeighborhoodFastIter(instance);
     }
     else {
         errorExpected(tm, "NEIGHBORHOOD", {"move", "swap", "kempe"});

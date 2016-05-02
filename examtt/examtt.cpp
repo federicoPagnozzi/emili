@@ -347,6 +347,18 @@ void ExamTT::buildStructures()  {
     examIsRoomExclusive.resize(E, false);
     for(ExamId i : examsRoomsExclusive)
         examIsRoomExclusive[i] = true;
+
+    // daysToPeriod
+    daysToPeriod.push_back({0,-1});
+
+    for(int p = 0; p < P(); p++) {
+        if(periods[p].dateid != periods[daysToPeriod.back().first].dateid) {
+            daysToPeriod.back().second = p;
+            daysToPeriod.push_back({p,-1});
+        }
+    }
+
+    daysToPeriod.back().second = P();
 }
 
 bool ExamTT::correctExam(int i) const {
@@ -1243,6 +1255,11 @@ void ExamTTSolution::initFromPeriodsAndZeroRoom(ExamTT const& instance, const st
     initFromAssign(instance, assign);
 }
 
+void ExamTTSolution::initRandom(InstanceRef instance) {
+    Random r;
+    initRandom(instance, r);
+}
+
 void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
     int E = instance.exams.size();
     int P = instance.periods.size();
@@ -1325,6 +1342,10 @@ void ExamTTSolution::removeExam(ExamTT const& instance, ExamId e) {
     rooms[e] = -1;
 
     refreshSolutionValue(instance);
+}
+
+inline void ExamTTSolution::addExam(ExamTTSolution::InstanceRef instance, ExamId e, Assignement p) {
+    addExam(instance, e, p.first, p.second);
 }
 
 void ExamTTSolution::applyRemoveExam(InstanceRef instance, ExamId e, PeriodId prevP, RoomId prevR) {
@@ -3338,7 +3359,7 @@ void KempeChainNeighborhood::reverseLastRandomStep(Solution *currentSolution) {
     swapPeriodsInChain(sol);
 }
 
-void kempe_print_iteration(ExamTT& instance, std::vector<int> initPeriods, bool useFastIter, bool useIterate) {
+void stats::kempe_print_iteration(ExamTT& instance, std::vector<int> initPeriods, bool useFastIter, bool useIterate) {
     emili::Neighborhood* neigh = useFastIter ? (emili::Neighborhood*)new KempeChainNeighborhoodFastIter(instance) : (emili::Neighborhood*)new KempeChainNeighborhood(instance);
     ExamTTSolution* sol = new ExamTTSolution;
 
@@ -3358,6 +3379,43 @@ void kempe_print_iteration(ExamTT& instance, std::vector<int> initPeriods, bool 
 
     delete neigh;
     delete sol;
+}
+
+void stats::kempe_compare_size_fast_iter(ExamTT &instance) {
+    ExamTTSolution sol;
+    sol.initRandom(instance);
+    KempeChainNeighborhood nx(instance);
+    KempeChainNeighborhoodFastIter ny(instance);
+    int a = 0, b = 0, c = 0, d = 0;
+    int N = 50;
+    for(int i = 0; i < N; i++) {
+        a = 0, c = 0;
+        nx.reset();
+        nx.iterate(&sol, [&a]{
+            a++;
+        });
+        nx.reset();
+        for(auto s : nx.stdIterate(&sol))
+            c++;
+    }
+
+    cout <<
+        "  Normal (iterate, computeStep): " << a << "," << c << endl
+    ;
+
+    for(int i = 0; i < N; i++) {
+        b = 0, d = 0;
+        ny.reset();
+        ny.iterate(&sol, [&b]{
+            b++;
+        });
+        ny.reset();
+        for(auto s : ny.stdIterate(&sol))
+            d++;
+    }
+    cout <<
+        "FastIter (iterate, computeStep): " << b << "," << d << endl
+    ;
 }
 
 void test::kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, int N, bool useFastIter, bool useIterate) {
@@ -3438,8 +3496,8 @@ void MixedMoveSwapNeighborhood::reverseLastRandomStep(Solution *currentSolution)
         move.reverseLastRandomStep(currentSolution);
 }
 
-MixedRandomNeighborhood::MixedRandomNeighborhood(std::vector<Neighborhood *> n, std::vector<int> weights) : neighborhoods(n) {
-    if(weights.size() != n.size())
+MixedRandomNeighborhood::MixedRandomNeighborhood(std::vector<Neighborhood *> ns, std::vector<int> weights) : neighborhoods(ns) {
+    if(weights.size() != ns.size())
         throw std::invalid_argument("weights.size != neighborhoods.size");
     if(weights.size() == 0)
         throw std::invalid_argument("weights.size = 0");
@@ -3448,6 +3506,10 @@ MixedRandomNeighborhood::MixedRandomNeighborhood(std::vector<Neighborhood *> n, 
     cumul[0] = weights[0];
     for(int i = 1; i < weights.size(); i++)
         cumul[i] = cumul[i-1] + weights[i];
+
+    _size = 0;
+    for(auto n : neighborhoods)
+        _size += n->size();
 }
 
 Solution* MixedRandomNeighborhood::random(Solution *currentSolution) {
@@ -3472,23 +3534,27 @@ void MixedRandomNeighborhood::reverseLastRandomStep(Solution *currentSolution)
     neighborhoods[i]->reverseLastRandomStep(currentSolution);
 }
 
-MixedRandomNeighborhoodProba::MixedRandomNeighborhoodProba(std::vector<Neighborhood *> n, std::vector<float> weights) : neighborhoods(n) {
-    if(weights.size() != n.size() - 1)
+MixedRandomNeighborhoodProba::MixedRandomNeighborhoodProba(std::vector<Neighborhood *> ns, std::vector<float> weights) : neighborhoods(ns) {
+    if(weights.size() != ns.size() - 1)
         throw std::invalid_argument("weights.size != neighborhoods.size - 1");
-    if(n.size() == 0)
+    if(ns.size() == 0)
         throw std::invalid_argument("n.size = 0");
-    cumul.resize(n.size());
+    cumul.resize(ns.size());
 
-    if(n.size() > 1) {
+    if(ns.size() > 1) {
         cumul[0] = weights[0];
         for(int i = 1; i < weights.size(); i++)
             cumul[i] = cumul[i-1] + weights[i];
     }
     cumul.back() = 1.1; // in theory it's 1 but in case generateRandomNumber returns 1...
+
+    _size = 0;
+    for(auto n : neighborhoods)
+        _size += n->size();
 }
 
 Solution* MixedRandomNeighborhoodProba::random(Solution *currentSolution) {
-    auto x = emili::generateRandomNumber();
+    auto x = emili::generateRealRandomNumber();
     i = 0;
     while(x >= cumul[i])
         i++;
@@ -3496,7 +3562,7 @@ Solution* MixedRandomNeighborhoodProba::random(Solution *currentSolution) {
 }
 
 void MixedRandomNeighborhoodProba::randomStep(Solution *currentSolution) {
-    auto x = emili::generateRandomNumber();
+    auto x = emili::generateRealRandomNumber();
     i = 0;
     while(x >= cumul[i])
         i++;
@@ -3582,75 +3648,60 @@ Solution *BruteForce::search(Solution *initial)
     return bestSoFar;
 }
 
-Solution *BSUSA::search(Solution *initial) {
-    auto sol = initial->clone();
-    searchInPlace(sol);
+FixedRandomDestructor::FixedRandomDestructor(ExamTT const& instance_, const int G)
+    : instance(instance_)
+    , inserted(G)
+{
+
+}
+
+Solution *FixedRandomDestructor::destruct(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    Random ran;
+
+    int E = instance.E();
+
+    for(size_t i = 0; i < inserted.size(); i++) {
+        int e = ran.randrange(E);
+        while(! sol->isAssigned(e))
+            e = ran.randrange(E);
+
+        inserted[i] = e;
+        sol->removeExam(instance, e);
+    }
+
     return sol;
 }
 
-void BSUSA::searchInPlace(Solution *initial) {
-    auto best = initial->clone();
-
-    // auto temp = ;
-    neighbh->reset();
-
-    auto accept = [](Solution* sol, double delta){
-        return delta < 0;
-    };
-
-    int accepted = 0;
-    int iterations = 0;
-
-    do {
-        // best = exploration->nextSolution();
-        auto costBefore = initial->getSolutionValue();
-        neighbh->randomStep(initial);
-        auto delta = initial->getSolutionValue() - costBefore;
-
-        if(accept(initial, delta)) {
-            // initial is the same
-            accepted++;
-        } else {
-            // we'll try another random
-            neighbh->reverseLastRandomStep(initial);
-        }
-
-        // temp = update(temp)
-        // accept.setTemp(temp)
-    } while (true);
-
-    best->swap(initial);
-    delete best;
-}
-
-Solution* IteratedGreedyNeihborhood::computeStep(Solution *step){
+Solution* IteratedGreedyNeighborhood::computeStep(Solution *step){
     throw std::invalid_argument("not implemented");
 }
 
-void IteratedGreedyNeihborhood::reverseLastMove(Solution *step){
+void IteratedGreedyNeighborhood::reverseLastMove(Solution *step){
     throw std::invalid_argument("not implemented");
 }
 
-void IteratedGreedyNeihborhood::reset() {
+void IteratedGreedyNeighborhood::reset() {
     inserted.resize(G);
 }
 
-Solution *IteratedGreedyNeihborhood::random(Solution *currentSolution) {
+Solution *IteratedGreedyNeighborhood::random(Solution *currentSolution) {
     auto s = currentSolution->clone();
     randomStep(s);
     return s;
 }
 
-void IteratedGreedyNeihborhood::randomStep(Solution *currentSolution) {
+void IteratedGreedyNeighborhood::randomStep(Solution *currentSolution) {
     ExamTTSolution* sol = (ExamTTSolution*) currentSolution;
 
     Random ran;
 
-    int E = instance.E(), P = instance.P(), R = instance.R();
+    int E = instance.E();
 
     for(int i = 0; i < G; i++) {
         int e = ran.randrange(E);
-        while(sol->periods[e] == -1)
+        while(! sol->isAssigned(e))
             e = ran.randrange(E);
 
         inserted[i] = e;
@@ -3660,29 +3711,12 @@ void IteratedGreedyNeihborhood::randomStep(Solution *currentSolution) {
     // greedy construct, random order
     ran.shuffle(inserted);
 
-    for(ExamId e : inserted) {
-        // greedy insert
-        auto before = sol->getSolutionValue();
+    for(ExamId e : inserted)
+        sol->addExam(instance, e, BestInsertHeuristic(instance).searchPosition(sol, e)); // greedy insert
+}
 
-        int bestP = 0, bestR = 0;
-        double bestDelta = 1e9;
-
-        for(int p = 0; p < P; p++)
-        for(int r = 0; r < R; r++) {
-            sol->addExam(instance, e, p, r);
-
-            auto delta = sol->getSolutionValue() - before;
-            if(delta < bestDelta) {
-                bestDelta = delta;
-                bestP = p;
-                bestR = r;
-            }
-
-            sol->removeExam(instance, e);
-        }
-
-        sol->addExam(instance, e, bestP, bestR);
-    }
+void IteratedGreedyNeighborhood::reverseLastRandomStep(Solution *currentSolution) {
+    throw std::invalid_argument("not implemented");
 }
 
 namespace {
@@ -3693,10 +3727,6 @@ inline T pop_from_set(std::set<T> & S) {
     S.erase(it);
     return r;
 }
-}
-
-void IteratedGreedyNeihborhood::reverseLastRandomStep(Solution *currentSolution) {
-    throw std::invalid_argument("not implemented");
 }
 
 /**
@@ -3752,6 +3782,7 @@ void KempeChainNeighborhoodFastIter::reset() {
     t1 = -1;
     t0 = 0;
     chainList.clear();
+    A.clear();
 }
 
 Solution *KempeChainNeighborhoodFastIter::computeStep(Solution *rawStep) {
@@ -3808,6 +3839,149 @@ void KempeChainNeighborhoodFastIter::reverseLastMove(Solution *rawStep) {
 
     swapPeriodsInChainList(sol);
 }
+
+RandomOrderInserter::RandomOrderInserter(const Instance &instance_, InsertHeuristic *insertHeuristic_)
+    : instance(instance_)
+    , insertHeuristic(insertHeuristic_)
+{
+
+}
+
+Solution *RandomOrderInserter::construct(Solution *rawStep) {
+    ExamTTSolution* sol = (ExamTTSolution*) rawStep;
+
+    // instead of doing a copy, can re use std::vector from destructor
+    inserted.assign(sol->unAssignedExamList.begin(), sol->unAssignedExamList.end());
+
+    Random().shuffle(inserted);
+
+    for(ExamId e : inserted)
+        sol->addExam(instance, e, insertHeuristic->searchPosition(sol, e));
+
+    return sol;
+}
+
+Solution *DegreeInserter::construct(Solution *raw) {
+    ExamTTSolution* sol = (ExamTTSolution*) raw;
+
+    data.resize(sol->unAssignedExamList.size());
+    int i = 0;
+    for(ExamId e : sol->unAssignedExamList)
+        data[i++] = {instance.hasStudentsInCommonOfExam(e).size(), e};
+    std::sort(data.begin(), data.end(), std::greater<Two<int>>());
+
+    for(auto p : data) {
+        ExamId e = p.second;
+        sol->addExam(instance, e, insertHeuristic->searchPosition(sol, e));
+    }
+
+    return sol;
+}
+
+Assignement BestInsertHeuristic::searchPosition(ExamTTSolution * sol, ExamId e) {
+    int P = instance.P(), R = instance.R();
+
+    auto before = sol->getSolutionValue();
+
+    int bestP = 0, bestR = 0;
+    double bestDelta = 1e9;
+
+    for(int p = 0; p < P; p++)
+    for(int r = 0; r < R; r++) {
+        sol->addExam(instance, e, p, r);
+
+        auto delta = sol->getSolutionValue() - before;
+        if(delta < bestDelta) {
+            bestDelta = delta;
+            bestP = p;
+            bestR = r;
+        }
+
+        sol->removeExam(instance, e);
+    }
+    return {bestP, bestR};
+}
+
+
+
+NRandomDaysDestructor::NRandomDaysDestructor(const Instance &instance_, const int N_)
+    : instance(instance_)
+    , N(N_)
+{
+    days.resize(instance.Days());
+    for(size_t i = 0; i < days.size(); i++)
+        days[i] = i;
+}
+
+Solution* NRandomDaysDestructor::destruct(Solution *solution) {
+    ExamTTSolution* sol = (ExamTTSolution*) solution;
+
+    Random().shuffleFront(days, N);
+
+    for(int i = 0; i < N; i++) {
+        Two<int> day = instance.daysToPeriod[days[i]];
+        for(ExamId e = 0; e < instance.E(); e++)
+            if(sol->isAssigned(e))
+                if(day.first <= sol->periods[e] && sol->periods[e] < day.second)
+                    sol->removeExam(instance, e);
+    }
+
+    return solution;
+}
+
+NGroupedDaysDestructor::NGroupedDaysDestructor(const Instance &instance_, const int N_)
+    : instance(instance_)
+    , N(N_)
+{
+
+}
+
+Solution* NGroupedDaysDestructor::destruct(Solution *solution) {
+    ExamTTSolution* sol = (ExamTTSolution*) solution;
+
+    int i = Random().randrange(instance.Days() - N);
+    int j = i+N;
+    int di = instance.daysToPeriod[i].first;
+    int dj = instance.daysToPeriod[j].second;
+
+    for(ExamId e = 0; e < instance.E(); e++)
+        if(sol->isAssigned(e))
+            if(di <= sol->periods[e] && sol->periods[e] < dj)
+                sol->removeExam(instance, e);
+
+    return solution;
+}
+
+NGroupedPeriodsDestructor::NGroupedPeriodsDestructor(const Instance &instance_, const int N_)
+    : instance(instance_)
+    , N(N_)
+{
+
+}
+
+Solution* NGroupedPeriodsDestructor::destruct(Solution *solution) {
+    ExamTTSolution* sol = (ExamTTSolution*) solution;
+
+    int i = Random().randrange(instance.P() - N);
+    int j = i+N;
+
+    for(ExamId e = 0; e < instance.E(); e++)
+        if(sol->isAssigned(e))
+            if(i <= sol->periods[e] && sol->periods[e] < j)
+                sol->removeExam(instance, e);
+
+    return solution;
+}
+
+Solution *DSaturInserter::construct(Solution *partial) {
+    ExamTTSolution* sol = (ExamTTSolution*) partial;
+
+    // dsat(v) = number of different "colors" in neighborhood of v = saturation
+    throw std::invalid_argument("not imp");
+
+    return sol;
+}
+
 
 }
 }

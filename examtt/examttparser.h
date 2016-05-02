@@ -35,6 +35,7 @@ protected:
     emili::TabuMemory* tmemory(emili::Neighborhood* n,prs::TokenManager& tm);
     std::tuple<emili::InitialSolution*, emili::Termination*, emili::Neighborhood*> params(prs::TokenManager& tm);
     emili::LocalSearch* vparams(prs::TokenManager& tm);
+
     emili::InitialSolution* init(prs::TokenManager& tm);
     emili::Termination* term(prs::TokenManager& tm);
     emili::Acceptance* acc(prs::TokenManager& tm);

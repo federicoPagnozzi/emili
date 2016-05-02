@@ -34,6 +34,10 @@ struct CountIterator {
                    operator int() const { return count; }
 };
 
+/**
+ * for(auto p : VectorExclusivePair(4))
+ *   print(p.first, p.second) # (0,1), (0,2), (0,3), (1,2), (1,3), (2,3)
+ */
 template <typename T>
 struct VectorExclusivePair {
     struct Iterator {
@@ -64,7 +68,7 @@ struct VectorExclusivePair {
     VectorExclusivePair(int N_) : N(N_) {}
 
     Iterator begin() {
-        return {0,0,N};
+        return {0,1,N};
     }
 
     Iterator end() {
@@ -107,6 +111,26 @@ struct Random {
         int N = vec.size();
         for(int i = 0; i < N; i++)
             std::swap(vec[N - i], vec[randrange(N - i)]);
+    }
+
+    /**
+     * <L> last elem of vec will be random
+     */
+    template <typename T>
+    void shuffleEnd(std::vector<T>& vec, int L) {
+        const int N = vec.size();
+        for(int i = 0; i < L; i++)
+            std::swap(vec[N - i], vec[randrange(N - i)]);
+    }
+
+    /**
+     * <L> first elem of vec will be random
+     */
+    template <typename T>
+    void shuffleFront(std::vector<T>& vec, int L) {
+        const int N = vec.size();
+        for(int i = 0; i < L; i++)
+            std::swap(vec[i], vec[i + randrange(N - i)]);
     }
 };
 
@@ -322,6 +346,8 @@ public:
 
     MapVec<ExamId,ExamsRelated> examsRelated;
 
+    std::vector<std::pair<PeriodId,PeriodId>> daysToPeriod;
+
     std::vector<ExamId>& coincidenceOfExam(ExamId i)         { return examsRelated[i].coincidences; }
     std::vector<ExamId>& exclusionOfExam(ExamId i)           { return examsRelated[i].exclusions; }
     std::vector<ExamId>& afterOfExam(ExamId i)               { return examsRelated[i].afters; }
@@ -395,7 +421,12 @@ public:
     int E() const { return exams.size(); }
     int P() const { return periods.size(); }
     int R() const { return rooms.size(); }
+
     int numberOfDurations() const { return colorsOfMinute.size(); }
+    int numberOfDays() const { return this->daysToPeriod.size(); }
+
+    int Dur() const { return numberOfDurations(); }
+    int Days() const { return numberOfDays(); }
 
     void presentation(std::ostream&) const;
     void testDelta(ExamTTSolution&, std::ostream &log, int N = 1000, bool checkEachMove = true) const;
@@ -669,6 +700,8 @@ public:
     void initFromAssign(InstanceRef, std::vector<std::pair<int,int>> assign);
     void initRandom(InstanceRef, Random&);
 
+    void initRandom(InstanceRef);
+
     void move(InstanceRef, ExamId, PeriodId, RoomId);
     void swap(InstanceRef, ExamId, ExamId);
     void movePeriod(InstanceRef, ExamId, PeriodId);
@@ -676,6 +709,7 @@ public:
 
     void removeExam(InstanceRef, ExamId);
     void addExam(InstanceRef, ExamId, PeriodId, RoomId);
+    void addExam(InstanceRef, ExamId, Assignement);;
 
     void refreshSolutionValue(InstanceRef);
 
@@ -906,7 +940,30 @@ public:
     void createChainDestruct(ExamId e);
 };
 
-struct MixedMoveSwapNeighborhood : emili::Neighborhood {
+struct RandomNeighborhood : emili::Neighborhood {
+protected:
+    emili::Solution* computeStep(Solution *step) override {
+        // undefined for random neigh
+        return nullptr;
+    }
+
+    void reverseLastMove(Solution *step) override {
+        // undefined for random neigh
+    }
+
+public:
+
+    Solution* step(Solution *currentSolution) override {
+        // undefined for random neigh
+        return nullptr;
+    }
+
+    void reset() override {
+        // the reset is done at the first random() call
+    }
+};
+
+struct MixedMoveSwapNeighborhood : RandomNeighborhood {
 public:
     MoveNeighborhood move;
     SwapNeighborhood swap;
@@ -934,7 +991,7 @@ public:
     }
 
     int size() override {
-        return 0; // // undefined for random neighborhood
+        return move.size() + swap.size();
     }
 
     Solution* random(Solution *currentSolution) override;
@@ -942,15 +999,16 @@ public:
     void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
-struct MixedRandomNeighborhood : emili::Neighborhood {
+struct MixedRandomNeighborhood : RandomNeighborhood {
 protected:
     std::vector<emili::Neighborhood*> neighborhoods;
     std::vector<int> cumul;
     int i = 0;
+    int _size = 0;
 
 public:
 
-    MixedRandomNeighborhood(std::vector<emili::Neighborhood*> n, std::vector<int> weights);
+    MixedRandomNeighborhood(std::vector<emili::Neighborhood*> ns, std::vector<int> weights);
 
     ~MixedRandomNeighborhood() {
         for(auto p : neighborhoods)
@@ -961,12 +1019,8 @@ public:
         neighborhoods.clear();
     }
 
-    void reset() override {
-        // undefined for random neighborhood
-    }
-
     int size() override {
-        return 0; // undefined for random neighborhood
+        return _size;
     }
 
     Solution* random(Solution* currentSolution) override;
@@ -974,16 +1028,17 @@ public:
     void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
-struct MixedRandomNeighborhoodProba : emili::Neighborhood {
+struct MixedRandomNeighborhoodProba : RandomNeighborhood {
 protected:
     std::vector<emili::Neighborhood*> neighborhoods;
     std::vector<float> cumul;
     int i = 0;
+    int _size = 0;
 
 public:
 
     // proba.size = neigh.size - 1
-    MixedRandomNeighborhoodProba(std::vector<emili::Neighborhood*> n, std::vector<float> proba);
+    MixedRandomNeighborhoodProba(std::vector<emili::Neighborhood*> ns, std::vector<float> proba);
 
     ~MixedRandomNeighborhoodProba() {
         for(auto p : neighborhoods)
@@ -994,12 +1049,8 @@ public:
         neighborhoods.clear();
     }
 
-    void reset() override {
-        // undefined for random neighborhood
-    }
-
     int size() override {
-        return 0; // undefined for random neighborhood
+        return _size;
     }
 
     Solution* random(Solution* currentSolution) override;
@@ -1007,10 +1058,100 @@ public:
     void reverseLastRandomStep(Solution *currentSolution) override;
 };
 
+struct FixedRandomDestructor : Destructor {
+private:
+    Instance const& instance;
+    std::vector<ExamId> inserted;
+public:
+    FixedRandomDestructor(Instance const&, const int G_);
+public:
+    Solution* destruct(Solution *solution) override;
+};
+
+// TODO: other ideas : N grouped days / grouped periods
+struct NRandomDaysDestructor : Destructor {
+private:
+    Instance const& instance;
+    const int N;
+    std::vector<int> days;
+public:
+    NRandomDaysDestructor(Instance const& instance_, const int N_);
+public:
+    Solution* destruct(Solution *solution) override;
+};
+
+struct NGroupedDaysDestructor : Destructor {
+private:
+    Instance const& instance;
+    const int N;
+public:
+    NGroupedDaysDestructor(Instance const& instance_, const int N_);
+public:
+    Solution* destruct(Solution *solution) override;
+};
+
+struct NGroupedPeriodsDestructor : Destructor {
+private:
+    Instance const& instance;
+    const int N;
+public:
+    NGroupedPeriodsDestructor(Instance const& instance_, const int N_);
+public:
+    Solution* destruct(Solution *solution) override;
+};
+
+class InsertHeuristic {
+protected:
+    ExamTT const& instance;
+public:
+    InsertHeuristic(ExamTT const& instance_) : instance(instance_) {}
+public:
+    virtual Assignement searchPosition(ExamTTSolution*, ExamId)=0;
+};
+
+struct RandomOrderInserter : Constructor {
+private:
+    Instance const& instance;
+    InsertHeuristic* insertHeuristic;
+    std::vector<ExamId> inserted;
+public:
+    RandomOrderInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_);
+public:
+    Solution* construct(Solution *partial) override;
+};
+
+struct DegreeInserter : Constructor {
+private:
+    Instance const& instance;
+    InsertHeuristic* insertHeuristic;
+    std::vector<Two<int>> data;
+public:
+    DegreeInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_) : instance(instance_), insertHeuristic(insertHeuristic_) {}
+public:
+    Solution* construct(Solution *partial) override;
+};
+
+struct DSaturInserter : Constructor {
+private:
+    Instance const& instance;
+    InsertHeuristic* insertHeuristic;
+public:
+    DSaturInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_) : instance(instance_), insertHeuristic(insertHeuristic_) {}
+public:
+    Solution* construct(Solution *partial) override;
+};
+
+struct BestInsertHeuristic : InsertHeuristic {
+public:
+    BestInsertHeuristic(ExamTT const& instance) : InsertHeuristic(instance) {}
+public:
+    Assignement searchPosition(ExamTTSolution *, ExamId) override;
+};
+
 /**
  * @brief Destruct randomly, constructs by greedy method
  */
-struct IteratedGreedyNeihborhood : public emili::Neighborhood {
+struct IteratedGreedyNeighborhood : public emili::Neighborhood {
 protected:
     ExamTT const& instance;
 
@@ -1020,11 +1161,11 @@ protected:
     const int G;
     std::vector<ExamId> inserted;
 public:
-    IteratedGreedyNeihborhood(ExamTT const& instance_, const int G_) : instance(instance_), G(G_) {
+    IteratedGreedyNeighborhood(ExamTT const& instance_, const int G_) : instance(instance_), G(G_) {
         reset();
     }
 
-    ~IteratedGreedyNeihborhood() {}
+    ~IteratedGreedyNeighborhood() {}
 
     void reset() override;
 
@@ -1049,19 +1190,10 @@ struct BruteForce : emili::LocalSearch {
     Solution* search(Solution* initial) override;
 };
 
-struct BSUSA : emili::LocalSearch {
-    BSUSA(
-        Instance& i,
-        emili::InitialSolution* init,
-        SAInitTemp* initialTemperature,
-        SATempLength* tempLegth,
-        SACooling* cooling
-    );
-    Solution* search(Solution* initial) override;
-    void searchInPlace(Solution* initial) override;
-};
-
+namespace stats {
 void kempe_print_iteration(ExamTT& instance, std::vector<int> initPeriods, bool useFastIter=false, bool useIterate=false);
+void kempe_compare_size_fast_iter(ExamTT& instance);
+}
 
 namespace test {
 void delta(const ExamTT &inst, int N, bool checkEachMove);

@@ -348,6 +348,7 @@ emili::Solution* emili::Neighborhood::NeighborhoodIterator::operator *()
 
 emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::begin(emili::Solution *startSolution)
 {
+    reset(); // to support easily successive iterations
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
 }
 
@@ -835,16 +836,18 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     emili::Solution* s = init->generateEmptySolution();
      *s = *bestSoFar;
     emili::Solution* s_s = nullptr;
-    //initialization done
+    // initialization done
     do{
 
-        //Perturbation step
+        // Perturbation step
         emili::Solution* s_p = pert.perturb(s);
-        //local search on s_p
+
+        // local search on s_p
         if(s!=s_s && s_s != nullptr)
             delete s_s;
         s_s = ls.search(s_p);
-        //best solution
+
+        // best solution
         if(*s_s < *bestSoFar)
         {
 
@@ -852,10 +855,11 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
             //s_time = clock();
         }
         if(s != s_p)
-        delete s_p;
-        //acceptance step
+            delete s_p;
+
+        // acceptance step
         s_p = s;
-        s = acc.accept(s_p,s_s);
+        s = acc.accept(s_p, s_s);
         if(s != s_p)
             delete s_p;
     }while(!termcriterion->terminate(s,s_s));    

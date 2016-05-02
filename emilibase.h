@@ -185,8 +185,26 @@ public:
 
 /*
  * The class models a neighborhood of a solution
- * A basic neighborhood is ITERABLE
- * A random neighborhood can produce one RANDOM neighbor (SimulatedAnnealing)
+ * - A basic neighborhood is ITERABLE
+ * - A random neighborhood can produce one RANDOM neighbor (SimulatedAnnealing)
+ * - Note that "random exclusive" neighborhhods are not iterable (p probability insert vs 1-p probability swap for instance)
+ *
+ * reset() is called before begin() calls
+ * Ways of iterating (depending on implementation)
+ *
+ * 1) Iterator
+ * for(auto it = neigh.base(sol); it != neigh.end(); ++it)
+ *     Solution* a = *it; // may need cast to your problem
+ *     ...
+ *
+ * for(Solution* a : it)
+ *     ...
+ *
+ * 2) iterate function (only for in place iterations)
+ * TSPSolution* sol;
+ * neigh.iterate(sol, [sol]{
+ *     sol->graph...
+ * });
 */
 class Neighborhood
 {
@@ -280,6 +298,7 @@ public:
      *
      * After reset, the state should the same as the one on creation.
      * In the constructor, reset() should be called
+     * neighborhood.begin() will call reset()
      */
     virtual void reset()=0;
 
@@ -766,7 +785,7 @@ public:
 class Destructor: public emili::Perturbation
 {
 public:
-    virtual emili::Solution* destruct(Solution* solutioon)=0;
+    virtual emili::Solution* destruct(Solution* solution)=0;
     virtual emili::Solution* perturb(Solution *solution) { return destruct(solution); }
 };
 
