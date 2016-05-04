@@ -1764,7 +1764,7 @@ emili::Solution* emili::pfsp::RSIOPerturbation::perturb(Solution *solution)
 
     //assert(min == instance.computeObjectiveFunction(solPartial));
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
-    instance.evaluateSolution(*s);
+    //instance.evaluateSolution(*s);
     return s;
 }
 
@@ -1846,7 +1846,7 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
 
     //assert(min == instance.computeObjectiveFunction(solPartial));
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
-    instance.evaluateSolution(*s);
+    //instance.evaluateSolution(*s);
     return s;
 }
 
@@ -1972,7 +1972,7 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
 
     //assert(min == instance.computeObjectiveFunction(solPartial));
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
-    instance.evaluateSolution(*s);
+    //instance.evaluateSolution(*s);
     return s;
 }
 
@@ -2007,7 +2007,7 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
 
     solPartial = s_n->getJobSchedule();
-    delete s_n;
+    //delete s_n;
     for(int l=0;l<removed.size();l++){
         sops++;
         k=removed[l];
@@ -2038,9 +2038,11 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     }
 
     //assert(min == instance.computeObjectiveFunction(solPartial));
-    s_n = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-    instance.evaluateSolution(*s_n);
-   // assert(s_n->getSolutionValue() >= 0);
+    s_n->setJobSchedule(solPartial);
+
+   // instance.evaluateSolution(*s_n);
+    //assert(min==s_n->getSolutionValue());
+    s_n->setSolutionValue(min);
     return s_n;
 }
 
@@ -2128,7 +2130,10 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
 
    // delete s;
     s_n->setJobSchedule(solPartial);
-    instance.evaluateSolution(*s_n);
+
+   // instance.evaluateSolution(*s_n);
+    //assert(min==s_n->getSolutionValue());
+    s_n->setSolutionValue(min);
     return s_n;
 }
 
