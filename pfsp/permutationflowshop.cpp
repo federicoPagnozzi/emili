@@ -2002,7 +2002,6 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
 
     solPartial = s_n->getJobSchedule();
-    assert(solPartial.size() >= 1);
     delete s_n;
     for(int l=0;l<removed.size();l++){
         sops++;
@@ -2227,6 +2226,21 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::TaillardAcceleratedInsert
 #else
             computeTAmatrices(sol);
 #endif
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::begin(emili::Solution *base)
+{
+    ep_iterations = 1;
+    sp_iterations = 1;
+    std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
+    sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+#else
+            computeTAmatrices(sol);
+#endif
+    improved = false;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
@@ -2600,6 +2614,116 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
         //assert(c_max == old_v);
         value->setSolutionValue(c_max);
         return value;
+    }
+}
+
+emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        end_position = ((end_position)%njobs)+1;
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+        int sol_i;
+        if(ep_iterations < njobs){
+            ep_iterations++;
+            /*if(ep_iterations == sp_iterations){
+                ep_iterations++;
+                end_position++;
+            }*/
+            if(end_position == start_position-1)
+            {
+                end_position=((end_position+1)%njobs)+1;
+                ep_iterations+=2;
+                if(ep_iterations > njobs && sp_iterations+1 > njobs)
+                    return nullptr;
+            }
+            sol_i = newsol[start_position];
+            newsol.erase(newsol.begin()+start_position);
+        }
+        else
+        {
+            sp_iterations++;
+            ep_iterations = 1;
+            start_position = ((start_position)%njobs)+1;
+            if(end_position == start_position-1)
+            {
+                end_position=((end_position+1)%njobs)+1;
+                ep_iterations+=2;
+                if(ep_iterations > njobs && sp_iterations+1 > njobs)
+                    return nullptr;
+            }
+            sol_i = newsol[start_position];
+            newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#else
+            computeTAmatrices(newsol);
+
+#endif
+        }
+        newsol.insert(newsol.begin()+end_position,sol_i);
+        long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
+        long int c_max = c_cur+tail[1][end_position];
+        int old_v = value->getSolutionValue();
+        for (int i = 2; i <= nmac; ++i) {
+            int c_pm = head[i][end_position-1];
+
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
+            }
+
+            c_cur = c_cur + pmatrix[sol_i][i];
+
+            long int c_can = (c_cur+tail[i][end_position]);
+
+            if(c_can>value->getSolutionValue())
+            {
+                value->setSolutionValue(c_can);
+                return value;
+            }
+
+            c_max = c_max>c_can?c_max:c_can;
+        }
+        //long int old_vi  = pis.computeObjectiveFunction(newsol);
+        //std::cout << c_max << " - " << old_v << std::endl;
+        //assert(c_max == old_vi);
+
+        if(c_max < old_v)
+        {
+           improved = true;
+        }
+        value->setSolutionValue(c_max);
+        return value;
+    }
+}
+
+void emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::reverseLastMove(Solution *step)
+{
+    if(!improved)
+    {
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
+        int sol_i = newsol[end_position];
+        newsol.erase(newsol.begin()+end_position);
+        newsol.insert(newsol.begin()+start_position,sol_i);
+    }
+    else
+    {
+        std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule());
+        int old_v = pis.computeMS(sol);
+        step->setSolutionValue(old_v);
+        sol.erase(sol.begin()+start_position);
+    #ifdef ENABLE_SSE
+                computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+    #else
+                computeTAmatrices(sol);
+    #endif
+        improved = false;
     }
 }
 

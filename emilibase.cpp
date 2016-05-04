@@ -344,9 +344,9 @@ bool emili::Neighborhood::NeighborhoodIterator::operator !=(const emili::Neighbo
 }
 
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator++()
-{
-    n->reverseLastMove(line_);
+{    
     line_->setSolutionValue(base_value);
+    n->reverseLastMove(line_);
     this->line_ = n->computeStep(this->line_);
     return *this;
 }
@@ -498,12 +498,12 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
         Neighborhood::NeighborhoodIterator end = neighbh->end();
         do
         {                       
-            *bestSoFar = *incumbent;
+            *bestSoFar = *incumbent;            
             Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
             ithSolution = *iter;
             for(;iter!=end;++iter)
             {
-                if(incumbent->operator >( *ithSolution)){
+                if(incumbent->operator >( *ithSolution)){                    
                     *incumbent = *ithSolution;
                 }                
             }
@@ -1042,6 +1042,10 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
 bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
     if(current_step >= max_steps_){
+        if(*currentSolution > *newSolution)
+        {
+            *currentSolution = *newSolution;
+        }
         return true;
     }
     else

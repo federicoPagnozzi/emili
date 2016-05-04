@@ -679,7 +679,9 @@ public:
     virtual int size();
 };
 
-
+/*
+ * Basic insert neighborhood
+ */
 class PfspInsertNeighborhood: public emili::pfsp::PfspNeighborhood
 {
 protected:
@@ -700,6 +702,9 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
+/*
+ * Insert neighborhood with Taillard's acceleration
+ */
 class TaillardAcceleratedInsertNeighborhood: public emili::pfsp::PfspInsertNeighborhood
 {
 protected:
@@ -711,6 +716,22 @@ protected:
     virtual Solution* computeStep(Solution *value);
 public:
     TaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspInsertNeighborhood(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()) { }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+/*
+ * Insert neighborhood with Taillard's acceleration
+ * that changes the base solution after each improvement
+ */
+class FSTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    bool improved;
+    void computeTAmatrices(std::vector<int>& sol);
+    virtual Solution* computeStep(Solution *value);
+    virtual void reverseLastMove(Solution *step);
+public:
+    FSTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),improved(false) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 

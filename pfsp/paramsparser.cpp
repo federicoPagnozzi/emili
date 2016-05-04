@@ -147,6 +147,7 @@
 
 /* Makespan */
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
+#define NEIGHBORHOOD_FSTA_INSERT "fstainsert"
 
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
@@ -639,7 +640,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
 
-        oss.str(""); oss  << "Iterated greedy perturbation that inserts first the removed job with max sum of completion times. Number of job erased " << n <<".\n\t";
+        oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGIOPerturbation(n,*istance);
     }
@@ -649,7 +650,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
 
-        oss.str(""); oss  << "Iterated greedy perturbation that inserts first the removed job with max sum of completion times using taillard acceleration. Number of job erased " << n <<".\n\t";
+        oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSIOPerturbation(n,*istance);
     }
@@ -1180,6 +1181,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     {
         printTab( "Insert with Taillard Acceleration");
         neigh = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_FSTA_INSERT))
+    {
+        printTab( "Insert with Taillard Acceleration that updates the base solution after each improvement");
+        neigh = new emili::pfsp::FSTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_TAx_INSERT))
     {

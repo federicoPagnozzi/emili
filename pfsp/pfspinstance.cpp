@@ -3526,6 +3526,52 @@ long int PfspInstance::computeSDSTWT(std::vector<int> &sol, int size)
 
 }
 
+/*
+double computeMS_TEST(PfspInstance& i, std::vector <int>& v)
+{
+        int N = i.getNbJob();
+        int M = i.getNbMac();
+        std::vector<int> _fsp(v);
+        //_fsp.erase(_fsp.begin());
+        const std::vector < std::vector<long> >& p = i.getProcessingTimesMatrix();
+        int current;        // current job to be considered
+        int end_time_current[N], end_time_previous[N];
+
+        // initialize the end times of the jobs on the first machine
+        current = _fsp[1];  // first job to be scheduled
+        end_time_previous[0] = p[current][1];
+        end_time_current[0] = 0;
+        for (int i=1; i < N; i++) {
+           current = _fsp[i+1];
+           end_time_previous[i] = end_time_previous[i-1] + p[current][1];
+           end_time_current[i] = 0;
+        }
+
+        // calculate makespan with iterating formula
+        for (int j=1; j < M; j++) {
+           current = _fsp[1];
+           end_time_current[0] = end_time_previous[0] + p[current][j+1];
+           for (int i=1; i < N; i++) {
+               current = _fsp[i+1];
+               if (end_time_current[i-1] > end_time_previous[i])
+                   end_time_current[i] = end_time_current[i-1] + p[current][j+1];
+               else
+                   end_time_current[i] = end_time_previous[i] + p[current][j+1];
+           }
+           for (int l=0; l < N; l++)
+               end_time_previous[l] = end_time_current[l];
+        }
+
+        unsigned int long sum = 0;
+
+        for (unsigned int j=0 ; j<N ; j++)
+            if(end_time_current[j] > sum)
+            {
+                sum = end_time_current[j];
+            }
+           //sum += w[_fsp[j]] * (unsigned int) std::max (0, (int) (end_time_current[j] - d[_fsp[j]]));
+        return sum;
+}*/
 
 
 

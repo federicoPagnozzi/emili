@@ -179,9 +179,9 @@ class PfspInstance{
 
     /* Compute weighted tardines starting from an index*/
     long int computeWT(std::vector< int > & sol,std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
-
+    //Compute weighted tardiness starting from the permutation and a partial calculation
     long int computeWT(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
-    //to compute WT and save the values for the job job
+    //Starting from a solution computes the completion time for each machine ( prevjob) and the pre
     void computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     void setSilence(bool s);
 
@@ -198,5 +198,6 @@ class PfspInstance{
 
 
 };
+
 
 #endif
