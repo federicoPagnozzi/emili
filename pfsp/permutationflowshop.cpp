@@ -2065,10 +2065,10 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
     //
     // Local search on partial
     //
-      emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-      s->setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
-      s =(emili::pfsp::PermutationFlowShopSolution*) ls->search(s);
-      solPartial = s->getJobSchedule();
+    emili::pfsp::PermutationFlowShopSolution s(solPartial);
+    s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+    emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+    solPartial = s_n->getJobSchedule();
     int mac = instance.getNmachines();
     for(int l=0;l<removed.size();l++){
         sops++;
@@ -2121,10 +2121,10 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
 
     }
 
-    delete s;
-    s = new emili::pfsp::PermutationFlowShopSolution(solPartial);
-    instance.evaluateSolution(*s);
-    return s;
+   // delete s;
+    s_n = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+    instance.evaluateSolution(*s_n);
+    return s_n;
 }
 
 
