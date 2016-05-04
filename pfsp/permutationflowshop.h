@@ -378,6 +378,8 @@ public:
     {}
     /*Returns the job sequence that rapresents this solution*/
     virtual std::vector< int >& getJobSchedule();
+    /*Set the job sequence*/
+    virtual void setJobSchedule(std::vector<int>& newSeq);
     /*Returns a printable version of the job sequence*/
     virtual std::string getSolutionRepresentation();
     /*Implements the clone method of emili::Solution*/

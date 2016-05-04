@@ -660,6 +660,11 @@ std::vector< int > & emili::pfsp::PermutationFlowShopSolution::getJobSchedule()
     return this->solution;
 }
 
+virtual void emili::pfsp::PermutationFlowShopSolution::setJobSchedule(std::vector<int>& newSeq)
+{
+    this->solution = newSeq;
+}
+
 
 const std::vector< std::vector < long int > > & emili::pfsp::PermutationFlowShop::getProcessingTimesMatrix()
 {
@@ -2122,7 +2127,7 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
     }
 
    // delete s;
-    s_n = new emili::pfsp::PermutationFlowShopSolution(solPartial);
+    s_n->setJobSchedule(solPartial);
     instance.evaluateSolution(*s_n);
     return s_n;
 }
