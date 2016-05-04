@@ -5,6 +5,11 @@
 
      Grammar for PFSP Makespan,
      without time related termination and optimized for simple algorithms
+
+     13/04/2016
+
+     fixed bug that was used by irace to instantiate a two level ils by setting soater as termination
+     on a three level ils.
  -->
 
 <gr:grammar xmlns:gr="grammar">
@@ -64,6 +69,16 @@
    <![CDATA[iteration ]]><pfsp:iteration_number/><![CDATA[ ]]>
    -->  
 </pfsp:termination>
+
+
+<pfsp:ilstermination>
+   <![CDATA[locmin ]]>
+   <or/>
+    <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
+   <!--<or/>
+   <![CDATA[iteration ]]><pfsp:iteration_number/><![CDATA[ ]]>
+   -->  
+</pfsp:ilstermination>
 
 <pfsp:neighborhood>
 	   <![CDATA[exchange ]]>
@@ -144,7 +159,7 @@
 	<pfsp:ils>
 		<![CDATA[ils ]]>
 		<pfsp:ilsalgos/>
-		<pfsp:termination/>
+		<pfsp:ilstermination/>
 		<pfsp:pertubation/>
 		<pfsp:acceptance/>
 	</pfsp:ils>
