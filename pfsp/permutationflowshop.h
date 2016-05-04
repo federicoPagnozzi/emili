@@ -642,6 +642,7 @@ protected:
 public:
     IgLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::IGPerturbation(d_parameter,problem),ls(ls) {/*   */}
     virtual emili::Solution* perturb(Solution *solution);
+    ~IgLsPerturbation() { delete ls;}
 };
 
 class RSLSPerturbation: public emili::Perturbation
@@ -656,6 +657,7 @@ protected:
 public:
     RSLSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ls(ls) { }
     virtual emili::Solution* perturb(Solution *solution);
+    ~RSLSPerturbation() { delete ls;}
 };
 
 class PfspDestructorTest: public emili::Destructor

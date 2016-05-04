@@ -660,7 +660,7 @@ std::vector< int > & emili::pfsp::PermutationFlowShopSolution::getJobSchedule()
     return this->solution;
 }
 
-virtual void emili::pfsp::PermutationFlowShopSolution::setJobSchedule(std::vector<int>& newSeq)
+void emili::pfsp::PermutationFlowShopSolution::setJobSchedule(std::vector<int>& newSeq)
 {
     this->solution = newSeq;
 }
