@@ -1714,7 +1714,7 @@ emili::Solution* emili::pfsp::RSIOPerturbation::perturb(Solution *solution)
 
     for(int l=0;l<removed.size();l++){
         k=removed[l];
-
+        sops++;
         min = std::numeric_limits<int>::max();
 
 #ifdef ENABLE_SSE
@@ -1758,7 +1758,7 @@ emili::Solution* emili::pfsp::RSIOPerturbation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sops++;
+
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -1789,10 +1789,9 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
     }
 
     for(int l=0;l<removed.size();l++){
+        sops++;
         k=removed[l];
-
         min = std::numeric_limits<int>::max();
-
 #ifdef ENABLE_SSE
         computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,nmac);
 #else
@@ -1825,12 +1824,6 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
                 long int c_can = (c_cur+tail[i][r]);
                 c_max = c_max>c_can?c_max:c_can;
             }
-           /* tmp = instance.computeObjectiveFunction(solTMP,sops);
-            if(c_max != tmp)
-            {
-                std::cout << c_max << " != " << tmp << std::endl;
-                exit(-1);
-            }*/
             tmp = c_max;
 
             if(tmp<min){
@@ -1840,7 +1833,7 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-        sops++;
+
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -1873,7 +1866,7 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
 
     for(int l=0;l<removed.size();l++){
         k=removed[l];
-
+        sops++;
         min = std::numeric_limits<int>::max();
 
 #ifdef ENABLE_SSE
@@ -1965,12 +1958,11 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
                 ind = bp;
             }
         /*END TIE BREAKING*/
-        solPartial.insert(solPartial.begin()+ind,k);
-        sops++;
+        solPartial.insert(solPartial.begin()+ind,k);        
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
-    //assert(min == instance.computeObjectiveFunction(solPartial));
+    assert(min == instance.computeObjectiveFunction(solPartial));
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     //instance.evaluateSolution(*s);
     return s;
