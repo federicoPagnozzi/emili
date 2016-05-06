@@ -734,8 +734,9 @@ protected:
     void computeTAmatrices(std::vector<int>& sol);
     virtual Solution* computeStep(Solution *value);
     virtual void reverseLastMove(Solution *step);
+    int current_value;
 public:
-    FSTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),improved(false) { }
+    FSTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),improved(false),current_value(0){ }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 

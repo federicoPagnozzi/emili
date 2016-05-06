@@ -2242,6 +2242,7 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::FSTaillardAcceleratedInse
 #else
             computeTAmatrices(sol);
 #endif
+    current_value = base->getSolutionValue();
     improved = false;
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
@@ -2630,7 +2631,8 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
     {
         end_position = ((end_position)%njobs)+1;
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
-        int ktest = pis.computeMS(newsol);
+       // int ktest = pis.computeMS(newsol);
+       // assert(pis.computeMS(newsol)==current_value);
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
@@ -2696,8 +2698,9 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
         //std::cout << c_max << " - " << old_v << std::endl;
         //assert(c_max == old_vi);
 
-        if(c_max < ktest)
+        if(c_max < current_value)
         {
+           current_value = c_max;
            improved = true;
         }
         value->setSolutionValue(c_max);
