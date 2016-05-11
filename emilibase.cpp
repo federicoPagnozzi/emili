@@ -734,6 +734,12 @@ emili::Solution* emili::RandomMovePerturbation::perturb(Solution *solution)
     return ret;
 }
 
+emili::Solution* emili::RandomMovePerturbationInPlace::perturb(Solution *solution) {
+    for (int var = 0; var < numberOfSteps; ++var)
+        explorer.randomStep(solution);
+    return solution;
+}
+
 emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
 {
 
@@ -755,6 +761,25 @@ emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
     }
 
     return ret;
+}
+
+emili::Solution* emili::VNRandomMovePerturbationInPlace::perturb(Solution *solution)
+{
+
+    for (int var = 0; var < numberOfSteps; ++var)
+        explorers[currentExplorer]->randomStep(solution);
+
+    if(!(currentIteration <= numberOfIterations))
+    {
+        currentIteration = 0;
+        currentExplorer = (currentExplorer + 1) % explorers.size();
+    }
+    else
+    {
+        currentIteration++;
+    }
+
+    return solution;
 }
 
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
@@ -1223,4 +1248,3 @@ emili::Solution* emili::GVNS::getBestSoFar()
     }
     return bestSoFar;
 }
-

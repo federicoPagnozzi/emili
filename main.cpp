@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
 {
     // prs::emili_header();
 
-    srand(time(0)); // will probably changed by the parser
+    srand(time(0)); // will probably be changed by the parser
 
     clock_t time = clock();
 

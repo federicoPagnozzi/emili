@@ -31,8 +31,30 @@ bool SAMetropolisAcceptance::acceptViaDelta(emili::Solution *new_solution, doubl
     if(delta > 0) {
         // not improving
         double prob = std::exp(- delta / temperature); // (1.3806503e-23 * temperature) ?
-        // nnotimproving++;
-        // sumprob += prob;
+
+        if(prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+            return false;
+        }
+    } else if(ns < status->best_cost) {
+        // ns is better, We keep a copy
+        status->new_best_solution(new_solution, ns, temperature);
+    }
+
+    return true;
+}
+
+bool SAMetropolisAcceptanceDebug::acceptViaDelta(emili::Solution *new_solution, double delta)
+{
+    // double cs = new_solution->getSolutionValue() - delta;
+    double ns = new_solution->getSolutionValue();
+    // delta == ns - cs
+    // cs = ns - delta
+
+    if(delta > 0) {
+        // not improving
+        double prob = std::exp(- delta / temperature); // (1.3806503e-23 * temperature) ?
+        nnotimproving++;
+        sumprob += prob;
 
         if(prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return false;

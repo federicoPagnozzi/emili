@@ -40,12 +40,13 @@ protected:
     emili::Termination* term(prs::TokenManager& tm);
     emili::Acceptance* acc(prs::TokenManager& tm);
     emili::Perturbation* per(prs::TokenManager& tm);
+    emili::Constructor* constructor(prs::TokenManager&);
+    emili::Destructor* destructor(prs::TokenManager&);
+    emili::ExamTT::InsertHeuristic* insertHeuristic(prs::TokenManager& tm);
 
-    emili::Neighborhood* neigh(prs::TokenManager& tm);
-    emili::Neighborhood* neighV(prs::TokenManager& tm);
+    emili::Neighborhood* neigh(prs::TokenManager& tm, bool errorIfNotFound = true);
     std::vector<emili::Neighborhood *> neighs(prs::TokenManager& tm);
 
-    void neighs1(prs::TokenManager& tm, std::vector<emili::Neighborhood *> &nes);
     void problem(prs::TokenManager& tm);
 
     struct SAParser : SAQAPParser {

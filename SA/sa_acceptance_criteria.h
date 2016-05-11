@@ -94,10 +94,16 @@ public:
                                     emili::Solution *new_solution);
 
     virtual bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
-
-    // int nnotimproving = 0;
-    // double sumprob = 0;
 }; // SAMetropolisAcceptance
+
+class SAMetropolisAcceptanceDebug : public SAMetropolisAcceptance {
+public:
+    SAMetropolisAcceptanceDebug(float initial_temperature): SAMetropolisAcceptance(initial_temperature) { }
+    virtual bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
+
+    int nnotimproving = 0;
+    double sumprob = 0;
+};
 
 
 // connolly paper

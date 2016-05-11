@@ -80,6 +80,15 @@ public:
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution, SAStatus &status);
 };
 
+class SARandomExplorationNoCopyDebug : public SARandomExplorationNoCopy {
+public:
+    SARandomExplorationNoCopyDebug(emili::Neighborhood *_neigh, SAAcceptance *_acceptance, SATermination *_term) : SARandomExplorationNoCopy(_neigh, _acceptance, _term) {}
+
+    int nacc = 0, nnacc = 0;
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution, SAStatus &status);
+};
+
 
 class SASequentialExploration: public SAExploration {
 

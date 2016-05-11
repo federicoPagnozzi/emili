@@ -373,41 +373,51 @@ public:
 class LocalSearch
 {
 public:
-InitialSolution* init;
-Termination* termcriterion;
-Neighborhood* neighbh;
-Solution* bestSoFar;
+    InitialSolution* init;
+    Termination* termcriterion;
+    Neighborhood* neighbh;
 
-int seconds;
+    Solution* bestSoFar = nullptr;
+    int seconds = 0;
+
     LocalSearch() { }
 public:
-    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(nullptr)    {    }
+    LocalSearch(InitialSolution& initialSolutionGenerator, Termination& terminationcriterion, Neighborhood& neighborh):
+        init(&initialSolutionGenerator), termcriterion(&terminationcriterion), neighbh(&neighborh) {}
+
+    LocalSearch(InitialSolution* initialSolutionGenerator, Termination* terminationcriterion, Neighborhood* neighborh):
+        init(initialSolutionGenerator), termcriterion(terminationcriterion), neighbh(neighborh) {}
 
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, int time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(nullptr)    {    }
-    /*
-     * search use the InitialSolutionGenerator instance
+        init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh), seconds(time) {}
+
+    LocalSearch(InitialSolution* initialSolutionGenerator, Termination* terminationcriterion, Neighborhood* neighborh, int time):
+        init(initialSolutionGenerator),termcriterion(terminationcriterion),neighbh(neighborh),seconds(time) {}
+
+    /**
+     * @brief Search use the InitialSolutionGenerator instance
      * to generate the first solution for the local search
-    */
+     * @return new solution
+     */
     virtual Solution* search();
-    /*
-     * a starting solution can be also provided.
-     * A New solution must be returned
+    /**
+     * @brief Search starting from a starting solution
+     * @return new solution or initial modified
      */
     virtual Solution* search(Solution* initial);
 
     /**
      * @brief searchInPlace will modify the current solution with the
-     * @param initial
      */
     virtual void searchInPlace(Solution* initial);
+
     /*
      * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
     virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds, Solution* initial);
+
     /*
      * In order to make easier the creation of batchs of LocalSearch objects the time of execution
      * can be inserted as an instance variable in the constructor of the object so these methos below
@@ -472,17 +482,21 @@ public:
 class Perturbation
 {
   public:
+    /**
+     * @brief perturb a solution
+     * @return new solution or modified solution
+     */
     virtual Solution* perturb(Solution* solution)=0;
 };
 
 /*
  * NO pertubation
+ * in place implementation
  */
-
 class NoPerturbation: public emili::Perturbation
 {
 public:
-    virtual Solution* perturb(Solution *solution) { return solution;}
+    virtual Solution* perturb(Solution *solution) { return solution; }
 };
 
 /*
@@ -498,6 +512,14 @@ public:
     virtual Solution* perturb(Solution* solution);
 };
 
+class RandomMovePerturbationInPlace : public RandomMovePerturbation
+{
+public:
+    RandomMovePerturbationInPlace(Neighborhood& neighboorhod, int number_of_steps)
+        : RandomMovePerturbation(neighboorhod, number_of_steps) {}
+    virtual Solution* perturb(Solution* solution);
+};
+
 class VNRandomMovePerturbation : public emili::Perturbation
 {
 protected:
@@ -509,6 +531,14 @@ protected:
 public:
   VNRandomMovePerturbation(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations):explorers(neighborhoods),numberOfSteps(number_of_steps),numberOfIterations(number_of_iterations),currentIteration(0),currentExplorer(0) { }
   virtual Solution* perturb(Solution *solution);
+};
+
+class VNRandomMovePerturbationInPlace : public VNRandomMovePerturbation
+{
+public:
+    VNRandomMovePerturbationInPlace(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations)
+        : VNRandomMovePerturbation(neighborhoods, number_of_steps, number_of_iterations) {}
+    virtual Solution* perturb(Solution *solution);
 };
 
 class Acceptance
@@ -802,7 +832,16 @@ public:
       this->init = nullptr;
       this->termcriterion = nullptr;
   }
+  /**
+   * @brief Construct from partial solution
+   * @return new solution or partial modified
+   */
  virtual emili::Solution* construct(emili::Solution* partial) = 0;
+
+  /**
+  * @brief Construct solution from nothing
+  * @return new solution fully constructed (not partial)
+  */
  virtual emili::Solution* constructFull() = 0;
  virtual emili::Solution* search() {return constructFull();}
  virtual emili::Solution* search(emili::Solution* initial) { return construct(initial);}

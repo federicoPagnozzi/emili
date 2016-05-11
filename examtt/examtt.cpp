@@ -1246,6 +1246,13 @@ void ExamTTSolution::initFromAssign(ExamTT const& instance, std::vector<std::pai
     buildStructures(instance);
 }
 
+void ExamTTSolution::initFromZeroPeriodAndZeroRoom(ExamTT const& instance) {
+    const int E = instance.E();
+
+    std::vector<std::pair<int,int>> assign(E, std::pair<int,int>(0,0));
+    initFromAssign(instance, assign);
+}
+
 void ExamTTSolution::initFromPeriodsAndZeroRoom(ExamTT const& instance, const std::vector<int> &initPeriods) {
     const int E = instance.E();
 
@@ -1260,10 +1267,22 @@ void ExamTTSolution::initRandom(InstanceRef instance) {
     initRandom(instance, r);
 }
 
+void ExamTTSolution::initUnassigned(ExamTTSolution::InstanceRef instance) {
+    const int E = instance.E(), P = instance.P(), R = instance.R();
+    periods.assign(E, -1);
+    rooms.assign(E, -1);
+
+    for(int i = 0; i < E; i++)
+        unAssignedExamList.push_back(i);
+
+    computeCost(instance);
+    // costs = CostComponents::zero();
+    // refreshSolutionValue(instance);
+    buildStructures(instance);
+}
+
 void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
-    int E = instance.exams.size();
-    int P = instance.periods.size();
-    int R = instance.rooms.size();
+    const int E = instance.E(), P = instance.P(), R = instance.R();
     periods.resize(E);
     rooms.resize(E);
 
@@ -2103,6 +2122,33 @@ void test::iterateVsComputeStep(ExamTTSolution* solution, Neighborhood* neigh) {
         throw std::invalid_argument("two ways of iterating differ ! " + to_string(first.size()) + " vs " + to_string(second.size()) + " neighbors");
 }
 
+void test::constructUnassignedVsRemoveAll(ExamTT& instance) {
+    ExamTTSolution sol1;
+    sol1.initFromZeroPeriodAndZeroRoom(instance);
+    for(int i = 0; i < instance.E(); ++i)
+        sol1.removeExam(instance, i);
+
+    ExamTTSolution sol2;
+    sol2.initUnassigned(instance);
+
+    std::set<int> A1(sol1.unAssignedExamList.begin(), sol1.unAssignedExamList.end());
+    std::set<int> A2(sol2.unAssignedExamList.begin(), sol2.unAssignedExamList.end());
+
+    if(!(true
+         && A1.size() == sol1.unAssignedExamList.size()
+         && A2.size() == sol2.unAssignedExamList.size()
+         && A1.size() == instance.E()
+         && A2.size() == instance.E()
+         && A1 == A2
+         && sol1.periods == sol2.periods
+         && sol1.rooms == sol2.rooms
+         && std::all_of(sol1.periods.begin(), sol1.periods.end(), [](int i){ return i == -1; })
+         && std::all_of(sol1.rooms.begin(), sol1.rooms.end(), [](int i){ return i == -1; })
+    )) {
+        throw std::invalid_argument("error");
+    }
+}
+
 namespace test {
 void interactive(ExamTT const& inst) {
     ExamTTSolution sol;
@@ -2223,12 +2269,32 @@ void ExamTTSolution::buildStructures(InstanceRef instance)
     examsByPeriodRoomIterators.resize(E);
     examsByPeriodRoom.assign(P, std::vector<std::list<ExamId>>(R, std::list<ExamId>()));
 
-    for(ExamId e = 0; e < E; e++)
-        examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
-
     durationColorUsed.assign(P, std::vector<MapVec<Color,int>>(R, std::vector<int>(instance.numberOfDurations(), 0)));
-    for(ExamId e = 0; e < E; e++)
-        durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
+
+    if(unAssignedExamList.size()) {
+        if(unAssignedExamList.size() == E) {
+
+        } else {
+
+            for(ExamId e = 0; e < E; e++)
+                if(isFullyAssigned(e))
+                    examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
+
+            for(auto it = unAssignedExamList.begin(); it != unAssignedExamList.end(); ++it)
+                examsByPeriodRoomIterators[*it] = it;
+
+            durationColorUsed.assign(P, std::vector<MapVec<Color,int>>(R, std::vector<int>(instance.numberOfDurations(), 0)));
+            for(ExamId e = 0; e < E; e++)
+                durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
+        }
+    } else {
+
+        for(ExamId e = 0; e < E; e++)
+            examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
+
+        for(ExamId e = 0; e < E; e++)
+            durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
+    }
 
     hasStructures = true;
 }
@@ -3123,6 +3189,22 @@ Solution *RandomInitialSolution::generateEmptySolution()
     return new ExamTTSolution;
 }
 
+Solution *ConstructorInitialSolution::generateSolution()
+{
+    ExamTT const& instance = (ExamTT const&) this->instance;
+
+    auto sol = constructor->constructFull();
+
+    cout << "Initial solution " << sol->getSolutionRepresentation() << endl;
+
+    return sol;
+}
+
+Solution *ConstructorInitialSolution::generateEmptySolution()
+{
+    return new ExamTTSolution;
+}
+
 Solution *ZeroInitialSolution::generateSolution()
 {
     ExamTT const& instance = (ExamTT const&) this->instance;
@@ -3652,7 +3734,8 @@ FixedRandomDestructor::FixedRandomDestructor(ExamTT const& instance_, const int 
     : instance(instance_)
     , inserted(G)
 {
-
+    if(!(G <= instance.E()))
+        throw std::invalid_argument("assert G <= instance.E()");
 }
 
 Solution *FixedRandomDestructor::destruct(Solution *rawStep) {
@@ -3759,7 +3842,7 @@ void KempeChainNeighborhoodFastIter::iterate(Solution *base, std::function<void 
 
     int E = instance.E(), P = instance.P();
 
-    examsByPeriod.assign(P, {});
+    examsByPeriod.assign(P, std::set<ExamId>());
     for(ExamId e = 0; e < E; e++)
         examsByPeriod[sol->periods[e]].insert(e);
 
@@ -3841,7 +3924,7 @@ void KempeChainNeighborhoodFastIter::reverseLastMove(Solution *rawStep) {
 }
 
 RandomOrderInserter::RandomOrderInserter(const Instance &instance_, InsertHeuristic *insertHeuristic_)
-    : instance(instance_)
+    : BaseConstructor(instance_)
     , insertHeuristic(insertHeuristic_)
 {
 
@@ -3908,6 +3991,8 @@ NRandomDaysDestructor::NRandomDaysDestructor(const Instance &instance_, const in
     : instance(instance_)
     , N(N_)
 {
+    if(!(N <= instance.Days()))
+        throw std::invalid_argument("assert N <= instance.Days()");
     days.resize(instance.Days());
     for(size_t i = 0; i < days.size(); i++)
         days[i] = i;
@@ -3933,7 +4018,8 @@ NGroupedDaysDestructor::NGroupedDaysDestructor(const Instance &instance_, const 
     : instance(instance_)
     , N(N_)
 {
-
+    if(!(N <= instance.Days()))
+        throw std::invalid_argument("assert N <= instance.Days()");
 }
 
 Solution* NGroupedDaysDestructor::destruct(Solution *solution) {
@@ -3956,7 +4042,8 @@ NGroupedPeriodsDestructor::NGroupedPeriodsDestructor(const Instance &instance_, 
     : instance(instance_)
     , N(N_)
 {
-
+    if(!(N <= instance.P()))
+        throw std::invalid_argument("assert N <= instance.P()");
 }
 
 Solution* NGroupedPeriodsDestructor::destruct(Solution *solution) {

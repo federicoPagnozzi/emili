@@ -696,11 +696,13 @@ public:
     void writeTo(std::ostream &cout) const;
 
     // methods
+    void initFromZeroPeriodAndZeroRoom(ExamTT const& instance);
     void initFromPeriodsAndZeroRoom(InstanceRef, std::vector<int> const& periods);
     void initFromAssign(InstanceRef, std::vector<std::pair<int,int>> assign);
     void initRandom(InstanceRef, Random&);
 
     void initRandom(InstanceRef);
+    void initUnassigned(InstanceRef);
 
     void move(InstanceRef, ExamId, PeriodId, RoomId);
     void swap(InstanceRef, ExamId, ExamId);
@@ -1109,9 +1111,22 @@ public:
     virtual Assignement searchPosition(ExamTTSolution*, ExamId)=0;
 };
 
-struct RandomOrderInserter : Constructor {
-private:
+struct BaseConstructor : Constructor {
     Instance const& instance;
+    BaseConstructor(Instance const& inst) : instance(inst) {}
+
+    Solution* constructFull() override {
+        auto sol = new ExamTTSolution;
+        sol->initUnassigned(instance);
+        auto c = construct(sol);
+        if(c != sol)
+            delete sol;
+        return c;
+    }
+};
+
+struct RandomOrderInserter : BaseConstructor {
+private:
     InsertHeuristic* insertHeuristic;
     std::vector<ExamId> inserted;
 public:
@@ -1120,23 +1135,21 @@ public:
     Solution* construct(Solution *partial) override;
 };
 
-struct DegreeInserter : Constructor {
+struct DegreeInserter : BaseConstructor {
 private:
-    Instance const& instance;
     InsertHeuristic* insertHeuristic;
     std::vector<Two<int>> data;
 public:
-    DegreeInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_) : instance(instance_), insertHeuristic(insertHeuristic_) {}
+    DegreeInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_) : BaseConstructor(instance_), insertHeuristic(insertHeuristic_) {}
 public:
     Solution* construct(Solution *partial) override;
 };
 
-struct DSaturInserter : Constructor {
+struct DSaturInserter : BaseConstructor {
 private:
-    Instance const& instance;
     InsertHeuristic* insertHeuristic;
 public:
-    DSaturInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_) : instance(instance_), insertHeuristic(insertHeuristic_) {}
+    DSaturInserter(Instance const& instance_, InsertHeuristic* insertHeuristic_) : BaseConstructor(instance_), insertHeuristic(insertHeuristic_) {}
 public:
     Solution* construct(Solution *partial) override;
 };
@@ -1146,6 +1159,15 @@ public:
     BestInsertHeuristic(ExamTT const& instance) : InsertHeuristic(instance) {}
 public:
     Assignement searchPosition(ExamTTSolution *, ExamId) override;
+};
+
+struct ConstructorInitialSolution : emili::InitialSolution {
+    Constructor* constructor;
+    ConstructorInitialSolution(ExamTT& inst, Constructor* c)
+        : emili::InitialSolution(inst), constructor(c) {}
+
+    Solution* generateSolution() override;
+    Solution* generateEmptySolution() override;
 };
 
 /**
@@ -1204,6 +1226,7 @@ void kempe_iteration_vs_random(ExamTT& instance, std::vector<int> initPeriods, i
 void kempe_iteration_vs_random(ExamTT& instance, ExamTTSolution& sol, int N=1000, bool useFastIter=false, bool useIterate=false);
 
 void iterateVsComputeStep(ExamTTSolution* solution, Neighborhood* neigh);
+void constructUnassignedVsRemoveAll(ExamTT& instance);
 }
 
 }

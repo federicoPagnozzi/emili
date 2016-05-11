@@ -44,6 +44,26 @@ emili::Solution* SARandomExplorationNoCopy::nextSolution(emili::Solution *starti
    return startingSolution;
 }
 
+emili::Solution* SARandomExplorationNoCopyDebug::nextSolution(emili::Solution *startingSolution, SAStatus &status) {
+   status.increment_counters();
+
+   double costBefore = startingSolution->getSolutionValue();
+   neigh->randomStep(startingSolution);
+   double delta = startingSolution->getSolutionValue() - costBefore;
+
+   if(! acceptance->acceptViaDelta(startingSolution, delta)) {
+       neigh->reverseLastRandomStep(startingSolution);
+       // assert(costBefore == startingSolution->getSolutionValue());
+       status.not_accepted_sol();
+       nnacc++;
+   } else {
+       status.accepted_sol(startingSolution->getSolutionValue());
+       nacc++;
+   }
+
+   return startingSolution;
+}
+
 
 emili::Solution* SASequentialExploration::nextSolution(emili::Solution *startingSolution,
                                                        SAStatus& status) {
