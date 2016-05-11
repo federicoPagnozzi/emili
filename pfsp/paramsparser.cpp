@@ -700,16 +700,15 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         int nm = istance->getNmachines();
 
         float temp = 0;
-
         for(int i = 1; i<= nj; i++ )
         {
-            for(int j=1; i<=nm; i++)
+            for(int j=1; j<=nm; j++)
             {
                 temp += pm[i][j];
             }
         }
 
-        temp = n*temp/(nj*nm*10);
+        temp = n*(temp/(nj*nm))/10;
 
         oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
         printTab(oss.str().c_str());
