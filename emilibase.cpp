@@ -371,6 +371,7 @@ void emili::Neighborhood::iterate(emili::Solution *base, std::function<void ()> 
 
 emili::Solution* emili::LocalSearch::search()
 {
+    assert(init != nullptr);
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
@@ -854,40 +855,39 @@ emili::Solution* emili::IteratedLocalSearch::search(){
 }
 
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
+    using std::cout;
+    using std::endl;
+
     termcriterion->reset();
     acc.reset();
-    bestSoFar = initial;
     bestSoFar = ls.search(initial);
-    emili::Solution* s = init->generateEmptySolution();
-     *s = *bestSoFar;
+    emili::Solution* s = bestSoFar->clone(); // what is the diff between clone() and x = init->generateEmptySolution(); *s = x;
     emili::Solution* s_s = nullptr;
-    // initialization done
-    do{
 
-        // Perturbation step
+    do {
         emili::Solution* s_p = pert.perturb(s);
 
         // local search on s_p
-        if(s!=s_s && s_s != nullptr)
-            delete s_s;
+        if(s != s_s)
+            delete s_s; // may be null
+
         s_s = ls.search(s_p);
 
         // best solution
-        if(*s_s < *bestSoFar)
-        {
-
+        if(*s_s < *bestSoFar) {
             *bestSoFar = *s_s;
             //s_time = clock();
         }
+
         if(s != s_p)
             delete s_p;
 
-        // acceptance step
         s_p = s;
         s = acc.accept(s_p, s_s);
         if(s != s_p)
             delete s_p;
-    }while(!termcriterion->terminate(s,s_s));    
+    } while(! termcriterion->terminate(s,s_s));
+
     return bestSoFar;
 }
 
@@ -1078,17 +1078,9 @@ void emili::TimedTermination::reset()
 /*
  * LocalMinima terminations
  */
-bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution* newSolution)
+bool emili::LocalMinimaTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
-   //std::cout << currentSolution.getSolutionValue() << " <= " << newSolution.getSolutionValue()<<std::endl;
-    if(newSolution == nullptr)
-    {
-        return true;
-    }
-    else
-    {
-        return currentSolution->operator <=(*newSolution);
-    }
+    return (newSolution == nullptr || currentSolution->operator <=(*newSolution);
 }
 
 /*
@@ -1096,11 +1088,10 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
  */
 bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
-    if(current_step > max_steps_){
+    if(current_step > max_steps_) {
         return true;
     }
-    else
-    {
+    else {
         current_step++;
         return false;
     }

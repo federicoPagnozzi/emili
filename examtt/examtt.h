@@ -108,9 +108,7 @@ struct Random {
 
     template <typename T>
     void shuffle(std::vector<T>& vec) {
-        int N = vec.size();
-        for(int i = 0; i < N; i++)
-            std::swap(vec[N - i], vec[randrange(N - i)]);
+        shuffleFront(vec, vec.size());
     }
 
     /**
@@ -120,7 +118,7 @@ struct Random {
     void shuffleEnd(std::vector<T>& vec, int L) {
         const int N = vec.size();
         for(int i = 0; i < L; i++)
-            std::swap(vec[N - i], vec[randrange(N - i)]);
+            std::swap(vec[N - 1 - i], vec[randrange(N - i)]);
     }
 
     /**
@@ -130,7 +128,7 @@ struct Random {
     void shuffleFront(std::vector<T>& vec, int L) {
         const int N = vec.size();
         for(int i = 0; i < L; i++)
-            std::swap(vec[i], vec[i + randrange(N - i)]);
+            std::swap(vec[i], vec[randrange(i, N)]);
     }
 };
 
@@ -377,6 +375,10 @@ public:
 public:
     // compute meta and other informations
     void compute();
+
+    int problemSize() override {
+        return E();
+    }
 
     // true if all periods are sorted by (date/hour) and function to sort it
     bool periodsSorted() const;
@@ -639,10 +641,10 @@ public:
     MapVec<PeriodId, MapVec<RoomId, std::list<ExamId>>> examsByPeriodRoom;
     std::list<ExamId> unAssignedExamList;
 
-    MapVec<ExamId, std::list<ExamId>::iterator> examsByPeriodRoomIterators;
+    MapVec<ExamId, std::list<ExamId>::iterator> examsIterator;
     MapVec<PeriodId, MapVec<RoomId, MapVec<Color,int>>> durationColorUsed;
 
-    static constexpr bool USE_LAZY_STRUCTURES = true; // will not copy structures on clone, but will build structures when modified
+    static constexpr bool USE_LAZY_STRUCTURES = false; // will not copy structures on clone, but will build structures when modified
     static constexpr bool USE_COLOR_STRUCTURE = true;
     static constexpr bool USE_DELTA = true;
 

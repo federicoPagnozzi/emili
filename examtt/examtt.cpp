@@ -1242,8 +1242,8 @@ void ExamTTSolution::initFromAssign(ExamTT const& instance, std::vector<std::pai
     for(ExamId i = 0; i < E; i++)
         assignement(i) = assign[i];
 
-    computeCost(instance);
     buildStructures(instance);
+    computeCost(instance);
 }
 
 void ExamTTSolution::initFromZeroPeriodAndZeroRoom(ExamTT const& instance) {
@@ -1275,10 +1275,10 @@ void ExamTTSolution::initUnassigned(ExamTTSolution::InstanceRef instance) {
     for(int i = 0; i < E; i++)
         unAssignedExamList.push_back(i);
 
+    buildStructures(instance);
     computeCost(instance);
     // costs = CostComponents::zero();
     // refreshSolutionValue(instance);
-    buildStructures(instance);
 }
 
 void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
@@ -1291,8 +1291,8 @@ void ExamTTSolution::initRandom(ExamTT const& instance, Random & r) {
         rooms[i] = r.randrange(R);
     }
 
-    computeCost(instance);
     buildStructures(instance);
+    computeCost(instance);
 }
 
 void ExamTTSolution::movePeriod(ExamTT const& instance, ExamId e, PeriodId p) {
@@ -1334,7 +1334,7 @@ void ExamTTSolution::applyMove(InstanceRef instance, ExamId e, PeriodId nextP, R
     examsByPeriodRoom[nextP][nextR].splice(
         examsByPeriodRoom[nextP][nextR].end(),
         examsByPeriodRoom[prevP][prevR],
-        examsByPeriodRoomIterators[e]
+        examsIterator[e]
     );
     // iterators are still valid !
 
@@ -1345,6 +1345,9 @@ void ExamTTSolution::applyMove(InstanceRef instance, ExamId e, PeriodId nextP, R
 void ExamTTSolution::removeExam(ExamTT const& instance, ExamId e) {
     if(! USE_DELTA)
         throw std::invalid_argument("! USE_DELTA");
+
+    if(! hasStructures)
+        buildStructures(instance);
 
     int prevP = periods[e];
     int prevR = rooms[e];
@@ -1374,13 +1377,16 @@ void ExamTTSolution::applyRemoveExam(InstanceRef instance, ExamId e, PeriodId pr
     unAssignedExamList.splice(
         unAssignedExamList.end(),
         examsByPeriodRoom[prevP][prevR],
-        examsByPeriodRoomIterators[e]
+        examsIterator[e]
     );
 }
 
 void ExamTTSolution::addExam(InstanceRef instance, ExamId e, PeriodId p, RoomId r) {
     if(! USE_DELTA)
         throw std::invalid_argument("! USE_DELTA");
+
+    if(! hasStructures)
+        buildStructures(instance);
 
     updateAdd(instance, e, p, r);
     applyAddExam(instance, e, p, r);
@@ -1392,10 +1398,24 @@ void ExamTTSolution::applyAddExam(InstanceRef instance, ExamId e, PeriodId p, Ro
     if(USE_COLOR_STRUCTURE)
         durationColorUsed[p][r][instance.exams[e].durationColor]++;
 
+    if(isAssigned(e))
+        throw std::invalid_argument("exam is assigned");
+
+    /*
+    bool ok = false;
+    for(auto it = unAssignedExamList.begin(); it != unAssignedExamList.end(); ++it)
+        if(it == examsByPeriodRoomIterators[e])
+            ok = true;
+
+    if(!ok) {
+        throw std::invalid_argument("exam is not in unassigned list");
+    }
+    */
+
     examsByPeriodRoom[p][r].splice(
         examsByPeriodRoom[p][r].end(),
         unAssignedExamList,
-        examsByPeriodRoomIterators[e]
+        examsIterator[e]
     );
 
     periods[e] = p;
@@ -2185,7 +2205,7 @@ void ExamTTSolution::setRawData(const void *data) {
         return;
     }
 
-    examsByPeriodRoomIterators.resize(periods.size()); // O(1) E
+    examsIterator.resize(periods.size()); // O(1) E
 
     // inner copy
 
@@ -2197,7 +2217,10 @@ void ExamTTSolution::setRawData(const void *data) {
     for(auto & a : examsByPeriodRoom)
         for(auto & b : a)
             for(auto it = b.begin(); it != b.end(); ++it)
-                examsByPeriodRoomIterators[*it] = it;
+                examsIterator[*it] = it;
+
+    for(auto it = unAssignedExamList.begin(); it != unAssignedExamList.end(); ++it)
+        examsIterator[*it] = it;
 }
 
 Solution* ExamTTSolution::clone() {
@@ -2231,7 +2254,7 @@ void ExamTTSolution::swap(Solution * rawOther) {
     */
 
     other->examsByPeriodRoom.swap(examsByPeriodRoom);
-    other->examsByPeriodRoomIterators.swap(examsByPeriodRoomIterators);
+    other->examsIterator.swap(examsIterator);
     other->durationColorUsed.swap(durationColorUsed);
 }
 
@@ -2266,31 +2289,29 @@ void ExamTTSolution::buildStructures(InstanceRef instance)
     int E = instance.exams.size();
     int R = instance.rooms.size();
 
-    examsByPeriodRoomIterators.resize(E);
+    examsIterator.resize(E);
     examsByPeriodRoom.assign(P, std::vector<std::list<ExamId>>(R, std::list<ExamId>()));
 
     durationColorUsed.assign(P, std::vector<MapVec<Color,int>>(R, std::vector<int>(instance.numberOfDurations(), 0)));
 
     if(unAssignedExamList.size()) {
-        if(unAssignedExamList.size() == E) {
 
-        } else {
-
+        if(unAssignedExamList.size() != E)
             for(ExamId e = 0; e < E; e++)
                 if(isFullyAssigned(e))
-                    examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
+                    examsIterator[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
 
-            for(auto it = unAssignedExamList.begin(); it != unAssignedExamList.end(); ++it)
-                examsByPeriodRoomIterators[*it] = it;
+        for(auto it = unAssignedExamList.begin(); it != unAssignedExamList.end(); ++it)
+            examsIterator[*it] = it;
 
-            durationColorUsed.assign(P, std::vector<MapVec<Color,int>>(R, std::vector<int>(instance.numberOfDurations(), 0)));
+        if(unAssignedExamList.size() != E)
             for(ExamId e = 0; e < E; e++)
-                durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
-        }
+                if(isFullyAssigned(e))
+                    durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
     } else {
 
         for(ExamId e = 0; e < E; e++)
-            examsByPeriodRoomIterators[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
+            examsIterator[e] = examsByPeriodRoom[periods[e]][rooms[e]].insert(examsByPeriodRoom[periods[e]][rooms[e]].end(), e);
 
         for(ExamId e = 0; e < E; e++)
             durationColorUsed[periods[e]][rooms[e]][instance.exams[e].durationColor]++;
@@ -3963,6 +3984,10 @@ Solution *DegreeInserter::construct(Solution *raw) {
 
 Assignement BestInsertHeuristic::searchPosition(ExamTTSolution * sol, ExamId e) {
     int P = instance.P(), R = instance.R();
+
+    if(sol->isAssigned(e)) {
+        throw std::invalid_argument("already assigned");
+    }
 
     auto before = sol->getSolutionValue();
 

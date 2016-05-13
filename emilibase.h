@@ -369,18 +369,26 @@ public:
 
 /*
   This class models a very general local search.
+  - Either that can start from nothing
+    - see Solution* search())
+    - init != nullptr
+  - Either than can improve a solution
+    - Solution* search(Solution*)
+    - void searchInPlace(Solution*)
+    - init == nullptr || init != nullptr
 */
 class LocalSearch
 {
-public:
-    InitialSolution* init;
-    Termination* termcriterion;
-    Neighborhood* neighbh;
+protected:
+    InitialSolution* init = nullptr;
+    Termination* termcriterion = nullptr;
+    Neighborhood* neighbh = nullptr;
 
     Solution* bestSoFar = nullptr;
     int seconds = 0;
 
     LocalSearch() { }
+
 public:
     LocalSearch(InitialSolution& initialSolutionGenerator, Termination& terminationcriterion, Neighborhood& neighborh):
         init(&initialSolutionGenerator), termcriterion(&terminationcriterion), neighbh(&neighborh) {}
@@ -597,6 +605,8 @@ protected:
     LocalSearch& ls;
     Perturbation& pert;
     Acceptance& acc;
+
+    // this.init must always be ls.init
 
 public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationcriterion,Perturbation& perturb,Acceptance& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationcriterion,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
@@ -828,10 +838,15 @@ class Constructor: public emili::LocalSearch
 public:
   Constructor():emili::LocalSearch()
   {
-      this->neighbh = nullptr;//new emili::EmptyNeighBorHood();
+      this->neighbh = nullptr;//new emili::EmptyNeighborHood();
       this->init = nullptr;
       this->termcriterion = nullptr;
   }
+
+  void setInitialSolution(InitialSolution* in) {
+      init = in;
+  }
+
   /**
    * @brief Construct from partial solution
    * @return new solution or partial modified
@@ -856,6 +871,7 @@ class IteratedGreedy : public emili::IteratedLocalSearch
 public:
     IteratedGreedy(Constructor& c,Termination& t,Destructor& d,Acceptance& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
 };
+
 /*
 class SimulatedAnnealing : public emili::LocalSearch
 {

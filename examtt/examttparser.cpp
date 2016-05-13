@@ -131,7 +131,6 @@ bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::s
         oss << val << " (" << params.size() << ") ";
         for(auto const& p : params)
             oss << p << " ";
-
         printTab(oss.str());
         tm.next();
         return true;
@@ -142,26 +141,46 @@ bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::s
 
 int getIntParam(prs::TokenManager& tm, std::string val) {
     int i = tm.getInteger();
-    cout << val << ":" << i;
+    std::ostringstream oss;
+    oss << val << ":" << i << endl;
+    printTab(oss.str());
     return i;
 }
 
 float getDecimalParam(prs::TokenManager& tm, std::string val) {
     float i = tm.getDecimal();
-    cout << val << ":" << i;
+    std::ostringstream oss;
+    oss << val << ":" << i << endl;
+    printTab(oss.str());
     return i;
 }
 
+int getIntPercentParam(prs::TokenManager& tm, std::string val, int max) {
+    int i;
+    if(tm.checkToken("percent")) {
+        i = tm.getInteger() * max / 100;
+    } else {
+        i = tm.getInteger();
+    }
+    std::ostringstream oss;
+    oss << val << ":" << i;
+    printTab(oss.str());
+    return i;
 }
 
-emili::LocalSearch* ExamTTParser::eparams(prs::TokenManager& tm)
-{
-    prs::TabLevel level;
+float getFloatPercentParam(prs::TokenManager& tm, std::string val, float max) {
+    float i;
+    if(tm.checkToken("percent")) {
+        i = tm.getDecimal() * max / 100;
+    } else {
+        i = tm.getDecimal();
+    }
+    std::ostringstream oss;
+    oss << val << ":" << i << endl;
+    printTab(oss.str());
+    return i;
+}
 
-    if(tm.checkToken(ILS))
-        return ils(tm);
-    else
-        return search(tm);
 }
 
 struct ArgParser {
@@ -169,6 +188,7 @@ struct ArgParser {
     std::map<std::string, bool> dataBool;
     std::map<std::string, float> dataFloat;
     std::vector<std::string> order;
+    std::set<std::string> given;
 
     // add
 
@@ -213,6 +233,12 @@ struct ArgParser {
         return dataBool[s];
     }
 
+    bool has(std::string s) {
+        if(!(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s)))
+            throw std::invalid_argument("Argument " + s + " does not exist");
+        return given.count(s);
+    }
+
     // methods
 
     void operator()(prs::TokenManager& tm) {
@@ -231,6 +257,7 @@ struct ArgParser {
                 if(tm.checkToken(p.first)) {
                     p.second = tm.getInteger();
                     found = true;
+                    given.insert(p.first);
                 }
             }
 
@@ -238,6 +265,7 @@ struct ArgParser {
                 if(tm.checkToken(p.first)) {
                     p.second = tm.getDecimal();
                     found = true;
+                    given.insert(p.first);
                 }
             }
 
@@ -245,10 +273,12 @@ struct ArgParser {
                 if(tm.checkToken(p.first)) {
                     p.second = true;
                     found = true;
+                    given.insert(p.first);
                 }
                 else if(tm.checkToken("no-" + p.first)) {
                     p.second = false;
                     found = true;
+                    given.insert(p.first);
                 }
             }
 
@@ -296,9 +326,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     static const std::string TEST_ITERATION_YIELD_VS_STATE = "test_iteration_yield_vs_state";
     static const std::string TEST_KEMPE_LARGE_COUNT = "test_kempe_large_count";
     static const std::string ITERATED_GREEDY = "iterated-greedy";
+    static const std::string ITERATED_GREEDY_INIT = "iterated-greedy-init";
 
     const std::vector<std::string> available = {
-        ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY,
+        ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY_INIT,
 
         // below "test" or "info" => NoSearch
         BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
@@ -328,17 +359,17 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     }
     else if(checkTokenParams(tm, FIRST, {"init", "term", "neigh"}))
     {
-        auto p = params(tm);
+        auto p = params(tm); // will have init in all cases
         return new emili::FirstImprovementSearch(*get<0>(p), *get<1>(p), *get<2>(p));
     }
     else if(checkTokenParams(tm, BEST, {"init", "term", "neigh"}))
     {
-        auto p = params(tm);
+        auto p = params(tm); // will have init in all cases
         return new emili::BestImprovementSearch(*get<0>(p), *get<1>(p), *get<2>(p));
     }
     else if(checkTokenParams(tm, SA, {"init", "nei", "inittemp", "acceptance", "cooling", "term", "templ"}))
     {
-        auto initsol = init(tm);
+        auto initsol = init(tm); // will have init
         auto nei = neigh(tm);
         return sa.buildSA(tm, initsol, nei);
     }
@@ -348,6 +379,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 
         ArgParser p;
         p.addInt("factor", 1);
+        p.addInt("factor-exponent", 0);
         p.addInt("freq", 0);
         p.addBool("percent", true);
         p.addInt("percent-kempe", 0);
@@ -355,7 +387,13 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         p.parse(tm);
         p.print();
 
-        int factor = p.Int("factor");
+        if(p.has("factor") && p.has("factor-exponent"))
+            throw std::invalid_argument("factor and factor-exponent given");
+
+        int factor =
+            p.has("factor") ? p.Int("factor") :
+            p.has("factor-exponent") ? std::pow(10, p.Int("factor-exponent")) : 1;
+
         int freq = p.Int("freq");
         bool percent = p.Bool("percent");
 
@@ -370,9 +408,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         double sr = 0.70;
         double wH = 21;
 
-        int Cap = 0; // ?
+        int Cap = 0;
         for(emili::ExamTT::Room& r : instance.rooms)
             Cap += r.capacity;
+        Cap *= instance.P();
 
         int PHC = instance.examsCoincidence.size() + instance.examsAfter.size() + instance.examsExclusion.size();
         int RHC = instance.examsRoomsExclusive.size();
@@ -500,7 +539,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
             ((SAMaxIterTerminationDebug*)term)->setOnEachPercent(freq, [sa,explo,acc]{
                 cout << std::setprecision(10) << std::fixed <<
                     "&bestcost=" << sa->status->best_cost <<
-                    "&curcost=" << sa->bestSoFar->getSolutionValue() <<
+                    "&curcost=" << sa->getBestSoFar()->getSolutionValue() <<
                     "&temp=" << sa->status->temp <<
                     "&nacc=" << explo->nacc <<
                     "&nnacc=" << explo->nnacc <<
@@ -522,9 +561,21 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     {
         return vparams(tm);
     }
+    /*
     else if(checkTokenParams(tm, ITERATED_GREEDY, {"cons", "termin", "destr", "accept"}))
     {
         auto c = constructor(tm);
+        auto t = term(tm);
+        auto d = destructor(tm);
+        auto ac = acc(tm);
+        return new emili::IteratedGreedy(*c,*t,*d,*ac);
+    }
+    */
+    else if(checkTokenParams(tm, ITERATED_GREEDY_INIT, {"init", "cons", "termin", "destr", "accept"}))
+    {
+        auto in = init(tm);
+        auto c = constructor(tm);
+        c->setInitialSolution(in);
         auto t = term(tm);
         auto d = destructor(tm);
         auto ac = acc(tm);
@@ -727,11 +778,12 @@ emili::Perturbation* ExamTTParser::per(prs::TokenManager& tm)
 
     if(tm.checkToken(NOPERTURB) || tm.checkToken(NO)) {
         return new emili::NoPerturbation();
-    } else if(checkTokenParams(tm, RandomMovePerturbationInPlace, {"neigh", "steps"})) {
+    } else if(checkTokenParams(tm, RandomMovePerturbationInPlace, {"rneigh", "steps"})) {
         auto n = neigh(tm);
         int s = getIntParam(tm, "s");
         return new emili::RandomMovePerturbationInPlace(*n, s);
-    } else if(checkTokenParams(tm, VNRandomMovePerturbationInPlace, {"steps", "iter", "neigh..."})) {
+    } else if(checkTokenParams(tm, VNRandomMovePerturbationInPlace, {"steps", "iter", "rneigh..."})) {
+        TabLevel l;
         int steps = getIntParam(tm, "steps");
         int iterations = getIntParam(tm, "iter");
         auto neigh = neighs(tm);
@@ -883,6 +935,8 @@ emili::LocalSearch* ExamTTParser::vparams(prs::TokenManager& tm)
 emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager& tm) {
     static const std::string BestInsertHeuristic = "best";
 
+    TabLevel l;
+
     const std::vector<std::string> available = {
         BestInsertHeuristic
     };
@@ -903,6 +957,8 @@ emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm) {
         RandomOrderInserter, DegreeInserter,
     };
 
+    TabLevel l;
+
     if(checkTokenParams(tm, RandomOrderInserter, {"heur"})) {
         auto heur = insertHeuristic(tm);
         return new emili::ExamTT::RandomOrderInserter(instance, heur);
@@ -921,22 +977,28 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm) {
     static const std::string NGroupedDaysDestructor = "grouped-days";
     static const std::string NGroupedPeriodsDestructor = "grouped-periods";
 
+    TabLevel l;
+
     const std::vector<std::string> available = {
         FixedRandomDestructor, NRandomDaysDestructor, NGroupedDaysDestructor,
         NGroupedPeriodsDestructor,
     };
 
     if(checkTokenParams(tm, FixedRandomDestructor, {"N"})) {
-        int N = getIntParam(tm, "N");
+        TabLevel l;
+        int N = getIntPercentParam(tm, "N", instance.E());
         return new emili::ExamTT::FixedRandomDestructor(instance, N);
     } else if(checkTokenParams(tm, NRandomDaysDestructor, {"N"})) {
-        int N = getIntParam(tm, "N");
+        TabLevel l;
+        int N = getIntPercentParam(tm, "N", instance.Days());
         return new emili::ExamTT::NRandomDaysDestructor(instance, N);
     } else if(checkTokenParams(tm, NGroupedDaysDestructor, {"N"})) {
-        int N = getIntParam(tm, "N");
+        TabLevel l;
+        int N = getIntPercentParam(tm, "N", instance.Days());
         return new emili::ExamTT::NGroupedDaysDestructor(instance, N);
     } else if(checkTokenParams(tm, NGroupedPeriodsDestructor, {"N"})) {
-        int N = getIntParam(tm, "N");
+        TabLevel l;
+        int N = getIntPercentParam(tm, "N", instance.P());
         return new emili::ExamTT::NGroupedPeriodsDestructor(instance, N);
     }
 
@@ -960,10 +1022,10 @@ emili::InitialSolution* ExamTTParser::init(prs::TokenManager& tm)
     } else if(tm.checkToken(INITIAL_CONSTRUCTOR)){
         auto cons = constructor(tm);
         return new emili::ExamTT::ConstructorInitialSolution(instance, cons);
-    } else {
-        errorExpected(tm, "INITIAL_SOLUTION", available);
-        return nullptr;
     }
+
+    errorExpected(tm, "INITIAL_SOLUTION", available);
+    return nullptr;
 }
 
 emili::Termination* ExamTTParser::term(prs::TokenManager& tm)
@@ -1066,7 +1128,7 @@ void ExamTTParser::problem(prs::TokenManager& tm)
 emili::LocalSearch* ExamTTParser::buildAlgo(prs::TokenManager& tm)
 {
     problem(tm);
-    emili::LocalSearch* local = eparams(tm);
+    emili::LocalSearch* local = search(tm);
     std::cout << "------" << std::endl;
     return local;
 }

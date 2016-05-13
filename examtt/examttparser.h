@@ -28,7 +28,6 @@ protected:
 protected:    
     //insert a variable to hold the problem instance
     emili::ExamTT::ExamTT instance;
-    emili::LocalSearch* eparams(prs::TokenManager& tm);
     emili::LocalSearch* search(prs::TokenManager& tm);
     emili::LocalSearch* ils(prs::TokenManager& tm);
     emili::BestTabuSearch* tparams(prs::TokenManager& tm);
