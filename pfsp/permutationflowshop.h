@@ -660,6 +660,13 @@ public:
     ~RSLSPerturbation() { delete ls;}
 };
 
+class RSffLSPerturbation: public emili::pfsp::RSLSPerturbation
+{
+public:
+    RSffLSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):emili::pfsp::RSLSPerturbation(d_param,problem,ls) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class PfspDestructorTest: public emili::Destructor
 {
 protected:

@@ -169,6 +169,7 @@
 #define PERTURBATION_TEST "testper"
 #define PERTURBATION_IGLS "igls"
 #define PERTURBATION_RSLS "rsls"
+#define PERTURBATION_RSffLS "rsffls"
 #define PERTURBATION_RS "rsper"
 #define PERTURBATION_RSFF "rsff"
 #define PERTURBATION_IGIO "igio"
@@ -494,7 +495,6 @@ emili::LocalSearch* prs::ParamsParser::ils(prs::TokenManager& tm)
 {
 
     emili::LocalSearch* ls = search(tm);
-
     //ils_time = ilstime();
     emili::Termination* pft = term(tm);
     //emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
@@ -580,6 +580,28 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
             per = new emili::pfsp::RSLSPerturbation(n,*istance,ll);
         } else {
             per = new emili::pfsp::RSPerturbation(n,*istance);
+        }
+    }
+    else if(tm.checkToken(PERTURBATION_RSffLS))
+    {
+        int nj = istance->getNjobs()-2;
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+        oss.str(""); oss  << "IG perturbation with tbff tie breaking and local search applied on the partial solution. d = "<<n;
+        printTab(oss.str().c_str());
+        if(n > 0)
+        {
+            PfspInstance pfs = this->istance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+            emili::pfsp::PermutationFlowShop* is = this->istance;
+            this->istance = pfse;
+            emili::LocalSearch* ll = search(tm);
+            this->istance = is;
+            istances.push_back(pfse);
+            per = new emili::pfsp::RSffLSPerturbation(n,*istance,ll);
+        } else {
+            per = new emili::pfsp::RSffPerturbation(n,*istance);
         }
     }
     else if(tm.checkToken(PERTURBATION_TEST))
