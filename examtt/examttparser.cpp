@@ -329,7 +329,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     static const std::string ITERATED_GREEDY_INIT = "iterated-greedy-init";
 
     const std::vector<std::string> available = {
-        ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY_INIT,
+        ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY,
 
         // below "test" or "info" => NoSearch
         BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
@@ -561,7 +561,6 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     {
         return vparams(tm);
     }
-    /*
     else if(checkTokenParams(tm, ITERATED_GREEDY, {"cons", "termin", "destr", "accept"}))
     {
         auto c = constructor(tm);
@@ -570,7 +569,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         auto ac = acc(tm);
         return new emili::IteratedGreedy(*c,*t,*d,*ac);
     }
-    */
+    /*
     else if(checkTokenParams(tm, ITERATED_GREEDY_INIT, {"init", "cons", "termin", "destr", "accept"}))
     {
         auto in = init(tm);
@@ -581,6 +580,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         auto ac = acc(tm);
         return new emili::IteratedGreedy(*c,*t,*d,*ac);
     }
+    */
     else if(tm.checkToken(INFO)) {
         instance.presentation(std::cout);
 

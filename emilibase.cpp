@@ -428,7 +428,7 @@ void emili::LocalSearch::searchInPlace(Solution *initial) {
         *initial = *sol;
         delete sol; // move semantics... (or swap)
     }
-    bestSoFar = initial;
+    bestSoFar = initial; // if the caller did keep the reference
 }
 
 emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *initial)
@@ -495,68 +495,77 @@ emili::InitialSolution& emili::LocalSearch::getInitialSolution()
 }
 
 
-
+emili::BestImprovementSearch::BestImprovementSearch(emili::InitialSolution &initialSolutionGenerator, emili::Termination &terminationcriterion, emili::Neighborhood &neighborh)
+    : emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh)
+{
+    behaviour = Behaviour::FUNC;
+}
 
 /*
  * Best improvement local search
  */
 emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
 {
-        termcriterion->reset();
-        neighbh->reset();
-        emili::Solution* incumbent = initial->clone();
-        bestSoFar = init->generateEmptySolution();
-        emili::Solution* ithSolution;
-        Neighborhood::NeighborhoodIterator end = neighbh->end();
-        do
-        {                       
-            *bestSoFar = *incumbent;
-            Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
-            ithSolution = *iter;
-            for(;iter!=end;++iter)
-            {
-                if(incumbent->operator >( *ithSolution)){
-                    *incumbent = *ithSolution;
-                }                
+    termcriterion->reset();
+    neighbh->reset();
+    emili::Solution* incumbent = initial->clone();
+    bestSoFar = init->generateEmptySolution();
+    emili::Solution* ithSolution;
+    Neighborhood::NeighborhoodIterator end = neighbh->end();
+    do
+    {
+        *bestSoFar = *incumbent;
+        Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
+        ithSolution = *iter;
+        for(;iter!=end;++iter)
+        {
+            if(incumbent->operator >( *ithSolution)){
+                *incumbent = *ithSolution;
             }
-            delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
-        delete incumbent;
-        return bestSoFar;
+        }
+        delete ithSolution;
+    } while(!termcriterion->terminate(bestSoFar,incumbent));
+    delete incumbent;
+    return bestSoFar;
 }
-
 
 /*
  * First improvement local search
  */
 
+emili::FirstImprovementSearch::FirstImprovementSearch(emili::InitialSolution &initialSolutionGenerator, emili::Termination &terminationcriterion, emili::Neighborhood &neighborh)
+    : emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh)
+{
+    behaviour = Behaviour::FUNC;
+}
+
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 {
-        termcriterion->reset();
-        neighbh->reset();
-        bestSoFar = init->generateEmptySolution();
-        emili::Solution* incumbent = initial->clone();
-        emili::Solution* ithSolution;
+    termcriterion->reset();
+    neighbh->reset();
+    bestSoFar = init->generateEmptySolution();
+    emili::Solution* incumbent = initial->clone();
+    emili::Solution* ithSolution;
 
-        //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
-        Neighborhood::NeighborhoodIterator end = neighbh->end();
-        do{
+    //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
+    Neighborhood::NeighborhoodIterator end = neighbh->end();
+    do{
 
-            *bestSoFar = *incumbent;
-            Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
-            ithSolution = *iter;            
+        *bestSoFar = *incumbent;
+        Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
+        ithSolution = *iter;
 
-            for(;iter!=end;++iter)
-            {               
-                if(incumbent->operator >(*ithSolution)){
-                    *incumbent=*ithSolution;
-                    break;
-                }                                
+        for(;iter!=end;++iter)
+        {
+            if(incumbent->operator >(*ithSolution)){
+                *incumbent=*ithSolution;
+                break;
             }
-            delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
-        delete incumbent;
-        return bestSoFar;
+        }
+        delete ithSolution;
+    }while(!termcriterion->terminate(bestSoFar,incumbent));
+    delete incumbent;
+    return bestSoFar;
 }
 
 /*OLD
@@ -599,8 +608,8 @@ emili::Solution* emili::BestTabuSearch::search()
     tabuMemory.reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
-    if(current!=sol)
-    delete current;
+    if(current != sol)
+        delete current;
 
     return sol;
 }
@@ -1080,7 +1089,7 @@ void emili::TimedTermination::reset()
  */
 bool emili::LocalMinimaTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
-    return (newSolution == nullptr || currentSolution->operator <=(*newSolution);
+    return newSolution == nullptr || currentSolution->operator <=(*newSolution);
 }
 
 /*

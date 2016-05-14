@@ -366,9 +366,88 @@ public:
     virtual int size() { return 0;}
 };
 
+/**
+ * @brief Behaviour of function y = f(x)
+ * Imagine sol is a list
+ *
+ * FUNC | RETURN_NEW_NOT_MODIFY
+ *    def f(x):
+ *       y = list(x);
+ *       y[0] = 5;
+ *       return y
+ * assert x unchanged
+ * assert y is not x
+ *
+ * VOID | MODIFY_AND_RETURN_SAME
+ *    def f(x):
+ *       x[0] = 5
+ *       return x
+ *
+ * assert y is x
+ *
+ * CAUTION, when calling applyWithBehaviour(... VOID), use :
+ * x = search(x, VOID)
+ * and NOT : search(x, VOID)
+ *
+ * assert x is deleted or x is y
+ *
+ * MIX | RETURN_NEW_AND_MODIFY
+ *    def f(x):
+ *       x[0] = 5
+ *       return list(x)
+ *
+ * assert x unchanged or x changed
+ * assert y is not x
+ *
+ * UNKNOWN
+ * assert x unchanged or x changed
+ * assert y is x or y is not x
+ */
+enum struct Behaviour {
+    FUNC,
+    VOID,
+    MIX
+};
+
+/**
+ * Make clone and delete
+ * when calling VOID use x = search(x, VOID)
+ */
+template <typename T>
+Solution* applyWithBehaviour(Behaviour me, Behaviour target, Solution* initial, T search) {
+    if(me == target)
+        return search(initial);
+
+    if(target == Behaviour::VOID) {
+        Solution* y = search(initial);
+        if(y != initial) // in case it is lying about the "new"
+            delete initial;
+        return y; // x = search(x, VOID)
+    } else if(target == Behaviour::MIX) {
+        if(me == Behaviour::VOID) {
+            search(initial);
+            return initial->clone();
+        } else { // FUNC
+            return search(initial); // lost semantics "NOT_MODIFY"
+        }
+    } else { // if(target == Behaviour::FUNC) {
+        if(me == Behaviour::VOID) {
+            Solution* x = initial->clone();
+            search(x);
+            return x;
+        } else { // MIX
+            Solution* x = initial->clone();
+            Solution* y = search(x);
+            delete x;
+            return y;
+        }
+    }
+}
+
 
 /*
   This class models a very general local search.
+
   - Either that can start from nothing
     - see Solution* search())
     - init != nullptr
@@ -408,14 +487,30 @@ public:
      * @return new solution
      */
     virtual Solution* search();
+
     /**
      * @brief Search starting from a starting solution
-     * @return new solution or initial modified
+     * @return new solution or initial modified (@see behaviour())
      */
     virtual Solution* search(Solution* initial);
 
     /**
-     * @brief searchInPlace will modify the current solution with the
+     * @brief impose a behaviour
+     */
+    Solution* searchBehave(Solution* initial, Behaviour target) {
+        return applyWithBehaviour(behaviour, target, initial, [this](Solution* sol){
+            return search(sol);
+        });
+    }
+
+    /**
+     * @brief behaviour of search(Solution) -> Solution
+     */
+    Behaviour behaviour = Behaviour::MIX; // RETURN_NEW_AND_MODIFY is the more general
+
+    /**
+     * @brief impose a MODIFY_AND_RETURN behavior
+     * @deprecated
      */
     virtual void searchInPlace(Solution* initial);
 
@@ -452,10 +547,27 @@ public:
         this->init = &in;
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
-        }
-    virtual Solution* search(Solution* initial) { return initial->clone();}
-    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
-    virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
+        behaviour = Behaviour::FUNC;
+    }
+
+    virtual Solution* search(Solution* initial) { return initial->clone(); }
+    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone(); }
+    virtual Solution* timedSearch(Solution* initial) { return initial->clone(); }
+};
+
+class IdentityLocalSearch: public emili::LocalSearch
+{
+public:
+    IdentityLocalSearch(InitialSolution& in):emili::LocalSearch() {
+        this->init = &in;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::MaxStepsTermination(0);
+        behaviour = Behaviour::VOID;
+    }
+
+    virtual Solution* search(Solution* initial) { return initial; }
+    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial; }
+    virtual Solution* timedSearch(Solution* initial) {return initial; }
 };
 
 /*
@@ -465,8 +577,10 @@ public:
 class BestImprovementSearch : public emili::LocalSearch
 {
 public:
-    BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
+    BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh);
+
     virtual Solution* search(emili::Solution* initial);
+
     virtual Solution* search()
     {
         return emili::LocalSearch::search();
@@ -480,7 +594,7 @@ public:
 class FirstImprovementSearch : public emili::LocalSearch
 {
 public:
-    FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
+    FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh);
     virtual Solution* search(emili::Solution* intial);
 };
 
@@ -495,6 +609,14 @@ class Perturbation
      * @return new solution or modified solution
      */
     virtual Solution* perturb(Solution* solution)=0;
+
+    Solution* perturbBehave(Solution* solution, Behaviour target) {
+        return applyWithBehaviour(behaviour, target, solution, [this](Solution* sol){
+            return perturb(sol);
+        });
+    }
+
+    Behaviour behaviour = Behaviour::MIX;
 };
 
 /*
@@ -516,7 +638,10 @@ protected:
     Neighborhood& explorer;
     int numberOfSteps;
 public:
-    RandomMovePerturbation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) { }
+    RandomMovePerturbation(Neighborhood& neighboorhod, int number_of_steps):explorer(neighboorhod),numberOfSteps(number_of_steps) {
+        behaviour = Behaviour::FUNC;
+    }
+
     virtual Solution* perturb(Solution* solution);
 };
 
@@ -524,7 +649,11 @@ class RandomMovePerturbationInPlace : public RandomMovePerturbation
 {
 public:
     RandomMovePerturbationInPlace(Neighborhood& neighboorhod, int number_of_steps)
-        : RandomMovePerturbation(neighboorhod, number_of_steps) {}
+        : RandomMovePerturbation(neighboorhod, number_of_steps)
+    {
+        behaviour = Behaviour::VOID;
+    }
+
     virtual Solution* perturb(Solution* solution);
 };
 
@@ -545,7 +674,11 @@ class VNRandomMovePerturbationInPlace : public VNRandomMovePerturbation
 {
 public:
     VNRandomMovePerturbationInPlace(std::vector< Neighborhood* > neighborhoods, int number_of_steps, int number_of_iterations)
-        : VNRandomMovePerturbation(neighborhoods, number_of_steps, number_of_iterations) {}
+        : VNRandomMovePerturbation(neighborhoods, number_of_steps, number_of_iterations)
+    {
+        behaviour = Behaviour::VOID;
+    }
+
     virtual Solution* perturb(Solution *solution);
 };
 
@@ -827,6 +960,12 @@ class Destructor: public emili::Perturbation
 public:
     virtual emili::Solution* destruct(Solution* solution)=0;
     virtual emili::Solution* perturb(Solution *solution) { return destruct(solution); }
+
+    emili::Solution* destructBehave(Solution* initial, Behaviour target) {
+        return applyWithBehaviour(behaviour, target, initial, [this](Solution* sol){
+            return destruct(sol);
+        });
+    }
 };
 
 /*
@@ -849,18 +988,24 @@ public:
 
   /**
    * @brief Construct from partial solution
-   * @return new solution or partial modified
+   * @return new solution or partial modified (@see behaviour)
    */
- virtual emili::Solution* construct(emili::Solution* partial) = 0;
+  virtual emili::Solution* construct(emili::Solution* partial) = 0;
 
   /**
   * @brief Construct solution from nothing
   * @return new solution fully constructed (not partial)
   */
- virtual emili::Solution* constructFull() = 0;
- virtual emili::Solution* search() {return constructFull();}
- virtual emili::Solution* search(emili::Solution* initial) { return construct(initial);}
- virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial);}
+  virtual emili::Solution* constructFull() = 0;
+  virtual emili::Solution* search() {return constructFull(); }
+  virtual emili::Solution* search(emili::Solution* initial) { return construct(initial); }
+  virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial); }
+
+  emili::Solution* constructBehave(Solution* initial, Behaviour target) {
+      return applyWithBehaviour(behaviour, target, initial, [this](Solution* sol){
+          return construct(sol);
+      });
+  }
 };
 
 /*
@@ -870,6 +1015,68 @@ class IteratedGreedy : public emili::IteratedLocalSearch
 {
 public:
     IteratedGreedy(Constructor& c,Termination& t,Destructor& d,Acceptance& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
+};
+
+/**
+ * @brief MyIteratedGreedy
+ */
+class MyIteratedGreedy : public emili::LocalSearch {
+    LocalSearch* ls;
+    Destructor* dest;
+    Constructor* cons;
+    Acceptance* acc;
+public:
+    MyIteratedGreedy(Constructor& c, Termination& t, Destructor& d, Acceptance& ac, LocalSearch& ls)
+        : emili::LocalSearch()
+    {
+        this->ls = &ls;
+        this->termcriterion = &t;
+        this->dest = &d;
+        this->cons = &c;
+        this->acc = &ac;
+        // init and neigh are forgotten
+
+        behaviour = Behaviour::MIX;
+    }
+
+    ~MyIteratedGreedy() {
+        delete ls;
+    }
+
+    /**
+     * @return a new solution
+     */
+    Solution* search() override {
+        return search(cons->constructFull());
+    }
+
+    /**
+     * @return new solution and modify
+     */
+    Solution* search(Solution* sol) {
+        bestSoFar = sol->clone();
+
+        bool terminate = false;
+        while(! terminate) {
+            Solution* newSol = dest->destructBehave(sol, Behaviour::FUNC);
+            newSol = cons->searchBehave(newSol, Behaviour::VOID);
+            newSol = ls->searchBehave(newSol, Behaviour::VOID);
+
+            if(*newSol < *bestSoFar)
+                *bestSoFar = *newSol;
+
+            terminate = termcriterion->terminate(sol, newSol);
+
+            if(acc->accept(sol, newSol) == newSol) {
+                delete sol;
+                sol = newSol;
+            } else {
+                delete newSol;
+            }
+        }
+
+        return bestSoFar;
+    }
 };
 
 /*
