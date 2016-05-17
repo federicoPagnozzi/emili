@@ -1061,12 +1061,6 @@ bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *
 
 bool emili::MaxStepsOrLocmin::terminate(Solution *currentSolution, Solution *newSolution)
 {
-    if(newSolution == nullptr)
-    {
-        return true;
-    }
-    else if( currentSolution->operator <=(*newSolution) )
-    {
         if(current_step >= max_steps_){
             if(*currentSolution > *newSolution)
             {
@@ -1077,15 +1071,8 @@ bool emili::MaxStepsOrLocmin::terminate(Solution *currentSolution, Solution *new
         else
         {
             current_step++;
-            return false;
+            return currentSolution->operator <=(*newSolution);
         }
-    }
-    else
-    {
-        return true;
-    }
-
-
 }
 
 void emili::MaxStepsTermination::reset()
