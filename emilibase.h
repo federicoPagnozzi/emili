@@ -191,6 +191,17 @@ public:
 };
 
 /*
+ *
+ */
+
+class MaxStepsOrLocmin : public emili::MaxStepsTermination
+{
+public:
+    MaxStepsOrLocmin(int max_steps):emili::MaxStepsTermination(max_steps){ }
+    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
+};
+
+/*
     The class models a neighborhood of a solution
 
 */

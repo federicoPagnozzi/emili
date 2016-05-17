@@ -101,6 +101,7 @@
 
 /* Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
+#define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
 #define TERMINATION_LOCMIN "locmin"
 #define TERMINATION_ITERA "iteration"
@@ -1130,6 +1131,14 @@ emili::Termination* prs::ParamsParser::term(prs::TokenManager& tm)
         oss << "Max Steps termination. # steps: "<< steps;
         printTab(oss.str().c_str());
         term = new emili::MaxStepsTermination(steps);
+    }
+    else if(tm.checkToken(TERMINATION_MAXSTEPS_OR_LOCMIN))
+    {
+        int steps = tm.getInteger();
+        std::ostringstream oss;
+        oss << "Max Steps termination or when reaching locmin. # steps: "<< steps;
+        printTab(oss.str().c_str());
+        term = new emili::MaxStepsOrLocmin(steps);
     }
     else
     {
