@@ -93,16 +93,16 @@ public:
 class ProblemSizeTempLength: public SATempLength {
 
 protected:
-    emili::Neighborhood* neigh;
+    emili::Problem *prob;
     float alpha;
 
 public:
-    ProblemSizeTempLength(emili::Neighborhood* neigh,
+    ProblemSizeTempLength(emili::Problem* prob,
                        float alpha):
-        neigh(neigh),
+        prob(prob),
         alpha(alpha),
         SATempLength(NEIGHSIZETEMPLEN,
-                     std::lrint(alpha * std::ceil(std::sqrt(neigh->size())))) {
+                     std::lrint(alpha * prob->problemSize())) {
             // std::cout << "initial temp length: " << length << std::endl << std::endl;
         }
 
@@ -122,16 +122,16 @@ public:
 class SquaredProblemSizeTempLength: public SATempLength {
 
 protected:
-    emili::Neighborhood* neigh;
+    emili::Problem* prob;
     float alpha;
 
 public:
-    SquaredProblemSizeTempLength(emili::Neighborhood* neigh,
+    SquaredProblemSizeTempLength(emili::Problem* prob,
                        float alpha):
-        neigh(neigh),
+        prob(prob),
         alpha(alpha),
         SATempLength(NEIGHSIZETEMPLEN,
-                     std::lrint(alpha * std::ceil(std::sqrt(neigh->size())) * std::ceil(std::sqrt(neigh->size())))) { }
+                     std::lrint(alpha * prob->problemSize())) { }
 
     bool isCoolingTime(int counter) {
         if (counter >= length)

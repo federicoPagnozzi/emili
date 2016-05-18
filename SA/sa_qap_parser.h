@@ -82,7 +82,8 @@ protected:
 
 
     SATempLength* TEMPLENGTH(prs::TokenManager& tm,
-                                       emili::Neighborhood* neigh);
+                             emili::Neighborhood* neigh,
+                             emili::Problem* instance);
 
     emili::InitialSolution* init(prs::TokenManager& tm);
     QAPNeighborhood* neigh(prs::TokenManager& tm);

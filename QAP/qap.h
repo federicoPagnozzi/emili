@@ -28,6 +28,10 @@ public:
         return (&instance);
     }
 
+    virtual int problemSize() {
+        return instance.getn();
+    } 
+
     virtual double evaluateSolution(emili::Solution& solution);
     virtual double computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual double computeObjectiveFunction(std::vector< int > & partial_solution, int size);

@@ -258,7 +258,8 @@ SACooling* SAPFSPParser::COOL(prs::TokenManager& tm,
 
 
 SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
-                                       emili::Neighborhood* neigh) {
+                                       emili::Neighborhood* neigh,
+                                       emili::Problem* instance) {
 
     if (tm.checkToken(CONSTTEMPLEN)) {
         int l = tm.getInteger();
@@ -268,10 +269,10 @@ SATempLength* SAPFSPParser::TEMPLENGTH(prs::TokenManager& tm,
         return new NeighSizeTempLength(neigh, a);
     } else if (tm.checkToken(PROBSIZETEMPLEN)) {
         float a = tm.getDecimal();
-        return new ProblemSizeTempLength(neigh, a);
+        return new ProblemSizeTempLength(instance, a);
     } else if (tm.checkToken(SQUAREDPROBSIZETEMPLEN)) {
         float a = tm.getDecimal();
-        return new SquaredProblemSizeTempLength(neigh, a);
+        return new SquaredProblemSizeTempLength(instance, a);
     } else if (tm.checkToken(BRNEIGHSIZETEMPLEN)) {
         float a = tm.getDecimal();
         return new BurkardRendlNeighSizeTempLength(neigh, a);
@@ -668,7 +669,7 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
     SATermination*     term       = TERMINATION(tm, nei); // termin(tm);
-    SATempLength*    templ      = TEMPLENGTH(tm, nei);
+    SATempLength*    templ      = TEMPLENGTH(tm, nei, instance);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, term);
 
