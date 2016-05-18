@@ -274,6 +274,7 @@ public:
             status->step = status->step + 1;
             float tmp = a*temp;
 
+            std::cout << "************************************* COOLING: " << status->total_counter << " " << tmp << std::endl;
             return tempRestart->adjust(tmp);
 
         }

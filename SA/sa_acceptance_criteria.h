@@ -72,13 +72,26 @@ public:
 
 
 class SAMetropolisAcceptance: public SAAcceptance {
+protected:
+    short* acc_tracker;
+    int acc_pointer;
+    int acc_tsize;
 public:
     SAMetropolisAcceptance(float initial_temperature):
                 SAAcceptance(METROPOLIS,
-                             initial_temperature) { }
+                             initial_temperature) {
+        acc_tsize = 5000;
+        acc_tracker = (short *)malloc(acc_tsize * sizeof(short));
+        acc_pointer = 0;
+        for (int i = 0 ; i < acc_tsize ; i++) acc_tracker[i] = 1;
+    }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
+
+    ~SAMetropolisAcceptance(void) {
+        free(acc_tracker);
+    }
 
 }; // SAMetropolisAcceptance
 
@@ -159,10 +172,19 @@ public:
 
 // connolly paper
 class SAMetropolisWithForcedAcceptance: public SAAcceptance {
+protected:
+    short* acc_tracker;
+    int acc_pointer;
+    int acc_tsize;
 public:
     SAMetropolisWithForcedAcceptance(float initial_temperature):
                 SAAcceptance(METROPOLISWFORCED,
-                             initial_temperature) { }
+                             initial_temperature) {
+        acc_tsize = 5000;
+        acc_tracker = (short *)malloc(acc_tsize * sizeof(short));
+        acc_pointer = 0;
+        for (int i = 0 ; i < acc_tsize ; i++) acc_tracker[i] = 1;
+    }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
