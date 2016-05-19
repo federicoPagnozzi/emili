@@ -29,10 +29,8 @@ protected:
     //insert a variable to hold the problem instance
     emili::ExamTT::ExamTT instance;
     emili::LocalSearch* search(prs::TokenManager& tm);
-    emili::LocalSearch* ils(prs::TokenManager& tm);
     emili::BestTabuSearch* tparams(prs::TokenManager& tm);
     emili::TabuMemory* tmemory(emili::Neighborhood* n,prs::TokenManager& tm);
-    std::tuple<emili::InitialSolution*, emili::Termination*, emili::Neighborhood*> params(prs::TokenManager& tm);
     emili::LocalSearch* vparams(prs::TokenManager& tm);
 
     emili::InitialSolution* init(prs::TokenManager& tm);
@@ -53,6 +51,7 @@ protected:
     } sa;
 
     virtual std::string availableProblems() const;
+    emili::Problem* getInstance() override { return &instance; }
 public:
     virtual bool isParsable(std::string &problem) ;
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);

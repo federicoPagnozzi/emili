@@ -1115,7 +1115,9 @@ public:
 
 struct BaseConstructor : Constructor {
     Instance const& instance;
-    BaseConstructor(Instance const& inst) : instance(inst) {}
+    BaseConstructor(Instance const& inst) : instance(inst) {
+        behaviour = Behaviour::VOID;
+    }
 
     Solution* constructFull() override {
         auto sol = new ExamTTSolution;

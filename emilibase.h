@@ -271,16 +271,24 @@ public:
 
     /**
      * @brief see stdIterate
+     * will reset the neighborhod in the beginning
      */
     struct StdReadyToIterate {
         Neighborhood* self;
         emili::Solution* sol;
 
-        NeighborhoodIterator begin() { return self->begin(sol); }
-        NeighborhoodIterator end() { return self->end(); }
+        NeighborhoodIterator begin() {
+            self->reset();
+            return self->begin(sol);
+        }
+
+        NeighborhoodIterator end() {
+            return self->end();
+        }
     };
 
     /**
+     * the neighborhood it reset in the beginning.
      * for(Solution* s : neigh->stdIterate(base))
      *      yield(s)
      */
@@ -388,6 +396,7 @@ public:
  * CAUTION, when calling applyWithBehaviour(... VOID), use :
  * x = search(x, VOID)
  * and NOT : search(x, VOID)
+ * @see applyWithBehaviour
  *
  * assert x is deleted or x is y
  *
@@ -410,8 +419,13 @@ enum struct Behaviour {
 };
 
 /**
- * Make clone and delete
- * when calling VOID use x = search(x, VOID)
+ * Make clone and delete depending on needs
+ *
+ * y = f(x)
+ * if target is VOID
+ *    either x == y and x is modified
+ *    either x != y and x is deleted
+ * => when calling VOID use x = search(x, VOID)
  */
 template <typename T>
 Solution* applyWithBehaviour(Behaviour me, Behaviour target, Solution* initial, T search) {
@@ -443,7 +457,6 @@ Solution* applyWithBehaviour(Behaviour me, Behaviour target, Solution* initial, 
         }
     }
 }
-
 
 /*
   This class models a very general local search.
@@ -506,10 +519,10 @@ public:
     /**
      * @brief behaviour of search(Solution) -> Solution
      */
-    Behaviour behaviour = Behaviour::MIX; // RETURN_NEW_AND_MODIFY is the more general
+    Behaviour behaviour = Behaviour::MIX; // MIX is the more general
 
     /**
-     * @brief impose a MODIFY_AND_RETURN behavior
+     * @brief impose a VOID behavior
      * @deprecated
      */
     virtual void searchInPlace(Solution* initial);
@@ -609,6 +622,7 @@ class Perturbation
      * @return new solution or modified solution
      */
     virtual Solution* perturb(Solution* solution)=0;
+    virtual ~Perturbation() {}
 
     Solution* perturbBehave(Solution* solution, Behaviour target) {
         return applyWithBehaviour(behaviour, target, solution, [this](Solution* sol){
@@ -626,6 +640,10 @@ class Perturbation
 class NoPerturbation: public emili::Perturbation
 {
 public:
+    NoPerturbation() {
+        behaviour = Behaviour::VOID;
+    }
+
     virtual Solution* perturb(Solution *solution) { return solution; }
 };
 
@@ -692,6 +710,7 @@ public:
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
     virtual void reset() { }
+    virtual ~Acceptance() {}
 };
 
 enum accept_candidates {ACC_INTENSIFICATION,ACC_DIVERSIFICATION};
@@ -749,6 +768,34 @@ public:
     virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
+};
+
+class MyIteratedLocalSearch : public emili::LocalSearch
+{
+protected:
+    LocalSearch* ls;
+    Perturbation* per;
+    Acceptance* acc;
+public:
+    MyIteratedLocalSearch(LocalSearch* ls, Termination* term, Perturbation* per, Acceptance* acc)
+        : emili::LocalSearch()
+    {
+        this->termcriterion = term;
+        this->ls = ls;
+        this->per = per;
+        this->acc = acc;
+
+        behaviour = Behaviour::FUNC;
+    }
+
+    ~MyIteratedLocalSearch() {
+        delete ls;
+        delete per;
+        delete acc;
+    }
+
+    Solution* search() override;
+    Solution* search(Solution*) override;
 };
 
 /*
@@ -1008,6 +1055,23 @@ public:
   }
 };
 
+class ConstructDestructPertub : public emili::Perturbation {
+    Constructor* cons;
+    Destructor* des;
+public:
+    ConstructDestructPertub(Constructor* cons_, Destructor* des_)
+        : cons(cons_), des(des_)
+    {
+        behaviour = Behaviour::VOID;
+    }
+
+    Solution* perturb(Solution* p) override {
+        p = des->destructBehave(p, Behaviour::VOID);
+        p = cons->constructBehave(p, Behaviour::VOID);
+        return p;
+    }
+};
+
 /*
  * This class models an iterated greedy heuristics
  */
@@ -1026,14 +1090,14 @@ class MyIteratedGreedy : public emili::LocalSearch {
     Constructor* cons;
     Acceptance* acc;
 public:
-    MyIteratedGreedy(Constructor& c, Termination& t, Destructor& d, Acceptance& ac, LocalSearch& ls)
+    MyIteratedGreedy(Constructor* c, Termination* t, Destructor* d, Acceptance* ac, LocalSearch* ls)
         : emili::LocalSearch()
     {
-        this->ls = &ls;
-        this->termcriterion = &t;
-        this->dest = &d;
-        this->cons = &c;
-        this->acc = &ac;
+        this->ls = ls;
+        this->termcriterion = t;
+        this->dest = d;
+        this->cons = c;
+        this->acc = ac;
         // init and neigh are forgotten
 
         behaviour = Behaviour::MIX;
@@ -1041,17 +1105,20 @@ public:
 
     ~MyIteratedGreedy() {
         delete ls;
+        delete dest;
+        delete cons;
+        delete acc;
     }
 
     /**
      * @return a new solution
      */
     Solution* search() override {
-        return search(cons->constructFull());
+        return searchBehave(cons->constructFull(), Behaviour::VOID);
     }
 
     /**
-     * @return new solution and modify
+     * @return new solution and modify (MIX)
      */
     Solution* search(Solution* sol) {
         bestSoFar = sol->clone();
@@ -1077,6 +1144,20 @@ public:
 
         return bestSoFar;
     }
+};
+
+class MyIteratedGreedyInit : public MyIteratedGreedy {
+public:
+    MyIteratedGreedyInit(InitialSolution* i, Constructor* c, Termination* t, Destructor* d, Acceptance* ac, LocalSearch* ls)
+        : MyIteratedGreedy(c,t,d,ac,ls)
+    {
+        this->init = i;
+    }
+
+    Solution* search() override {
+        return searchBehave(init->generateSolution(), Behaviour::VOID);
+    }
+
 };
 
 /*

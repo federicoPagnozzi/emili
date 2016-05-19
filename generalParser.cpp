@@ -291,7 +291,10 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
             if(bld->isParsable(prob))
             {
                 emili::LocalSearch* ls = bld->buildAlgo(tm);
-                ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+                emili::Problem* instance = bld->getInstance();
+                if(! instance)
+                    instance = &ls->getInitialSolution().getProblem();
+                ls->setSearchTime(getTime(tm, instance->problemSize()));
                 emili::initializeRandom(getSeed(tm));
                 return ls;
             }

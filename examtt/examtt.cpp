@@ -3757,6 +3757,7 @@ FixedRandomDestructor::FixedRandomDestructor(ExamTT const& instance_, const int 
 {
     if(!(G <= instance.E()))
         throw std::invalid_argument("assert G <= instance.E()");
+    behaviour = Behaviour::VOID;
 }
 
 Solution *FixedRandomDestructor::destruct(Solution *rawStep) {
@@ -3883,10 +3884,11 @@ void KempeChainNeighborhoodFastIter::iterate(Solution *base, std::function<void 
 }
 
 void KempeChainNeighborhoodFastIter::reset() {
-    t1 = -1;
-    t0 = 0;
+    t1 = 2000000;
+    t0 = -1;
     chainList.clear();
     A.clear();
+    examsByPeriod.clear();
 }
 
 Solution *KempeChainNeighborhoodFastIter::computeStep(Solution *rawStep) {
@@ -3902,11 +3904,7 @@ Solution *KempeChainNeighborhoodFastIter::computeStep(Solution *rawStep) {
 
     if(A.empty()) {
         for(;;) {
-            if(t1 == -1) {
-                t1 = 1;
-                t0 = 0;
-            }
-            else if(++t1 == P) {
+            if(++t1 >= P) {
                 if(++t0 >= P-1)
                     return nullptr;
                 t1 = t0 + 1;
@@ -4021,6 +4019,8 @@ NRandomDaysDestructor::NRandomDaysDestructor(const Instance &instance_, const in
     days.resize(instance.Days());
     for(size_t i = 0; i < days.size(); i++)
         days[i] = i;
+
+    behaviour = Behaviour::VOID;
 }
 
 Solution* NRandomDaysDestructor::destruct(Solution *solution) {
@@ -4045,6 +4045,8 @@ NGroupedDaysDestructor::NGroupedDaysDestructor(const Instance &instance_, const 
 {
     if(!(N <= instance.Days()))
         throw std::invalid_argument("assert N <= instance.Days()");
+
+    behaviour = Behaviour::VOID;
 }
 
 Solution* NGroupedDaysDestructor::destruct(Solution *solution) {
@@ -4069,6 +4071,8 @@ NGroupedPeriodsDestructor::NGroupedPeriodsDestructor(const Instance &instance_, 
 {
     if(!(N <= instance.P()))
         throw std::invalid_argument("assert N <= instance.P()");
+
+    behaviour = Behaviour::VOID;
 }
 
 Solution* NGroupedPeriodsDestructor::destruct(Solution *solution) {

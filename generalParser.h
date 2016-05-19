@@ -76,6 +76,13 @@ public:
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm) {return nullptr;}
     virtual std::string info() {return std::string("Iamabstract!");}
     virtual bool operator ==(const AlgoBuilder& b);
+
+    /**
+     * may return null
+     */
+    virtual emili::Problem* getInstance() {
+        return nullptr;
+    }
 };
 
 class NoSearch : public std::exception {
