@@ -2755,6 +2755,71 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
     }
 }
 
+emili::Solution* emili::pfsp::CSTaillardAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+
+        int best_inspos = 1;
+        int best_cmax = std::numeric_limits<int>::max();
+        end_position = 1;
+        start_position = ((start_position)%njobs)+1;
+        int sol_i = newsol[start_position];
+        newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+        computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#else
+        computeTAmatrices(newsol);
+
+#endif
+
+        for(int k=1; k<=njobs; k++)
+        {
+
+            if(k != start_position)
+            {
+                long int c_cur = head[1][k-1]+pmatrix[sol_i][1];
+                long int c_max = c_cur+tail[1][k];
+                for (int i = 2; i <= nmac; ++i) {
+                    int c_pm = head[i][k-1];
+
+                    if(c_pm > c_cur)
+                    {
+                        c_cur = c_pm;
+                    }
+
+                    c_cur = c_cur + pmatrix[sol_i][i];
+                    long int c_can = (c_cur+tail[i][k]);
+                    c_max = c_max>c_can?c_max:c_can;
+                }
+
+                if(c_max < best_cmax)
+                {
+                    best_cmax = c_max;
+                    best_inspos = k;
+
+                }
+
+            }
+
+        }
+        //long int old_v  = pis.computeObjectiveFunction(newsol);
+        //std::cout << c_max << " - " << old_v << std::endl;
+        //assert(c_max == old_v);
+        end_position = best_inspos;
+        newsol.insert(newsol.begin()+best_inspos,sol_i);
+        value->setSolutionValue(best_cmax);
+        sp_iterations++;
+        return value;
+    }
+}
+
 emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
 {
     emili::iteration_increment();
@@ -2765,7 +2830,7 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
     else
     {
         end_position = ((end_position)%njobs)+1;
-        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
        // int ktest = pis.computeMS(newsol);
        // assert(pis.computeMS(newsol)==current_value);
         int sol_i;
@@ -2789,7 +2854,7 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
         {
             sp_iterations++;
             ep_iterations = 1;
-            start_position = ((start_position)%njobs)+1;
+            start_position = ((start_position)%njobs)+1;            
             if(end_position == start_position-1)
             {
                 end_position=((end_position+1)%njobs)+1;
@@ -2806,6 +2871,7 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
 
 #endif
         }
+
         newsol.insert(newsol.begin()+end_position,sol_i);
         long int c_cur = head[1][end_position-1]+pmatrix[sol_i][1];
         long int c_max = c_cur+tail[1][end_position];        
@@ -2821,22 +2887,16 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
 
             long int c_can = (c_cur+tail[i][end_position]);
 
-            if(c_can>value->getSolutionValue())
-            {
-                value->setSolutionValue(c_can);
-                return value;
-            }
-
             c_max = c_max>c_can?c_max:c_can;
         }
         //long int old_vi  = pis.computeObjectiveFunction(newsol);
         //std::cout << c_max << " - " << old_v << std::endl;
         //assert(c_max == old_vi);
 
-        if(c_max < current_value)
+        if(c_max <= current_value)
         {
            current_value = c_max;
-           improved = true;
+           improved = true;          
         }
         value->setSolutionValue(c_max);
         return value;

@@ -149,6 +149,7 @@
 /* Makespan */
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
 #define NEIGHBORHOOD_FSTA_INSERT "fstainsert"
+#define NEIGHBORHOOD_CSTA_INSERT "cstainsert"
 
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
@@ -1218,6 +1219,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     {
         printTab( "Insert with Taillard Acceleration that updates the base solution after each improvement");
         neigh = new emili::pfsp::FSTaillardAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_CSTA_INSERT))
+    {
+        printTab( "Insert with Taillard Acceleration that evaluates all the possible insertion points");
+        neigh = new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_TAx_INSERT))
     {
