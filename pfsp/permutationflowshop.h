@@ -738,7 +738,6 @@ class CSTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAccel
 {
 protected:
     virtual Solution* computeStep(Solution *value);
-    int current_value;
 public:
     CSTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem){ }
 };

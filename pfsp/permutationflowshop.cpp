@@ -2832,7 +2832,7 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
         end_position = ((end_position)%njobs)+1;
          std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
        // int ktest = pis.computeMS(newsol);
-       // assert(pis.computeMS(newsol)==current_value);
+       // assert(pis.computeMS(newsol)==current_value);   
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
@@ -2893,10 +2893,10 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
         //std::cout << c_max << " - " << old_v << std::endl;
         //assert(c_max == old_vi);
 
-        if(c_max <= current_value)
+        if(c_max < current_value)
         {
            current_value = c_max;
-           improved = true;          
+           improved = true;
         }
         value->setSolutionValue(c_max);
         return value;
@@ -2914,6 +2914,7 @@ void emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::reverseLastMove(Solut
     }
     else
     {
+        ep_iterations = 1;
         std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule());        
         sol.erase(sol.begin()+start_position);
     #ifdef ENABLE_SSE
