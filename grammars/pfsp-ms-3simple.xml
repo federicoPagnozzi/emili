@@ -77,6 +77,8 @@
 	   <![CDATA[binsert ]]>
 	<or/>
 	  <![CDATA[tinsert ]]>
+	<or/>
+	  <![CDATA[fstainsert ]]>
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
@@ -98,7 +100,7 @@
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
-		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
+		<![CDATA[rsacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
 	<!--	<or/>
