@@ -268,6 +268,76 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
          return _fsp;
 }
 
+std::vector< int > inline nehls(std::vector<int >& _fsp, int N, emili::pfsp::PermutationFlowShop& pis,emili::LocalSearch* ls)
+{
+            emili::pfsp::PermutationFlowShopSolution sol(std::numeric_limits<int>::max());
+            PfspInstance& pfinstance = ((emili::pfsp::PermutationFlowShop&)ls->getInitialSolution().getProblem()).getInstance();
+            emili::pfsp::PfspNeighborhood& pneigh =((emili::pfsp::PfspNeighborhood&)ls->getNeighborhood());
+            int min;
+            int tmp,ind;
+    std::vector< int >  solTMP(N+1,0);
+            solTMP[1]=_fsp[2];
+            solTMP[2]=_fsp[1];
+
+            int mS=pis.computeObjectiveFunction(_fsp,2);//compute_total_wt(_fsp,2);
+            if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
+                _fsp[1]=solTMP[1];
+                _fsp[2]=solTMP[2];
+            }
+
+            for(int k=3;k<=N;k++){
+                    min = std::numeric_limits<int>::max();//min=10000000;
+                for(int r=1; r<=k; r++){
+
+                    for(int h=1; h<r; h++)
+                        solTMP[h]=_fsp[h];
+                    solTMP[r]=_fsp[k];
+                    for(int h=r+1; h<=k; h++)
+                        solTMP[h]=_fsp[h-1];
+
+                    tmp=pis.computeObjectiveFunction(solTMP,k);//compute_total_wt(solTMP,k+1);
+                    if(tmp<min){
+                        min=tmp;
+                        ind=r;
+                    }
+
+                }
+
+                for(int h=0; h<ind; h++)
+                    solTMP[h]=_fsp[h];
+                solTMP[ind]=_fsp[k];
+                for(int h=ind+1; h<=k; h++)
+                    solTMP[h]=_fsp[h-1];
+
+                for(int h=0; h<=k; ++h)
+                    _fsp[h]=solTMP[h];
+                sol.setJobSchedule(_fsp);
+                //sol.setSolutionValue(min);
+                //will it work??
+        /*        for(int i =1; i<=k;i++)
+                {
+                    std::cout << " " << _fsp[i];
+                }
+                std::cout << std::endl;
+                std::cout << min << std::endl;*/
+                pfinstance.setNbJob(k);
+                pneigh.setNjobs(k);
+                emili::pfsp::PermutationFlowShopSolution* s2 = (emili::pfsp::PermutationFlowShopSolution*)ls->search(&sol);
+                _fsp = s2->getJobSchedule();
+                /*for(int i =1; i<=k;i++)
+                {
+                    std::cout << " " << _fsp[i];
+                }
+                std::cout << std::endl;
+                std::cout << s2->getSolutionValue() << std::endl;
+                std::cout << std::endl;
+                */
+                delete s2;
+            }
+
+         return _fsp;
+}
+
 std::vector< int > inline nehff(std::vector<int >& _fsp,
                                 int N,
                                 emili::pfsp::PermutationFlowShop& pis
@@ -297,7 +367,12 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
 
     for(int k=3;k<=N;k++){
             min = std::numeric_limits<int>::max();//min=10000000;
-            pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
+            //pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
+#ifdef ENABLE_SSE
+        computeHEADandTAIL(solTMP,head,tail,pmatrix,solTMP.size()-1,m);
+#else
+        pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
+#endif
             std::vector< int >  ptb;
             int kk = _fsp[k];
         for(int r=1; r<=k; r++){
@@ -1115,6 +1190,32 @@ emili::Solution* emili::pfsp::NEH::generate()
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NEHls::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    int nmac = pis.getNmachines();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
+    order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        int tpti = 0;
+        for (int k = 1; k <= nmac; ++k) {
+            tpti += ptm[i][k];
+        }
+        tpt[i] = tpti;
+        order.push_back(i);
+    }
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
+    order = nehls(order,njobs,pis,_ls);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
     return s;
@@ -2679,7 +2780,7 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
 {
     emili::iteration_increment();
     if(sp_iterations > njobs)
-    {
+    {        
         return nullptr;
     }
     else

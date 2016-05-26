@@ -87,6 +87,7 @@
 /* initial solution heuristics */
 #define INITIAL_NEH "neh"
 #define INITIAL_NEHFF "nehff"
+#define INITIAL_NEHLS "nehls"
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
@@ -471,11 +472,14 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
     else if(tm.checkToken(TEST_INIT))
     {
         emili::InitialSolution* ini = init(tm);
+        clock_t time = clock();
         emili::Solution* s = ini->generateSolution();
+        double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+        std::cout << "time : " << time_elapsed << std::endl;
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << s-> getSolutionValue() << std::endl;
         std::cerr << s-> getSolutionValue() << std::endl;
-        exit(-1);
+        exit(123);
     }
     else if(tm.checkToken(EMPTY_LOCAL))
     {
@@ -1071,6 +1075,18 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         printTab( "NEHFF initial solution");
         //return new testIS(istance);
         init = new emili::pfsp::NEHff(*istance);
+    }
+    else if(tm.checkToken(INITIAL_NEHLS))
+    {
+        printTab( "NEHls initial solution");
+        PfspInstance pfs = this->istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->istance;
+        this->istance = pfse;
+        emili::LocalSearch* ll = search(tm);
+        this->istance = is;
+        istances.push_back(pfse);
+        init = new emili::pfsp::NEHls(*istance,ll);
     }
     else
     {

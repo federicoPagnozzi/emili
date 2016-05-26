@@ -433,6 +433,15 @@ public:
     NEH(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) {}
 };
 
+class NEHls: public NEH
+{
+protected:
+    emili::LocalSearch* _ls;
+    virtual Solution* generate();
+public:
+    NEHls(PermutationFlowShop& problem_instance,emili::LocalSearch* ls):emili::pfsp::NEH(problem_instance),_ls(ls) {}
+};
+
 class NEHff: public emili::pfsp::PfspInitialSolution
 {
 protected:
@@ -681,10 +690,13 @@ class PfspNeighborhood: public emili::Neighborhood
 {
 protected:
     PermutationFlowShop& pis;    
+    int njobs;
    virtual Solution* computeStep(Solution* step) =0;
 public:
-    PfspNeighborhood(PermutationFlowShop& problem):pis(problem){}
+    PfspNeighborhood(PermutationFlowShop& problem):pis(problem),njobs(problem.getNjobs()){}
     virtual Solution* step(Solution* currentSolution);
+    virtual PermutationFlowShop& getProblem() { return pis; }
+    virtual void setNjobs(int num_of_jobs) {njobs=num_of_jobs;}
     virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
     virtual int size();
@@ -700,17 +712,16 @@ protected:
     int end_position;
     int sp_iterations;
     int ep_iterations;
-    int njobs;
     std::vector < int > current;
     int current_value;
     virtual Solution* computeStep(Solution* value);
     virtual void reverseLastMove(Solution *step);
 public:
-    PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),sp_iterations(1),ep_iterations(1){}
+    PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
-    virtual NeighborhoodIterator begin(Solution *base);
+    virtual NeighborhoodIterator begin(Solution *base);    
 };
 
 /*
@@ -970,11 +981,10 @@ protected:
     int end_position;
     int sp_iterations;
     int ep_iterations;
-    int njobs;
     virtual Solution* computeStep(Solution* value);
     virtual void reverseLastMove(Solution *step);
 public:
-    PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),njobs(problem.getNjobs()),sp_iterations(1),ep_iterations(1){}
+    PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
@@ -1025,12 +1035,11 @@ class PfspTransposeNeighborhood: public emili::pfsp::PfspNeighborhood
 {
 protected:
     int start_position;
-    int sp_iterations;
-    int njobs;    
+    int sp_iterations;    
     virtual Solution* computeStep(Solution* value);
     virtual void reverseLastMove(Solution *step);
 public:
-    PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),njobs(problem.getNjobs()),sp_iterations(1){}
+    PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),sp_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
