@@ -442,6 +442,15 @@ public:
     NEHls(PermutationFlowShop& problem_instance,emili::LocalSearch* ls):emili::pfsp::NEH(problem_instance),_ls(ls) {}
 };
 
+class NEHffls: public NEH
+{
+protected:
+    emili::LocalSearch* _ls;
+    virtual Solution* generate();
+public:
+    NEHffls(PermutationFlowShop& problem_instance,emili::LocalSearch* ls):emili::pfsp::NEH(problem_instance),_ls(ls) {}
+};
+
 class NEHff: public emili::pfsp::PfspInitialSolution
 {
 protected:

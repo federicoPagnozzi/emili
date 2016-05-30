@@ -88,6 +88,7 @@
 #define INITIAL_NEH "neh"
 #define INITIAL_NEHFF "nehff"
 #define INITIAL_NEHLS "nehls"
+#define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
@@ -99,9 +100,11 @@
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
 #define INITIAL_WNSLACK "nwslack"
+#define INITIAL_FRB5 "frb5"
 
 /* Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
+#define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
 #define TERMINATION_LOCMIN "locmin"
@@ -1087,6 +1090,30 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         this->istance = is;
         istances.push_back(pfse);
         init = new emili::pfsp::NEHls(*istance,ll);
+    }
+    else if(tm.checkToken(INITIAL_FRB5))
+    {
+        printTab( "FRB5 initial solution");
+        PfspInstance pfs = this->istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
+        emili::Termination* term = new emili::LocalMinimaTermination();
+        emili::Neighborhood* nei = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse);
+        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
+        istances.push_back(pfse);
+        init = new emili::pfsp::NEHls(*istance,ll);
+    }
+    else if(tm.checkToken(INITIAL_NEHFFLS))
+    {
+        printTab( "NEHffls initial solution");
+        PfspInstance pfs = this->istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->istance;
+        this->istance = pfse;
+        emili::LocalSearch* ll = search(tm);
+        this->istance = is;
+        istances.push_back(pfse);
+        init = new emili::pfsp::NEHffls(*istance,ll);
     }
     else
     {
