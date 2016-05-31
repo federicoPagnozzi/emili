@@ -48,7 +48,7 @@ public:
     std::string tr_type; // temperature restart
 
     SAStatus(void) {
-        counter = 0;
+        counter = 0; // from last accepted
         total_counter = 0;
         temp_counter = 0;
         accepted = 0;

@@ -10,7 +10,7 @@
 class SATempLength {
 
 protected:
-    int length;
+    long length;
     std::string type;
     SAStatus* status;
 
@@ -101,14 +101,15 @@ public:
                        float alpha):
         prob(prob),
         alpha(alpha),
-        SATempLength(NEIGHSIZETEMPLEN,
+        SATempLength(PROBSIZETEMPLEN,
                      std::lrint(alpha * prob->problemSize())) {
             // std::cout << "initial temp length: " << length << std::endl << std::endl;
         }
 
     bool isCoolingTime(int counter) {
-        if (counter >= length)
+        if (counter >= length) {
             return true;
+        }
         return false;
     }
 
@@ -130,12 +131,13 @@ public:
                        float alpha):
         prob(prob),
         alpha(alpha),
-        SATempLength(NEIGHSIZETEMPLEN,
+        SATempLength(SQUAREDPROBSIZETEMPLEN,
                      std::lrint(alpha * prob->problemSize())) { }
 
     bool isCoolingTime(int counter) {
-        if (counter >= length)
+        if (counter >= length) {
             return true;
+        }
         return false;
     }
 

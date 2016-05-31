@@ -25,8 +25,8 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     do {
 
         bestSoFar = exploration->nextSolution(bestSoFar, *status);
-        status->temp = coolingScheme->update_cooling(status->temp);
-        acceptanceCriterion->setCurrentTemp(status->temp);
+        //status->temp = coolingScheme->update_cooling(status->temp);
+        //acceptanceCriterion->setCurrentTemp(status->temp);
 
     } while(!terminationCriterion->terminate(*status));
 

@@ -19,7 +19,7 @@ class SACooling {
 protected:
     double a;
     double b;
-    int counter;
+    long counter;
     double inittemp;
 
     SAStatus* status;
@@ -268,13 +268,12 @@ public:
 
     virtual double update_cooling(double temp) {
         counter++;
-
+        
         if (tempLength->isCoolingTime(counter)) {
             counter = 0;
             status->step = status->step + 1;
-            float tmp = a*temp;
+            double tmp = a*temp;
 
-            std::cout << "************************************* COOLING: " << status->total_counter << " " << tmp << std::endl;
             return tempRestart->adjust(tmp);
 
         }

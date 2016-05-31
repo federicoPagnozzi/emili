@@ -8,6 +8,8 @@ emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolu
     emili::Solution* incumbent = neigh->random(startingSolution);
     emili::Solution* accepted = acceptance->accept(startingSolution,
                                                    incumbent);
+    status.temp = cooling->update_cooling(status.temp);
+    acceptance->setCurrentTemp(status.temp);
 
     if (accepted == startingSolution) {
         delete incumbent;
@@ -39,9 +41,11 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
         ++iter) {
 
         status.increment_counters();
- 
         accepted = acceptance->accept(incumbent,
                                       ithSolution);
+        status.temp = cooling->update_cooling(status.temp);
+        acceptance->setCurrentTemp(status.temp);
+
 
         if (accepted == incumbent) {
             status.not_accepted_sol();
@@ -51,6 +55,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
             status.accepted_sol(accepted->getSolutionValue());
             break;
         }
+        
 
     } 
 

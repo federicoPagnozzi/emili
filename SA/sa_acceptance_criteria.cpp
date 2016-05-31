@@ -15,13 +15,13 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
         //std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
-            /*acc_tracker[acc_pointer] = 0;
+            /** /acc_tracker[acc_pointer] = 0;
             acc_pointer = (acc_pointer+1) % acc_tsize;
             if (acc_pointer == 0) {
                 double ratio = 0.0;
                 for (int i = 0 ; i < acc_tsize ; i++) ratio = ratio + acc_tracker[i];
                 std::cout << std::fixed << "ratio: " << 100 * ratio / acc_tsize << std::endl;
-            }*/
+            }/ **/
             return current_solution;
         }
 
@@ -30,15 +30,15 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
         status->new_best_solution(new_solution, ns, temperature);
     }
     
-    // std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
+    std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
 
-    /*acc_tracker[acc_pointer] = 1;
+    /** /acc_tracker[acc_pointer] = 1;
     acc_pointer = (acc_pointer+1) % acc_tsize;
     if (acc_pointer == 0) {
        double ratio = 0.0;
        for (int i = 0 ; i < acc_tsize ; i++) ratio = ratio + acc_tracker[i];
        std::cout << std::fixed << "ratio: " << 100 * ratio / acc_tsize << std::endl;
-    }*/
+    }/ **/
 
     return new_solution;
 
@@ -110,26 +110,28 @@ emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *curre
         double prob = std::exp((cs-ns) / temperature);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
-            acc_tracker[acc_pointer] = 0;
+            /** /acc_tracker[acc_pointer] = 0;
             acc_pointer = (acc_pointer+1) % acc_tsize;
             if (acc_pointer == 0) {
                 double ratio = 0.0;
                 for (int i = 0 ; i < acc_tsize ; i++) ratio = ratio + acc_tracker[i];
                 std::cout << std::fixed << "ratio: " << 100 * ratio / acc_tsize << std::endl;
-            }
+            }/ **/
             return current_solution;
         }
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);
     }
+    
+    std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
 
-    acc_tracker[acc_pointer] = 1;
+    /** /acc_tracker[acc_pointer] = 1;
     acc_pointer = (acc_pointer+1) % acc_tsize;
     if (acc_pointer == 0) {
        double ratio = 0.0;
        for (int i = 0 ; i < acc_tsize ; i++) ratio = ratio + acc_tracker[i];
        std::cout << std::fixed << "ratio: " << 100 * ratio / acc_tsize << std::endl;
-    }
+    }/ **/
 
     return new_solution;
 

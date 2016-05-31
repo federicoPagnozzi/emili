@@ -7,9 +7,10 @@
 #include <vector>
 
 #include "../emilibase.h"
-#include "sa_acceptance_criteria.h"
-#include "sa_termination_criteria.h"
 #include "sa_common.h"
+#include "sa_acceptance_criteria.h"
+#include "sa_cooling.h"
+#include "sa_termination_criteria.h"
 
 
 
@@ -19,16 +20,19 @@ protected:
     std::string type;
     emili::Neighborhood* neigh;
     SAAcceptance* acceptance;
+    SACooling* cooling;
     SATermination* term;
     std::string tc_type;
 
 public:
     SAExploration(emili::Neighborhood* _neigh,
                   SAAcceptance* _acceptance,
+                  SACooling* _cooling,
                   SATermination* _term,
                   std::string _type):
         neigh(_neigh),
         acceptance(_acceptance),
+        cooling(_cooling),
         term(_term),
         tc_type(_term->getType()),
         type(_type) { }
@@ -48,9 +52,11 @@ class SARandomExploration: public SAExploration {
 public:
     SARandomExploration(emili::Neighborhood* _neigh,
                         SAAcceptance* _acceptance,
+                        SACooling* _cooling,
                         SATermination* _term):
         SAExploration(_neigh,
                       _acceptance,
+                      _cooling,
                       _term,
                       SARANDOMEXPLORATION) { }
 
@@ -65,9 +71,11 @@ class SASequentialExploration: public SAExploration {
 public:
     SASequentialExploration(emili::Neighborhood* _neigh,
                             SAAcceptance* _acceptance,
+                            SACooling* _cooling,
                             SATermination* _term):
         SAExploration(_neigh,
                       _acceptance,
+                      _cooling,
                       _term,
                       SASEQUENTIALEXPLORATION) { }
 
@@ -82,9 +90,11 @@ class SAFirstImprovementExploration: public SAExploration {
 public:
     SAFirstImprovementExploration(emili::Neighborhood* _neigh,
                                   SAAcceptance* _acceptance,
+                            SACooling* _cooling,
                                   SATermination* _term):
         SAExploration(_neigh,
                       _acceptance,
+                      _cooling,
                       _term,
                       SAFIRSTIMPROVEMENTEXPLORATION) { }
 
@@ -99,9 +109,11 @@ class SABEstImprovementExploration: public SAExploration {
 public:
     SABEstImprovementExploration(emili::Neighborhood* _neigh,
                                  SAAcceptance* _acceptance,
+                            SACooling* _cooling,
                                  SATermination* _term):
         SAExploration(_neigh,
                       _acceptance,
+                      _cooling,
                       _term,
                       SABESTIMPROVEMENTEXPLORATION) { }
 

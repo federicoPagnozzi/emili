@@ -154,6 +154,7 @@ protected:
     SAExploration* EXPLORATION(prs::TokenManager& tm,
                                         emili::Neighborhood* neigh,
                                         SAAcceptance *acc,
+                                        SACooling *cool,
                                         SATermination *term);
 
     SATempRestart *TEMPRESTART(prs::TokenManager& tm,
