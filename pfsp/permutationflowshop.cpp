@@ -1328,6 +1328,29 @@ emili::Solution* emili::pfsp::NEH::generate()
     return s;
 }
 
+/*
+ * Orders the jobs by due date to produce the seed sequence for neh
+ */
+emili::Solution* emili::pfsp::NEHedd::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        tpt[i] = pis.getDueDate(i);
+        order.push_back(i);
+    }
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] < tpt[i2];});
+    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
+    order = neh2(order,njobs,pis);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
 emili::Solution* emili::pfsp::NEHls::generate()
 {
     // NEH initial solution

@@ -433,6 +433,14 @@ public:
     NEH(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) {}
 };
 
+class NEHedd: public emili::pfsp::NEH
+{
+protected:
+    virtual Solution* generate();
+public:
+    NEHedd(PermutationFlowShop& problem_instance):emili::pfsp::NEH(problem_instance) { }
+};
+
 class NEHls: public NEH
 {
 protected:
