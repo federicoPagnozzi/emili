@@ -2,12 +2,14 @@
 
 emili::Solution* SimulatedAnnealing::search() {
     emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = search(current);
+    emili::Solution* sol = SimulatedAnnealing::search(current);
     if(current!=sol)
     delete current;
 
     return sol;
 } // end search
+
+
 
 emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     emili::Solution* incumbent = init->generateEmptySolution();
@@ -38,4 +40,13 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 void SimulatedAnnealing::reset(void) {
     temp = status->init_temp;
     status->temp = status->init_temp;
+}
+
+
+void SimulatedAnnealing::setSearchTime(int _time) {
+    if (status->tc_type == NEVERTERM)
+        coolingScheme->set_search_time(_time);
+
+    this->seconds = _time;
+
 }

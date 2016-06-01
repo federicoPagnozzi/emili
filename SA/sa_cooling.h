@@ -22,6 +22,8 @@ protected:
     long counter;
     double inittemp;
 
+    int search_time_seconds;
+
     SAStatus* status;
     SATempRestart* tempRestart;
     SATempLength*  tempLength;
@@ -45,7 +47,7 @@ public:
      */
     virtual double update_cooling(double temp)=0;
 
-    void set_status(SAStatus* _status) {
+    virtual void set_status(SAStatus* _status) {
         status = _status;
     }
 
@@ -67,6 +69,10 @@ public:
 
     void setB(double _b) {
         b = _b;
+    }
+
+    virtual void set_search_time(int ts) {
+        search_time_seconds = ts;
     }
 
 }; // SACooling
@@ -232,6 +238,14 @@ class LundyMeesConnollyCooling: public SACooling {
 public:
     LundyMeesConnollyCooling(SAInitTemp *it):
         SACooling(0, 0, it) { }
+
+    void set_search_time(int ts) {
+        search_time_seconds = ts;
+
+        double estimated_no_of_moves = search_time_seconds / status->move_time;
+        b = (status->init_temp - status->final_temp) /
+                (estimated_no_of_moves * status->init_temp * status->final_temp);
+    }
 
     virtual double update_cooling(double temp) {
         counter++;
@@ -426,6 +440,22 @@ public:
         in_fixed_temp_state(false),
         SACooling(1, 0, it) { }
 
+    void set_search_time(int ts) {
+        search_time_seconds = ts;
+
+        double estimated_no_of_moves = search_time_seconds / status->move_time;
+        b = (status->init_temp - status->final_temp) /
+                (estimated_no_of_moves * status->init_temp * status->final_temp);
+                
+    }
+
+    void set_status(SAStatus* _status) {
+        status = _status;
+
+        b = (status->init_temp - status->final_temp) /
+                (status->neigh_size * 50 * status->init_temp * status->final_temp);
+    }
+
     virtual double update_cooling(double temp) {
         counter++;
         if (status->force_accept) {
@@ -445,11 +475,10 @@ public:
 
             counter = 0;
             status->step = status->step + 1;
-            b = (status->init_temp - status->final_temp) /
-                (status->neigh_size * 50 * status->init_temp * status->final_temp);
-            return (temp / (1 + b*temp));
+            
+            float tmp = (temp / (1 + b*temp));
 
-            // return tempRestart->adjust(tmp);
+            return tempRestart->adjust(tmp);
 
         }
 

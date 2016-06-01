@@ -115,6 +115,8 @@ public:
 
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
+    
+    virtual void setSearchTime(int time);
 
     virtual void reset();
 

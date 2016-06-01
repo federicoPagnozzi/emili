@@ -30,7 +30,7 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
         status->new_best_solution(new_solution, ns, temperature);
     }
     
-    std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
+    //std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
 
     /** /acc_tracker[acc_pointer] = 1;
     acc_pointer = (acc_pointer+1) % acc_tsize;
@@ -123,7 +123,7 @@ emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *curre
         status->new_best_solution(new_solution, ns, temperature);
     }
     
-    std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
+    // std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << std::endl;
 
     /** /acc_tracker[acc_pointer] = 1;
     acc_pointer = (acc_pointer+1) % acc_tsize;

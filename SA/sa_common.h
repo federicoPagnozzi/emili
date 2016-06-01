@@ -29,6 +29,8 @@ public:
 
     long   not_improved;
 
+    double move_time;
+
     emili::Solution *best;
     double best_cost;
     double best_temp;
@@ -62,6 +64,7 @@ public:
         neigh_size = 0;
         temp_restarts = 0;
         init_prob = 1.0;
+        move_time = 0.0;
 
         keep_last = false;
         force_accept = false;

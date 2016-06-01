@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <cmath>
+#include <ctime>
 
 #include "sa_common.h"
 
@@ -25,6 +26,8 @@ protected:
     SAStatus         *status;
     double            maxdelta,
                       mindelta;
+
+    double move_time;
 
 public:
 
@@ -61,6 +64,7 @@ public:
 
     void set_status(SAStatus* _status) {
         status = _status;
+        status->move_time = move_time;
     }
 
     virtual double getInit_prob(void) {
@@ -89,7 +93,8 @@ public:
         SAInitTemp() { }
 
     virtual double set(double value) {
-        init_temp = value;
+        init_temp = value;        
+        move_time = 0.001; // conventional...
         return init_temp;
     }
 
@@ -113,7 +118,8 @@ public:
         SAInitTemp(solution) { }
 
     virtual double set(double value) {
-        init_temp = value * solution->getSolutionValue();;
+        init_temp = value * solution->getSolutionValue();
+        move_time = 0.001; // conventional...
         return init_temp;
     }
 
@@ -146,6 +152,7 @@ public:
 
     virtual double set(double value) {
         int i;
+        clock_t ti = clock(), tf;
 
         emili::Solution *s1;
         emili::Solution *s2 = is->generateSolution();
@@ -173,6 +180,10 @@ public:
         }
 
         delete s2;
+
+        tf = clock();
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
 
         init_temp = value * maxdelta;
 
@@ -208,6 +219,7 @@ public:
 
     virtual double set(double value) {
         int i;
+        clock_t ti = clock(), tf;
 
         emili::Solution *s1;
         emili::Solution *s2 = is->generateSolution();
@@ -235,6 +247,10 @@ public:
         }
 
         delete s2;
+
+        tf = clock();
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
 
         init_temp = value * (mindelta + (maxdelta - mindelta) / 10);
         
@@ -273,6 +289,7 @@ public:
 
     virtual double set(double value) {
         int i;
+        clock_t ti = clock(), tf;
 
         emili::Solution *s1;
         emili::Solution *s2 = is->generateSolution();
@@ -293,6 +310,10 @@ public:
         }
 
         delete s2;
+
+        tf = clock();
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
 
         init_temp = value * costsum / length;
 
@@ -334,6 +355,7 @@ public:
 
     virtual double set(double value) {
         int i;
+        clock_t ti = clock(), tf;
 
         emili::Solution *s1;
         emili::Solution *s2 = is->generateSolution();
@@ -354,6 +376,10 @@ public:
         }
 
         delete s2;
+
+        tf = clock();
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
 
         init_temp = std::abs(value * (costsum / length) / std::log(init_prob));
 
@@ -413,6 +439,8 @@ public:
     virtual double set(double value) {
         int i;
 
+        clock_t ti = clock(), tf;
+
         emili::Solution *s1;
         emili::Solution *s2 = is->generateSolution();
         
@@ -437,6 +465,10 @@ public:
         }
 
         delete s2;
+
+        tf = clock();
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
 
         avgdelta = costsum / length;
 
@@ -487,6 +519,8 @@ public:
     virtual double set(double value) {
         int i;
 
+        clock_t ti = clock(), tf;
+
         emili::Solution *s1;
         emili::Solution *s2 = is->generateSolution();
         
@@ -509,6 +543,10 @@ public:
         }
 
         delete s2;
+
+        tf = clock();
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
 
         avgdelta = costsum / length;
 
