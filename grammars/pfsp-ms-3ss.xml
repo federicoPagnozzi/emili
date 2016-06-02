@@ -17,8 +17,8 @@
 		
 	 <pfsp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
 	 <pfsp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
-	 <pfsp:steps type="int" min="1" max="300" stepIfEnumerated="1"/>
-	 <pfsp:sp_impact type="int" min="1" max="20" stepIfEnumerated="1"/>
+	 <pfsp:steps type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:sp_impact type="int" min="1" max="10" stepIfEnumerated="1"/>
 	 <pfsp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
 	 <pfsp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
 	 <pfsp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
@@ -39,10 +39,10 @@
 	
 <pfsp:initial_solution>
    <![CDATA[random ]]>
-   <or/>
+   <!--<or/>
    <![CDATA[slack ]]>
    <or/>
-   <![CDATA[nwslack ]]>
+   <![CDATA[nwslack ]]>-->
    <or/>
    <![CDATA[nrz ]]>
   <or/>
@@ -53,6 +53,8 @@
   <![CDATA[neh ]]>
  <or/>
   <![CDATA[nehff ]]>
+ <or/>
+  <![CDATA[frb5 ]]>
 </pfsp:initial_solution>
 
 <pfsp:termination>
@@ -75,9 +77,6 @@
    <![CDATA[locmin ]]>
    <or/>
     <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
-   <!--<or/>
-   <![CDATA[iteration ]]><pfsp:iteration_number/><![CDATA[ ]]>
-   -->  
 </pfsp:ilstermination>
 
 <pfsp:neighborhood>
@@ -120,9 +119,9 @@
 
 	<pfsp:acceptance>
 		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
-		<or/>
-		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
 	<!--	<or/>
+		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
+		<or/>
 		<![CDATA[metropolis ]]><pfsp:metrotemp/><![CDATA[ ]]> -->
 		<or/>
 		<![CDATA[improve ]]>

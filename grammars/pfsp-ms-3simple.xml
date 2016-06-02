@@ -79,6 +79,8 @@
 	  <![CDATA[tinsert ]]>
 	<or/>
 	  <![CDATA[fstainsert ]]>
+	<or/>
+	  <![CDATA[cstainsert ]]>
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
@@ -95,6 +97,8 @@
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<or/>
+		<![CDATA[rsffls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 		<or/>
 		<![CDATA[rsff ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	</pfsp:pertubation>
