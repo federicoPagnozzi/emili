@@ -6413,3 +6413,101 @@ emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
         return new emili::pfsp::PermutationFlowShopSolution(best_res,bestCombination);
     }
 }
+
+int emili::pfsp::CompoundPerturbation::calc_distance(std::vector< int >& x, std::vector< int >& y)
+{
+    int dis = 0;
+    std::vector< std::vector<int> > jbx(x.size());
+    std::vector< std::vector<int> > jby(y.size());
+    for( int i = 1; i <= nbj ; i++)
+    {
+
+        for( int j = i+1 ; j <= nbj; j++)
+        {
+            jbx[x[i]].push_back(x[j]);
+            jby[y[i]].push_back(y[j]);
+        }
+    }
+
+    for(int i = 1; i<=nbj; i++)
+    {
+        int s = jbx[i].size();
+        for(int k=0;k<s;k++)
+        {
+            if(std::find(jby[i].begin(),jby[i].end(),jbx[i][k]) == jby[i].end())
+            {
+                dis++;
+            }
+        }
+
+    }
+
+    return dis;
+}
+
+emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *solution)
+{
+    int i=0;
+    std::vector < emili::pfsp::PermutationFlowShopSolution* > phy(omega);
+    std::vector< int > distance_vector(omega);
+    std::vector< int >& sol_schedule = ((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule();
+    do
+    {
+        emili::pfsp::PermutationFlowShopSolution* candidate = (emili::pfsp::PermutationFlowShopSolution*)solution->clone();
+        for(int j=0;j<d;j++)
+        {
+            emili::pfsp::PermutationFlowShopSolution* cand = candidate;
+            float p = emili::generateRealRandomNumber();
+            if(p <= pc)
+            {
+                candidate = (emili::pfsp::PermutationFlowShopSolution*)ins.random(cand);
+                delete cand;
+            }
+            else
+            {
+                candidate = (emili::pfsp::PermutationFlowShopSolution*)tra.random(cand);
+                delete cand;
+            }
+        }
+        int dd = calc_distance(candidate->getJobSchedule(),sol_schedule);
+        if(dd > 0)
+        {
+
+            phy[i] = candidate;
+            distance_vector[i] = dd;
+            i++;
+        }
+        else
+        {
+            delete candidate;
+        }
+    }while(i < omega);
+
+    emili::pfsp::PermutationFlowShopSolution* toRet = nullptr;
+    int min_d = nbj*nbj;
+    int min_d_index=0;
+    for(i=0;i<omega;i++)
+    {
+
+        if(*phy[i]<*solution)
+        {
+            toRet=phy[i];
+        }
+    }
+
+    if(toRet==nullptr)
+    {
+        for(i=0;i<omega;i++)
+        {
+            if(distance_vector[i]<min_d)
+            {
+                min_d = distance_vector[i];
+                min_d_index = i;
+            }
+        }
+        toRet = phy[min_d_index];
+    }
+
+    return toRet->clone();
+
+}

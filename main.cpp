@@ -64,7 +64,9 @@ prs::emili_header();
    // testHeuritstic(ps.getInstance());
     if(ls==nullptr)
     {
-        return -1;
+       // std::cout << "EXITING" << std::endl;
+        exit(-1);
+     //   return -1;
     }
     pls = ls->getSearchTime();//ps.ils_time;
 #else

@@ -181,6 +181,7 @@
 #define PERTURBATION_RSFF "rsff"
 #define PERTURBATION_IGIO "igio"
 #define PERTURBATION_RSIO "rsio"
+#define PERTURBATION_CP3 "cp3"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -687,6 +688,15 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSIOPerturbation(n,*istance);
+    }
+    else if(tm.checkToken(PERTURBATION_CP3))
+    {
+        int d = tm.getInteger();
+        int omega = tm.getInteger();
+        int pc = tm.getDecimal();
+        oss.str(""); oss  << "Compound perturbation :  d= " << d << ", omega= " << omega << ",pc= "<< pc;
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::CompoundPerturbation(*istance,omega,d,pc);
     }
     else
     {

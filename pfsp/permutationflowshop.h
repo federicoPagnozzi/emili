@@ -1280,6 +1280,52 @@ public:
     GVNS_innerloop(InitialSolution& initialSolutionGenerator);
     virtual Solution* search(emili::Solution* initial);
 };
+/*
+class IILS_neighborhood: public emili::pfsp::PfspInsertNeighborhood
+{
+protected:
+    int ns_appl;
+    int ns;
+    int insmo;
+    int ins;
+    int CN;
+    virtual Solution* computeStep(Solution *step);
+    virtual void reverseLastMove(Solution *step);
+public:
+    IILS_neighborhood(emili::pfsp::PermutationFlowShop& prob):emili::pfsp::PfspInsertNeighborhood(prob),ns(0),insmo(0),ins(0),CN(0),ns_appl(0) { }
+    virtual void reset();
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class IILS_perturbation: public emili::Perturbation
+{
+
+};
+*/
+/*
+ * Implementation of TSM algorithm from:
+ * i, X., Chen, L., Xu, H., & Gupta, J. N. D. (2015). Trajectory scheduling methods
+ *  for minimizing total tardiness in a flowshop.
+ *  Operations Research Perspectives, 2, 13-23. doi:10.1016/j.orp.2014.12.001
+ */
+
+class CompoundPerturbation : public emili::Perturbation
+{
+protected:
+    emili::pfsp::PermutationFlowShop& pis;
+    int omega;
+    float pc;
+    int nbj;
+    int d;
+    int calc_distance(std::vector< int >& x, std::vector< int >& y);
+    emili::pfsp::PfspInsertNeighborhood ins;
+    emili::pfsp::PfspTransposeNeighborhood tra;
+public:
+    CompoundPerturbation(emili::pfsp::PermutationFlowShop& problem):pis(problem),ins(problem),tra(problem),nbj(problem.getNjobs()),omega(30),d(3),pc(0.2) {}
+    CompoundPerturbation(emili::pfsp::PermutationFlowShop& problem,int phy_size,int number_of_perturbations, float perturbation_probability):pis(problem),ins(problem),tra(problem),nbj(problem.getNjobs()),omega(phy_size),d(number_of_perturbations),pc(perturbation_probability) {}
+    virtual Solution* perturb(Solution *solution);
+
+};
 
 }
 }
