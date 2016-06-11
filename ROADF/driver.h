@@ -34,24 +34,4 @@ public:
 
 };
 
-/*
-                 if(f==0)
-                    solution.tankQuantities[c][f] -= this->customers[c].getForecast()[f];
-                else
-                    solution.tankQuantities[c][f] += solution.tankQuantities[c][f-1] - this->customers[c].getForecast()[f];
-                    */
-/*
-    for(int s=0; s<solution.getShifts().size(); s++){
-        for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++){
-            Operation op = solution.getShifts()[s].getOperations()[o];
-            if(op.getPoint() > 0){
-                for(int f=op.getArrival()+this->customers[op.getPoint()].getSetupTime(); f<this->customers[op.getPoint()].getForecast().size()*60; f++){
-                    solution.tankQuantities[op.getPoint()][f] += op.getQuantity();
-                    solution.trailerQuantities[op.getPoint()][f] -= op.getQuantity();
-                }
-            }
-        }
-    }
-    cout<<"\n";
-    */
 #endif

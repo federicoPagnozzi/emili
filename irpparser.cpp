@@ -17,10 +17,15 @@
 #define TEST_INIT "stin"
 
 #define IRP_TWOEXCHANGE "twoExc"
+#define IRP_SHIFTTWOEXCHANGE "shiftTwoExc"
+#define IRP_SHIFTINSERT "shiftIns"
+#define IRP_SHIFTREMOVE "shiftRem"
 #define IRP_REFUEL "ref"
 
 /* initial solution heuristics */
-#define INITIAL_RANDOM "random"
+#define INITIAL_GREEDY "greedy"
+#define INITIAL_GREEDY_RANDOMIZED "greedyRandomized"
+#define INITIAL_GRASP "grasp"
 
 /* Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
@@ -355,11 +360,31 @@ emili::InitialSolution* prs::irp::IrpParser::init(prs::TokenManager& tm)
     prs::incrementTabLevel();    
     emili::InitialSolution* init;
 
-    if(tm.checkToken(INITIAL_RANDOM))
+    if(tm.checkToken(INITIAL_GREEDY))
     {
      /*TODO HERE THE CODE TO INSTATIATE A RANDOM INITIAL SOLUTION*/
 
-        init = new emili::irp::GreedyInitialSolution(*this->istance);
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        init = new emili::irp::GreedyInitialSolution(*this->istance, randomFactor, urgencyPolicy);
+
+    }
+    else if(tm.checkToken(INITIAL_GREEDY_RANDOMIZED))
+    {
+     /*TODO HERE THE CODE TO INSTATIATE A RANDOM INITIAL SOLUTION*/
+
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        init = new emili::irp::GreedyRandomizedInitialSolution(*this->istance, randomFactor, urgencyPolicy);
+
+    }
+    else if(tm.checkToken(INITIAL_GRASP))
+    {
+     /*TODO HERE THE CODE TO INSTATIATE A RANDOM INITIAL SOLUTION*/
+
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        init = new emili::irp::GRASP(*this->istance, randomFactor, urgencyPolicy);
 
     }
     /*TODO EXTEND THIS IF/ELSE STATEMENT TO INSTATIATE MORE INTIAL SOLUTION HEURISTICS*/
@@ -422,19 +447,42 @@ emili::Neighborhood* prs::irp::IrpParser::neigh(prs::TokenManager& tm)
 {
     prs::incrementTabLevel();
     emili::Neighborhood* neigh;
-    if(tm.checkToken(IRP_TWOEXCHANGE)){
-        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+/*    if(tm.checkToken(IRP_TWOEXCHANGE)){
         int piv = tm.getInteger();
         unsigned int ps = tm.getInteger();
         return new emili::irp::irpTwoExchangeNeighborhood(*istance, piv, ps);
     }
+    else */if(tm.checkToken(IRP_SHIFTTWOEXCHANGE)){
+        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        double refuelFactor = tm.getDecimal();
+        double deliveredQuantityFactor = tm.getDecimal();
+        return new emili::irp::irpShiftTwoExchangeNeighborhood(*istance, randomFactor, urgencyPolicy, refuelFactor, deliveredQuantityFactor);
+    }
+    else if(tm.checkToken(IRP_SHIFTINSERT)){
+        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        double refuelFactor = tm.getDecimal();
+        double deliveredQuantityFactor = tm.getDecimal();
+        return new emili::irp::irpShiftInsertNeighborhood(*istance, randomFactor, urgencyPolicy, refuelFactor, deliveredQuantityFactor);
+    }
+    else if(tm.checkToken(IRP_SHIFTREMOVE)){
+        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        double refuelFactor = tm.getDecimal();
+        double deliveredQuantityFactor = tm.getDecimal();
+        return new emili::irp::irpShiftRemoveNeighborhood(*istance, randomFactor, urgencyPolicy, refuelFactor, deliveredQuantityFactor);
+    }
     else if(tm.checkToken(IRP_REFUEL)){
         /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
-        double riv = tm.getDecimal();
-        double rs = tm.getDecimal();
-        double dqiv = tm.getDecimal();
-        double dqs = tm.getDecimal();
-        return new emili::irp::irpRefuelNeighborhood(*istance, riv, rs, dqiv, dqs);
+        double refuelStep = tm.getDecimal();
+        double deliveredQuantityStep = tm.getDecimal();
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        return new emili::irp::irpRefuelNeighborhood(*istance, refuelStep, deliveredQuantityStep,randomFactor, urgencyPolicy);
     }
     else
     {
@@ -450,19 +498,42 @@ emili::Neighborhood* prs::irp::IrpParser::neighV(prs::TokenManager& tm)
 {
     prs::incrementTabLevel();
     emili::Neighborhood* neigh;
-    if(tm.checkToken(IRP_TWOEXCHANGE)){
-        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+/*    if(tm.checkToken(IRP_TWOEXCHANGE)){
         int piv = tm.getInteger();
         unsigned int ps = tm.getInteger();
         return new emili::irp::irpTwoExchangeNeighborhood(*istance, piv, ps);
     }
+    else */if(tm.checkToken(IRP_SHIFTTWOEXCHANGE)){
+        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        double refuelFactor = tm.getDecimal();
+        double deliveredQuantityFactor = tm.getDecimal();
+        return new emili::irp::irpShiftTwoExchangeNeighborhood(*istance, randomFactor, urgencyPolicy, refuelFactor, deliveredQuantityFactor);
+    }
+    else if(tm.checkToken(IRP_SHIFTINSERT)){
+        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        double refuelFactor = tm.getDecimal();
+        double deliveredQuantityFactor = tm.getDecimal();
+        return new emili::irp::irpShiftInsertNeighborhood(*istance, randomFactor, urgencyPolicy, refuelFactor, deliveredQuantityFactor);
+    }
+    else if(tm.checkToken(IRP_SHIFTREMOVE)){
+        /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        double refuelFactor = tm.getDecimal();
+        double deliveredQuantityFactor = tm.getDecimal();
+        return new emili::irp::irpShiftRemoveNeighborhood(*istance, randomFactor, urgencyPolicy, refuelFactor, deliveredQuantityFactor);
+    }
     else if(tm.checkToken(IRP_REFUEL)){
         /*TODO HERE INSERT THE CODE FOR PARSING THE NEIGHBORHOODS*/
-        double riv = tm.getDecimal();
-        double rs = tm.getDecimal();
-        double dqiv = tm.getDecimal();
-        double dqs = tm.getDecimal();
-        return new emili::irp::irpRefuelNeighborhood(*istance, riv, rs, dqiv, dqs);
+        double refuelStep = tm.getDecimal();
+        double deliveredQuantityStep = tm.getDecimal();
+        double randomFactor = tm.getDecimal();
+        unsigned int urgencyPolicy = tm.getInteger();
+        return new emili::irp::irpRefuelNeighborhood(*istance, refuelStep, deliveredQuantityStep, randomFactor, urgencyPolicy);
     }
     else
     {	

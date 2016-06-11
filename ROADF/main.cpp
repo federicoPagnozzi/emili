@@ -41,7 +41,7 @@ int maino()
   
 
 
-  solution = instance.backTrackingRandomSolution(1.0, 1.0, 1);
+//  solution = instance.backTrackingRandomSolution(1.0, 1.0, 1);
     cout<<"LR: "<<instance.computeObjective(solution)<<"\n";
   if(instance.checkFeasibility(solution, false))
     cout<<"\nNOT FEASIBLE! "<<par<<"\n";

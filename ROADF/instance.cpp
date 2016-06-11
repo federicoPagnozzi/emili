@@ -5,11 +5,12 @@
 #include "tinyxml.h"
 #include "tinystr.h"
 
-#include <cmath>
-#include <iomanip>
-#include <algorithm>
+#include "/home/antoniofisk/Desktop/Uni/MasterThesis/Project/emilibase.h"
+
+
 
 #define EPSILON 0.000001
+#define FEASIBILITY_PENALTY 1
 
 Instance::Instance()
 {
@@ -18,7 +19,7 @@ Instance::Instance()
 string Instance::getName()  {return this->name;}
 int Instance::getUnit()	{return this->unit;}
 int Instance::getHorizon()	{return this->horizon;}
-vector<vector<double> > Instance::getTimeMatrices()	{return this->timeMatrices;}
+vector<vector<unsigned int> > Instance::getTimeMatrices()	{return this->timeMatrices;}
 vector<Driver> Instance::getDrivers()	{return this->drivers;}
 vector<Trailer> Instance::getTrailers()	{return this->trailers;}
 vector<Customer> Instance::getCustomers()	{return this->customers;}
@@ -31,6 +32,15 @@ void Instance::setActualQuantity(vector< vector<double> > aq)   {this->actualQua
 
 vector< pair< pair<unsigned int,unsigned int>, unsigned int > > Instance::getTimeWindows()  {return this->timeWindows;}
 void Instance::setTimeWindows(vector< pair< pair<unsigned int,unsigned int>, unsigned int > > tw)   {this->timeWindows = tw;}
+
+map< unsigned int , vector< vector<unsigned int> >   > Instance::getContributeMatrixes() {return this->contributeMatrixes;}
+void Instance::setContributeMatrixes(map<unsigned int, vector<vector<unsigned int> > > cm) {this->contributeMatrixes = cm;}
+
+map< unsigned int , vector< vector<double> >   > Instance::getContributeMatrixesValues() {return this->contributeMatrixesValues;}
+void Instance::setContributeMatrixesValues(map<unsigned int, vector<vector<double> > > cm) {this->contributeMatrixesValues = cm;}
+
+vector< vector< vector <unsigned int> > > Instance::getFastestSubroute()    {return this->fastestSubroute;}
+void Instance::setFastestSubroute(vector< vector< vector <unsigned int> > > fs) {this->fastestSubroute = fs;}
 
 
 
@@ -75,7 +85,7 @@ void Instance::loadInstance(const char* pFilename)
       for( pInnerElem; pInnerElem; pInnerElem=pInnerElem->NextSiblingElement())
       {
 	      int j = 0;
-	      vector<double> vec;
+          vector<unsigned int> vec;
 	      this->timeMatrices.push_back(vec);
 	      TiXmlElement *pMatrixElem = pInnerElem->FirstChild()->ToElement();
 	      for( pMatrixElem ; pMatrixElem;pMatrixElem =pMatrixElem ->NextSiblingElement())
@@ -344,7 +354,75 @@ void Instance::loadInstance(const char* pFilename)
           this->timeWindows.push_back(tw);
         }
       }
-     this->sortPair(timeWindows);
+     this->sortPair(this->timeWindows);
+
+
+      for(int d=0; d<this->drivers.size(); d++){
+
+          unsigned int driver = this->drivers[d].getIndex();
+          unsigned int trailer = this->drivers[driver].getTrailer();
+          vector< vector<unsigned int> > closestCustomers(this->customers.size());
+          vector< vector<double> > closestCustomersValues(this->customers.size());
+          vector<unsigned int> customerList;
+          for(int c=0; c<this->customers.size(); c++)
+              customerList.push_back(c);
+          for(int c1=0; c1<closestCustomers.size(); c1++){
+              vector<double> cost(this->customers.size());
+              for(int c2=0; c2<cost.size(); c2++){
+                  double distanceCost = this->trailers[trailer].getDistanceCost() * this->distMatrices[c1][c2];
+                  double timeCost = this->drivers[driver].getTimeCost() * this->timeMatrices[c1][c2];
+
+                  if(c1 == c2)
+                      cost[c2] = DBL_MAX;
+                  else
+                    cost[c2] =  (distanceCost + timeCost);
+
+
+              }
+              closestCustomersValues[c1] = cost;
+              this->sort(customerList, cost);
+              closestCustomers[c1] = customerList;
+
+
+          }
+          pair< unsigned int, vector< vector<unsigned int> >> p;
+          p.first = driver;
+          p.second = closestCustomers;
+          this->contributeMatrixes.insert(p);
+
+          pair< unsigned int, vector< vector<double> >> pv;
+          pv.first = driver;
+          pv.second = closestCustomersValues;
+          this->contributeMatrixesValues.insert(pv);
+      }
+
+      for(int d=0; d<this->drivers.size(); d++){
+          cout<<"DRIVER: "<<this->drivers[d].getIndex()<<"\n";
+          vector <vector <unsigned int> > cc = this->contributeMatrixes.find(d)->second;
+          for(int c1=0; c1<cc.size(); c1++){
+              vector<unsigned int> ccc = cc[c1];
+              for(int c2=0; c2<ccc.size(); c2++)
+                  cout<<ccc[c2]<<" ";
+              cout<<"\n";
+          }
+      }
+
+      vector<vector <unsigned int>> route(this->customers.size(), vector<unsigned int>());
+
+      vector< vector< vector <unsigned int> > > fastestSubroute;
+      for(int c1 = 0; c1<this->customers.size(); c1++){
+          vector< vector<unsigned int> > v1;
+          for(int c2 = 0; c2<this->customers.size(); c2++){
+              vector<unsigned int> v2;
+              for(int c3 = 0; c3<this->customers.size(); c3++){
+                unsigned int time = this->timeMatrices[c1][c3] + this->customers[c3].getSetupTime() + this->timeMatrices[c3][c2];
+                v2.push_back(time);
+              }
+              v1.push_back(v2);
+          }
+          fastestSubroute.push_back(v1);
+      }
+      this->fastestSubroute = fastestSubroute;
 
 }
 
@@ -410,7 +488,9 @@ bool Instance::dri01(irpSolution solution){
                 /*or shift1.getStart()  >= end2 + driver.getMinInterSHIFTDURATION() */)
                ){
             cout<<"dri01 NOT FEASIBLE!!!!\n";
-    //	    cout<<shift1.getStart()<<" "<<end1<<" "<<shift2.getStart()<<" "<<end2<<"\n";
+            cout<<s1<<" "<<s2<<"\n";
+            cout<<shift1.getStart()<<" "<<end1<<" "<<shift2.getStart()<<" "<<end2<<"\n";
+            int a; cin>>a;
             //exit(0);
             return true;
           }
@@ -436,11 +516,14 @@ bool Instance::dri03(irpSolution solution){
    for(int o=1; o<operations.size(); o++){
      
      cumulatedDrivingTime+=this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()];
-//     cout<<operations.at(o-1).getPoint()<<" "<<operations.at(o).getPoint()<<" "<<cumulatedDrivingTime<<"\n";  
+ //    cout<<operations.at(o-1).getPoint()<<" "<<operations.at(o).getPoint()<<" "<<cumulatedDrivingTime<<"\n";
    }
+
    cumulatedDrivingTime += this->timeMatrices[operations.back().getPoint()][0];
    if(not(cumulatedDrivingTime <= this->drivers.at(solution.getShifts()[s].getDriver()).getMaxDrivingDuration())){
-     cout<<"DRI03 NOT FEASIBLE!!!!";
+     cout<<"\nDRI03 NOT FEASIBLE!!!!";
+     cout<<s<<" "<<cumulatedDrivingTime<<"\n";
+     int a; cin>>a;
      /* exit(0);*/
       return true;
    }
@@ -476,7 +559,7 @@ bool Instance::dri08(irpSolution solution){
     
     if(flag){
        cout<<"DRI08 NOT FEASIBLE!!!!";
-       
+       int a; cin>>a;
 	/*exit(0);*/
 	return true;
     }
@@ -541,6 +624,7 @@ bool Instance::tl01(irpSolution solution){
           if(  not(  shift2.getStart() >= end1 //or shift1.getStart()  >= end2
                      )){
              cout<<"TL01 NOT FEASIBLE!!!!";
+             int a; cin>>a;
            //exit(0);
             return true;
           }
@@ -566,6 +650,7 @@ bool Instance::tl03(irpSolution solution){
 //    <<this->drivers[solution.getShifts()[s].getDriver().getIndex()].getTrailer()<<"\n";
     if( not(solution.getShifts()[s].getTrailer()==this->drivers[solution.getShifts()[s].getDriver()].getTrailer() ) ){
        cout<<"TL03 NOT FEASIBLE!!!!";
+       int a; cin>>a;
 	/*exit(0);*/
 	return true;
     }
@@ -586,12 +671,12 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
   vector<vector<double> > tankQuantities(this->customers.size());
   for(int p=0; p<this->customers.size();p++){
     if(p>1){
-      vector<double> horizon(this->customers[p].getForecast().size()*60,0.0);
+      vector<double> horizon(this->customers[p].getForecast().size()/**60*/,0.0);
       tankQuantities[p]=horizon;
       tankQuantities[p][0] = this->customers[p].getInitialTankQuantity();
     }
   }
-  
+
   for(int s=0; s<solution.getShifts().size(); s++){
     Shift shift=solution.getShifts()[s];
     vector<Operation> operations = shift.getOperations();
@@ -599,33 +684,35 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
 
         if(operations[o].getPoint() > 1){
           if(not (operations[o].getQuantity() >= -EPSILON)){
-//             cout<<"SHI11 NOT FEASIBLE!!!!";
-                cout<<"\n"<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
+             cout<<"SHI11 NOT FEASIBLE!!!!";
+                cout<<"\n"<<s<<" "<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
+                int a; cin>>a;
 //                unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
-          //    return true;
+//              return true;
           }
-          tankQuantities[operations[o].getPoint()][(int)operations[o].getArrival()] += operations[o].getQuantity();
+          tankQuantities[operations[o].getPoint()][(int)(operations[o].getArrival()/60)] += operations[o].getQuantity();
         }
         else if(operations[o].getPoint() == 1)
           if(not (operations[o].getQuantity() <= EPSILON)){
-//             cout<<"SHI11 NOT FEASIBLE!!!!";
+             cout<<"SHI11 NOT FEASIBLE!!!!";
+             int a; cin>>a;
 //             unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
-          //    return true;
+//              return true;
           }
     }
-  }  
+  }
 
-  double customerCounter = 1;
-  bool customerFlag = false;
+  bool breakFlag = false;
   for(int p=0; p<this->customers.size(); p++){
+      vector<double> fore = this->customers[p].getForecast();
     if(p>1){
-      for(int f=0; f<this->customers[p].getForecast().size()*60; f++){
-        if(f%60 == 0)
-        tankQuantities[p][f] -= this->customers[p].getForecast()[(int)f/60];
+      for(int f=0; f<fore.size()/**60*/; f++){
+ //       if(f%60 == 0)
+        tankQuantities[p][f] -= fore[(int)f/*/60*/];
         if(f>=1)
-          tankQuantities[p][f] += tankQuantities[p][f-1];	  
+          tankQuantities[p][f] += tankQuantities[p][f-1];
 
         if( not(  (this->customers[p].getCapacity() - tankQuantities[p][f] >= -EPSILON or abs(this->customers[p].getCapacity() - tankQuantities[p][f]) <= EPSILON)
           && tankQuantities[p][f] >= -EPSILON
@@ -633,24 +720,89 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
                    )
              ){
 //               cout<<"DYN01 QS02 NOT FEASIBLE!!!!";
-//               cout<<"\n"<<p<<" "<<f<<" "<<tankQuantities[p][f]<<" "<<
-//            this->customers[p].getCapacity()<<" "<<this->customers[p].getSafetyLevel()<<"\n";
-//               if(not(customerFlag)){
-                  if(abs(/*this->horizon*60 - */f) < unfeasibilityCounter)
-                  unfeasibilityCounter /*+*/= abs(/*this->horizon*60 - */f);
-                  customerFlag = true;
- //                 cout<<unfeasibilityCounter<<" ";
-//               }
-            //   exit(0);
-            //    return true;
+                  if(abs(f) < unfeasibilityCounter)
+                    unfeasibilityCounter = abs(f);
+
+                  breakFlag = true;
+                  break;
             }
 
       }
+      /* if(breakFlag){
+           break;
+       }*/
     }
-    customerFlag = false;
   }
-//  cout<<"\n";
-//  return false;
+  if(unfeasibilityCounter >= 1/EPSILON - EPSILON)
+      return 0;
+  else
+  return unfeasibilityCounter;
+}
+
+
+double Instance::dyn01partial(irpSolution solution, bool feasibility, unsigned int partialHorizon){
+
+
+  partialHorizon = (unsigned int)(partialHorizon/60) + 1;
+  cout<<"PARTIAL HORIZON: "<<partialHorizon<<"\n";
+  double unfeasibilityCounter = 1/EPSILON;
+
+  vector<vector<double> > tankQuantities(this->customers.size());
+  for(int p=0; p<this->customers.size();p++){
+    if(p>1){
+      vector<double> horizon(this->customers[p].getForecast().size()/**60*/,0.0);
+      tankQuantities[p]=horizon;
+      tankQuantities[p][0] = this->customers[p].getInitialTankQuantity();
+    }
+  }
+
+  for(int s=0; s<solution.getShifts().size(); s++){
+    Shift shift=solution.getShifts()[s];
+    vector<Operation> operations = shift.getOperations();
+    for(int o=0; o<operations.size(); o++){
+
+        if(operations[o].getPoint() > 1){
+          if(not (operations[o].getQuantity() >= -EPSILON)){
+             cout<<"SHI11 NOT FEASIBLE!!!!";
+                cout<<"\n"<<s<<" "<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
+                int a; cin>>a;
+//                unfeasibilityCounter = operations[o].getArrival();
+              /*exit(0);*/
+//              return true;
+          }
+          tankQuantities[operations[o].getPoint()][(int)(operations[o].getArrival()/60)] += operations[o].getQuantity();
+        }
+        else if(operations[o].getPoint() == 1)
+          if(not (operations[o].getQuantity() <= EPSILON)){
+             cout<<"SHI11 NOT FEASIBLE!!!!";
+             int a; cin>>a;
+//             unfeasibilityCounter = operations[o].getArrival();
+              /*exit(0);*/
+//              return true;
+          }
+    }
+  }
+
+  for(int p=0; p<this->customers.size(); p++){
+    if(p>1){
+      for(int f=0; f<partialHorizon/**60*/; f++){
+ //       if(f%60 == 0)
+        tankQuantities[p][f] -= this->customers[p].getForecast()[(int)f/*/60*/];
+        if(f>=1)
+          tankQuantities[p][f] += tankQuantities[p][f-1];
+
+        if( not(  (this->customers[p].getCapacity() - tankQuantities[p][f] >= -EPSILON or abs(this->customers[p].getCapacity() - tankQuantities[p][f]) <= EPSILON)
+          && tankQuantities[p][f] >= -EPSILON
+          && ( tankQuantities[p][f] >= this->customers[p].getSafetyLevel() or abs(tankQuantities[p][f] - this->customers[p].getSafetyLevel()) <= EPSILON)
+                   )
+             ){
+//               cout<<"DYN01 QS02 NOT FEASIBLE!!!!";
+                  if(abs(f) < unfeasibilityCounter)
+                    unfeasibilityCounter = abs(f);
+            }
+      }
+    }
+  }
   if(unfeasibilityCounter >= 1/EPSILON - EPSILON)
       return 0;
   else
@@ -671,6 +823,7 @@ bool Instance::shi02(irpSolution solution){
         double departure=shift.getStart();
         if(not(  operations[0].getArrival() >= departure + this->timeMatrices[0][operations[0].getPoint()] )){
         cout<<"SHI03 NOT FEASIBLE!!!!";
+        int a; cin>>a;
          /*exit(0);*/
          return true;
         }
@@ -680,7 +833,9 @@ bool Instance::shi02(irpSolution solution){
     //      if(s==1)
     //      cout<<operations[o].getArrival()<<" "<<departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()]<<"\n";
           if(not(  operations[o].getArrival() >= departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()] )){
-         cout<<"SHI02 NOT FEASIBLE!!!!";
+         cout<<"SHI02 NOT FEASIBLE!!!!\n";
+         int a; cin>>a;
+         cout<<s<<" "<<o<<" "<<departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()]<<" "<<operations[o].getArrival()<<"\n";
          /*exit(0);*/
          return true;
           }
@@ -703,6 +858,9 @@ bool Instance::shi05(irpSolution solution){
     for(int o=0; o<operations.size(); o++){
       bool flag = false;
       vector<unsigned int> allowedTrailers = this->customers[operations[o].getPoint()].getAllowedTrailers();
+
+      int a; if(operations[o].getPoint() == 0)cin>>a;
+
       //Every trailer is allowed at the source location
       if(operations[o].getPoint()==1)
         flag=true;
@@ -712,9 +870,11 @@ bool Instance::shi05(irpSolution solution){
           flag = true;
       }
       if(not(flag)){
-	 cout<<"SHI05 NOT FEASIBLE!!!!";
-	 /* exit(0);*/
-	  return true;
+         cout<<"SHI05 NOT FEASIBLE!!!!\n";
+         cout<<s<<" "<<o<<"\n";
+         cin>>a;
+         /* exit(0);*/
+         return true;
       }
     }
    }
@@ -756,6 +916,7 @@ bool Instance::shi06(irpSolution solution){
                   ){
             cout<<"SHI06 NOT FEASIBLE!!!!  ";
              cout<<s<<" "<<o<<"     "<<oper<<"    "<<trailerQuantities[shift.getTrailer()][oper]<<"\n";
+             int a; cin>>a;
            /* exit(0);*/
             return true;
           }
@@ -784,18 +945,20 @@ double Instance::checkFeasibility(irpSolution solution, double feasibility){
       this->shi06(solution)
               );
               */
+
+    //Time to check all constraints is no relevant
     double feas = this->dyn01(solution, false);
     if(not feas){
         if(
-              this->dri01(solution) ||
+ /*             this->dri01(solution) ||
               this->dri03(solution) ||
               this->dri08(solution) ||
               this->tl01(solution)  ||
-              this->tl03(solution)  ||
-              feas ||
+              this->tl03(solution)  ||*/
+              feas /*||
               this->shi02(solution) ||
               this->shi05(solution) ||
-              this->shi06(solution)
+              this->shi06(solution)*/
                       )
             return feas;
         else
@@ -804,40 +967,182 @@ double Instance::checkFeasibility(irpSolution solution, double feasibility){
     else
         return feas;
 
-
 }
 
-double Instance::computeObjective(irpSolution solution){
+double Instance::computeObjective(irpSolution &solution){
   
   double totalQuantity = 0.0;
+  double shiftQuantity, shiftDistance, shiftTime, shiftCost;
+  shiftQuantity = shiftDistance = shiftTime = shiftCost = 0.0;
   double LR = 0.0;
   for(int s=0; s<solution.getShifts().size(); s++){
-    
+
     double travelDist = 0.0;
+    /*shiftQuantity = 0.0;*/
     double cost = 0.0;
+
     Shift shift = solution.getShifts()[s];
     vector<Operation> operations = shift.getOperations();
-    
+
     travelDist += this->distMatrices[0][operations.front().getPoint()];
 
     for(int o=0; o<operations.size(); o++){
       
-      if(operations[o].getQuantity()>0)
+      if(operations[o].getQuantity()>0){
         totalQuantity += operations[o].getQuantity();
+        shiftQuantity += operations[o].getQuantity();
+      }
       
       if(o>0)
         travelDist += this->distMatrices[operations[o-1].getPoint()][operations[o].getPoint()];
     }
     travelDist+=this->distMatrices[operations.back().getPoint()][0];
-   
+
+
     double end = operations.back().getArrival() + this->customers[operations.back().getPoint()].getSetupTime() + this->timeMatrices[operations.back().getPoint()][0];
     cost = this->trailers[shift.getTrailer()].getDistanceCost()*travelDist + this->drivers[shift.getDriver()].getTimeCost()*(end - shift.getStart());
     LR+=cost;
-  }
-  LR/=totalQuantity;
 
+    shiftDistance += travelDist;
+    shiftTime += (end - shift.getStart());
+    shiftCost += cost;
+
+    shift.setShiftQuantity(shiftQuantity);
+    shift.setShiftDistance(shiftDistance);
+    shift.setShiftTime(shiftTime);
+    shift.setShiftCost(shiftCost);
+    solution.setShift(shift, s);
+  }
+
+
+  solution.setTotalQuantity(totalQuantity);
+  solution.setCost(LR);
+  LR/=totalQuantity;
+//  cout<<"COMPUTE: "<<solution.getShifts()[2].getShiftQuantity()<<" "<<solution.getShifts()[2].getShiftDistance()<<" "<<solution.getShifts()[2].getShiftTime()<<"\n";
   return LR;
 }
+
+
+double Instance::computeDeltaObjective(irpSolution oldSolution, irpSolution newSolution, unsigned int shiftIndex){
+
+    Shift oldShift = oldSolution.getShifts()[shiftIndex];
+    double oldQuantity = oldSolution.getShifts()[shiftIndex].getShiftQuantity();
+    double oldDistance = oldSolution.getShifts()[shiftIndex].getShiftDistance();
+    double oldTime = (oldShift.getOperations().back().getArrival()
+                      + this->customers[oldShift.getOperations().back().getPoint()].getSetupTime()
+                      + this->timeMatrices[oldShift.getOperations().back().getPoint()][0]
+                      - oldShift.getStart());
+    double oldShiftObjective = oldDistance * this->trailers[oldShift.getTrailer()].getDistanceCost() +
+                               oldTime * this->drivers[oldShift.getDriver()].getTimeCost();
+
+
+    Shift newShift = newSolution.getShifts()[shiftIndex];
+    double newQuantity = 0.0;
+    double newDistance = 0.0;
+    double newTime = (newShift.getOperations().back().getArrival()
+                      + this->customers[newShift.getOperations().back().getPoint()].getSetupTime()
+                      + this->timeMatrices[newShift.getOperations().back().getPoint()][0]
+                      - newShift.getStart());
+
+    vector<Operation> newOperations = newShift.getOperations();
+    newDistance += this->distMatrices[0][newOperations.front().getPoint()];
+    for(int o=0; o<newOperations.size(); o++){
+        if(newOperations[o].getQuantity() > EPSILON)
+            newQuantity += newOperations[o].getQuantity();
+        if(o > 0)
+            newDistance+= this->distMatrices[newOperations[o-1].getPoint()][newOperations[o].getPoint()];
+    }
+    newDistance += this->distMatrices[newOperations.back().getPoint()][0];
+
+    double newShiftObjective = newDistance * this->trailers[newShift.getTrailer()].getDistanceCost() +
+                               newTime * this->drivers[newShift.getDriver()].getTimeCost();
+
+
+    newShiftObjective /= oldSolution.getTotalQuantity();
+    oldShiftObjective /= (oldSolution.getTotalQuantity() - oldQuantity + newQuantity);
+
+
+    double newObjectiveValue = oldSolution.getCost()/oldSolution.getTotalQuantity();
+    newObjectiveValue -= oldShiftObjective;
+    newObjectiveValue *= oldSolution.getTotalQuantity();
+    newObjectiveValue /= (oldSolution.getTotalQuantity() - oldQuantity + newQuantity);
+    newObjectiveValue += newShiftObjective;
+
+//    cout<<"\nINSIDE DELTA: "<<oldShiftObjective<<" "<<newShiftObjective<<" "<<oldQuantity<<" "<<newQuantity<<"\n";
+
+    return newObjectiveValue;
+
+}
+
+double Instance::computePartialObjective(irpSolution oldSolution, irpSolution newSolution, unsigned int shiftIndex){
+
+    double oldQuantity, newQuantity;
+    double oldDistance, newDistance;
+    double oldTime, newTime;
+    double oldShiftObjective;
+
+    oldQuantity = newQuantity = oldDistance = newDistance = oldTime = newTime = oldShiftObjective = 0.0;
+
+    if(shiftIndex > 0){
+        oldQuantity += oldSolution.getShifts()[shiftIndex-1].getShiftQuantity();
+//         cout<<"OLDQ: "<<oldSolution.getShifts()[shiftIndex-1].getShiftQuantity()<<"\n";
+        oldDistance = oldSolution.getShifts()[shiftIndex-1].getShiftDistance();
+        oldTime = oldSolution.getShifts()[shiftIndex-1].getShiftTime();
+        oldShiftObjective = oldSolution.getShifts()[shiftIndex-1].getShiftCost();
+    }
+
+
+//    cout<<"OLD QUANTITY: "<<oldQuantity<<" "<<oldDistance<<" "<<oldTime<<" "<<oldShiftObjective<<"\n";
+
+    double newShiftObjective = 0.0;
+    for(int s=shiftIndex; s<newSolution.getShifts().size(); s++){
+        newDistance = newTime = 0.0;
+        Shift newShift = newSolution.getShifts()[s];
+        vector<Operation> newOperations = newShift.getOperations();
+        newDistance += this->distMatrices[0][newOperations.front().getPoint()];
+        for(int o=0; o<newOperations.size(); o++){
+            if(o > 0)
+                newDistance += this->distMatrices[newOperations[o-1].getPoint()][newOperations[o].getPoint()];
+            if(newOperations[o].getPoint() != 1)
+                newQuantity += newOperations[o].getQuantity();
+        }
+        newDistance += this->distMatrices[newOperations.back().getPoint()][0];
+        newTime = (newOperations.back().getArrival() + this->customers[newOperations.back().getPoint()].getSetupTime() +  this->timeMatrices[newOperations.back().getPoint()][0] - newShift.getStart());
+
+
+        newShiftObjective += (newDistance * this->trailers[newShift.getTrailer()].getDistanceCost() +
+                                   newTime * this->drivers[newShift.getDriver()].getTimeCost());
+    }
+
+    double actualQuantity = oldQuantity + newQuantity;
+    double newObjective = (oldShiftObjective + newShiftObjective)/actualQuantity;
+
+    return newObjective;
+}
+
+double Instance::computePartialDeltaObjective(irpSolution oldSolution, irpSolution newSolution, unsigned int shiftIndex){
+
+
+    double p = this->computePartialObjective(oldSolution, newSolution, shiftIndex);
+
+//    clock_t begin = clock();
+    double feas = this->checkFeasibility(newSolution, false);
+    /*
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    cout<<"INNER ELAPSED: "<<elapsed_secs<<"\n";
+    */
+
+    if(not(feas < EPSILON and feas > -EPSILON)){
+        double factor = feas/(this->horizon*60);
+        p /=  (factor * FEASIBILITY_PENALTY);
+        p += 1.0;
+        cout<<"\n NOT FEASIBLE! \n";
+    }
+
+    return p;
+}
+
 
 void Instance::sort(vector<unsigned int> &priorities, vector<double> urgency){
   unsigned int app;
@@ -849,7 +1154,7 @@ void Instance::sort(vector<unsigned int> &priorities, vector<double> urgency){
                 app =  priorities[i];
                 priorities[i] = priorities[j];
                 priorities[j] = app;
-		
+
                 temp =  urgency[i];
                 urgency[i] = urgency[j];
                 urgency[j] = temp;
@@ -857,7 +1162,6 @@ void Instance::sort(vector<unsigned int> &priorities, vector<double> urgency){
         }
     }
 }
-
 
 void Instance::sortPair(vector< pair< pair<unsigned int,unsigned int>, unsigned int > > &priorities){
 
@@ -867,7 +1171,7 @@ void Instance::sortPair(vector< pair< pair<unsigned int,unsigned int>, unsigned 
               + 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getDistanceCost()
               - 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getInitialQuantity()/this->maxInitialQuantity
               - 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getCapacity()/this->maxCapacity;
-*/
+
  /* cout<<setprecision(15);
   for(int p=0; p<addP.size(); p++)
       cout<<(double)((double)priorities[p].first.first + addP[p])<<"    ";
@@ -889,38 +1193,8 @@ void Instance::sortPair(vector< pair< pair<unsigned int,unsigned int>, unsigned 
         }
     }
 }
-/*
-void quickSort(vector<unsigned int> &priorities, vector<double> &urgency, int left, int right) {
-
-      int i = left, j = right;
-      int tmp, tmp2;
-      double pivot = urgency[(left + right) / 2];
-
-      while (i <= j) {
-            while (urgency[i] < pivot)
-                  i++;
-            while (urgency[j] > pivot)
-                  j--;
-            if (i <= j) {
-                  tmp = priorities[i];
-                  priorities[i] = priorities[j];
-                  priorities[j] = tmp;
-                  tmp = urgency[i];
-                  urgency[i] = urgency[j];
-                  urgency[j] = tmp;
-                  i++;
-                  j--;
-            }
-      };
 
 
-      if (left < j)
-            quickSort(priorities, urgency, left, j);
-      if (i < right)
-            quickSort(priorities, urgency, i, right);
-
-}
-*/
 
 vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
                                                  unsigned int time,
@@ -932,9 +1206,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
                                                  vector<unsigned int>  &lastOperations,
                                                  vector< pair<pair<unsigned int,unsigned int>,unsigned int> > &timeWindows,
                                                  vector<unsigned int> &customerList,
-                                                 vector<Operation> &operations/*,
-                                                 double timeWeight,
-                                                 double quantityWeight*/,
+                                                 vector<Operation> &operations,
                                                  vector<double> &deliveredQuantities,
                                                  vector<double> totalForecasts,
                                                  double timeWeight,
@@ -969,7 +1241,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
     bool allowedTrailerFlag = false;
     for(int t=0; t<this->customers[customerList[succ]].getAllowedTrailers().size(); t++)
       if(this->customers[customerList[succ]].getAllowedTrailers()[t] == this->drivers[timeWindows[0].second].getTrailer()  or customerList[succ] <= 1)
-    allowedTrailerFlag = true;
+        allowedTrailerFlag = true;
 
     if(trailerQuantities[this->drivers[timeWindows[0].second].getTrailer()] <= EPSILON and
             not(refuelFlags[this->drivers[timeWindows[0].second].getTrailer()]))
@@ -979,7 +1251,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
     /////
     double pastQuantity = 0.0;
     double horizon = 0.0;
-        if(customerList[succ]!=1){
+        if(customerList[succ] != 1){
             pastQuantity = pastQuantities[customerList[succ]];
             pastQuantity += this->customers[customerList[succ]].getInitialTankQuantity();
             pastQuantity += horizonQuantities[customerList[succ]][(int)(time + this->timeMatrices[customerList[prec]][customerList[succ]])/60];
@@ -995,26 +1267,36 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
     //////
 
    while(not(
+     //max driving duration constraint
      cumTime + this->timeMatrices[customerList[prec]][customerList[succ]] + this->customers[customerList[succ]].getSetupTime() + this->timeMatrices[customerList[succ]][0] <= this->drivers[timeWindows[0].second].getMaxDrivingDuration()
+     //shift within time window
      and timeWindows[0].first.first + cumTime + this->timeMatrices[customerList[prec]][customerList[succ]] + this->customers[customerList[succ]].getSetupTime() + this->timeMatrices[customerList[succ]][0] <= timeWindows[0].first.second
-     and (timeWindows[twD].first.first - (cumTime + timeWindows[0].first.first + this->timeMatrices[customerList[prec]][customerList[succ]] + this->customers[customerList[succ]].getSetupTime() + this->timeMatrices[customerList[succ]][0]) >= drivers[timeWindows[0].second].getMinInterSHIFTDURATION()
+     //shifts with same driver should be distanciated by a minimum intershift duration
+     and (timeWindows[twD].first.first - (timeWindows[0].first.first + cumTime + this->timeMatrices[customerList[prec]][customerList[succ]] + this->customers[customerList[succ]].getSetupTime() + this->timeMatrices[customerList[succ]][0]) >= drivers[timeWindows[0].second].getMinInterSHIFTDURATION()
        or lastDShift   )
+     //shift using the same trailer cannot overlap
      and (timeWindows[twT].first.second <= timeWindows[0].first.first or timeWindows[twT].first.first >= timeWindows[0].first.second
       or lastTShift    )
+     //customer site should be accessible by the shift's trailer
      and (allowedTrailerFlag or customerList[succ]==1)
      )
-     or (tankQuantities[customerList[succ]] >= this->customers[customerList[succ]].getCapacity()- EPSILON and customerList[succ] != 1)
+
+
+     or (tankQuantities[customerList[succ]] >= this->customers[customerList[succ]].getCapacity()-EPSILON and customerList[succ] != 1)
      or (lastOperations[customerList[succ]] >= time + this->timeMatrices[customerList[prec]][customerList[succ]]  and customerList[succ] != 1)
+     //demand for the customer is completely satisfied
      or (horizon >= -EPSILON and customerList[succ] != 1)
   ){
 
+     //it is not possible to go to the source to refuel, shift ends
      if(customerList[succ] == 1)
          return operations;
      customerList.erase(customerList.begin() + succ);
 
-     if(customerList.size() <=1 ){
+     //all customers have been served or cannot be served, shift ends
+     if(customerList.size() <= 1 )
        return operations;
-     }
+
 
     allowedTrailerFlag = false;
     for(int t=0; t<this->customers[customerList[succ]].getAllowedTrailers().size(); t++)
@@ -1043,20 +1325,21 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
 
     Operation operation;
     operation.setArrival(time + this->timeMatrices[customerList[prec]][customer]);
-    /////
+
+    // time at which last operation for this customer has been performed
     if(lastOperations[customer] < time + this->timeMatrices[customerList[prec]][customer])
         lastOperations[customer] = time + this->timeMatrices[customerList[prec]][customer];
-    /////
+
     operation.setPoint(customer);
 
-    bool refuelFlag = false;
 
 //    cout<<"         Tank: "<<tankQuantities[customer]<<"   trail:"<<trailerQuantities[trailer]<<"   horizon: "<<horizon<<" "<<this->customers[customer].getCapacity()<< "\n";
+
 
     if(customer == 1){
       operation.setQuantity(-(this->trailers[trailer].getCapacity() - trailerQuantities[trailer]));
       pastQuantities[customer] += operation.getQuantity();
-      trailerQuantities[trailer] = - operation.getQuantity();
+      trailerQuantities[trailer] -= /*-*/ operation.getQuantity();
       refuelFlags[trailer] = false;
     }
     else if(trailerQuantities[trailer] <= fabs(horizon)){
@@ -1100,16 +1383,13 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
     vector<double> urgency(this->customers.size(),0.0);
 
     for(int c=2; c<this->customers.size(); c++){
-//      Customer customer = this->customers[c];
       vector<double> forecast = this->customers[c].getForecast();
       double totForecast = 0;
       bool flag = true;
 
       double deliveredQuantity = deliveredQuantities[c];
 
-      unsigned int currentPoint = 0;
-//      if(operations.size() > 0)
-            currentPoint = customer/*solution.getShifts().back().getOperations().back().getPoint()*/;
+      unsigned int currentPoint = customer;
 
       double totalDistance = 0.0;
       for(int d=0; d<this->customers.size(); d++)
@@ -1155,6 +1435,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
 
     ///////////
     customerList.insert(customerList.begin(), customer);
+
 
     operations.push_back(operation);
     deliveredQuantities[customer] += operation.getQuantity();
@@ -1206,8 +1487,16 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
 
   Shift shift;
   shift.setIndex(solution.getShifts().size());
-      
+
     if(timeWindows.size() == 0){
+        /////ADDED
+        while(solution.getShifts().back().getOperations().size() == 1 and solution.getShifts().back().getOperations().front().getPoint() == 1){
+        /////
+            vector<Shift> shifts = solution.getShifts();
+            shifts.erase(shifts.end());
+            solution.setShifts(shifts);
+       }
+
         return solution;
     }
     else{
@@ -1215,12 +1504,12 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
       shift.setDriver(timeWindows[0].second);
       shift.setTrailer(this->drivers[timeWindows[0].second].getTrailer());
       shift.setStart(timeWindows[0].first.first);
-     
+
       time += timeWindows[0].first.first;
-          
-      vector<unsigned int> customerList;      
+
+      vector<unsigned int> customerList;
       for(int c=0; c<this->customers.size(); c++)
-	  customerList.push_back(c);
+        customerList.push_back(c);
       vector<double> urgency(this->customers.size(),0.0);
 
 
@@ -1234,8 +1523,6 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
         unsigned int currentPoint = 0;
 
         totalDistance = 0.0;
-//        for(int d=0; d<this->customers.size(); d++)
-//            totalDistance += this->timeMatrices[currentPoint][d];
         totalDistance = *max_element(this->timeMatrices[currentPoint].begin(), this->timeMatrices[currentPoint].end());
         double totalForecast = totalForecasts[c];
 
@@ -1253,31 +1540,33 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
       //        cout<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
       //        cout<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
     //            int a;cin>>a;
-    //          cout<<c<<" "<<distanceFactor<<" "<<urgency[c]<<"\n";
+    //          cout<<c<<" "<<totalForecast - this->customers[c].getInitialTankQuantity() + this->customers[c].getSafetyLevel()<<" "<<urgency[c]<<"\n";
           }
           f++;
         }
       }
-	
+
       for(int u=0; u<urgency.size(); u++)
         if(urgency[u] <= 0){
           customerList.erase(customerList.begin() + u);
           urgency.erase(urgency.begin() + u);
           u--;
         }
-	  
+
       this->sort(customerList, urgency);
-//     quickSort(customerList, urgency, 0, customerList.size());
+      /////ADDED
+      customerList.insert(customerList.begin(), 1);
+      /////
       customerList.insert(customerList.begin(), 0);
 
 /*
       for(int c=0; c<customerList.size(); c++)
-        cout<<customerList[c]<<" ";
+        cout<<customerList[c]<<";
       cout<<"\n";
-	
+
       for(int u=0; u<urgency.size(); u++)
         cout<<urgency[u]<<" ";
-      cout<<"\n";  
+      cout<<"\n";
 */
 //      int a;cin>>a;
 //      cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<"  \n";
@@ -1292,12 +1581,26 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
                                         ties,
                                         refuelFlags);
       if(operations.size() > 0 ){
-         shift.setOperations(operations);
-         vector <Shift> shifts = solution.getShifts();
-         shifts.push_back(shift);
-         solution.setShifts(shifts);
+         /////ADDED
+         if(not(operations.size()==1 and operations.front().getPoint() == 1 and abs(operations.front().getQuantity()) <= EPSILON)){
+         /////
+             /////ADDED
+             //Refuelling at the end of a shift, when at the begginning of a shift a refuel is performed, is useless
+             if(operations.size()>1 and operations.back().getPoint() == 1){
+                 trailerQuantities[shift.getTrailer()] += operations.back().getQuantity();
+                 tankQuantities[operations.back().getPoint()] -= operations.back().getQuantity();
+                 operations.erase(operations.end());
+             }
+             /////
+
+             shift.setOperations(operations);
+             vector <Shift> shifts = solution.getShifts();
+             shifts.push_back(shift);
+             solution.setShifts(shifts);
+         }
       }
-      
+
+
       timeWindows.erase(timeWindows.begin());
       return recursiveRandomSolution(solution, time, horizonQuantities, tankQuantities, trailerQuantities,
                                      pastQuantities, lastOperations, timeWindows,
@@ -1307,7 +1610,7 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
 }
 
 irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quantityWeight, double ties){
-  
+
   irpSolution solution;
   vector< vector<double> > horizonQuantities(this->customers.size());
   for(int p=0; p<this->customers.size();p++){
@@ -1326,10 +1629,12 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
 
     }
     else{
-      vector<double> horizon(this->customers[p].getForecast().size(),0.0);
+      vector<double> horizon(this->horizon,0.0);
       horizonQuantities[p]=horizon;
     }
+
   }
+
 
   vector<double> tankQuantities(this->customers.size());
   for(int c=0; c<this->customers.size(); c++){
@@ -1338,7 +1643,7 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
     else
       tankQuantities[c] = this->customers[c].getInitialTankQuantity();
   }
-  
+
   vector<double> trailerQuantities(this->trailers.size());
   for(int t=0; t<this->trailers.size(); t++){
     trailerQuantities[t] = this->trailers[t].getInitialQuantity();
@@ -1368,8 +1673,10 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
 
   vector<double> totalForecasts(this->customers.size(), 0.0);
   for(int c=0; c<totalForecasts.size(); c++)
-      for(int f=0; f<this->customers[c].getForecast().size(); f++)
-          totalForecasts[c] += this->customers[c].getForecast()[f];
+      totalForecasts[c] = abs(horizonQuantities[c].back());
+     // for(int f=0; f<this->customers[c].getForecast().size(); f++)
+     //     totalForecasts[c] += this->customers[c].getForecast()[f];
+
 
   return recursiveRandomSolution(solution,
                                  0,
@@ -1380,6 +1687,7 @@ irpSolution Instance::backTrackingRandomSolution(double timeWeight, double quant
                                  totalDistance,
                                  totalForecasts);
 }
+
 
 
 
@@ -1420,11 +1728,12 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            if(trailerQuantities[t] <= EPSILON)
                refuelFlag[t] = true;
 
- //      cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+       cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
        time = timeWindows[0].first.first;
 
        unsigned int prec;
        unsigned int succ;
+
        if(refuelFlag[trailer]){
            prec = 0;
            succ = 1;
@@ -1433,7 +1742,12 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            prec = 0;
            succ = solutionRepresentation.front();
        }
-
+    /*
+       /////MODIFIED
+           prec = 0;
+           succ = 1;
+       /////MODIFIED
+       /// */
        unsigned int cumulatedTime = time + this->timeMatrices[0][succ];
 
        unsigned int twD=0;
@@ -1475,17 +1789,17 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            operation.setArrival(cumulatedTime);
            operation.setPoint(succ);
 
-//           cout<<"         Tank: "<<this->actualQuantity[succ][operation.getArrival()]<<"   trail:"<<trailerQuantities[trailer]/*<<"   horizon: "<<this->horizons[succ].back()*/<<" "<<this->customers[succ].getCapacity()<<"       \n";
+//           cout<<"         Tank: "<<this->actualQuantity[succ][operation.getArrival()]<<"   trail:"<<trailerQuantities[trailer]<<" "<<this->customers[succ].getCapacity()<<"       \n";
            double quantity = 0.0;
 
-           if(refuelFlag[trailer] == true){
+           if(refuelFlag[trailer] == true or succ == 1){
                quantity = this->trailers[trailer].getCapacity() - trailerQuantities[trailer];
                trailerQuantities[trailer] += quantity;
                refuelFlag[trailer] = false;
 
                operation.setQuantity(-quantity);
 
-//               cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+               cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
                operations.push_back(operation);
 
                prec = 1;
@@ -1499,73 +1813,75 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                      allowedTrailerFlag = true;
            }
            else{
-           if(trailerQuantities[trailer] <= fabs(this->horizons[succ].back())
-                   and this->horizons[succ].back() < 0){
-               double residualQuantity = this->actualQuantity[succ][(int)(operation.getArrival()/* + this->customers[succ].getSetupTime()*/)/*/60*/];
-               if(residualQuantity < 0)
-                   residualQuantity = 0;
-               else if(residualQuantity > this->customers[succ].getCapacity())
-                   residualQuantity = this->customers[succ].getCapacity();
-
-
-               if(trailerQuantities[trailer] <= this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ*/){
-                   quantity = trailerQuantities[trailer] /** deliveredQuantityRatio*/;
-
-                   for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
-                       if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
-                          quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
-                          horizonFlag = true;
-                       }
-                   }
-                   if(horizonFlag)
-                       break;
-
-                   /////
-                   double factor = 1.0/* - residualQuantity/this->customers[succ].getCapacity()*/;
-                   if(not(quantity <= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio))
-                   quantity -= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio;
-                   /////
-
-                   trailerQuantities[trailer] -= quantity;
-                   tankQuantities[succ] += quantity;
-                   /*
-                   if(trailerQuantities[trailer] < EPSILON)
-                     refuelFlag[trailer] = true;
-                     */
-               }
-               else{
-                   quantity = (this->customers[succ].getCapacity() - residualQuantity) /** deliveredQuantityRatio*/;
-
-                   for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
-                       if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
-                          quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
-                          horizonFlag = true;
-                       }
-                   }
-                   if(horizonFlag)
-                       break;
-
-                   /////
-                   double factor = 1.0/* - residualQuantity/this->customers[succ].getCapacity()*/;
-                   if(not(quantity <= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio))
-                       quantity -= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio;
-                   /////
-
-                   trailerQuantities[trailer] -= quantity;
-                   tankQuantities[succ] += quantity;
-               }
-           }
-           else{
-               double residualQuantity = this->actualQuantity[succ][(int)(operation.getArrival()/* + this->customers[succ].getSetupTime()*/)/*/60*/];
-               if(residualQuantity < 0)
-                   residualQuantity = 0;
-               else if(residualQuantity > this->customers[succ].getCapacity())
-                   residualQuantity = this->customers[succ].getCapacity();
-
-               if(fabs(this->horizons[succ].back()) <= this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ]*/
+               if(trailerQuantities[trailer] <= fabs(this->horizons[succ].back())
                        and this->horizons[succ].back() < 0){
-                   quantity = fabs(this->horizons[succ].back()) /** deliveredQuantityRatio*/;
+                   double residualQuantity = this->actualQuantity[succ][(int)(operation.getArrival())];
+                   if(residualQuantity < 0)
+                       residualQuantity = 0;
+                   else if(residualQuantity > this->customers[succ].getCapacity())
+                       residualQuantity = this->customers[succ].getCapacity();
 
+
+                       if(trailerQuantities[trailer] <= this->customers[succ].getCapacity() - residualQuantity){
+                           quantity = trailerQuantities[trailer];
+
+                           /////check if the quantity would make the tank exceed due to future operations, if so break
+                           for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
+                               if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
+                                  quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
+                                  horizonFlag = true;
+                               }
+                           }
+                           if(horizonFlag)
+                               break;
+                           //////
+
+                           /////Delivered quantity factor
+                           double factor = 1.0;// - residualQuantity/this->customers[succ].getCapacity()
+                           if(not(quantity <= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio))
+                            quantity -= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio;
+                           /////
+
+                           trailerQuantities[trailer] -= quantity;
+                           tankQuantities[succ] += quantity;
+
+                       }
+                       else{
+                           quantity = (this->customers[succ].getCapacity() - residualQuantity);
+
+                           /////check if the quantity would make the tank exceed due to future operations, if so break
+                           for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
+                               if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
+                                  quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
+                                  horizonFlag = true;
+                               }
+                           }
+                           if(horizonFlag)
+                               break;
+                           /////
+
+                           /////Delivered quantity factor
+                           double factor = 1.0;// - residualQuantity/this->customers[succ].getCapacity();
+                           if(not(quantity <= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio))
+                               quantity -= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio;
+                           /////
+
+                           trailerQuantities[trailer] -= quantity;
+                           tankQuantities[succ] += quantity;
+                       }
+               }
+           else{
+               double residualQuantity = this->actualQuantity[succ][(int)(operation.getArrival())];
+               if(residualQuantity < 0)
+                   residualQuantity = 0;
+               else if(residualQuantity > this->customers[succ].getCapacity())
+                   residualQuantity = this->customers[succ].getCapacity();
+
+               if(fabs(this->horizons[succ].back()) <= this->customers[succ].getCapacity() - residualQuantity
+                       and this->horizons[succ].back() < 0){
+                   quantity = fabs(this->horizons[succ].back());
+
+                   /////check if the quantity would make the tank exceed due to future operations, if so break
                    for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
                        if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
                           quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
@@ -1574,9 +1890,10 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    }
                    if(horizonFlag)
                        break;
-
                    /////
-                   double factor = 1.0/* - residualQuantity/this->customers[succ].getCapacity()*/;
+
+                   /////Delivered quantity factor
+                   double factor = 1.0;
                    if(not(quantity <= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio))
                       quantity -= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio;
                    /////
@@ -1584,10 +1901,11 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    trailerQuantities[trailer] -= quantity;
                    tankQuantities[succ] += quantity;
                }
-               else if(fabs(this->horizons[succ].back()) > this->customers[succ].getCapacity() - residualQuantity/*tankQuantities[succ]*/
+               else if(fabs(this->horizons[succ].back()) > this->customers[succ].getCapacity() - residualQuantity
                        and this->horizons[succ].back() < 0){
-                   quantity = (this->customers[succ].getCapacity() - residualQuantity) /** deliveredQuantityRatio*/;
+                   quantity = (this->customers[succ].getCapacity() - residualQuantity);
 
+                   /////check if the quantity would make the tank exceed due to future operations, if so break
                    for(int ff=operation.getArrival(); ff < this->horizon*60; ff++){
                        if(this->actualQuantity[succ][ff] + quantity > this->customers[succ].getCapacity()){
                           quantity -= (this->actualQuantity[succ][ff] + quantity - this->customers[succ].getCapacity());
@@ -1596,9 +1914,10 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    }
                    if(horizonFlag)
                        break;
-
                    /////
-                   double factor = 1.0/* - residualQuantity/this->customers[succ].getCapacity()*/;
+
+                   /////Delivered quantity factor
+                   double factor = 1.0;// - residualQuantity/this->customers[succ].getCapacity();
                    if(not(quantity <= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio))
                         quantity -= this->trailers[trailer].getCapacity() * factor * deliveredQuantityRatio;
                    /////
@@ -1611,21 +1930,20 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
                    quantity = 0.0;
            }
 
-           if(horizonFlag or (quantity <= EPSILON and operation.getPoint()!=1 and originalFlag))
+           if(horizonFlag or (quantity <= EPSILON and operation.getPoint()!=1 /*and originalFlag*/))
                 break;
            if(trailerQuantities[trailer] <= EPSILON + this->trailers[trailer].getCapacity() * refuelRatio){
-//             cout<<"   REFUEL!!!   ";
              refuelFlag[trailer] = true;
            }
 
-           for(int ff = (int)(operation.getArrival() /*+ this->customers[succ].getSetupTime()*/)/*/60*/; ff < this->customers[succ].getForecast().size()*60; ff++){
+           for(int ff = (int)(operation.getArrival()); ff < this->customers[succ].getForecast().size()*60; ff++){
                this->horizons[succ][ff] += quantity;
                this->actualQuantity[succ][ff] += quantity;
            }
 
            operation.setQuantity(quantity);
 
-//           cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+           cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
            operations.push_back(operation);
            solutionRepresentation.erase(solutionRepresentation.begin());
            if(refuelFlag[trailer]){
@@ -1637,8 +1955,6 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            else{
                prec = succ;
                if(solutionRepresentation.size() > 0){
-                  /* if(this->horizons[solutionRepresentation.front()].back() >= 0)
-                       solutionRepresentation.erase(solutionRepresentation.begin());*/
                    if(solutionRepresentation.size() > 0)
                       succ = solutionRepresentation.front();
                }
@@ -1650,9 +1966,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
              if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[driver].getTrailer())
                  allowedTrailerFlag = true;
        }
-
        }
-//       cout<<"\n";
        timeWindows.erase(timeWindows.begin());
        shift.setOperations(operations);
        if(operations.size() != 0)
@@ -1663,130 +1977,2441 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
        index++;
    }
 
-   solution.setShifts(shifts);
 
-/*
-   cout<<"REBUILT SOLUTION: ";
-   for(int s=0; s<solution.getShifts().size();s++){
-       cout<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<"\n";
-       for(int o=0; o<solution.getShifts()[s].getOperations().size();o++)
-           cout<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "<<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
-       cout<<"\n";
+   vector<Shift> newShifts;
+   unsigned int size = shifts.size();
+   for(int s=size-1; s>=0; s--){
+       Shift newShift = shifts[s];
+       vector<Operation> newOperations = shifts[s].getOperations();
+       unsigned int osize = shifts[s].getOperations().size();
+       for(int o=osize-1; o>=0; o--)
+           if(shifts[s].getOperations()[o].getQuantity() < EPSILON && shifts[s].getOperations()[o].getQuantity() > -EPSILON )
+               newOperations.erase(newOperations.end());
+           else
+               break;
+
+       newShift.setOperations(newOperations);
+       if(newShift.getOperations().size() > 0)
+        shifts[s] = newShift;
+       else
+           shifts.erase(shifts.end());
    }
+//   shifts = newShifts;
 
-   cout<<"HORIZON: \n";
-   for(int h=0; h<this->horizons.size(); h++)
-       cout<<this->horizons[h][0]<<"   "<<this->horizons[h].back()<<"\n";
-    int a;
-    */
-/*
-   cout<<"HORIZON: \n";
-   for(int f=0; f<this->horizon*60; f++){
-       cout<<this->actualQuantity[6][f]<<"\n";
-       if(this->actualQuantity[6][f] > 6000){
-                      cout<<f<<" "<<this->actualQuantity[6].back()<<"\n";
-           cin>>a;
-       }
+      solution.setShifts(shifts);
+
+   for(int s=0; s<solution.getShifts().size(); s++){
+       cout<<"SHIFT R: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
+       for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
+           cout<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+                 <<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+                   <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
    }
-*/
-
    return solution;
 }
 
+unsigned int Instance::computeTime(unsigned int succ, unsigned int nextSucc){
 
-void Instance::compute(irpSolution &solution){
+    vector<unsigned int> travellingTimes = this->timeMatrices[succ];
 
-    cout<<"INITIAL TRAILER QUANTITY: ";
-    for(int t=0; t<this->trailers.size(); t++){
-        vector<double> trailerQuantity(this->horizon * 60,0.0);
-        solution.trailerQuantities.push_back(trailerQuantity);
-        solution.trailerQuantities[t][0] = this->trailers[t].getInitialQuantity();
-        cout<<solution.trailerQuantities[t][0]<<" ";
-    }
-    cout<<"\n";
-    cout<<"INITIAL TANK QUANTITY: ";
-    for(int c=0; c<this->customers.size(); c++){
-        vector<double> tankQuantity(this->horizon * 60,0.0);
-        solution.tankQuantities.push_back(tankQuantity);
-        if(c > 1)
-            solution.tankQuantities[c][0] = this->customers[c].getInitialTankQuantity();
-//        cout<<solution.tankQuantities[c][0]<<" ";
+//    cout<<"\n"<<succ<<"times: \n";
+    for(int c=0; c<travellingTimes.size(); c++){
+//        cout<<travellingTimes[c]<<" ";
+        travellingTimes[c] += this->customers[c].getSetupTime();
+//        cout<<travellingTimes[c]<<" ";
+        travellingTimes[c] += this->timeMatrices[c][0];
+//        cout<<travellingTimes[c]<<"\n";
     }
 
-    for(int c=0; c<this->customers.size(); c++){
-        for(int f=0; f<this->customers[c].getForecast().size(); f++){
-            if(c > 1){
-                solution.tankQuantities[c][f*60] -= this->customers[c].getForecast()[f];
-                if(c==2)
-                for(int ff=0; ff<60; ff++);
-//                    cout<<solution.tankQuantities[c][f*60 + ff]<<" ";
-            }
-        }
-    }
-
-    for(int s=0; s<solution.getShifts().size(); s++){
-        for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++){
-            Operation op = solution.getShifts()[s].getOperations()[o];
-            if(op.getPoint() > 0){
-                unsigned int opTime = op.getArrival() + this->customers[op.getPoint()].getSetupTime();
-                unsigned int driver = solution.getShifts()[s].getDriver();
-                solution.tankQuantities[op.getPoint()][opTime] += op.getQuantity();
-                solution.trailerQuantities[driver][opTime] -= op.getQuantity();
-            }
-        }
-    }
-
-    for(int c=0; c<this->customers.size(); c++){
-        for(int f=0; f<this->customers[c].getForecast().size(); f++){
-            if(c > 0)
-               for(int ff=0; ff<60; ff++)
-                   if(f*60 + ff > 0)
-                       solution.tankQuantities[c][f*60 + ff] += solution.tankQuantities[c][f*60 + ff - 1];
-        /*    if(c==2 and f <15)
-            for(int ff=0; ff<60; ff++)
-                cout<<f<<" "<<f*60+ff<<" "<<solution.tankQuantities[c][f*60 + ff]<<"\n";*/
-            }
-    }
-
-    for(int t=0; t<this->trailers.size(); t++){
-        for(int f=0; f<this->horizon; f++){
-               for(int ff=0; ff<60; ff++)
-                   if(f*60 + ff > 0)
-                       solution.trailerQuantities[t][f*60 + ff] += solution.trailerQuantities[t][f*60 + ff - 1];
-
-          /*  if(t==0 and f <15)
-             for(int ff=0; ff<60; ff++)
-                   cout<<f<<" "<<f*60+ff<<" "<<solution.trailerQuantities[t][f*60 + ff]<<"\n";*/
-            }
-    }
-
-
+//    cout<<"MIN: "<<*std::min_element(travellingTimes.begin(), travellingTimes.end())<<"\n";
+    return *std::min_element(travellingTimes.begin(), travellingTimes.end());
 
 }
 
+void Instance::computeUrgency2(vector<unsigned int> &customerList, vector<double> &urgency,
+                               Shift shift, vector<double> deliveredQuantities,
+                               double costWeight, double demandWeight,
+                               unsigned int prec){
 
-irpSolution Instance::twoExchangeNeighborhood(irpSolution solution, int s1, int o1, int s2, int o2){
+    vector <vector <double> > cc = this->contributeMatrixesValues.find(shift.getDriver())->second;
+    vector<double> v = cc[prec];
+    for(int i=0; i<v.size(); i++)
+        if(v[i] >= DBL_MAX- EPSILON)
+            v[i] = 0.0;
 
-    irpSolution  neighboringSolution = solution;
-    unsigned int point1 = neighboringSolution.getShifts()[s1].getOperations()[o1].getPoint();
-    unsigned int point2 = neighboringSolution.getShifts()[s2].getOperations()[o2].getPoint();
-    if(  not(  (s1==s2 and o1==o2) or (point1==point2)  )  ){
-//      cout<<"\n\nCIAOOO "<<neighboringSolution.getShifts()[s2].getOperations()[o2].getPoint();
-        neighboringSolution.setPoint(point2, s1, o1);
-        neighboringSolution.setPoint(point1, s2, o2);
-//      cout<<"\n\nCIAOOO "<<neighboringSolution.getShifts()[s2].getOperations()[o2].getPoint();
-        if(!this->checkFeasibility(neighboringSolution, false)){
-            for(int s=0; s<solution.getShifts().size(); s++)
-                for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-                    cout<<neighboringSolution.getShifts()[s].getOperations()[o].getPoint()<<" ";
+    double maxC  = *max_element(v.begin()+2, v.end());
+    double demandFactor = 0.0;
+    double costFactor;
+    for(int c=0; c<urgency.size(); c++){
+        if(c > 1){
+            costFactor = ((double)v[c]/maxC);
+
+            cout<<"COST: "<<costFactor<<" "<<v[c]<<" "<<maxC<<"\n";
+            Customer customer = this->customers[c];
+            vector<double> forecast = customer.getForecast();
+            double deliveredQuantity = deliveredQuantities[c];
+            double totForecast = 0;
+            unsigned int f = 0;
+            bool flag = true;
+            while(f < forecast.size() and flag){
+              totForecast += forecast[f];
+              if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
+                  demandFactor = (double)f/forecast.size();
+                  flag = false;
+                  cout<<"DEMAND: "<<demandFactor<<" "<<f<<"\n";
+              }
+              f++;
+            }
+
+
+            if(not flag)
+              urgency[c] = (costFactor*costWeight + demandFactor*demandWeight)/2;
+            else
+                urgency[c] = 1.0 + costFactor*costWeight;
+        }
+        else
+            urgency[c] = DBL_MAX;
+
+    }
+
+}
+
+irpSolution Instance::constructSolution2(irpSolution initialSolution, double costWeight, double demandWeight, int ties,
+                                        double servingRatio, double refuelRatio,
+                                        unsigned int noCustomer,
+                                        unsigned int maxShifts){
+
+    irpSolution solution = initialSolution;
+
+    vector<Shift> shifts = solution.getShifts();
+
+    if(shifts.size() > maxShifts)
+        return solution;
+
+    vector<double> trailerQuantities;
+    for(int t=0; t<this->trailers.size(); t++)
+        trailerQuantities.push_back(this->trailers[t].getInitialQuantity());
+
+    vector<double> tankQuantities;
+    for(int c=0; c<this->customers.size(); c++)
+        tankQuantities.push_back(this->customers[c].getInitialTankQuantity());
+
+
+    vector<double> deliveredQuantities(this->customers.size(), 0.0);
+
+    vector<Operation> lastOperations(this->customers.size(), Operation());
+    vector<unsigned int> lastOperationsTime(this->customers.size(), 0);
+    unsigned int lastTime = 0;
+    for(int s=0; s<shifts.size(); s++){
+        Shift shift = shifts[s];
+        for(int o=0; o<shift.getOperations().size(); o++){
+            Operation operation = shift.getOperations()[o];
+            trailerQuantities[shift.getTrailer()] -= operation.getQuantity();
+            tankQuantities[operation.getPoint()] += operation.getQuantity();
+            deliveredQuantities[operation.getPoint()] += operation.getQuantity();
+
+            if(operation.getArrival() > lastOperationsTime[operation.getPoint()]){
+                lastOperationsTime[operation.getPoint()] = operation.getArrival();
+                lastOperations[operation.getPoint()] = operation;
+            }
+
+        }
+        if(shift.getStart()  > lastTime)
+            lastTime = shift.getStart();
+    }
+
+    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > lastTimeWindows;
+
+    for(int t=0; t<this->timeWindows.size(); t++){
+      if(this->timeWindows[t].first.first >= lastTime){
+
+          pair< pair<unsigned int,unsigned int>, unsigned int > tw;
+          tw.first = this->timeWindows[t].first;
+          tw.second = this->timeWindows[t].second;
+          lastTimeWindows.push_back(tw);
+
+          int numberOfDrivers = this->drivers.size();
+
+          if(numberOfDrivers > shifts.size())
+              numberOfDrivers -= (numberOfDrivers - shifts.size());
+
+          for(int d=0; d<numberOfDrivers; d++){
+              Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
+              int lastOperationTime = lastOperation.getArrival()
+                      + this->customers[lastOperation.getPoint()].getSetupTime()
+                      + this->timeMatrices[lastOperation.getPoint()][0];
+              if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or shifts[/*s*/initialSolution.getShifts().size()-1-d].getStart()==tw.first.first)
+                     and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
+                  lastTimeWindows.erase(lastTimeWindows.end());
+          }
+      }
+    }
+
+    if(lastTimeWindows.size() == 0)
+        return solution;
+
+    unsigned int time, index = 0;
+    if(shifts.size() != 0){
+        time = lastTimeWindows.front().first.first;
+        index = shifts.back().getIndex() + 1;
+    }
+
+
+    vector<bool> refuelFlags(this->trailers.size(), false);
+    for(int t=0; t<this->trailers.size(); t++)
+        if(trailerQuantities[t] < EPSILON)
+            refuelFlags[t] = true;
+//    vector<Shift> shifts = solution.getShifts();
+
+    while(lastTimeWindows.size() > 0)  {
+
+        Shift shift;
+        shift.setIndex(index);
+        shift.setDriver(lastTimeWindows.front().second);
+        shift.setTrailer(this->drivers[shift.getDriver()].getTrailer());
+        shift.setStart(lastTimeWindows.front().first.first);
+
+//        cout<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+
+        time = shift.getStart();
+
+        unsigned int prec;
+        unsigned int succ;
+
+        prec = 0;
+        succ = 1;
+
+        unsigned int cumTime = 0;
+
+        unsigned int twD=0;
+        bool lastDShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(lastTimeWindows[t].second == shift.getDriver()){
+            twD = t;
+            lastDShift = false;
+            break;
+          }
+        unsigned int twT=0;
+        bool lastTShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(this->drivers[lastTimeWindows[t].second].getTrailer() == this->drivers[shift.getDriver()].getTrailer()){
+            twT = t;
+            lastTShift = false;
+            break;
+          }
+          bool allowedTrailerFlag = false;
+          for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+            if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[shift.getDriver()].getTrailer())
+                allowedTrailerFlag = true;
+
+
+          vector<unsigned int> customerList;
+          for(int c=0; c<this->customers.size(); c++)
+              customerList.push_back(c);
+
+          vector<double> urgency(this->customers.size(), DBL_MAX);
+////////////////////////////////////
+
+          this->computeUrgency2(customerList, urgency,
+                                         shift, deliveredQuantities,
+                                         costWeight, demandWeight, 0);
+
+          ////////////////////////////////
+
+
+
+          for(int u=0; u<urgency.size(); u++)
+            if(urgency[u] < EPSILON or urgency[u] >= DBL_MAX - EPSILON){
+              customerList.erase(customerList.begin() + u);
+              urgency.erase(urgency.begin() + u);
+              u--;
+            }
+
+          this->sort(customerList, urgency);
+
+          /////ADDED
+//          customerList.insert(customerList.begin(), 1);
+          /////
+
+          succ = customerList.front();
+
+
+          double breakFlag = false;
+          vector<Operation> operations;
+          while(customerList.size() > 0){
+
+              if(refuelFlags[shift.getTrailer()] == true)
+                  succ = 1;
+
+              allowedTrailerFlag = false;
+              for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                  allowedTrailerFlag = true;
+
+              while(not(
+                //max driving duration constraint
+                (cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]
+                        <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()
+                /*or cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0)
+                        <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()*/)
+
+                and
+                //shift within time window
+                 (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]
+                        <= lastTimeWindows.front().first.second
+                 /*or lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0)
+                        <= lastTimeWindows.front().first.second*/)
+
+                and
+                //shifts with same driver should be distanciated by a minimum intershift duration
+                ( (lastTimeWindows[twD].first.first - (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0])
+                     >= drivers[lastTimeWindows.front().second].getMinInterSHIFTDURATION()
+                  or lastDShift   )
+                  /*or (lastTimeWindows[twD].first.first - (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0))
+                      >= drivers[lastTimeWindows.front().second].getMinInterSHIFTDURATION()
+                   or lastDShift) */)
+
+
+                //shift using the same trailer cannot overlap
+                and (lastTimeWindows[twT].first.second <= lastTimeWindows.front().first.first or lastTimeWindows[twT].first.first >= lastTimeWindows.front().first.second
+                 or lastTShift    )
+                //customer site should be accessible by the shift's trailer
+                and (allowedTrailerFlag or succ==1)
+
+
+                )
+
+
+                or (tankQuantities[succ] + (this->actualQuantity[succ][time + cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity())
+                                            >= this->customers[succ].getCapacity()-EPSILON and succ != 1)
+                //demand for the customer is completely satisfied
+                or (this->horizons[succ].back() + deliveredQuantities[succ] >= -EPSILON and succ != 1)
+
+                     or succ == noCustomer
+             ){
+
+
+                  if(customerList.size() <= 1 or succ == 1){
+                      breakFlag = true;
+                      break;
+                  }
+
+                  customerList.erase(customerList.begin());
+                  succ = customerList.front();
+
+
+                  allowedTrailerFlag = false;
+                  for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                    if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                      allowedTrailerFlag = true;
+              }
+
+              if(breakFlag)
+                  break;
+
+
+              Operation operation;
+              operation.setPoint(succ);
+              operation.setArrival(time + cumTime + this->timeMatrices[prec][succ]);
+
+              double quantity, actualTankQuantity = 0.0;
+
+              if(succ == 1){
+                  quantity = trailerQuantities[shift.getTrailer()] - this->trailers[shift.getTrailer()].getCapacity();
+                  refuelFlags[shift.getTrailer()] = false;
+              }
+              else{
+                  actualTankQuantity = tankQuantities[succ] + (this->actualQuantity[succ][operation.getArrival()] - this->customers[succ].getInitialTankQuantity());
+
+                  if(trailerQuantities[shift.getTrailer()] <= this->customers[succ].getCapacity() - actualTankQuantity)
+                      quantity = trailerQuantities[shift.getTrailer()];
+                  else
+                      quantity = this->customers[succ].getCapacity() - actualTankQuantity;
+
+                  if(quantity > abs(this->horizons[succ].back() + deliveredQuantities[succ]))
+                      quantity = abs(this->horizons[succ].back() + deliveredQuantities[succ]);
+              }
+
+              if(quantity > this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * servingRatio)
+                  quantity = this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * (servingRatio);
+
+              operation.setQuantity(quantity);
+              trailerQuantities[shift.getTrailer()] -= quantity;
+              tankQuantities[succ] += quantity;
+              deliveredQuantities[succ] += quantity;
+
+              cumTime += this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime();
+
+              prec = succ;
+
+              customerList.erase(customerList.begin());
+
+
+//              cout<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
+
+              vector<unsigned int> customerList;
+              for(int c=0; c<this->customers.size(); c++)
+                  customerList.push_back(c);
+
+              vector<double> urgency(this->customers.size(), DBL_MAX);
+
+              this->computeUrgency2(customerList, urgency,
+                                             shift, deliveredQuantities,
+                                             costWeight, demandWeight, prec);
+
+
+
+              for(int u=0; u<urgency.size(); u++){
+                if(urgency[u] < EPSILON or urgency[u] >= DBL_MAX - EPSILON){
+                  customerList.erase(customerList.begin() + u);
+                  urgency.erase(urgency.begin() + u);
+                  u--;
+                }
+                if(customerList[u]==succ){
+                    customerList.erase(customerList.begin() + u);
+                    urgency.erase(urgency.begin() + u);
+                    u--;
+                }
+              }
+
+              cout<<"\n";
+              for(int i=0; i<urgency.size(); i++)
+                  cout<<urgency[i]<<" ";
+              cout<<"\n";
+              this->sort(customerList, urgency);
+
+              succ = customerList.front();
+
+              if(trailerQuantities[shift.getTrailer()] < EPSILON + this->trailers[shift.getTrailer()].getCapacity() * refuelRatio)
+                  refuelFlags[shift.getTrailer()] = true;
+
+              operations.push_back(operation);
+          }
+
+          if(operations.size() != 0){
+            shift.setOperations(operations);
+            shifts.push_back(shift);
+            index++;
+   //         cout<<"SI: "<<shift.getIndex()<<"\n";
+            if(shift.getIndex()+1 >= maxShifts)
+                break;
+          }
+          lastTimeWindows.erase(lastTimeWindows.begin());
+    }
+
+    solution.setShifts(shifts);
+
+
+    vector<Shift> fullShifts = solution.getShifts();
+    for(int s=fullShifts.size() - 1; s>= 0; s--){
+        if(fullShifts[s].getOperations().size() == 0){
+            fullShifts.erase(fullShifts.end());
+        }
+
+    }
+    solution.setShifts(fullShifts);
+    fullShifts = solution.getShifts();
+/*
+        for(int s=0; s<fullShifts.size(); s++){
+            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            for(int o=0; o<fullShifts[s].getOperations().size(); o++)
+              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+                 <<fullShifts[s].getOperations()[o].getPoint()<<" "
+                <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
+        }
+*/
+    return solution;
+}
+
+void Instance::computeUrgency(vector<unsigned int> &customerList, vector<double> &urgency,
+                               Shift shift, vector<double> deliveredQuantities,
+                               double timeWeight, double quantityWeight, int ties,
+                               unsigned int prec){
+    for(int c=0; c<this->customers.size(); c++){
+        if(c >= 1){
+          Customer customer = this->customers[c];
+          vector<double> forecast = customer.getForecast();
+          double totForecast = 0;
+          bool flag = true;
+
+          double deliveredQuantity = deliveredQuantities[c];
+          unsigned int currentPoint = prec;
+
+          double totalDistance = 0.0;
+          totalDistance = *max_element(this->timeMatrices[currentPoint].begin(), this->timeMatrices[currentPoint].end());
+          double totalForecast = this->actualQuantity[c].back() - this->customers[c].getInitialTankQuantity();
+
+          unsigned int f = 0;
+          double timeFactor, quantityFactor, distanceFactor;
+          while(f < forecast.size() and flag){
+            totForecast += forecast[f];
+            if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
+                timeFactor = ((double)f/forecast.size()) * timeWeight/2;
+                quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
+                distanceFactor = 100.0 * EPSILON * ((double)this->timeMatrices[currentPoint][c]/(totalDistance))*ties;
+                urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
+                flag = false;
+          }
+            f++;
+          }
+        }
+      else
+          urgency[c] == DBL_MAX;
+    }
+}
+
+irpSolution Instance::constructSolution(irpSolution initialSolution, double timeWeight, double quantityWeight, int ties,
+                                        double servingRatio, double refuelRatio,
+                                        unsigned int noCustomer,
+                                        unsigned int maxShifts){
+
+    irpSolution solution = initialSolution;
+
+    vector<Shift> shifts = solution.getShifts();
+
+    if(shifts.size() > maxShifts)
+        return solution;
+
+    vector<double> trailerQuantities;
+    for(int t=0; t<this->trailers.size(); t++)
+        trailerQuantities.push_back(this->trailers[t].getInitialQuantity());
+
+    vector<double> tankQuantities;
+    for(int c=0; c<this->customers.size(); c++)
+        tankQuantities.push_back(this->customers[c].getInitialTankQuantity());
+
+
+    vector<double> deliveredQuantities(this->customers.size(), 0.0);
+
+    vector<Operation> lastOperations(this->customers.size(), Operation());
+    vector<unsigned int> lastOperationsTime(this->customers.size(), 0);
+    unsigned int lastTime = 0;
+    for(int s=0; s<shifts.size(); s++){
+        Shift shift = shifts[s];
+        for(int o=0; o<shift.getOperations().size(); o++){
+            Operation operation = shift.getOperations()[o];
+            trailerQuantities[shift.getTrailer()] -= operation.getQuantity();
+            tankQuantities[operation.getPoint()] += operation.getQuantity();
+            deliveredQuantities[operation.getPoint()] += operation.getQuantity();
+
+            if(operation.getArrival() > lastOperationsTime[operation.getPoint()]){
+                lastOperationsTime[operation.getPoint()] = operation.getArrival();
+                lastOperations[operation.getPoint()] = operation;
+            }
+
+        }
+        if(shift.getStart()  > lastTime)
+            lastTime = shift.getStart();
+    }
+
+    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > lastTimeWindows;
+
+    for(int t=0; t<this->timeWindows.size(); t++){
+      if(this->timeWindows[t].first.first >= lastTime){
+
+          pair< pair<unsigned int,unsigned int>, unsigned int > tw;
+          tw.first = this->timeWindows[t].first;
+          tw.second = this->timeWindows[t].second;
+          lastTimeWindows.push_back(tw);
+
+          int numberOfDrivers = this->drivers.size();
+
+          if(numberOfDrivers > shifts.size())
+              numberOfDrivers -= (numberOfDrivers - shifts.size());
+
+          for(int d=0; d<numberOfDrivers; d++){
+              Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
+              int lastOperationTime = lastOperation.getArrival()
+                      + this->customers[lastOperation.getPoint()].getSetupTime()
+                      + this->timeMatrices[lastOperation.getPoint()][0];
+              if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or shifts[/*s*/initialSolution.getShifts().size()-1-d].getStart()==tw.first.first)
+                     and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
+                  lastTimeWindows.erase(lastTimeWindows.end());
+          }
+      }
+    }
+
+    if(lastTimeWindows.size() == 0)
+        return solution;
+
+    unsigned int time, index = 0;
+    if(shifts.size() != 0){
+        time = lastTimeWindows.front().first.first;
+        index = shifts.back().getIndex() + 1;
+    }
+
+
+    vector<bool> refuelFlags(this->trailers.size(), false);
+    for(int t=0; t<this->trailers.size(); t++)
+        if(trailerQuantities[t] < EPSILON)
+            refuelFlags[t] = true;
+//    vector<Shift> shifts = solution.getShifts();
+
+    while(lastTimeWindows.size() > 0)  {
+
+        Shift shift;
+        shift.setIndex(index);
+        shift.setDriver(lastTimeWindows.front().second);
+        shift.setTrailer(this->drivers[shift.getDriver()].getTrailer());
+        shift.setStart(lastTimeWindows.front().first.first);
+
+//        cout<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+
+        time = shift.getStart();
+
+        unsigned int prec;
+        unsigned int succ;
+
+        prec = 0;
+        succ = 1;
+
+        unsigned int cumTime = 0;
+
+        unsigned int twD=0;
+        bool lastDShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(lastTimeWindows[t].second == shift.getDriver()){
+            twD = t;
+            lastDShift = false;
+            break;
+          }
+        unsigned int twT=0;
+        bool lastTShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(this->drivers[lastTimeWindows[t].second].getTrailer() == this->drivers[shift.getDriver()].getTrailer()){
+            twT = t;
+            lastTShift = false;
+            break;
+          }
+          bool allowedTrailerFlag = false;
+          for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+            if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[shift.getDriver()].getTrailer())
+                allowedTrailerFlag = true;
+
+
+          vector<unsigned int> customerList;
+          for(int c=0; c<this->customers.size(); c++)
+              customerList.push_back(c);
+          //////
+          vector<double> urgency(this->customers.size(),0.0);
+
+
+          //////////////////////////
+          this->computeUrgency(customerList, urgency,
+                                         shift, deliveredQuantities,
+                                         timeWeight, quantityWeight, ties,
+                                         0.0);
+          //////////////////////////
+
+
+          for(int u=0; u<urgency.size(); u++)
+            if(urgency[u] <= EPSILON or urgency[u] > DBL_MAX - EPSILON){
+              customerList.erase(customerList.begin() + u);
+              urgency.erase(urgency.begin() + u);
+              u--;
+            }
+
+          this->sort(customerList, urgency);
+          /////ADDED
+//          customerList.insert(customerList.begin(), 1);
+          /////
+
+          succ = customerList.front();
+
+
+          double breakFlag = false;
+          vector<Operation> operations;
+          while(customerList.size() > 0){
+
+              if(refuelFlags[shift.getTrailer()] == true)
+                  succ = 1;
+
+              allowedTrailerFlag = false;
+              for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                  allowedTrailerFlag = true;
+
+              while(not(
+                //max driving duration constraint
+                (cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]
+                        <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()
+                /*or cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0)
+                        <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()*/)
+
+                and
+                //shift within time window
+                 (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]
+                        <= lastTimeWindows.front().first.second
+                 /*or lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0)
+                        <= lastTimeWindows.front().first.second*/)
+
+                and
+                //shifts with same driver should be distanciated by a minimum intershift duration
+                ( (lastTimeWindows[twD].first.first - (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0])
+                     >= drivers[lastTimeWindows.front().second].getMinInterSHIFTDURATION()
+                  or lastDShift   )
+                  /*or (lastTimeWindows[twD].first.first - (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0))
+                      >= drivers[lastTimeWindows.front().second].getMinInterSHIFTDURATION()
+                   or lastDShift) */)
+
+
+                //shift using the same trailer cannot overlap
+                and (lastTimeWindows[twT].first.second <= lastTimeWindows.front().first.first or lastTimeWindows[twT].first.first >= lastTimeWindows.front().first.second
+                 or lastTShift    )
+                //customer site should be accessible by the shift's trailer
+                and (allowedTrailerFlag or succ==1)
+
+
+                )
+
+
+                or (tankQuantities[succ] + (this->actualQuantity[succ][time + cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity())
+                                            >= this->customers[succ].getCapacity()-EPSILON and succ != 1)
+                //demand for the customer is completely satisfied
+                or (this->horizons[succ].back() + deliveredQuantities[succ] >= -EPSILON and succ != 1)
+
+                     or succ == noCustomer
+             ){
+
+
+                  if(customerList.size() <= 1 or succ == 1){
+                      breakFlag = true;
+                      break;
+                  }
+
+                  customerList.erase(customerList.begin());
+                  succ = customerList.front();
+
+
+                  allowedTrailerFlag = false;
+                  for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                    if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                      allowedTrailerFlag = true;
+              }
+
+              if(breakFlag)
+                  break;
+
+
+              Operation operation;
+              operation.setPoint(succ);
+              operation.setArrival(time + cumTime + this->timeMatrices[prec][succ]);
+
+              double quantity, actualTankQuantity = 0.0;
+
+              if(succ == 1){
+                  quantity = trailerQuantities[shift.getTrailer()] - this->trailers[shift.getTrailer()].getCapacity();
+                  refuelFlags[shift.getTrailer()] = false;
+              }
+              else{
+                  actualTankQuantity = tankQuantities[succ] + (this->actualQuantity[succ][operation.getArrival()] - this->customers[succ].getInitialTankQuantity());
+
+                  if(trailerQuantities[shift.getTrailer()] <= this->customers[succ].getCapacity() - actualTankQuantity)
+                      quantity = trailerQuantities[shift.getTrailer()];
+                  else
+                      quantity = this->customers[succ].getCapacity() - actualTankQuantity;
+
+                  if(quantity > abs(this->horizons[succ].back() + deliveredQuantities[succ]))
+                      quantity = abs(this->horizons[succ].back() + deliveredQuantities[succ]);
+              }
+
+              if(quantity > this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * servingRatio)
+                  quantity = this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * (servingRatio);
+
+              operation.setQuantity(quantity);
+              trailerQuantities[shift.getTrailer()] -= quantity;
+              tankQuantities[succ] += quantity;
+              deliveredQuantities[succ] += quantity;
+
+              cumTime += this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime();
+
+              prec = succ;
+
+              customerList.erase(customerList.begin());
+
+
+//              cout<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
+
+              vector<unsigned int> customerList;
+              for(int c=0; c<this->customers.size(); c++)
+                  customerList.push_back(c);
+
+              vector<double> urgency(this->customers.size(),0.0);
+
+              //////////////////////////
+              this->computeUrgency(customerList, urgency,
+                                             shift, deliveredQuantities,
+                                             timeWeight, quantityWeight, ties,
+                                             prec);
+              //////////////////////////
+              for(int u=0; u<urgency.size(); u++){
+                if(urgency[u] <= EPSILON or urgency[u] > DBL_MAX - EPSILON){
+                  customerList.erase(customerList.begin() + u);
+                  urgency.erase(urgency.begin() + u);
+                  u--;
+                }
+                if(customerList[u]==succ){
+                    customerList.erase(customerList.begin() + u);
+                    urgency.erase(urgency.begin() + u);
+                    u--;
+                }
+              }
+
+              this->sort(customerList, urgency);
+
+              succ = customerList.front();
+
+              if(trailerQuantities[shift.getTrailer()] < EPSILON + this->trailers[shift.getTrailer()].getCapacity() * refuelRatio)
+                  refuelFlags[shift.getTrailer()] = true;
+
+              operations.push_back(operation);
+          }
+
+          if(operations.size() != 0){
+            shift.setOperations(operations);
+            shifts.push_back(shift);
+            index++;
+   //         cout<<"SI: "<<shift.getIndex()<<"\n";
+            if(shift.getIndex()+1 >= maxShifts)
+                break;
+          }
+          lastTimeWindows.erase(lastTimeWindows.begin());
+    }
+
+    solution.setShifts(shifts);
+
+
+    vector<Shift> fullShifts = solution.getShifts();
+    for(int s=fullShifts.size() - 1; s>= 0; s--){
+        if(fullShifts[s].getOperations().size() == 0){
+            fullShifts.erase(fullShifts.end());
+        }
+
+    }
+    solution.setShifts(fullShifts);
+    fullShifts = solution.getShifts();
+/*
+        for(int s=0; s<fullShifts.size(); s++){
+            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            for(int o=0; o<fullShifts[s].getOperations().size(); o++)
+              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+                 <<fullShifts[s].getOperations()[o].getPoint()<<" "
+                <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
+        }
+*/
+    return solution;
+}
+
+
+
+irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, double timeWeight, double quantityWeight, int ties,
+                                        double servingRatio, double refuelRatio,
+                                        unsigned int noCustomer,
+                                        unsigned int maxShifts,
+                                        double randomPick,
+                                        unsigned int urgencyPolicy){
+
+    irpSolution solution = initialSolution;
+
+    vector<Shift> shifts = solution.getShifts();
+
+    if(shifts.size() > maxShifts)
+        return solution;
+
+    vector<double> trailerQuantities;
+    for(int t=0; t<this->trailers.size(); t++)
+        trailerQuantities.push_back(this->trailers[t].getInitialQuantity());
+
+    vector<double> tankQuantities;
+    for(int c=0; c<this->customers.size(); c++)
+        tankQuantities.push_back(this->customers[c].getInitialTankQuantity());
+
+
+    vector<double> deliveredQuantities(this->customers.size(), 0.0);
+
+    vector<Operation> lastOperations(this->customers.size(), Operation());
+    vector<unsigned int> lastOperationsTime(this->customers.size(), 0);
+    unsigned int lastTime = 0;
+    for(int s=0; s<shifts.size(); s++){
+        Shift shift = shifts[s];
+        for(int o=0; o<shift.getOperations().size(); o++){
+            Operation operation = shift.getOperations()[o];
+            trailerQuantities[shift.getTrailer()] -= operation.getQuantity();
+            tankQuantities[operation.getPoint()] += operation.getQuantity();
+            deliveredQuantities[operation.getPoint()] += operation.getQuantity();
+
+            if(operation.getArrival() > lastOperationsTime[operation.getPoint()]){
+                lastOperationsTime[operation.getPoint()] = operation.getArrival();
+                lastOperations[operation.getPoint()] = operation;
+            }
+
+        }
+        if(shift.getStart()  > lastTime)
+            lastTime = shift.getStart();
+    }
+
+    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > lastTimeWindows;
+
+    for(int t=0; t<this->timeWindows.size(); t++){
+      if(this->timeWindows[t].first.first >= lastTime){
+
+          pair< pair<unsigned int,unsigned int>, unsigned int > tw;
+          tw.first = this->timeWindows[t].first;
+          tw.second = this->timeWindows[t].second;
+          lastTimeWindows.push_back(tw);
+
+          int numberOfDrivers = this->drivers.size();
+
+          if(numberOfDrivers > shifts.size())
+              numberOfDrivers -= (numberOfDrivers - shifts.size());
+
+          for(int d=0; d<numberOfDrivers; d++){
+              Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
+              int lastOperationTime = lastOperation.getArrival()
+                      + this->customers[lastOperation.getPoint()].getSetupTime()
+                      + this->timeMatrices[lastOperation.getPoint()][0];
+              if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or initialSolution.getShifts()[/*s*/shifts.size()-1-d].getStart()==tw.first.first)
+                     and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
+                  lastTimeWindows.erase(lastTimeWindows.end());
+          }
+      }
+    }
+
+    if(lastTimeWindows.size() == 0)
+        return solution;
+
+    unsigned int time, index = 0;
+    if(shifts.size() != 0){
+        time = lastTimeWindows.front().first.first;
+        index = shifts.back().getIndex() + 1;
+    }
+
+
+    vector<bool> refuelFlags(this->trailers.size(), false);
+    for(int t=0; t<this->trailers.size(); t++)
+        if(trailerQuantities[t] < EPSILON)
+            refuelFlags[t] = true;
+//    vector<Shift> shifts = shifts();
+
+    while(lastTimeWindows.size() > 0)  {
+
+        Shift shift;
+        shift.setIndex(index);
+        shift.setDriver(lastTimeWindows.front().second);
+        shift.setTrailer(this->drivers[shift.getDriver()].getTrailer());
+        shift.setStart(lastTimeWindows.front().first.first);
+
+//        cout<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+
+        time = shift.getStart();
+
+        unsigned int prec;
+        unsigned int succ;
+
+        prec = 0;
+        succ = 1;
+
+        unsigned int cumTime = 0;
+
+        unsigned int twD=0;
+        bool lastDShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(lastTimeWindows[t].second == shift.getDriver()){
+            twD = t;
+            lastDShift = false;
+            break;
+          }
+        unsigned int twT=0;
+        bool lastTShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(this->drivers[lastTimeWindows[t].second].getTrailer() == this->drivers[shift.getDriver()].getTrailer()){
+            twT = t;
+            lastTShift = false;
+            break;
+          }
+          bool allowedTrailerFlag = false;
+          for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+            if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[shift.getDriver()].getTrailer())
+                allowedTrailerFlag = true;
+
+
+          vector<unsigned int> customerList;
+          for(int c=0; c<this->customers.size(); c++)
+              customerList.push_back(c);
+          //////
+          vector<double> urgency(this->customers.size(),0.0);
+/*
+          for(int c=0; c<this->customers.size(); c++){
+              if(c >= 1){
+                Customer customer = this->customers[c];
+                vector<double> forecast = customer.getForecast();
+                double totForecast = 0;
+                bool flag = true;
+
+                double deliveredQuantity = deliveredQuantities[c];
+                unsigned int currentPoint = 0;
+
+                double totalDistance = 0.0;
+                totalDistance = *max_element(this->timeMatrices[currentPoint].begin(), this->timeMatrices[currentPoint].end());
+                double totalForecast = this->actualQuantity[c].back() - this->customers[c].getInitialTankQuantity();
+
+                unsigned int f = 0;
+                double timeFactor, quantityFactor, distanceFactor;
+                while(f < forecast.size() and flag){
+                  totForecast += forecast[f];
+                  if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
+                      timeFactor = ((double)f/forecast.size()) * timeWeight/2;
+                      quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
+                      distanceFactor = 100.0 * EPSILON * ((double)this->timeMatrices[currentPoint][c]/(totalDistance))*ties;
+                      urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
+                      flag = false;
+                }
+                  f++;
+                }
+              }
+            else
+                urgency[c] == DBL_MAX;
+          }
+*/
+          if(urgencyPolicy == 1)
+            this->computeUrgency(customerList, urgency,
+                                         shift, deliveredQuantities,
+                                         timeWeight, quantityWeight, ties,
+                                         0);
+          else
+            this->computeUrgency2(customerList, urgency,
+                                         shift, deliveredQuantities,
+                                         timeWeight, quantityWeight,
+                                  0);
+
+          for(int u=0; u<urgency.size(); u++)
+            if(urgency[u] < EPSILON or urgency[u] >= DBL_MAX - EPSILON){
+              customerList.erase(customerList.begin() + u);
+              urgency.erase(urgency.begin() + u);
+              u--;
+            }
+
+          this->sort(customerList, urgency);
+          /////ADDED
+//          customerList.insert(customerList.begin(), 1);
+          /////
+
+          succ = customerList.front();
+
+
+          double breakFlag = false;
+          vector<Operation> operations;
+          while(customerList.size() > 0){
+
+              if(refuelFlags[shift.getTrailer()] == true)
+                  succ = 1;
+
+              allowedTrailerFlag = false;
+              for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                  allowedTrailerFlag = true;
+
+              double rndPick, randomNumber;
+              rndPick = randomPick;
+              randomNumber = emili::generateRealRandomNumber()/*(double)rand()/RAND_MAX*/;
+   //           cout<<"RANDOM: "<<rndPick<<" "<<randomNumber<<"\n"; //int a; cin>>a;
+
+              while(not(
+                //max driving duration constraint
+                (cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]
+                        <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()
+                /*or cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0)
+                        <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()*/)
+
+                and
+                //shift within time window
+                 (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]
+                        <= lastTimeWindows.front().first.second
+                 /*or lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0)
+                        <= lastTimeWindows.front().first.second*/)
+
+                and
+                //shifts with same driver should be distanciated by a minimum intershift duration
+                ( (lastTimeWindows[twD].first.first - (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0])
+                     >= drivers[lastTimeWindows.front().second].getMinInterSHIFTDURATION()
+                  or lastDShift   )
+                  /*or (lastTimeWindows[twD].first.first - (lastTimeWindows.front().first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->computeTime(succ, 0))
+                      >= drivers[lastTimeWindows.front().second].getMinInterSHIFTDURATION()
+                   or lastDShift) */)
+
+
+                //shift using the same trailer cannot overlap
+                and (lastTimeWindows[twT].first.second <= lastTimeWindows.front().first.first or lastTimeWindows[twT].first.first >= lastTimeWindows.front().first.second
+                 or lastTShift    )
+                //customer site should be accessible by the shift's trailer
+                and (allowedTrailerFlag or succ==1)
+
+
+                )
+
+
+                or (tankQuantities[succ] + (this->actualQuantity[succ][time + cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity())
+                                            >= this->customers[succ].getCapacity()-EPSILON and succ != 1)
+                //demand for the customer is completely satisfied
+                or (this->horizons[succ].back() + deliveredQuantities[succ] >= -EPSILON and succ != 1)
+
+                     or succ == noCustomer
+                     or (rndPick < randomNumber and succ != 1)
+             ){
+
+                  randomNumber = emili::generateRealRandomNumber()/*(double)rand()/RAND_MAX*/;
+                  rndPick += rndPick/2;
+//                  cout<<"RANDOM: "<<rndPick<<" "<<randomNumber<<"\n";// int a; cin>>a;
+
+                  if(customerList.size() <= 1 or succ == 1){
+                      breakFlag = true;
+                      break;
+                  }
+
+                  customerList.erase(customerList.begin());
+                  succ = customerList.front();
+
+
+                  allowedTrailerFlag = false;
+                  for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                    if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                      allowedTrailerFlag = true;
+              }
+
+              if(breakFlag)
+                  break;
+
+
+              Operation operation;
+              operation.setPoint(succ);
+              operation.setArrival(time + cumTime + this->timeMatrices[prec][succ]);
+
+              double quantity, actualTankQuantity = 0.0;
+
+              if(succ == 1){
+                  quantity = trailerQuantities[shift.getTrailer()] - this->trailers[shift.getTrailer()].getCapacity();
+                  refuelFlags[shift.getTrailer()] = false;
+              }
+              else{
+                  actualTankQuantity = tankQuantities[succ] + (this->actualQuantity[succ][operation.getArrival()] - this->customers[succ].getInitialTankQuantity());
+
+                  if(trailerQuantities[shift.getTrailer()] <= this->customers[succ].getCapacity() - actualTankQuantity)
+                      quantity = trailerQuantities[shift.getTrailer()];
+                  else
+                      quantity = this->customers[succ].getCapacity() - actualTankQuantity;
+
+                  if(quantity > abs(this->horizons[succ].back() + deliveredQuantities[succ]))
+                      quantity = abs(this->horizons[succ].back() + deliveredQuantities[succ]);
+              }
+
+              if(quantity > this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * servingRatio)
+                  quantity = this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * (servingRatio);
+
+              operation.setQuantity(quantity);
+              trailerQuantities[shift.getTrailer()] -= quantity;
+              tankQuantities[succ] += quantity;
+              deliveredQuantities[succ] += quantity;
+
+              cumTime += this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime();
+
+              prec = succ;
+
+              customerList.erase(customerList.begin());
+
+
+//              cout<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
+
+              vector<unsigned int> customerList;
+              for(int c=0; c<this->customers.size(); c++)
+                  customerList.push_back(c);
+
+              vector<double> urgency(this->customers.size(),0.0);
+/*
+              for(int c=0; c<this->customers.size(); c++){
+
+                  if(c >= 1){
+                    Customer customer = this->customers[c];
+                    vector<double> forecast = customer.getForecast();
+                    double totForecast = 0;
+                    bool flag = true;
+
+                    double deliveredQuantity = deliveredQuantities[c];
+                    unsigned int currentPoint = prec;
+
+                    double totalDistance = 0.0;
+                    totalDistance = *max_element(this->timeMatrices[currentPoint].begin(), this->timeMatrices[currentPoint].end());
+                    double totalForecast = this->actualQuantity[c].back() - this->customers[c].getInitialTankQuantity();
+
+                    unsigned int f = 0;
+                    double timeFactor, quantityFactor, distanceFactor = 0.0;
+                    while(f < forecast.size() and flag){
+                      totForecast += forecast[f];
+                      if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
+                          timeFactor = ((double)f/forecast.size()) * timeWeight/2;
+                          quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
+                          distanceFactor = 100.0 * EPSILON * ((double)this->timeMatrices[currentPoint][c]/(totalDistance))*ties;
+                          urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
+                          flag = false;
+                      }
+                      f++;
+                    }
+                  }
+                else
+                    urgency[c] == DBL_MAX;
+              }
+*/
+              if(urgencyPolicy == 1)
+                this->computeUrgency(customerList, urgency,
+                                             shift, deliveredQuantities,
+                                             timeWeight, quantityWeight, ties,
+                                             prec);
+              else
+                this->computeUrgency2(customerList, urgency,
+                                             shift, deliveredQuantities,
+                                             timeWeight, quantityWeight, prec);
+
+              for(int u=0; u<urgency.size(); u++){
+                if(urgency[u] < EPSILON or urgency[u] >= DBL_MAX - EPSILON){
+                  customerList.erase(customerList.begin() + u);
+                  urgency.erase(urgency.begin() + u);
+                  u--;
+                }
+                if(customerList[u]==succ){
+                    customerList.erase(customerList.begin() + u);
+                    urgency.erase(urgency.begin() + u);
+                    u--;
+                }
+              }
+
+              this->sort(customerList, urgency);
+
+              succ = customerList.front();
+
+              if(trailerQuantities[shift.getTrailer()] < EPSILON + this->trailers[shift.getTrailer()].getCapacity() * refuelRatio)
+                  refuelFlags[shift.getTrailer()] = true;
+
+              operations.push_back(operation);
+          }
+
+          if(operations.size() != 0){
+            shift.setOperations(operations);
+            shifts.push_back(shift);
+            index++;
+            if(index >= maxShifts)
+                break;
+          }
+          lastTimeWindows.erase(lastTimeWindows.begin());
+    }
+
+    solution.setShifts(shifts);
+
+
+    vector<Shift> fullShifts = solution.getShifts();
+    for(int s=fullShifts.size() - 1; s>= 0; s--){
+        if(fullShifts[s].getOperations().size() == 0){
+            fullShifts.erase(fullShifts.end());
+        }
+
+    }
+    solution.setShifts(fullShifts);
+    fullShifts = solution.getShifts();
+/*
+        for(int s=0; s<fullShifts.size(); s++){
+            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            for(int o=0; o<fullShifts[s].getOperations().size(); o++)
+              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+                 <<fullShifts[s].getOperations()[o].getPoint()<<" "
+                <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
+        }
+*/
+    return solution;
+}
+
+
+irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio, double refuelRatio,
+                                     unsigned int noCustomer,
+                                     unsigned int maxShift){
+
+    vector<double> finalTankQuantities(this->customers.size(), 0.0);
+    vector<double> finalTrailerQuantities;
+    for(int t=0; t<this->trailers.size(); t++)
+        finalTrailerQuantities.push_back(this->trailers[t].getInitialQuantity());
+    unsigned int lastTime = 0;
+    Operation lastOperation;
+
+    for(int s=0; s<solution.getShifts().size(); s++){
+        Shift shift = solution.getShifts()[s];
+        for(int o=0; o<shift.getOperations().size(); o++){
+            Operation operation = shift.getOperations()[o];
+            finalTankQuantities[operation.getPoint()] += operation.getQuantity();
+            finalTrailerQuantities[shift.getTrailer()] -= operation.getQuantity();
+            if(operation.getArrival() + this->customers[operation.getPoint()].getSetupTime() + this->timeMatrices[operation.getPoint()][0] > lastTime){
+                lastTime = operation.getArrival() + this->customers[operation.getPoint()].getSetupTime() + this->timeMatrices[operation.getPoint()][0];
+                lastOperation = operation;
+            }
         }
 
     }
 
-    return neighboringSolution;
+    lastTime += this->customers[lastOperation.getPoint()].getSetupTime() + this->timeMatrices[lastOperation.getPoint()][0];
+    for(int c=0; c<finalTankQuantities.size(); c++)
+        finalTankQuantities[c] += (actualQuantity[c][lastTime]);
+
+
+
+    vector< pair< pair<unsigned int,unsigned int>, unsigned int > > lastTimeWindows;
+    for(int d=0; d<this->drivers.size(); d++){
+      for(int t=0; t<this->drivers[d].getTimeWindows().size(); t++){
+          if(this->drivers[d].getTimeWindows()[t].first >= lastTime){
+              pair< pair<unsigned int,unsigned int>, unsigned int > tw;
+              tw.first = this->drivers[d].getTimeWindows()[t];
+              tw.second = d;
+              lastTimeWindows.push_back(tw);
+          }
+      }
+    }
+
+    if(lastTimeWindows.size() == 0)
+        return solution;
+
+    this->sortPair(lastTimeWindows);
+
+
+    unsigned int driver = lastTimeWindows.front().second;
+    unsigned int trailer = this->drivers[driver].getTrailer();
+
+    vector< vector<double> > closestCustomers(this->customers.size());
+    for(int c1=0; c1<closestCustomers.size(); c1++){
+        vector<double> cost(this->customers.size());
+        for(int c2=0; c2<cost.size(); c2++){
+            double distanceCost = this->trailers[trailer].getDistanceCost() * this->distMatrices[c1][c2];
+            double timeCost = this->drivers[driver].getTimeCost() * this->timeMatrices[c1][c2];
+            if(abs(finalTankQuantities[c2] - this->customers[c2].getCapacity()) > EPSILON)
+                cost[c2] =  (distanceCost + timeCost)/abs(finalTankQuantities[c2] - this->customers[c2].getCapacity());
+            else
+                cost[c2] = DBL_MAX;
+            if(c1 == c2)
+                cost[c2] = DBL_MAX;
+        }
+        closestCustomers[c1] = cost;
+
+    }
+
+    vector<double> refuelFlag(this->trailers.size(), false);
+    for(int t=0; t<refuelFlag.size(); t++)
+        if(finalTrailerQuantities[t] < EPSILON)
+            refuelFlag[t] = true;
+
+
+    vector<Shift> shifts;
+    unsigned int lastIndex = solution.getShifts().size();
+    while(lastTimeWindows.size() > 0){
+
+        vector<unsigned int> customerList;
+        for(int c=0; c<this->customers.size(); c++)
+          customerList.push_back(c);
+        vector<double> urgency(this->customers.size(),0.0);
+
+        unsigned int prec = 0;
+
+        vector< vector<unsigned int> > cc = this->contributeMatrixes.find(driver)->second;
+        urgency = closestCustomers[prec];
+
+        this->sort(customerList, urgency);
+  //      customerList = cc[prec];
+
+
+        for(int i=0; i<customerList.size(); i++){
+            if(customerList[i] == 0 or customerList[i] == 1){
+                customerList.erase(customerList.begin() + i);
+                i--;
+            }
+        }
+
+//        customerList.insert(customerList.begin(), 1);
+
+        driver = lastTimeWindows.front().second;
+        trailer = this->drivers[driver].getTrailer();
+
+        Shift shift;
+        shift.setIndex(lastIndex);
+        shift.setStart(lastTimeWindows.front().first.first);
+        shift.setDriver(driver);
+        shift.setTrailer(trailer);
+
+        if(finalTrailerQuantities[trailer] < EPSILON ){
+            refuelFlag[trailer] = true;
+            if(customerList.front() != 1)
+                customerList.insert(customerList.begin(), 1);
+        }
+
+        unsigned int succ =  customerList.front();
+
+ //       cout<<"SHIFT: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+        lastIndex++;
+
+        unsigned int twD=0;
+        bool lastDShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(lastTimeWindows[t].second == lastTimeWindows[0].second){
+            twD = t;
+            lastDShift = false;
+            break;
+          }
+        unsigned int twT=0;
+        bool lastTShift = true;
+        for(int t=1; t<lastTimeWindows.size(); t++)
+          if(this->drivers[lastTimeWindows[t].second].getTrailer() == this->drivers[lastTimeWindows[0].second].getTrailer()){
+            twT = t;
+            lastTShift = false;
+            break;
+          }
+          bool allowedTrailerFlag = false;
+          for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+            if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+              allowedTrailerFlag = true;
+
+        unsigned int cumTime = 0;
+        unsigned int time = lastTimeWindows.front().first.first;
+        bool breakFlag = false;
+
+
+        vector<Operation> operations;
+        while(customerList.size() > 0){
+
+            if(finalTrailerQuantities[trailer] < EPSILON ){
+                refuelFlag[trailer] = true;
+                if(customerList.front() != 1)
+                    customerList.insert(customerList.begin(), 1);
+            }
+            succ =  customerList.front();
+
+            allowedTrailerFlag = false;
+
+            for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+              if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                allowedTrailerFlag = true;
+
+
+            while(not(
+              //max driving duration constraint
+              cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0] <= this->drivers[lastTimeWindows.front().second].getMaxDrivingDuration()
+              //shift within time window
+              and lastTimeWindows[0].first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0] <= lastTimeWindows[0].first.second
+              //shifts with same driver should be distanciated by a minimum intershift duration
+              and (lastTimeWindows[twD].first.first - (lastTimeWindows[0].first.first + cumTime + this->timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) >= drivers[lastTimeWindows[0].second].getMinInterSHIFTDURATION()
+                or lastDShift   )
+              //shift using the same trailer cannot overlap
+              and (lastTimeWindows[twT].first.second <= lastTimeWindows[0].first.first or lastTimeWindows[twT].first.first >= lastTimeWindows[0].first.second
+               or lastTShift    )
+              //customer site should be accessible by the shift's trailer
+              and (allowedTrailerFlag or succ==1)
+              )
+
+              or (finalTankQuantities[succ] >= this->customers[succ].getCapacity()-EPSILON and succ != 1)
+
+                  or succ == noCustomer
+
+           ){
+
+                  //it is not possible to go to the source to refuel, shift ends
+                  if(succ == 1){
+                      breakFlag = true;
+                      break;
+                  }
+                  customerList.erase(customerList.begin());
+
+                  //all customers have been served or cannot be served, shift ends
+                  if(customerList.size() <= 1 ){
+                    breakFlag = true;
+                    break;
+                  }
+
+           //      prec = succ;
+                 succ = customerList.front();
+
+                 allowedTrailerFlag = false;
+                 for(int t=0; t<this->customers[succ].getAllowedTrailers().size(); t++)
+                   if(this->customers[succ].getAllowedTrailers()[t] == this->drivers[lastTimeWindows[0].second].getTrailer()  or succ <= 1)
+                     allowedTrailerFlag = true;
+
+            }
+
+            if(breakFlag)
+                break;
+
+            cumTime += this->timeMatrices[prec][succ];
+            time = lastTimeWindows.front().first.first + cumTime;
+
+            Operation operation;
+            operation.setPoint(succ);
+            operation.setArrival(time);
+
+//            cout<<"                     "<<finalTrailerQuantities[trailer]<<" "<<finalTankQuantities[succ]<<" "<<this->customers[succ].getCapacity()<<"\n";
+            double quantity = 0.0;
+            if(succ == 1){
+                quantity = finalTrailerQuantities[trailer] - this->trailers[trailer].getCapacity();
+                refuelFlag[trailer] = false;
+            }
+            else{
+                if(finalTrailerQuantities[trailer] <= (this->customers[succ].getCapacity() - finalTankQuantities[succ]))
+                    quantity = finalTrailerQuantities[trailer];
+                else
+                    quantity = (this->customers[succ].getCapacity() - finalTankQuantities[succ]);
+            }
+
+            if(quantity > this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * servingRatio)
+                quantity = this->trailers[this->drivers[lastTimeWindows[0].second].getTrailer()].getCapacity() * (servingRatio);
+
+            finalTrailerQuantities[trailer] -= quantity;
+            finalTankQuantities[succ] += quantity;
+            operation.setQuantity(quantity);
+
+            if((quantity >= EPSILON and succ !=1) or (quantity <= -EPSILON and succ == 1 or operations.size() == 0))
+                operations.push_back(operation);
+
+            cumTime +=  this->customers[succ].getSetupTime();
+
+            prec = succ;
+
+            customerList = vector<unsigned int>();
+            for(int c=0; c<this->customers.size(); c++)
+              customerList.push_back(c);
+
+            vector< vector<unsigned int> > cc = this->contributeMatrixes.find(driver)->second;
+
+            urgency = closestCustomers[prec];
+
+
+            this->sort(customerList, urgency);
+ //           customerList = cc[prec];
+
+            for(int i=0; i<customerList.size(); i++){
+                if(customerList[i] == 0 or customerList[i] == 1){
+                    customerList.erase(customerList.begin() + i);
+                    i--;
+                }
+            }
+
+            if(finalTrailerQuantities[trailer] < EPSILON + this->trailers[trailer].getCapacity() * refuelRatio){
+                refuelFlag[trailer] = true;
+                if(customerList.front() != 1)
+                    customerList.insert(customerList.begin(), 1);
+            }
+
+            succ =  customerList.front();
+            }
+
+
+        shift.setOperations(operations);
+        shifts.push_back(shift);
+
+        if(lastIndex-1 >= maxShift)
+            break;
+
+
+        lastTimeWindows.erase(lastTimeWindows.begin());
+
+    }
+/*
+    cout<<"NEW SHIFTS: \n";
+    for(int s=0; s<shifts.size(); s++){
+        cout<<"SHIFT: "<<shifts[s].getIndex()<<" "<<shifts[s].getStart()<<" "<<shifts[s].getDriver()<<" "<<shifts[s].getTrailer()<<"\n";
+        for(int o=0; o<shifts[s].getOperations().size(); o++)
+          cout<<"   "<<shifts[s].getOperations()[o].getArrival()<<" "<<shifts[s].getOperations()[o].getPoint()<<" "<<shifts[s].getOperations()[o].getQuantity()<<"\n";
+    }
+
+*/
+    vector<Shift> allShifts;
+    allShifts = solution.getShifts();
+    for(int s=0; s<shifts.size(); s++)
+        allShifts.push_back(shifts[s]);
+    solution.setShifts(allShifts);
+
+    allShifts = solution.getShifts();
+    while(allShifts.back().getOperations().size() == 0
+          or (allShifts.back().getOperations().size() == 1 and allShifts.back().getOperations().back().getPoint() == 1))
+        allShifts.erase(allShifts.end());
+    solution.setShifts(allShifts);
+
+/*
+    cout<<"FULL SHIFTS: \n";
+    for(int s=0; s<solution.getShifts().size(); s++){
+        cout<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
+        for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
+          cout<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+             <<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+            <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
+    }
+*/
+
+    solution.saveSolution("ExtendedSolution.xml");
+
+    return solution;
+}
+
+irpSolution Instance::exchangeShiftSolution(irpSolution solution, unsigned int shiftIndex, unsigned int operationIndex, double servingRatio, double refuelRatio){
+
+    if(shiftIndex >= solution.getShifts().size())
+        return solution;
+    if(operationIndex >= solution.getShifts()[shiftIndex].getOperations().size() - 1)
+        return solution;
+
+
+    vector<Shift> shifts = solution.getShifts();
+    Shift shift = shifts[shiftIndex];
+    if(shift.getOperations().size() < 2)
+        return solution;
+
+    vector<Operation> operations = shift.getOperations();
+    unsigned int departurePoint;
+    unsigned int departureTime;
+    if(operationIndex == 0){
+        departurePoint = 0;
+        departureTime = shift.getStart();
+    }
+    else{
+        departurePoint = operations[operationIndex - 1].getPoint();
+        departureTime = operations[operationIndex - 1].getArrival() + this->customers[departurePoint].getSetupTime();
+    }
+
+    unsigned int point1 = operations[operationIndex].getPoint();
+    unsigned int point2 = operations[operationIndex+1].getPoint();
+
+//    if(point1==1 /*or point2==1*/)
+//        return solution;
+
+    unsigned int firstTime = departureTime + this->timeMatrices[departurePoint][point2];
+    unsigned int secondTime = firstTime + this->customers[point2].getSetupTime() + this->timeMatrices[point2][point1];
+
+    unsigned int arrivalPoint;
+    unsigned int arrivalTime;
+    if(operationIndex == operations.size()-2){
+        arrivalPoint == 0;
+        arrivalTime = secondTime + this->customers[point1].getSetupTime() + this->timeMatrices[point1][0];
+    }
+    else{
+        arrivalPoint = operations[operationIndex + 2].getPoint();
+        arrivalTime = secondTime + this->customers[point1].getSetupTime() + this->timeMatrices[point1][arrivalPoint];
+    }
+
+    double trailerQuantity = this->trailers[shifts[shiftIndex].getTrailer()].getInitialQuantity();
+    vector<double> tankQuantities;
+    for(int t=0; t<this->customers.size(); t++)
+        tankQuantities.push_back(this->customers[t].getInitialTankQuantity());
+
+    unsigned int driver = shifts[shiftIndex].getTrailer();
+    unsigned int trailer = shifts[shiftIndex].getTrailer();
+
+
+    for(int s=0; s<=shiftIndex; s++){
+        if(s < shiftIndex)
+            for(int o=0; o<shifts[s].getOperations().size(); o++){
+                if(shifts[s].getTrailer() == trailer)
+                    trailerQuantity -= shifts[s].getOperations()[o].getQuantity();
+                tankQuantities[shifts[s].getOperations()[o].getPoint()] += shifts[s].getOperations()[o].getQuantity();
+            }
+        else
+            for(int o=0; o<operationIndex; o++){
+                if(shifts[s].getTrailer() == trailer)
+                    trailerQuantity -= shifts[s].getOperations()[o].getQuantity();
+                tankQuantities[shifts[s].getOperations()[o].getPoint()] += shifts[s].getOperations()[o].getQuantity();
+            }
+    }
+
+
+    vector<unsigned int> customerList;
+    customerList.push_back(point2);
+    customerList.push_back(point1);
+
+    for(int o=operationIndex+2; o<shift.getOperations().size(); o++)
+        if(shift.getOperations()[o].getPoint() != 1)
+            customerList.push_back(shift.getOperations()[o].getPoint());
+
+    Shift newShift;
+    newShift.setIndex(shift.getIndex());
+    newShift.setDriver(shift.getDriver());
+    newShift.setTrailer(shift.getTrailer());
+    newShift.setStart(shift.getStart());
+
+    vector<Operation> newOperations;
+    for(int o=0; o<operationIndex; o++)
+        newOperations.push_back(operations[o]);
+
+    unsigned int prec, succ;
+
+    unsigned int time;
+    if(operationIndex == 0){
+        time = shift.getStart();
+        prec = 0;
+    }
+    else{
+        prec = newOperations.back().getPoint();
+        time = newOperations.back().getArrival() + this->customers[prec].getSetupTime();
+    }
+
+    unsigned int cumTime = time;
+
+    unsigned int twd = 0;
+    bool twdFlag = false;
+    for(int t=shiftIndex+1; t<shifts.size(); t++){
+        if(shifts[t].getDriver() == shift.getDriver()){
+            twd = t;
+            twdFlag = true;
+        }
+        if(twdFlag)
+            break;
+    }
+
+    unsigned tw;
+    for(int t=0; t<this->timeWindows.size(); t++)
+        if(this->timeWindows[t].first.first == shift.getStart() and this->timeWindows[t].second == driver)
+            tw = t;
+
+
+    bool refuelFlag = false;
+
+
+    while(customerList.size() > 0){
+
+        if(trailerQuantity < EPSILON)
+            refuelFlag = true;
+
+        succ = customerList.front();
+
+        bool breakFlag = false;
+
+        unsigned int timeWindowDuration;
+        if(tw < this->timeWindows.size())
+            timeWindowDuration = this->timeWindows[tw].first.second - this->timeWindows[tw].first.first;
+        else
+            timeWindowDuration = UINT_MAX;
+
+        double actualTankQuantity = (tankQuantities[succ]) +
+                (this->actualQuantity[succ][cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity());
+
+        while((cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) - shift.getStart() >
+                this->drivers[driver].getMaxDrivingDuration()
+              or
+              (cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) - shift.getStart() >
+                              timeWindowDuration
+              or
+              (shifts[twd].getStart() - (cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) <
+                this->drivers[driver].getMinInterSHIFTDURATION() and twdFlag)
+
+              or (actualTankQuantity > this->customers[succ].getCapacity() - EPSILON and succ!=1)
+              or (trailerQuantity < EPSILON and succ!=1)
+           ){
+
+            if(succ == 1){
+                breakFlag = true;
+                break;
+            }
+            if(customerList.size() > 1){
+                customerList.erase(customerList.begin());
+                succ = customerList.front();
+            }
+            else{
+                breakFlag = true;
+                break;
+            }
+
+            actualTankQuantity = (tankQuantities[succ]) +
+                            (this->actualQuantity[succ][cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity());
+        }
+
+        if(breakFlag)
+            break;
+
+        cumTime += this->timeMatrices[prec][succ];
+        
+        Operation operation;
+        operation.setArrival(cumTime);
+        operation.setPoint(succ);
+
+
+        double quantity = 0.0;
+        
+        /*double */actualTankQuantity = (tankQuantities[succ]) +
+                (this->actualQuantity[succ][operation.getArrival()] - this->customers[succ].getInitialTankQuantity());
+
+
+        if(succ == 1){
+            quantity = -(this->trailers[trailer].getCapacity() - trailerQuantity);
+        }
+        else{
+            if(trailerQuantity < this->customers[succ].getCapacity() - actualTankQuantity){
+                    quantity = trailerQuantity;
+            }
+            else{
+                    quantity = this->customers[succ].getCapacity() - actualTankQuantity;
+            }
+        }
+
+        if(quantity > this->trailers[trailer].getCapacity() * servingRatio)
+            quantity = this->trailers[trailer].getCapacity() * servingRatio;
+
+        if(quantity < -EPSILON and succ!=1)
+            quantity = 0.0;
+
+        operation.setQuantity(quantity);
+
+        trailerQuantity -= quantity;
+        tankQuantities[succ] += quantity;
+
+        cumTime += this->customers[succ].getSetupTime();
+
+        newOperations.push_back(operation);
+
+        prec = succ;
+
+
+
+        customerList.erase(customerList.begin());
+
+        if(trailerQuantity < EPSILON + this->trailers[trailer].getCapacity() * refuelRatio)
+            customerList.insert(customerList.begin(), 1);
+
+    }
+
+    newShift.setOperations(newOperations);
+
+    solution.setShift(newShift, shiftIndex);
+
+    shifts = solution.getShifts();
+
+    for(int s=0; s<shifts.size(); s++){
+        cout<<"SHIFT E: "<<shifts[s].getIndex()<<" "<<shifts[s].getStart()<<" "<<shifts[s].getDriver()<<"\n";
+        for(int o=0; o<shifts[s].getOperations().size(); o++)
+            cout<<"     "<<shifts[s].getOperations()[o].getPoint()<<" "
+                  <<shifts[s].getOperations()[o].getArrival()<<" "
+                    <<shifts[s].getOperations()[o].getQuantity()<<"\n";
+    }
+
+    return solution;
+
+}
+
+template <typename T>
+vector<size_t> sort_indexes(const vector<T> &v) {
+
+  // initialize original index locations
+  vector<size_t> idx(v.size());
+  for (size_t i = 0; i != idx.size(); ++i) idx[i] = i;
+
+  // sort indexes based on comparing values in v
+  sort(idx.begin(), idx.end(),
+       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+  return idx;
+}
+
+irpSolution Instance::insertShiftSolution(irpSolution solution, unsigned int shiftIndex, unsigned int operationIndex, unsigned int insertedOperation,
+                                          double servingRatio, double refuelRatio){
+
+    if(shiftIndex > solution.getShifts().size())
+        return solution;
+    if(operationIndex > solution.getShifts()[shiftIndex].getOperations().size()+1)
+        return solution;
+
+
+    Shift shift = solution.getShifts()[shiftIndex];
+    vector<Operation> operations = shift.getOperations();
+
+
+    unsigned int point1, point2;
+    if(operationIndex == 0){
+        point1 = 0;
+        point2 = operations[operationIndex].getPoint();
+    }
+    else if(operationIndex == operations.size()){
+        point1 = operations[operationIndex-1].getPoint();
+        point2 = 0;
+    }
+    else{
+        point1 = operations[operationIndex-1].getPoint();
+        point2 = operations[operationIndex].getPoint();
+    }
+
+
+
+
+    vector<unsigned int> routes = this->fastestSubroute[point1][point2];
+/*
+    for(int i=0; i<routes.size(); i++)
+        cout<<routes[i]<<" ";
+    cout<<"\n";
+*/
+    vector<long unsigned int> indexes = sort_indexes(routes);
+ /*   for(int i=0; i<indexes.size(); i++) {
+      cout << indexes[i] << " "<<i<<endl;
+    }*/
+    unsigned int i = 0;
+    while(indexes[i] == 0 or indexes[i] == 1 or indexes[i] == point1 or indexes[i] == point2){
+        i++;
+    }
+    if(insertedOperation == 0)
+        insertedOperation = indexes[i];
+
+    cout<<"\nFASTEST: "<<point1<<" "<<point2<<" "<<insertedOperation<<"\n";
+
+    bool allowedTrailerFlag = false;
+    for(int t=0; t<this->customers[insertedOperation].getAllowedTrailers().size(); t++)
+      if(this->customers[insertedOperation].getAllowedTrailers()[t] == this->drivers[solution.getShifts()[shiftIndex].getDriver()].getTrailer())
+          allowedTrailerFlag = true;
+
+    if(not allowedTrailerFlag)
+        return solution;
+
+    double trailerQuantity = this->trailers[solution.getShifts()[shiftIndex].getTrailer()].getInitialQuantity();
+    vector<double> tankQuantities;
+    for(int t=0; t<this->customers.size(); t++)
+        tankQuantities.push_back(this->customers[t].getInitialTankQuantity());
+
+    unsigned int driver = solution.getShifts()[shiftIndex].getTrailer();
+    unsigned int trailer = solution.getShifts()[shiftIndex].getTrailer();
+
+
+    for(int s=0; s<=shiftIndex; s++){
+        if(s < shiftIndex)
+            for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++){
+                if(solution.getShifts()[s].getTrailer() == trailer)
+                    trailerQuantity -= solution.getShifts()[s].getOperations()[o].getQuantity();
+                tankQuantities[solution.getShifts()[s].getOperations()[o].getPoint()] += solution.getShifts()[s].getOperations()[o].getQuantity();
+            }
+        else
+            for(int o=0; o<operationIndex; o++){
+                if(solution.getShifts()[s].getTrailer() == trailer)
+                    trailerQuantity -= solution.getShifts()[s].getOperations()[o].getQuantity();
+                tankQuantities[solution.getShifts()[s].getOperations()[o].getPoint()] += solution.getShifts()[s].getOperations()[o].getQuantity();
+            }
+    }
+
+
+    vector<unsigned int> customerList;
+    customerList.push_back(insertedOperation);
+
+//    cout<<"CC: ";
+    for(int o=operationIndex; o<shift.getOperations().size(); o++)
+        if(shift.getOperations()[o].getPoint() != 1){
+            customerList.push_back(shift.getOperations()[o].getPoint());
+//            cout<<customerList.back()<<" ";
+        }
+//    cout<<"\n";
+
+    Shift newShift;
+    newShift.setIndex(shift.getIndex());
+    newShift.setDriver(shift.getDriver());
+    newShift.setTrailer(shift.getTrailer());
+    newShift.setStart(shift.getStart());
+
+    vector<Operation> newOperations;
+    for(int o=0; o<operationIndex; o++)
+        newOperations.push_back(operations[o]);
+
+    unsigned int prec, succ;
+
+    unsigned int time;
+    if(operationIndex == 0){
+        time = shift.getStart();
+        prec = 0;
+    }
+    else{
+        prec = newOperations.back().getPoint();
+        time = newOperations.back().getArrival() + this->customers[prec].getSetupTime();
+    }
+
+    unsigned int cumTime = time;
+
+    unsigned int twd = 0;
+    bool twdFlag = false;
+    for(int t=shiftIndex+1; t<solution.getShifts().size(); t++){
+        if(solution.getShifts()[t].getDriver() == shift.getDriver()){
+            twd = t;
+            twdFlag = true;
+        }
+        if(twdFlag)
+            break;
+    }
+
+    unsigned tw;
+    for(int t=0; t<this->timeWindows.size(); t++)
+        if(this->timeWindows[t].first.first == shift.getStart() and this->timeWindows[t].second == driver)
+            tw = t;
+
+
+    while(customerList.size() > 0){
+
+        if(trailerQuantity < EPSILON + this->trailers[trailer].getCapacity() * refuelRatio and customerList.front() != 1)
+            customerList.insert(customerList.begin(), 1);
+
+        succ = customerList.front();
+
+        bool breakFlag = false;
+
+        unsigned int timeWindowDuration;
+        if(tw < this->timeWindows.size())
+            timeWindowDuration = this->timeWindows[tw].first.second - this->timeWindows[tw].first.first;
+        else
+            timeWindowDuration = UINT_MAX;
+
+        double actualTankQuantity = (tankQuantities[succ]) +
+                (this->actualQuantity[succ][cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity());
+
+        while((cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) - shift.getStart() >
+                this->drivers[driver].getMaxDrivingDuration()
+              or
+              (cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) - shift.getStart() >
+                              timeWindowDuration
+              or
+              (solution.getShifts()[twd].getStart() - (cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) <
+                this->drivers[driver].getMinInterSHIFTDURATION() and twdFlag)
+
+              or (actualTankQuantity > this->customers[succ].getCapacity() - EPSILON and succ!=1)
+              or (trailerQuantity < EPSILON and succ!=1)
+
+           ){
+
+            if(succ == 1){
+                breakFlag = true;
+                break;
+            }
+            if(customerList.size() > 1){
+                customerList.erase(customerList.begin());
+                succ = customerList.front();
+            }
+            else{
+                breakFlag = true;
+                break;
+            }
+
+            actualTankQuantity = (tankQuantities[succ]) +
+                            (this->actualQuantity[succ][cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity());
+
+        }
+
+        if(breakFlag)
+            break;
+
+        cumTime += this->timeMatrices[prec][succ];
+
+        Operation operation;
+        operation.setArrival(cumTime);
+        operation.setPoint(succ);
+
+
+        double quantity = 0.0;
+
+/*        double */actualTankQuantity = (tankQuantities[succ]) +
+                (this->actualQuantity[succ][operation.getArrival()] - this->customers[succ].getInitialTankQuantity());
+
+
+        if(succ == 1){
+            quantity = -(this->trailers[trailer].getCapacity() - trailerQuantity);
+        }
+        else{
+            if(trailerQuantity < this->customers[succ].getCapacity() - actualTankQuantity){
+                    quantity = trailerQuantity;
+            }
+            else{
+                    quantity = this->customers[succ].getCapacity() - actualTankQuantity;
+            }
+        }
+
+
+        if(quantity > this->trailers[trailer].getCapacity() * servingRatio)
+            quantity = this->trailers[trailer].getCapacity() * servingRatio;
+
+        if(quantity < -EPSILON and succ!=1)
+            quantity = 0.0;
+
+        operation.setQuantity(quantity);
+
+        trailerQuantity -= quantity;
+        tankQuantities[succ] += quantity;
+
+        cumTime += this->customers[succ].getSetupTime();
+
+        newOperations.push_back(operation);
+
+        prec = succ;
+
+
+
+        customerList.erase(customerList.begin());
+
+        if(trailerQuantity < EPSILON + this->trailers[trailer].getCapacity() * refuelRatio)
+            customerList.insert(customerList.begin(), 1);
+
+    }
+
+    newShift.setOperations(newOperations);
+
+    solution.setShift(newShift, shiftIndex);
+
+    vector<Shift> shifts = solution.getShifts();
+    unsigned int size = shifts.size();
+    for(int s=size-1; s>=0; s--){
+        Shift newShift = shifts[s];
+        vector<Operation> newOperations = shifts[s].getOperations();
+        unsigned int osize = shifts[s].getOperations().size();
+        for(int o=osize-1; o>=0; o--)
+            if(shifts[s].getOperations()[o].getQuantity() < EPSILON && shifts[s].getOperations()[o].getQuantity() > -EPSILON )
+                newOperations.erase(newOperations.end());
+            else
+                break;
+
+        newShift.setOperations(newOperations);
+        if(newShift.getOperations().size() > 0)
+         shifts[s] = newShift;
+        else
+            shifts.erase(shifts.end());
+    }
+    solution.setShifts(shifts);
+/*
+    for(int s=0; s<solution.getShifts().size(); s++){
+        cout<<"SHIFT E: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
+        for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
+            cout<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+                  <<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+                    <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
+    }
+*/
+    return solution;
+
+}
+
+irpSolution Instance::removeShiftSolution(irpSolution solution, unsigned int shiftIndex, unsigned int operationIndex, double servingRatio, double refuelRatio){
+
+    if(shiftIndex > solution.getShifts().size())
+        return solution;
+    if(operationIndex >= solution.getShifts()[shiftIndex].getOperations().size())
+        return solution;
+
+
+    Shift shift = solution.getShifts()[shiftIndex];
+    vector<Operation> operations = shift.getOperations();
+
+
+    unsigned int point1, point2;
+    if(operationIndex == 0 and operations.size()==1){
+        vector<Shift> newShifts = solution.getShifts();
+        newShifts.erase(newShifts.begin() + shiftIndex);
+        for(int s = shiftIndex; s<newShifts.size(); s++){
+            Shift newShift = newShifts[s];
+            newShift.setIndex(newShift.getIndex()-1);
+            newShifts[s] = newShift;
+        }
+        solution.setShifts(newShifts);
+        return solution;
+    }
+
+    if(operationIndex == 0){
+        point1 = 0;
+        point2 = operations[operationIndex+1].getPoint();
+    }
+    else if(operationIndex == operations.size()-1){
+        point1 = operations[operationIndex-1].getPoint();
+        point2 = 0;
+    }
+    else{
+        point1 = operations[operationIndex-1].getPoint();
+        point2 = operations[operationIndex+1].getPoint();
+    }
+
+
+    double trailerQuantity = this->trailers[solution.getShifts()[shiftIndex].getTrailer()].getInitialQuantity();
+    vector<double> tankQuantities;
+    for(int t=0; t<this->customers.size(); t++)
+        tankQuantities.push_back(this->customers[t].getInitialTankQuantity());
+
+    unsigned int driver = solution.getShifts()[shiftIndex].getTrailer();
+    unsigned int trailer = solution.getShifts()[shiftIndex].getTrailer();
+
+
+    for(int s=0; s<=shiftIndex; s++){
+        if(s < shiftIndex)
+            for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++){
+                if(solution.getShifts()[s].getTrailer() == trailer)
+                    trailerQuantity -= solution.getShifts()[s].getOperations()[o].getQuantity();
+                tankQuantities[solution.getShifts()[s].getOperations()[o].getPoint()] += solution.getShifts()[s].getOperations()[o].getQuantity();
+            }
+        else{
+            unsigned int i = 0;
+            if((int)operationIndex> 0)
+                i = (int)operationIndex;
+            for(int o=0; o<i; o++){
+                if(solution.getShifts()[s].getTrailer() == trailer)
+                    trailerQuantity -= solution.getShifts()[s].getOperations()[o].getQuantity();
+                tankQuantities[solution.getShifts()[s].getOperations()[o].getPoint()] += solution.getShifts()[s].getOperations()[o].getQuantity();
+            }
+        }
+    }
+
+
+    vector<unsigned int> customerList;
+
+    unsigned int i = operations.size()-1;
+    if((int)operationIndex+1 < operations.size())
+        i = (int)operationIndex+1;
+    cout<<"CC: ";
+    for(int o=i; o<shift.getOperations().size(); o++)
+        if(shift.getOperations()[o].getPoint() != 1 and o != operationIndex and o >= 0){
+            customerList.push_back(shift.getOperations()[o].getPoint());
+            cout<<customerList.back()<<" ";
+        }
+    cout<<"\n";
+
+    Shift newShift;
+    newShift.setIndex(shift.getIndex());
+    newShift.setDriver(shift.getDriver());
+    newShift.setTrailer(shift.getTrailer());
+    newShift.setStart(shift.getStart());
+
+    cout<<"\nOperation: \n";
+    vector<Operation> newOperations;
+    i = 0;
+    if((int)operationIndex > 0)
+        i = (int)operationIndex;
+    for(int o=0; o<i; o++){
+        if(o>=0){
+            newOperations.push_back(operations[o]);
+            cout<<newOperations.back().getPoint()<<" ";
+        }
+    }
+//    cout<<"\n";
+    unsigned int prec, succ;
+
+    unsigned int time;
+    if(operationIndex == 0){
+        time = shift.getStart();
+        prec = 0;
+    }
+    else{
+        prec = newOperations.back().getPoint();
+        time = newOperations.back().getArrival() + this->customers[prec].getSetupTime();
+    }
+
+    unsigned int cumTime = time;
+
+    unsigned int twd = 0;
+    bool twdFlag = false;
+    for(int t=shiftIndex+1; t<solution.getShifts().size(); t++){
+        if(solution.getShifts()[t].getDriver() == shift.getDriver()){
+            twd = t;
+            twdFlag = true;
+        }
+        if(twdFlag)
+            break;
+    }
+
+    unsigned tw;
+    for(int t=0; t<this->timeWindows.size(); t++)
+        if(this->timeWindows[t].first.first == shift.getStart() and this->timeWindows[t].second == driver)
+            tw = t;
+
+
+    while(customerList.size() > 0){
+
+        if(trailerQuantity < EPSILON + this->trailers[trailer].getCapacity() * refuelRatio and customerList.front()!=1)
+            customerList.insert(customerList.begin(), 1);
+
+        succ = customerList.front();
+
+        bool breakFlag = false;
+
+        unsigned int timeWindowDuration;
+        if(tw < this->timeWindows.size())
+            timeWindowDuration = this->timeWindows[tw].first.second - this->timeWindows[tw].first.first;
+        else
+            timeWindowDuration = UINT_MAX;
+
+
+        double actualTankQuantity = (tankQuantities[succ]) +
+                (this->actualQuantity[succ][cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity());
+
+
+        while((cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) - shift.getStart() >
+                this->drivers[driver].getMaxDrivingDuration()
+              or
+              (cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) - shift.getStart() >
+                              timeWindowDuration
+              or
+              (solution.getShifts()[twd].getStart() - (cumTime + timeMatrices[prec][succ] + this->customers[succ].getSetupTime() + this->timeMatrices[succ][0]) <
+                this->drivers[driver].getMinInterSHIFTDURATION() and twdFlag)
+
+              or (actualTankQuantity > this->customers[succ].getCapacity() - EPSILON and succ!=1)
+              or (trailerQuantity < EPSILON and succ!=1)
+           ){
+
+
+            if(succ == 1){
+                breakFlag = true;
+                break;
+            }
+            if(customerList.size() > 1){
+                customerList.erase(customerList.begin());
+                succ = customerList.front();
+            }
+            else{
+                breakFlag = true;
+                break;
+            }
+            actualTankQuantity = (tankQuantities[succ]) +
+                           (this->actualQuantity[succ][cumTime + this->timeMatrices[prec][succ]] - this->customers[succ].getInitialTankQuantity());
+
+        }
+
+        if(breakFlag)
+            break;
+
+        cumTime += this->timeMatrices[prec][succ];
+
+        Operation operation;
+        operation.setArrival(cumTime);
+        operation.setPoint(succ);
+
+
+        double quantity = 0.0;
+
+        /*double*/ actualTankQuantity = (tankQuantities[succ]) +
+                (this->actualQuantity[succ][operation.getArrival()] - this->customers[succ].getInitialTankQuantity());
+
+        if(succ == 1){
+            quantity = -(this->trailers[trailer].getCapacity() - trailerQuantity);
+        }
+        else{
+            if(trailerQuantity < this->customers[succ].getCapacity() - actualTankQuantity){
+                    quantity = trailerQuantity;
+            }
+            else{
+                    quantity = this->customers[succ].getCapacity() - actualTankQuantity;
+            }
+        }
+
+
+        if(quantity > this->trailers[trailer].getCapacity() * servingRatio){
+            quantity = this->trailers[trailer].getCapacity() * servingRatio;
+            cout<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<quantity<<"\n";
+        }
+
+        if(quantity < -EPSILON and succ!=1){
+            quantity = 0.0;
+        }
+
+        operation.setQuantity(quantity);
+
+        trailerQuantity -= quantity;
+        tankQuantities[succ] += quantity;
+
+        cumTime += this->customers[succ].getSetupTime();
+
+        newOperations.push_back(operation);
+
+        prec = succ;
+
+
+        customerList.erase(customerList.begin());
+
+        if(trailerQuantity < EPSILON + this->trailers[trailer].getCapacity() * refuelRatio)
+            customerList.insert(customerList.begin(), 1);
+
+    }
+
+    newShift.setOperations(newOperations);
+
+    if(newShift.getOperations().size() > 0)
+        solution.setShift(newShift, shiftIndex);
+/*
+    for(int s=0; s<solution.getShifts().size(); s++){
+        cout<<"SHIFT E: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
+        for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
+            cout<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+                  <<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+                    <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
+    }
+*/
+    return solution;
+
+}
+
+irpSolution Instance::perturbation(irpSolution solution, unsigned int customer){
+
+    irpSolution newSolution = solution;
+
+    int a; cin>>a;
+/*
+    bool flag = false;
+    do{
+        vector<Shift> shifts = newSolution.getShifts();
+        unsigned int shiftIndex, operationIndex;
+        shiftIndex = operationIndex = 0;
+        flag = false;
+        bool breakFlag = false;
+        for(int s=0; s<shifts.size(); s++){
+            vector<Operation> operations = shifts[s].getOperations();
+            operationIndex = 0;
+            cout<<s<<" :"<<" ";
+            for(int o=0; o<operations.size(); o++){
+                cout<<operations[o].getPoint()<<" ";
+                if(operations[o].getPoint() == customer){
+                    shiftIndex = s;
+                    operationIndex = o;
+                    flag = true;
+                    breakFlag = true;
+                    break;
+                    }
+            }
+            cout<<"\n";
+            if(breakFlag)
+                break;
+        }
+
+        if(not flag)
+            break;
+
+        if(newSolution.getShifts()[shiftIndex].getOperations().size() <= 1)
+            newSolution = this->insertShiftSolution(newSolution, shiftIndex, operationIndex+1, 0, 1.0, 0.0);
+        newSolution = this->removeShiftSolution(newSolution, shiftIndex, operationIndex, 1.0, 0.0);
+        vector<Shift> newShifts = newSolution.getShifts();
+
+        while(newShifts.size() > shiftIndex+1)
+            newShifts.erase(newShifts.end());
+
+        newSolution.setShifts(newShifts);
+        newSolution = this->constructSolution(newSolution, 0.1, 0.0, 2, 1.0, 0.0, 0);
+        newSolution = this->extendSolution(newSolution, 1.0, 0.0, 0);
+
+        cout<<"n\n";
+        cin>>a;
+    }
+    while(flag);
+*/
+
+    newSolution = this->constructSolution(newSolution, 0.1, 0.0, 2, 1.0, 0.0, 31, INT_MAX);
+    newSolution = this->extendSolution(newSolution, 1.0, 0.0, 31, INT_MAX);
+
+    double oldObjValue = this->computeObjective(newSolution);
+
+    unsigned int shiftIndex, operationIndex;
+    shiftIndex = operationIndex = 0;
+    newSolution = this->insertShiftSolution(newSolution, 0, 0, 31, 1.0, 0.0);
+    double objValue = this->computeObjective(newSolution);
+    while(objValue > oldObjValue){
+
+        operationIndex++;
+        newSolution = this->insertShiftSolution(newSolution, 0, 0, 31, 1.0, 0.0);
+
+
+    }
+
+    return newSolution;
+
 }
 
 
 
 #endif
+
+
 

@@ -16,8 +16,7 @@ void g2c_info()
     std::cout << "usage in grammar2code mode : \n\tEMILI instance_file_path time random_seed" << std::endl;
     exit(0);
 }
-
-
+/*
 int main2(int argc, char *argv[])
 {
 
@@ -64,8 +63,8 @@ int main2(int argc, char *argv[])
 
 
     emili::irp::InventoryRoutingProblem *instance = new emili::irp::InventoryRoutingProblem(instanceName);
-    emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance);
-    emili::Termination* te= new emili::LocalMinimaTermination();
+    emili::InitialSolution* in = new emili::irp::GreedyInitialSolution(*instance, 1.0, 1);
+    emili::Termination* te= new emili::TimedTermination(1800);
     unsigned int  piv = -1;
     unsigned int ps2 = 1;
     emili::Neighborhood* ne = new emili::irp::irpTwoExchangeNeighborhood(*instance, piv, ps2);
@@ -86,16 +85,18 @@ int main2(int argc, char *argv[])
     solution = ls->getBestSoFar();
 
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-/*    std::cout << "time : " << time_elapsed << std::endl;
-    std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-    std::cerr << solution->getSolutionValue() << std::endl;
-    //cerr << time_elapsed << " ";
-    std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
-    std::cout << "Found solution: ";
-    std::cout << solution->getSolutionRepresentation() << std::endl;
-    std::cout << std::endl;
-*/
+
     emili::irp::InventoryRoutingSolution* bestSolution = dynamic_cast<emili::irp::InventoryRoutingSolution*> (solution);
+
+
+    ofstream file;
+    string filepath3;
+    filepath3.append("./Neighborhood/");
+    filepath3.append("SolutionCount");
+    file.open (filepath3,fstream::app);
+    file.precision(15);
+    file << emili::iteration_counter() << std::endl;
+    file.close();
 
     string filepath;
     filepath.append("./");
@@ -104,7 +105,7 @@ int main2(int argc, char *argv[])
 
 
 }
-
+*/
 int main(int argc, char *argv[])
 {
 //std::cout.setstate(std::ios_base::failbit);

@@ -14,6 +14,7 @@
 #include "trailer.h"
 #include "location.h"
 
+#define EPSILON 0.000001
 
 
 
@@ -33,8 +34,20 @@ vector<Operation> Shift::getOperations()	{return this->operations;}
 void Shift::setOperations(vector<Operation> o)	{this->operations=o;}
 void Shift::setOperation(Operation o, int index)	{this->operations[index]=o;}
 
+double Shift::getShiftQuantity()   {return this->shiftQuantity;}
+void Shift::setShiftQuantity(double sq) {this->shiftQuantity = sq;}
+double Shift::getShiftDistance()    {return this->shiftDistance;}
+void Shift::setShiftDistance(double sd) {this->shiftDistance = sd;}
+double Shift::getShiftTime()    {return this->shiftTime;}
+void Shift::setShiftTime(double st) {this->shiftTime = st;}
+
+double Shift::getShiftCost()    {return this->shiftCost;}
+void Shift::setShiftCost(double sc) {this->shiftCost= sc;}
+
+
 vector<unsigned int> irpSolution::getRepresentation()  {return this->representation;}
 void irpSolution::setRepresentation(vector<unsigned int> representation) {this->representation = representation;}
+
 
 irpSolution::irpSolution()
 {
@@ -52,6 +65,16 @@ void irpSolution::setPoint(unsigned int point,int sh, int op){
     shift.setOperations(operations);
     this->setShift(shift, sh);
 }
+
+double irpSolution::getTotalQuantity()   {return this->totalQuantity;}
+void irpSolution::setTotalQuantity(double tq) {this->totalQuantity = tq;}
+double irpSolution::getCost()    {return this->cost;}
+void irpSolution::setCost(double c) {this->cost = c;}
+
+vector< vector<double> > irpSolution::getTrailerQuantities()    {return this->trailerQuantities;}
+void irpSolution::setTrailerQuantities(vector< vector<double> > tq) {this->trailerQuantities = tq;}
+vector< vector<double> > irpSolution::getTankQuantities()   {return this->tankQuantities;}
+void irpSolution::setTankQuantities(vector< vector<double> > tq)    {this->tankQuantities = tq;}
 
 void irpSolution::loadSolution(const char *pFilename){
   

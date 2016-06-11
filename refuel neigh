@@ -1,0 +1,158 @@
+
+
+emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::begin(emili::Solution *startSolution)
+{
+
+    /////Salvo la soluzione iniziale per ripristinarla in reverse last move
+    this->currentNeighboringSolution = startSolution->clone();
+
+    InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
+    this->refuelRatio = this->refuelInitialValue;
+    this->deliveredQuantityRatio = this->deliveredQuantityInitialValue - this->deliveredQuantityStep;
+//    this->numberFeasibleSolutions = 0;
+//    this->bestValueFound = DBL_MAX;
+
+    irpStartSolution->getIrpSolution().fromSolutionToRepresentation(irpStartSolution->getIrpSolution());
+    irp.evaluateSolution(*irpStartSolution);
+
+    if(this->bestValueFound >= DBL_MAX - EPSILON){
+        this->bestValueFound = irpStartSolution->getSolutionValue();
+        this->numberFeasibleSolutions++;
+    }
+
+
+    COUT<<"\nBEGIN INITIAL: "<<this->refuelRatio<<" "<<this->refuelStep<<" \n";
+
+    startSolution = dynamic_cast<Solution *> (irpStartSolution);
+
+    return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
+
+}
+
+emili::Solution* emili::irp::irpRefuelNeighborhood::step(Solution* currentSolution){
+
+    return this->computeStep(currentSolution);
+}
+
+emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* currentSolution){
+
+    InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
+
+    if(this->deliveredQuantityRatio <= 1.0/*-this->deliveredQuantityStep*/ and this->refuelRatio <= 1.0 + EPSILON){
+        this->deliveredQuantityRatio += this->deliveredQuantityStep;
+    }
+    else if(this->refuelRatio <= 1.0/*-this->refuelStep*/){
+        this->deliveredQuantityRatio = this->refuelInitialValue;
+        this->refuelRatio += this->refuelStep;
+    }
+    else
+        return nullptr;
+
+    COUT<<"\nPERTURB RATIO: "<<this->deliveredQuantityRatio<<" "<<this->refuelRatio;
+    COUT<<"     OLD: "<<this->irp.evaluateSolution(*neighboringSolution);
+
+    //Creo la nuova soluzione
+    vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
+    irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, this->refuelRatio, this->deliveredQuantityRatio, false);
+
+	InventoryRoutingSolution irs(irps);
+    irs.getIrpSolution().fromSolutionToRepresentation(irps);
+    irp.evaluateSolution(irs);
+
+
+   COUT<<irs.getSolutionRepresentation();
+
+/*    if(irp.getIrpInstance().checkFeasibility(irs.getIrpSolution(), false))
+        ;
+    else */if(irs.getSolutionValue() < this->bestValueFound - EPSILON){
+      this->bestValueFound = irs.getSolutionValue();
+      this->numberFeasibleSolutions++;
+
+        string filepath;
+        filepath.append("./Neighborhood/");
+        filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+        filepath.append(to_string(this->numberFeasibleSolutions));
+        filepath.append("NeighSolution.xml");
+        irs.getIrpSolution().saveSolution(filepath);
+
+        ofstream file;
+        string filepath2;
+        filepath2.append("./Neighborhood/");
+        filepath2.append(this->irp.getIrpInstance().getName());filepath.append("/");
+        filepath2.append("/Objective");
+        file.open (filepath2,fstream::app);
+        file.precision(15);
+        file << this->bestValueFound << std::endl;
+        file.close();
+
+        int a;cin>>a;
+   }
+    COUT<<"     NEW: "<<irs.getSolutionValue();
+
+//    int a;cin>>a;
+	/*
+	* QUI COPIA lo stato interno di irs in currentSolution
+	* neighboringSolution e currentSolution puntano allo stesso oggetto
+	*/
+	*neighboringSolution = irs;
+
+    return currentSolution;
+}
+
+
+void emili::irp::irpRefuelNeighborhood::reset(){
+
+//    COUT<<"\nRESET\n";
+    //int a;CIN>>a;
+    this->refuelRatio = this->refuelInitialValue;
+    this->deliveredQuantityRatio = this->deliveredQuantityInitialValue;
+}
+
+emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolution){
+
+    COUT<<"\nREF RANDOM\n";
+
+
+    InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
+    InventoryRoutingSolution *irs;
+
+    double randomRefuel = generateRealRandomNumber();
+    double randomDeliveredQuantity = generateRealRandomNumber();
+
+        COUT<<"\nPERTURB RATIO: "<<randomDeliveredQuantity<<" "<<randomRefuel;
+
+    neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
+    vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
+    irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, randomRefuel, randomDeliveredQuantity, false);
+    irs = new InventoryRoutingSolution(irps);
+    irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
+    this->irp.evaluateSolution(*irs);
+
+    COUT<<"\nEXC VALUE: "<<irs->getSolutionValue();
+    int a; cin>>a;
+    return dynamic_cast<Solution *> (irs);
+}
+
+void emili::irp::irpRefuelNeighborhood::reverseLastMove(Solution * step){
+
+//    COUT<<"\n/////";
+
+    //Ripristino la soluzione iniziale
+    *step = *this->currentNeighboringSolution;
+
+
+//    COUT<<step->getSolutionRepresentation();
+//    COUT<<"\nREVERSE VALUE: "<<step->getSolutionValue();
+//    COUT<<"\n/////";
+}
+
+int emili::irp::irpRefuelNeighborhood::size()
+{
+    return ( ((1-refuelInitialValue)/this->refuelStep) + 1) * ( ((1-deliveredQuantityInitialValue)/this->deliveredQuantityStep) + 1);
+}
+
+emili::Solution* emili::irp::irpPerturbation::perturb(Solution* solution){
+
+    InventoryRoutingSolution *perturbedSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (solution));
+    irpSolution irpPerturbedSolution = perturbedSolution->getIrpSolution();
+}

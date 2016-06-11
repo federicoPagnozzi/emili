@@ -1,5 +1,9 @@
 #include "irp.h"
 
+#include <algorithm>
+#include <ctime>
+#include <limits.h>
+
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
@@ -19,12 +23,14 @@ void emili::irp::InventoryRoutingSolution::setRawData(const void* data){
 std::string emili::irp::InventoryRoutingSolution::getSolutionRepresentation(){
 
     std::ostringstream repr;
-    repr<<"\nSOLUTION REPRESENTATION: ";
-    for(int s=0; s<this->irps.getShifts().size(); s++)
+
+    for(int s=0; s<this->irps.getShifts().size(); s++){
+        repr<<"SHIFT: "<<this->irps.getShifts()[s].getIndex()<<" "<<this->irps.getShifts()[s].getStart()<<" "<<this->irps.getShifts()[s].getDriver()<<"\n";
         for(int o=0; o<this->irps.getShifts()[s].getOperations().size(); o++)
-            if(this->irps.getShifts()[s].getOperations()[o].getPoint()!=1)
-            repr <<this->irps.getShifts()[s].getOperations()[o].getPoint()<<" ";
-    repr<<"\n";
+            repr<<"     "<<this->irps.getShifts()[s].getOperations()[o].getPoint()<<" "
+                  <<this->irps.getShifts()[s].getOperations()[o].getArrival()<<" "
+                    <<this->irps.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
+    }
     return repr.str();
 }
 
@@ -34,13 +40,13 @@ emili::irp::InventoryRoutingProblem::InventoryRoutingProblem(char* instance_path
 }
 
 
-double emili::irp::InventoryRoutingProblem::evaluateSolution(Solution & solution){
+double emili::irp::InventoryRoutingProblem::evaluateSolution(Solution &solution){
 
    InventoryRoutingSolution& s = dynamic_cast<InventoryRoutingSolution&> (solution);
    double p = this->irpInstance.computeObjective(s.getIrpSolution());
    double feas = this->irpInstance.checkFeasibility(s.getIrpSolution(), false);
    if(feas){
-       double factor = feas/(this->irpInstance.getHorizon()*60 /** (this->irpInstance.getCustomers().size()-2)*/);
+       double factor = feas/(this->irpInstance.getHorizon()*60);
        p /=  (factor * FEASIBILITY_PENALTY);
        p += 1.0;
    }
@@ -50,6 +56,7 @@ double emili::irp::InventoryRoutingProblem::evaluateSolution(Solution & solution
 
 }
 
+
 Instance emili::irp::InventoryRoutingProblem::getIrpInstance(){
     return irpInstance;
 }
@@ -58,81 +65,253 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
 
     InventoryRoutingProblem& irp = dynamic_cast<InventoryRoutingProblem&> (this->instance);
     InventoryRoutingSolution *irs, *bestIrs;
-    irpSolution irps;
+    irpSolution solution, irps;
     unsigned int feasibleOriginalCounter = 0;
 
     bool bf = false;
     double bestValue = DBL_MAX;
-    for(double tw=0.0; tw<=1.0; tw+=0.1){
+    for(double tw=0.1; tw<=1.0; tw+=0.1){
         for(double qw=0.0; qw<=1.0; qw+=0.1){
-            for(double t=-1; t<=1; t+=1){
-                irps = irp.getIrpInstance().backTrackingRandomSolution(tw, qw, t);
-                irs = new InventoryRoutingSolution(irps);
-//                instance.evaluateSolution(*irs);
+            for(double t=-1; t<=1; t+=2){
 
-                if(tw == 0.0 and qw == 0.0 and t == -1){
+                irps = irp.getIrpInstance().randomizedConstructSolution(solution, tw, qw, t, 1.0, 0.0, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+                irps = irp.getIrpInstance().extendSolution(irps, 1.0, 0.0, 0, INT_MAX);
+                irs = new InventoryRoutingSolution(irps);
+                instance.evaluateSolution(*irs);
+
+                if(not bf){
                     bestIrs = new InventoryRoutingSolution(irps);
                     instance.evaluateSolution(*bestIrs);
-                    bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
+                    bf = true;
                 }
-
                 COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
-//                if(irs->getSolutionValue() < bestValue){
-/*                    bestIrs = new InventoryRoutingSolution(irps);
-                    instance.evaluateSolution(*bestIrs);
-                    bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
-                    bestValue = bestIrs->getSolutionValue();
 
-
-                    COUT<<bestIrs->getSolutionRepresentation();
-                    COUT<<"\nORIGINAL OBJ VALUE: "<<irs->getSolutionValue()<<"\n";
-                    COUT<<"\nVALUES: "<<tw<<" "<<qw<<" "<<t<<"\n";
-                    */
-                    if(not (irp.getIrpInstance().checkFeasibility(irs->getIrpSolution(), false)))
+                    if(irs->getSolutionValue() < 1.0 /*and bestValue > irs->getSolutionValue()*/)
                     {
+                        COUT<<"INITIAL SOLUTION FEASIBLE! \n";
+
                         bestIrs = new InventoryRoutingSolution(irps);
+
                         instance.evaluateSolution(*bestIrs);
                         bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
                         bestValue = bestIrs->getSolutionValue();
-
-                        bf = true;break;
+/*
                         string filepath;
                         filepath.append("./Neighborhood/");
                         filepath.append(to_string(feasibleOriginalCounter));
                         filepath.append("OriginalSolution.xml");
                         irs->getIrpSolution().saveSolution(filepath);
                         feasibleOriginalCounter++;
+*/
+                        COUT<<irs->getSolutionRepresentation();
+                        COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
+                        COUT<<irs->getSolutionValue();
+                        return bestIrs;
                     
                     }
-//                }
-    //            bf = true;
-//                if(bf)break;
             }
-            if(bf)break;
         }
-        if(bf)break;
     }
+    return bestIrs;
 
+}
+
+template <typename T>
+vector<size_t> sort_indexes(const vector<T> &v) {
+
+  // initialize original index locations
+  vector<size_t> idx(v.size());
+  for (size_t i = 0; i != idx.size(); ++i) idx[i] = i;
+
+  // sort indexes based on comparing values in v
+  sort(idx.begin(), idx.end(),
+       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+  return idx;
+}
+
+emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution(){
+
+    InventoryRoutingProblem& irp = dynamic_cast<InventoryRoutingProblem&> (this->instance);
+    InventoryRoutingSolution *irs, *bestIrs;
+    irpSolution solution, irps;
+    unsigned int feasibleOriginalCounter = 0;
+
+
+    bool bf = false;
+    vector<InventoryRoutingSolution*> candidateSolutions;
+    vector<double> objectiveCandidateSolutions;
+    double bestValue = DBL_MAX;
+    for(double tw=0.0; tw<=1.0; tw+=0.1){
+        for(double qw=0.0; qw<=1.0; qw+=0.1){
+            for(double t=-1; t<=1; t+=2){
+
+                irps = irp.getIrpInstance().randomizedConstructSolution(solution, tw, qw, t, 1.0, 0.0, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+                irps = irp.getIrpInstance().extendSolution(irps, 1.0, 0.0, 0, INT_MAX);
+                irs = new InventoryRoutingSolution(irps);
+                instance.evaluateSolution(*irs);
+
+                if(not bf){
+                    bestIrs = new InventoryRoutingSolution(irps);
+                    instance.evaluateSolution(*bestIrs);
+                    bf = true;
+                }
+                COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
+
+                    if(irs->getSolutionValue() < 1.0)
+                    {
+                        COUT<<"INITIAL SOLUTION FEASIBLE! \n";
+
+                        bestIrs = new InventoryRoutingSolution(irps);
+
+                        instance.evaluateSolution(*bestIrs);
+                        bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
+                        bestValue = bestIrs->getSolutionValue();
 /*
+                        string filepath;
+                        filepath.append("./Neighborhood/");
+                        filepath.append(to_string(feasibleOriginalCounter));
+                        filepath.append("OriginalSolution.xml");
+                        irs->getIrpSolution().saveSolution(filepath);
+                        feasibleOriginalCounter++;
+*/
+                        candidateSolutions.push_back(bestIrs);
+                        objectiveCandidateSolutions.push_back(bestValue);
 
-    InventoryRoutingSolution *rirs;
-    irpSolution rebuiltSolution = irp.getIrpInstance().rebuildSolution(bestIrs->getIrpSolution(),bestIrs->getIrpSolution().getRepresentation(), 0.0, 0.0, true);
-    rirs = new InventoryRoutingSolution(rebuiltSolution);
-    rirs->getIrpSolution().fromSolutionToRepresentation(rirs->getIrpSolution());
-    instance.evaluateSolution(*rirs);
-    COUT<<rirs->getSolutionRepresentation();*/
 
-    if(irp.getIrpInstance().checkFeasibility(bestIrs->getIrpSolution(), false)){
-        COUT<<"\nRECOSTRUCTION NOT FEASIBLE!\n";
+                    }
+
+                    COUT<<irs->getSolutionRepresentation();
+                    COUT<<"OBJ VALUE: "<<irs->getSolutionValue();
+            }
+        }
     }
-    else{
-        COUT<<"\nRECOSTRUCTION FEASIBLE!\n";
-//        rirs->getIrpSolution().saveSolution(*new string("RebuiltSolution.xml"));
-        COUT<<"OBJ VALUE: "<<bestIrs->getSolutionValue()<<"\n\n";
+/*
+    cout<<"CL:\n";
+    for(int i=0; i<candidateSolutions.size(); i++){
+        cout<<candidateSolutions[i].second<<"\n";
     }
-    COUT<<"OBJ VALUE: "<<bestIrs->getSolutionValue()<<"\n\n";
+    vector<long unsigned int> indexes = sort_indexes(candidateSolutions);
+    cout<<"CL:\n";
+    for(int i=0; i<indexes.size(); i++){
+        cout<<candidateSolutions[indexes[i]].second<<"\n";
+    }
+    */
+    double total;
+    vector<double> cumulatedProbabilities;
 
-    //return rirs;
+    for(int i=0; i<objectiveCandidateSolutions.size(); i++){
+        total += objectiveCandidateSolutions[i];
+    }
+    vector<long unsigned int> indexes = sort_indexes(objectiveCandidateSolutions);
+    COUT<<"CL:\n";
+    for(int i=0; i<indexes.size(); i++){
+        cout<<objectiveCandidateSolutions[indexes[i]]<<"\n";
+        cumulatedProbabilities.push_back((double)objectiveCandidateSolutions[indexes[i]]/(double)total);
+    }
+
+    COUT<<"CL:\n";
+    for(int i=0; i<indexes.size(); i++){
+        if(i>0)
+        cumulatedProbabilities[i] += cumulatedProbabilities[i-1];
+        COUT<<cumulatedProbabilities[i]<<"\n";
+    }
+
+    double randomPick = (double)rand()/RAND_MAX;
+    unsigned int pickIndex = 0;
+    while(randomPick > cumulatedProbabilities[pickIndex])
+        pickIndex++;
+
+    bestIrs = candidateSolutions[indexes[pickIndex]];
+
+
+    COUT<<"BEST PICK: "<<randomPick<<" "<<pickIndex<<" "<<bestIrs->getSolutionValue()<<"\n";
+    COUT<<"BEST Value: "<<bestIrs->getSolutionValue()<<"\n";
+    COUT<<bestIrs->getSolutionRepresentation();
+
+    return bestIrs;
+
+}
+
+
+emili::Solution* emili::irp::GRASP::generateSolution(){
+
+    InventoryRoutingProblem& irp = dynamic_cast<InventoryRoutingProblem&> (this->instance);
+    InventoryRoutingSolution *irs, *bestIrs;
+    unsigned int feasibleOriginalCounter = 0;
+
+    irpSolution solution, partialSolution;
+    unsigned int shiftIndex = 0;
+    unsigned int currentShiftIndex = 0;
+    double objValue;
+
+
+    do{
+        shiftIndex++;
+
+        vector<InventoryRoutingSolution*> candidateSolutions;
+        vector<double> objectiveCandidateSolutions;
+
+        for(double tw=0.0; tw<=1.0; tw+=0.1){
+            for(double qw=0.0; qw<=1.0; qw+=0.1){
+                for(double t=-1; t<=1; t+=2){
+                    partialSolution = irp.getIrpInstance().randomizedConstructSolution(solution, tw, qw, t, 1.0, 0.0, 0, shiftIndex, this->randomFactor, this->urgencyPolicy);
+                    irs = new InventoryRoutingSolution(partialSolution);
+
+                    if(shiftIndex > 1){
+                        objValue = irp.getIrpInstance().computePartialDeltaObjective(solution, partialSolution, shiftIndex-1);
+                   }
+                    else
+                        objValue = irp.evaluateSolution(*irs);
+
+                    candidateSolutions.push_back(irs);
+                    objectiveCandidateSolutions.push_back(objValue);
+                }
+            }
+        }
+
+        double total = 0.0;
+        vector<double> cumulatedProbabilities;
+
+        for(int i=0; i<objectiveCandidateSolutions.size(); i++){
+            total += objectiveCandidateSolutions[i];
+        }
+        vector<long unsigned int> indexes = sort_indexes(objectiveCandidateSolutions);
+        for(int i=0; i<indexes.size(); i++){
+            cumulatedProbabilities.push_back((double)objectiveCandidateSolutions[indexes[i]]/(double)total);
+        }
+
+        for(int i=0; i<cumulatedProbabilities.size(); i++){
+            if(i>0)
+                cumulatedProbabilities[i] += cumulatedProbabilities[i-1];
+        }
+
+        double randomPick = generateRealRandomNumber();/*(double)rand()/RAND_MAX*/;
+        unsigned int pickIndex = 0;
+        while(randomPick > cumulatedProbabilities[pickIndex] and randomPick < cumulatedProbabilities.size()-1)
+            pickIndex++;
+
+
+//        solution = candidateSolutions[indexes.front()]->getIrpSolution();
+        solution = candidateSolutions[indexes[randomPick]]->getIrpSolution();
+
+        bestIrs = new InventoryRoutingSolution(solution);
+        COUT<<"PARTIAL OBJ: "<<irp.evaluateSolution(*bestIrs)<<"\n";
+
+        currentShiftIndex = solution.getShifts().size();
+        COUT<<shiftIndex<<" "<<currentShiftIndex+1<<" "<<randomPick<<"\n";
+        COUT<<bestIrs->getSolutionRepresentation();
+    }
+    while(shiftIndex < currentShiftIndex+1);
+
+
+    irpSolution bestSolution = irp.getIrpInstance().extendSolution(bestIrs->getIrpSolution(), 1.0, 0.0, 0, INT_MAX);
+    bestIrs = new InventoryRoutingSolution(bestSolution);
+    irp.evaluateSolution(*bestIrs);
+
+    COUT<<"PARTIAL OBJ: "<<irp.evaluateSolution(*bestIrs)<<"\n";
+    COUT<<bestIrs->getSolutionRepresentation();
+
     return bestIrs;
 
 }
@@ -154,110 +333,436 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateEmptySolution(){
     return new InventoryRoutingSolution(DBL_MAX);
 }
 
-emili::Neighborhood::NeighborhoodIterator emili::irp::irpTwoExchangeNeighborhood::begin(emili::Solution *startSolution)
+emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateEmptySolution(){
+
+    return new InventoryRoutingSolution(DBL_MAX);
+}
+
+emili::Solution* emili::irp::GRASP::generateEmptySolution(){
+
+    return new InventoryRoutingSolution(DBL_MAX);
+}
+
+
+
+emili::Neighborhood::NeighborhoodIterator emili::irp::irpShiftTwoExchangeNeighborhood::begin(emili::Solution *startSolution)
 {
 
     this->currentNeighboringSolution = startSolution->clone();
     InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
 
-    irpStartSolution->getIrpSolution().fromSolutionToRepresentation(irpStartSolution->getIrpSolution());
-    unsigned int representationSize = irpStartSolution->getIrpSolution().getRepresentation().size();
+    this->shift = 0;
+    this ->operation = -1;
+    this->numberOfShifts = irpStartSolution->getIrpSolution().getShifts().size();
+    this->numberOfOperations = irpStartSolution->getIrpSolution().getShifts()[shift].getOperations().size();
 
-    this->operation1 = 0;//(unsigned int) representationSize * (1.0/(double)this->pointInitialValue);
-    this->operation2 = this->operation1;
-
-
-    irp.evaluateSolution(*irpStartSolution);
-
-    this->numberOfOperations1 = representationSize;
-    this->numberOfOperations2 = representationSize;
 
     if(this->bestValueFound >= DBL_MAX - EPSILON){
         this->bestValueFound = irpStartSolution->getSolutionValue();
         this->numberFeasibleSolutions++;
-  /*       string filepath;
-         filepath.append("./Neighborhood/");
-         filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
-         filepath.append(to_string(this->numberFeasibleSolutions));
-         filepath.append("NeighSolution.xml");
-         irpStartSolution->getIrpSolution().saveSolution(filepath);*/
     }
-//    COUT.clear();
-    COUT<<"INITIAL BEGIN: "<<this->numberOfOperations1<<" "<<this->numberOfOperations2<<"\n";
+    COUT<<"\nINITIAL BEGIN: \n";
 
-//    std::COUT.setstate(std::ios_base::failbit);
-//        int a;CIN>>a;
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
 
 }
 
 
 
-emili::Solution* emili::irp::irpTwoExchangeNeighborhood::step(Solution* currentSolution){
+emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::step(Solution* currentSolution){
 
     return this->computeStep(currentSolution);
 }
 
-emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* currentSolution){
+emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::computeStep(Solution* currentSolution){
+
+    emili::iteration_increment();
 
     InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
 
-//   COUT<<"NEIGH: "<<this->irp.evaluateSolution(*neighboringSolution);
-
-//    this->currentNeighboringSolution = dynamic_cast<Solution *> (neighboringSolution);
-
-
-    if(this->operation2 < this->numberOfOperations2 - this->pointStep -1){
-        this->operation2+=this->pointStep;
-        this->operation1 = this->operation2+1;
+    this->numberOfOperations = neighboringSolution->getIrpSolution().getShifts()[this->shift].getOperations().size();
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+    if(this->operation < numberOfOperations - 2 and this->shift < this->numberOfShifts){
+        this->operation++;
     }
-  /*  else if(this->operation1 < this->numberOfOperations1 - 1){
-        this->operation1++;
-        this->operation2 = operation1+1;
-        COUT<<this->operation1<<" "<<this->operation2<<"\n";
-    }*/
+    else if(this->shift < this->numberOfShifts-1){
+        this->shift++;
+        this->operation = 0;
+
+    }
     else
         return nullptr;
 
-    int o1 = this->operation1;
-    int o2 = this->operation2;
-    unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1];
-    unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2];
-       COUT<<"\nEXCHANGE: "<<o1<<" "<<o2<<" "<<point1<<" "<<point2<<"";
+    COUT<<"\nTWO SHIFT EXCHANGE: "<<this->shift<<" "<<this->operation<<"\n";
 
-        this->irp.evaluateSolution(*neighboringSolution);
-//        neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
-        vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
-        representation[o1] = point2;
-        representation[o2] = point1;
-        irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, 0.0, 0.0, false);
-        irps.fromSolutionToRepresentation(irps);
-        InventoryRoutingSolution irs(irps);
-        this->irp.evaluateSolution(irs);
+    irpSolution irps = neighboringSolution->getIrpSolution();
+    irps = irp.getIrpInstance().exchangeShiftSolution(irps, shift, operation, this->deliveredQuantityFactor, this->refuelFactor);
+
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > shift+1)
+        shifts.erase(shifts.end());
+
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX);
 
 
-        this->numberOfOperations1 = irs.getIrpSolution().getRepresentation().size();
-        this->numberOfOperations2 = irs.getIrpSolution().getRepresentation().size();
+    InventoryRoutingSolution irs(irps);
+    double newObjValue =  irp.getIrpInstance().computePartialDeltaObjective(neighboringSolution->getIrpSolution(), irs.getIrpSolution(), shift);
+    COUT<<"OBJECTIVE: "<<newObjValue<<"\n";
+    irs.setSolutionValue(newObjValue);
 
-//        COUT<<"\nVALUE: "<<irs.getSolutionValue();
-//
-        if(irp.getIrpInstance().checkFeasibility(irs.getIrpSolution(), false))
-            ;
-        else if(irs.getSolutionValue() < this->bestValueFound){
-//            COUT<<"\nNEIGH FEASIBLE!\n";
-            this->numberFeasibleSolutions++;
-            this->bestValueFound = irs.getSolutionValue();
-            string filepath;
-        /*    filepath.append("./Neighborhood/");
-            filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
-            filepath.append(to_string(this->numberFeasibleSolutions));
-            filepath.append("NeighSolution.xml");
-            irs.getIrpSolution().saveSolution(filepath);*/
-            COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
 
-        }
-//    COUT<<irs.getSolutionRepresentation();
- //   int a; CIN>>a;
+    if(irs.getSolutionValue() < this->bestValueFound){
+        this->numberFeasibleSolutions++;
+        this->bestValueFound = irs.getSolutionValue();
+        string filepath;
+       /*
+       filepath.append("./Neighborhood/");
+       filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+       filepath.append(to_string(this->numberFeasibleSolutions));
+       filepath.append("NeighSolution.xml");
+       irs.getIrpSolution().saveSolution(filepath);
+        */
+       ofstream file;
+       string filepath2;
+       filepath2.append("./Neighborhood/");
+       filepath2.append(this->irp.getIrpInstance().getName());
+       filepath2.append("/Objective");
+       file.open (filepath2,fstream::app);
+       file.precision(15);
+       file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
+       file.close();
+
+
+       COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
+    }
+    else
+        this->numberFeasibleSolutions++;
+
+    int a; cin>>a;
+    /*
+    * QUI COPIA lo stato interno di irs in currentSolution
+    * neighboringSolution e currentSolution puntano allo stesso oggetto
+    */
+//int b;cin>>b;
+    *neighboringSolution = irs;
+    return dynamic_cast<Solution *> (currentSolution);
+
+}
+
+
+void emili::irp::irpShiftTwoExchangeNeighborhood::reset(){
+
+    this->shift = 0;
+    this->operation = -1;
+    this->numberOfShifts = 0;
+    this->numberOfOperations = 1;
+}
+
+emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::random(Solution* currentSolution){
+
+    COUT<<"\nSHIFT TWO EXC RANDOM\n";
+    InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
+    InventoryRoutingSolution *irs;
+
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+    unsigned int randomShift = generateRandomNumber() % this->numberOfShifts;
+    this->numberOfOperations = neighboringSolution->getIrpSolution().getShifts()[randomShift].getOperations().size();
+    unsigned int randomOperation = generateRandomNumber() % this->numberOfOperations;
+
+    COUT<<randomShift<<" "<<randomOperation<<" "<<neighboringSolution->getSolutionValue()<<"\n";
+
+    irpSolution irps = neighboringSolution->getIrpSolution();
+
+    irps = irp.getIrpInstance().exchangeShiftSolution(irps, randomShift, randomOperation, this->deliveredQuantityFactor, this->refuelFactor);
+
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > randomShift+1)
+        shifts.erase(shifts.end());
+
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX);
+
+    irs = new InventoryRoutingSolution(irps);
+    this->irp.evaluateSolution(*irs);
+
+    /////
+//    irs = neighboringSolution;
+    /////
+    return dynamic_cast<Solution *> (irs);
+}
+
+void emili::irp::irpShiftTwoExchangeNeighborhood::reverseLastMove(Solution * step){
+
+    ///fa una copia
+    *step = *currentNeighboringSolution;
+    this->irp.evaluateSolution(*step);
+
+}
+
+int emili::irp::irpShiftTwoExchangeNeighborhood::size()
+{
+    return 1;
+}
+
+
+
+emili::Neighborhood::NeighborhoodIterator emili::irp::irpShiftInsertNeighborhood::begin(emili::Solution *startSolution)
+{
+
+    this->currentNeighboringSolution = startSolution->clone();
+    InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
+
+    this->shift = 0;
+    this ->operation = -1;
+    this->numberOfShifts = irpStartSolution->getIrpSolution().getShifts().size();
+    this->numberOfOperations = irpStartSolution->getIrpSolution().getShifts()[shift].getOperations().size()+1;
+    if(this->bestValueFound >= DBL_MAX - EPSILON){
+        this->bestValueFound = irpStartSolution->getSolutionValue();
+        this->numberFeasibleSolutions++;
+    }
+    COUT<<"\nINITIAL BEGIN: \n";
+
+    return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
+
+}
+
+
+
+emili::Solution* emili::irp::irpShiftInsertNeighborhood::step(Solution* currentSolution){
+
+    return this->computeStep(currentSolution);
+}
+
+emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* currentSolution){
+
+    emili::iteration_increment();
+
+    InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
+
+    this->numberOfOperations = neighboringSolution->getIrpSolution().getShifts()[this->shift].getOperations().size()+1;
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+    if(this->operation < numberOfOperations - 1 and this->shift < this->numberOfShifts){
+        this->operation++;
+    }
+    else if(this->shift < this->numberOfShifts-1){
+        this->shift++;
+        this->operation = 0;
+
+    }
+    else
+        return nullptr;
+
+    COUT<<"\nSHIFT INSERT: "<<this->shift<<" "<<this->operation<<"\n";
+
+    irpSolution irps = neighboringSolution->getIrpSolution();
+    irps = irp.getIrpInstance().insertShiftSolution(irps, shift, operation, 2, this->deliveredQuantityFactor, this->refuelFactor);
+
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > shift+1)
+        shifts.erase(shifts.end());
+
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX);
+
+    InventoryRoutingSolution irs(irps);
+    double newObjValue =  irp.getIrpInstance().computePartialDeltaObjective(neighboringSolution->getIrpSolution(), irs.getIrpSolution(), shift);
+    irs.setSolutionValue(newObjValue);
+
+
+    if(irs.getSolutionValue() < this->bestValueFound){
+        this->numberFeasibleSolutions++;
+        this->bestValueFound = irs.getSolutionValue();
+        string filepath;
+/*
+       filepath.append("./Neighborhood/");
+       filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+       filepath.append(to_string(this->numberFeasibleSolutions));
+       filepath.append("NeighSolution.xml");
+       irs.getIrpSolution().saveSolution(filepath);
+*/
+       ofstream file;
+       string filepath2;
+       filepath2.append("./Neighborhood/");
+       filepath2.append(this->irp.getIrpInstance().getName());
+       filepath2.append("/Objective");
+       file.open (filepath2,fstream::app);
+       file.precision(15);
+       file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
+       file.close();
+
+       COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
+    }
+    else
+        this->numberFeasibleSolutions++;
+
+    /*
+    * QUI COPIA lo stato interno di irs in currentSolution
+    * neighboringSolution e currentSolution puntano allo stesso oggetto
+    */
+
+    *neighboringSolution = irs;
+    return dynamic_cast<Solution *> (currentSolution);
+
+}
+
+
+void emili::irp::irpShiftInsertNeighborhood::reset(){
+
+    this->shift = 0;
+    this->operation = -1;
+    this->numberOfShifts = 0;
+    this->numberOfOperations = 1;
+}
+
+emili::Solution* emili::irp::irpShiftInsertNeighborhood::random(Solution* currentSolution){
+
+    COUT<<"\nSHIFT TWO EXC RANDOM\n";
+    InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
+    InventoryRoutingSolution *irs;
+
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+    unsigned int randomShift = generateRandomNumber() % this->numberOfShifts;
+    this->numberOfOperations = neighboringSolution->getIrpSolution().getShifts()[randomShift].getOperations().size()+1;
+    unsigned int randomOperation = generateRandomNumber() % this->numberOfOperations;
+    unsigned int randomInsertedOperation = generateRandomNumber() % irp.getIrpInstance().getCustomers().size();
+
+    COUT<<randomShift<<" "<<randomOperation<<" "<<neighboringSolution->getSolutionValue()<<"\n";
+
+    irpSolution irps = neighboringSolution->getIrpSolution();
+
+    irps = irp.getIrpInstance().insertShiftSolution(irps, randomShift, randomOperation, randomInsertedOperation, this->deliveredQuantityFactor, this->refuelFactor);
+
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > randomShift+1)
+        shifts.erase(shifts.end());
+
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution2(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX);
+
+    irs = new InventoryRoutingSolution(irps);
+    this->irp.evaluateSolution(*irs);
+
+    return dynamic_cast<Solution *> (irs);
+}
+
+void emili::irp::irpShiftInsertNeighborhood::reverseLastMove(Solution * step){
+
+    ///fa una copia
+    *step = *currentNeighboringSolution;
+    this->irp.evaluateSolution(*step);
+
+}
+
+int emili::irp::irpShiftInsertNeighborhood::size()
+{
+    return 1;
+}
+
+
+///////////////////////////////////////////////////////////
+
+
+
+
+emili::Neighborhood::NeighborhoodIterator emili::irp::irpShiftRemoveNeighborhood::begin(emili::Solution *startSolution)
+{
+
+    this->currentNeighboringSolution = startSolution->clone();
+    InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
+
+    this->shift = 0;
+    this ->operation = -1;
+    this->numberOfShifts = irpStartSolution->getIrpSolution().getShifts().size();
+    this->numberOfOperations = irpStartSolution->getIrpSolution().getShifts()[shift].getOperations().size();
+
+    if(this->bestValueFound >= DBL_MAX - EPSILON){
+        this->bestValueFound = irpStartSolution->getSolutionValue();
+        this->numberFeasibleSolutions++;
+    }
+    COUT<<"\nINITIAL BEGIN: \n";
+
+    return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
+
+}
+
+
+
+emili::Solution* emili::irp::irpShiftRemoveNeighborhood::step(Solution* currentSolution){
+
+    return this->computeStep(currentSolution);
+}
+
+emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* currentSolution){
+
+    emili::iteration_increment();
+
+    InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
+
+    this->numberOfOperations = neighboringSolution->getIrpSolution().getShifts()[this->shift].getOperations().size();
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+    if(this->operation < numberOfOperations - 1 and this->shift < this->numberOfShifts){
+        this->operation++;
+    }
+    else if(this->shift < this->numberOfShifts-1){
+        this->shift++;
+        this->operation = 0;
+
+    }
+    else
+        return nullptr;
+
+    COUT<<"\nSHIFT INSERT: "<<this->shift<<" "<<this->operation<<"\n";
+
+    irpSolution irps = neighboringSolution->getIrpSolution();
+    irps = irp.getIrpInstance().removeShiftSolution(irps, shift, operation, this->deliveredQuantityFactor, this->refuelFactor);
+
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > shift+1)
+        shifts.erase(shifts.end());
+
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX);
+
+    InventoryRoutingSolution irs(irps);
+    double newObjValue =  irp.getIrpInstance().computePartialDeltaObjective(neighboringSolution->getIrpSolution(), irs.getIrpSolution(), shift);
+    irs.setSolutionValue(newObjValue);
+
+    if(irs.getSolutionValue() < this->bestValueFound){
+        this->numberFeasibleSolutions++;
+        this->bestValueFound = irs.getSolutionValue();
+        string filepath;
+/*
+       filepath.append("./Neighborhood/");
+       filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+       filepath.append(to_string(this->numberFeasibleSolutions));
+       filepath.append("NeighSolution.xml");
+       irs.getIrpSolution().saveSolution(filepath);
+*/
+       ofstream file;
+       string filepath2;
+       filepath2.append("./Neighborhood/");
+       filepath2.append(this->irp.getIrpInstance().getName());
+       filepath2.append("/Objective");
+       file.open (filepath2,fstream::app);
+       file.precision(15);
+       file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
+       file.close();
+
+       COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
+    }
+    else
+        this->numberFeasibleSolutions++;
 
     /*
     * QUI COPIA lo stato interno di irs in currentSolution
@@ -269,87 +774,88 @@ emili::Solution* emili::irp::irpTwoExchangeNeighborhood::computeStep(Solution* c
 }
 
 
-void emili::irp::irpTwoExchangeNeighborhood::reset(){
+void emili::irp::irpShiftRemoveNeighborhood::reset(){
 
-    this->operation1 = this->pointInitialValue;
-    this->operation2 = this->pointInitialValue;
-    this->numberOfOperations1 = this->pointInitialValue;
-    this->numberOfOperations2 = this->pointInitialValue;
-//    this->numberFeasibleSolutions = 0;
+    this->shift = 0;
+    this->operation = -1;
+    this->numberOfShifts = 0;
+    this->numberOfOperations = 1;
 }
 
-emili::Solution* emili::irp::irpTwoExchangeNeighborhood::random(Solution* currentSolution){
+emili::Solution* emili::irp::irpShiftRemoveNeighborhood::random(Solution* currentSolution){
 
-        COUT<<"\nTOWEXC RANDOM\n";
-        //int a;CIN>>a;
+    COUT<<"\nSHIFT TWO EXC RANDOM\n";
     InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
     InventoryRoutingSolution *irs;
+
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+    unsigned int randomShift = generateRandomNumber() % this->numberOfShifts;
+    this->numberOfOperations = neighboringSolution->getIrpSolution().getShifts()[randomShift].getOperations().size();
+    unsigned int randomOperation = generateRandomNumber() % this->numberOfOperations;
+
+    COUT<<randomShift<<" "<<randomOperation<<" "<<neighboringSolution->getSolutionValue()<<"\n";
+
     irpSolution irps = neighboringSolution->getIrpSolution();
-    irps.fromSolutionToRepresentation(irps);
-    neighboringSolution = new InventoryRoutingSolution(irps);
-    this->irp.evaluateSolution(*neighboringSolution);
-    this->operation1 = this->pointInitialValue;
-    this->operation2 = this->pointInitialValue;
-    this->numberOfOperations1 = neighboringSolution->getIrpSolution().getRepresentation().size();
-    this->numberOfOperations2 = neighboringSolution->getIrpSolution().getRepresentation().size();
 
-    int o1 = generateRandomNumber() % this->numberOfOperations1;
-    int o2 = o1 + 1;/*generateRandomNumber() % this->numberOfOperations2;*/
+    irps = irp.getIrpInstance().removeShiftSolution(irps, randomShift, randomOperation, this->deliveredQuantityFactor, this->refuelFactor);
 
-    if(o2 >= this->numberOfOperations2){
-        o2--;
-        o1--;
-    }
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > randomShift+1)
+        shifts.erase(shifts.end());
 
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, this->deliveredQuantityFactor, this->refuelFactor, 0, INT_MAX);
 
-    unsigned int point1 = neighboringSolution->getIrpSolution().getRepresentation()[o1]/*neighboringSolution->getSolutionRepresentation()[o1]*/;
-    unsigned int point2 = neighboringSolution->getIrpSolution().getRepresentation()[o2]/*neighboringSolution->getSolutionRepresentation()[o2]*/;
-//    COUT<<neighboringSolution->getSolutionRepresentation();
-    COUT<<"\n"<<o1<<" "<<o2<<"    "<<point1<<" "<<point2<<"\n";
-
-    COUT<<"BEFORE EXCHANGE VALUE: "<<neighboringSolution->getSolutionValue()<<"\n";
-//    for(int i=0; i<neighboringSolution->getSolutionRepresentation().size(); i++)
-//        COUT<<neighboringSolution->getSolutionRepresentation()[i]<<" ";
-
-//    if(  not(  (o1==o2) or (point1==point2)  )  ){
-
-//        neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
-        vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
-        representation[o1] = point2;
-        representation[o2] = point1;
-
-        irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, 0.0, 0.0, false);
-        irs = new InventoryRoutingSolution(irps);
-        irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
-        this->irp.evaluateSolution(*irs);
-        COUT<<" nEXC VALUE: "<<irs->getSolutionValue();
-
-//    }
+    irs = new InventoryRoutingSolution(irps);
+    this->irp.evaluateSolution(*irs);
 
     return dynamic_cast<Solution *> (irs);
 }
 
-void emili::irp::irpTwoExchangeNeighborhood::reverseLastMove(Solution * step){
-
-//    COUT<<"////////";
-//    COUT<<"\nTWO EXC RATIO: "<<this->operation1<<" "<<this->operation2;
-
-    /// //assegna un nuovo puntatore
-//    step = this->currentNeighboringSolution;
+void emili::irp::irpShiftRemoveNeighborhood::reverseLastMove(Solution * step){
 
     ///fa una copia
     *step = *currentNeighboringSolution;
     this->irp.evaluateSolution(*step);
 
-//    COUT<<step->getSolutionRepresentation();
-//    COUT<<"\nREVERSE VALUE: "<<step->getSolutionValue();
-//   COUT<<"///////\n\n\n\n\n";
 }
 
-int emili::irp::irpTwoExchangeNeighborhood::size()
+int emili::irp::irpShiftRemoveNeighborhood::size()
 {
     return 1;
 }
+
+/////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::begin(emili::Solution *startSolution)
@@ -357,15 +863,12 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::beg
 
     /////Salvo la soluzione iniziale per ripristinarla in reverse last move
     this->currentNeighboringSolution = startSolution->clone();
-
     InventoryRoutingSolution *irpStartSolution = dynamic_cast<InventoryRoutingSolution *> (startSolution);
-    this->refuelRatio = this->refuelInitialValue;
-    this->deliveredQuantityRatio = this->deliveredQuantityInitialValue - this->deliveredQuantityStep;
-//    this->numberFeasibleSolutions = 0;
-//    this->bestValueFound = DBL_MAX;
 
-    irpStartSolution->getIrpSolution().fromSolutionToRepresentation(irpStartSolution->getIrpSolution());
-    irp.evaluateSolution(*irpStartSolution);
+    this->refuelRatio = 0.0;
+    this->deliveredQuantityRatio = -this->deliveredQuantityStep;
+    this->shift = 0;
+    this->numberOfShifts = irpStartSolution->getIrpSolution().getShifts().size();
 
     if(this->bestValueFound >= DBL_MAX - EPSILON){
         this->bestValueFound = irpStartSolution->getSolutionValue();
@@ -375,7 +878,7 @@ emili::Neighborhood::NeighborhoodIterator emili::irp::irpRefuelNeighborhood::beg
 
     COUT<<"\nBEGIN INITIAL: "<<this->refuelRatio<<" "<<this->refuelStep<<" \n";
 
-    startSolution = dynamic_cast<Solution *> (irpStartSolution);
+//    startSolution = dynamic_cast<Solution *> (irpStartSolution);
 
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
 
@@ -390,42 +893,69 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
 
     InventoryRoutingSolution *neighboringSolution = dynamic_cast<InventoryRoutingSolution *> (currentSolution);
 
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
 
-
-    if(this->deliveredQuantityRatio <= 1.0/*-this->deliveredQuantityStep*/ and this->refuelRatio <= 1.0 + EPSILON){
+    if(this->deliveredQuantityRatio <= 1.0-this->deliveredQuantityStep and this->refuelRatio <= 1.0-this->refuelStep + EPSILON and this->shift < this->numberOfShifts){
         this->deliveredQuantityRatio += this->deliveredQuantityStep;
     }
-    else if(this->refuelRatio <= 1.0/*-this->refuelStep*/){
-        this->deliveredQuantityRatio = this->refuelInitialValue;
+    else if(this->refuelRatio <= 1.0-this->refuelStep and this->shift < this->numberOfShifts){
+        this->deliveredQuantityRatio = 0.0;
         this->refuelRatio += this->refuelStep;
+    }
+    else if(this->shift < this->numberOfShifts){
+        this->shift++;
+        this->deliveredQuantityRatio = 0.0;
+        this->refuelRatio = 0.0;
     }
     else
         return nullptr;
 
-    COUT<<"\nPERTURB RATIO: "<<this->deliveredQuantityRatio<<" "<<this->refuelRatio;
-    COUT<<"     OLD: "<<this->irp.evaluateSolution(*neighboringSolution);
+    COUT<<"\nPERTURB RATIO: "<<this->deliveredQuantityRatio<<" "<<this->refuelRatio<<" "<<this->shift;
+    COUT<<"     OLD: "<<neighboringSolution->getSolutionValue();
 
-    //Creo la nuova soluzione
-    vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
-    irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, this->refuelRatio, this->deliveredQuantityRatio, false);
 
-	InventoryRoutingSolution irs(irps);
-    irs.getIrpSolution().fromSolutionToRepresentation(irps);
-    irp.evaluateSolution(irs);
+    irpSolution irps = neighboringSolution->getIrpSolution();
 
-//   COUT<<irs.getSolutionValue()<<"\n";
-//   COUT<<irs.getSolutionRepresentation();
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > shift)
+        shifts.erase(shifts.end());
 
-    if(irp.getIrpInstance().checkFeasibility(irs.getIrpSolution(), false))
-        ;
-    else if(irs.getSolutionValue() < this->bestValueFound - EPSILON){
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0 - this->deliveredQuantityRatio, this->refuelRatio, 0, INT_MAX);
+    irps = irp.getIrpInstance().randomizedConstructSolution(irps, 0.1, 0.0, 1, 1.0 - this->deliveredQuantityRatio, this->refuelRatio, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+    irps = irp.getIrpInstance().extendSolution(irps, 1.0 - this->deliveredQuantityRatio, this->refuelRatio, 0, INT_MAX);
+
+    InventoryRoutingSolution irs(irps);
+
+    double newObjValue =  irp.getIrpInstance().computePartialDeltaObjective(neighboringSolution->getIrpSolution(), irs.getIrpSolution(), shift);
+    irs.setSolutionValue(newObjValue);
+
+    if(irs.getSolutionValue() < this->bestValueFound - EPSILON){
       this->bestValueFound = irs.getSolutionValue();
       this->numberFeasibleSolutions++;
 
-   }
-    COUT<<"     NEW: "<<irs.getSolutionValue();
+        string filepath;
+        /*
+        filepath.append("./Neighborhood/");
+        filepath.append(this->irp.getIrpInstance().getName());filepath.append("/");
+        filepath.append(to_string(this->numberFeasibleSolutions));
+        filepath.append("NeighSolution.xml");
+        irs.getIrpSolution().saveSolution(filepath);
+*/
+        ofstream file;
+        string filepath2;
+        filepath2.append("./Neighborhood/");
+        filepath2.append(this->irp.getIrpInstance().getName());filepath.append("/");
+        filepath2.append("/Objective");
+        file.open (filepath2,fstream::app);
+        file.precision(15);
+        file << this->bestValueFound << std::endl;
+        file.close();
 
-	/*
+
+        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
+   }
+    /*
 	* QUI COPIA lo stato interno di irs in currentSolution
 	* neighboringSolution e currentSolution puntano allo stesso oggetto
 	*/
@@ -437,10 +967,9 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
 
 void emili::irp::irpRefuelNeighborhood::reset(){
 
-//    COUT<<"\nRESET\n";
-    //int a;CIN>>a;
-    this->refuelRatio = this->refuelInitialValue;
-    this->deliveredQuantityRatio = this->refuelInitialValue;
+    this->refuelRatio = 0.0;
+    this->deliveredQuantityRatio = 0.0;
+    this->shift = 0;
 }
 
 emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolution){
@@ -450,36 +979,45 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolu
     InventoryRoutingSolution *neighboringSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (currentSolution));
     InventoryRoutingSolution *irs;
 
+    this->numberOfShifts = neighboringSolution->getIrpSolution().getShifts().size();
+
     double randomRefuel = generateRealRandomNumber();
     double randomDeliveredQuantity = generateRealRandomNumber();
+    unsigned int randomShift = generateRandomNumber() % this->numberOfShifts;
 
-    neighboringSolution->getIrpSolution().fromSolutionToRepresentation(neighboringSolution->getIrpSolution());
-    vector<unsigned int> representation = neighboringSolution->getIrpSolution().getRepresentation();
-    irpSolution irps = this->irp.getIrpInstance().rebuildSolution(neighboringSolution->getIrpSolution(),representation, randomRefuel, randomDeliveredQuantity, false);
+
+
+    COUT<<"\nPERTURB RATIO: "<<randomDeliveredQuantity<<" "<<randomRefuel<<" "<<randomShift;
+
+    irpSolution irps = neighboringSolution->getIrpSolution();
+
+    vector<Shift> shifts = irps.getShifts();
+    while(shifts.size() > randomShift)
+        shifts.erase(shifts.end());
+
+    irps.setShifts(shifts);
+//    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0, 0.0, 0, INT_MAX);
+    irps = irp.getIrpInstance().constructSolution(irps, 0.1, 0.0, 1, 1.0 - randomDeliveredQuantity, randomRefuel, 0, INT_MAX);
+    irps = irp.getIrpInstance().extendSolution(irps, 1.0 - randomDeliveredQuantity, randomRefuel, 0, INT_MAX);
+
     irs = new InventoryRoutingSolution(irps);
-    irs->getIrpSolution().fromSolutionToRepresentation(irs->getIrpSolution());
+
     this->irp.evaluateSolution(*irs);
 
-//    COUT<<"EXC VALUE: "<<irs->getSolutionValue();
     return dynamic_cast<Solution *> (irs);
 }
 
 void emili::irp::irpRefuelNeighborhood::reverseLastMove(Solution * step){
 
-//    COUT<<"\n/////";
-
     //Ripristino la soluzione iniziale
     *step = *this->currentNeighboringSolution;
+    this->irp.evaluateSolution(*step);
 
-
-//    COUT<<step->getSolutionRepresentation();
-//    COUT<<"\nREVERSE VALUE: "<<step->getSolutionValue();
-//    COUT<<"\n/////";
 }
 
 int emili::irp::irpRefuelNeighborhood::size()
 {
-    return 1/(this->refuelInitialValue * this->refuelInitialValue);
+    return ( ((1.0)/this->refuelStep) + 1) * ( ((1.0)/this->deliveredQuantityStep) + 1);
 }
 
 emili::Solution* emili::irp::irpPerturbation::perturb(Solution* solution){
@@ -487,6 +1025,19 @@ emili::Solution* emili::irp::irpPerturbation::perturb(Solution* solution){
     InventoryRoutingSolution *perturbedSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (solution));
     irpSolution irpPerturbedSolution = perturbedSolution->getIrpSolution();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP stin random
 // /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP best random locmin ref

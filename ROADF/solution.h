@@ -36,7 +36,11 @@ private:
 	unsigned int driver;
 	unsigned int trailer;
 	unsigned int start;
-	vector<Operation> operations;	
+    vector<Operation> operations;
+    double shiftQuantity;
+    double shiftDistance;
+    double shiftTime;
+    double shiftCost;
 	
 public:
 		
@@ -53,7 +57,16 @@ public:
 	vector<Operation> getOperations();
 	void setOperations(vector<Operation> operations);
     void setOperation(Operation o, int index);
-	
+
+    double getShiftQuantity();
+    void setShiftQuantity(double sq);
+    double getShiftDistance();
+    void setShiftDistance(double sd);
+    double getShiftTime();
+    void setShiftTime(double st);
+
+    double getShiftCost();
+    void setShiftCost(double sc);
 };
 
 
@@ -63,11 +76,14 @@ private:
 
 	vector<Shift> shifts;
     vector<unsigned int> representation;
+
+    double cost;
+    double totalQuantity;
+
+    vector< vector <double> > trailerQuantities;
+    vector< vector <double> > tankQuantities;
 	
 public:
-
-    vector< vector<double> > tankQuantities;
-    vector< vector<double> > trailerQuantities;
 		
     irpSolution();
 	
@@ -77,13 +93,22 @@ public:
     void setPoint(unsigned int point, int shift, int operation);
     vector<unsigned int> getRepresentation();
     void setRepresentation(vector<unsigned int> representation);
+
+
+    double getTotalQuantity();
+    void setTotalQuantity(double tq);
+    double getCost();
+    void setCost(double c);
+
+    vector< vector<double> > getTrailerQuantities();
+    void setTrailerQuantities(vector< vector<double> > tq);
+    vector< vector<double> > getTankQuantities();
+    void setTankQuantities(vector< vector<double> > tq);
 	
 	void loadSolution(const char *pFilename);
     void saveSolution(string pFilename);
 
     void fromSolutionToRepresentation(irpSolution solution);
-
-//	void readSolutionFromInstance(Instance i);
 
 };
 #endif

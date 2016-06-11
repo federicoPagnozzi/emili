@@ -55,6 +55,7 @@ class Problem{
 public:
 
     virtual double evaluateSolution(Solution & solution)=0;
+//    virtual double evaluatePartialSolution(Solution & oldSolution, Solution & newSolution, double shiftIndex)=0;
     virtual int problemSize() {return 1;}
 
 };
