@@ -6,23 +6,22 @@
 <gr:grammar xmlns:gr="grammar">
     <gr:derivations xmlns:irp="automatic_generation">
 
-         <irp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
-         <irp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
          <irp:steps type="int" min="1" max="300" stepIfEnumerated="1"/>
-         <irp:sp_impact type="int" min="5" max="20" stepIfEnumerated="1"/>
-         <irp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
-         <irp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
          <irp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
-         <irp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
          <irp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
          <irp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
          <irp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
          <irp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
- <irp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>
- <irp:pointInitialValue type="int" min="0" max="10" stepIfEnumerated="1" />
- <irp:pointStep type="int" min="1" max="3" stepIfEnumerated="1" />
- <irp:refuelInitialValue type="real" min="0.0" max="0.8" stepIfEnumerated="0.01"/>
- <irp:refuelStep type="real" min="0.05" max="0.2" stepIfEnumerated="0.01"/>
+         <irp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>
+<!-- Generic parameters -->
+	 <irp:gen_random_factor type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+         <irp:gen_urgency_policy type="int" min="1" max="2" stepIfEnumerated="1"/>
+<!-- Ref parameters -->
+	 <irp:ref_step type="real" min="0" max="1" stepIfEnumerated="0.1"/>
+	 <irp:ref_delivered_quantity_step type="real" min="0" max="1" stepIfEnumerated="0.1"/>
+<!-- SHIFT TWO EXCHANGEi, SHIFT INS AND SHIFT REM PARAMETERS -->
+         <irp:shf_refuel_factor type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+         <irp:shf_delivered_quantity_factor type="real" min="0" max="1" stepIfEnumerated="0.1"/>
 
 <irp:always_acc_param>
         <![CDATA[intensify ]]>
@@ -31,7 +30,11 @@
 </irp:always_acc_param>
 
 <irp:initial_solution>
-   <![CDATA[random ]]>
+	<![CDATA[greedy ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]>
+	<or/>
+	<![CDATA[greedyRandomized ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]>
+        <or/>
+	<![CDATA[grasp ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]>
 </irp:initial_solution>
 
 <irp:termination>
@@ -41,9 +44,14 @@
 </irp:termination>
 
 <irp:neighborhood>
-           <![CDATA[twoExc ]]><irp:pointInitialValue/><![CDATA[ ]]><irp:pointStep/><![CDATA[ ]]>
+         <!--  <<![CDATA[twoExc ]]><irp:pointInitialValue/><![CDATA[ ]]><irp:pointStep/><![CDATA[ ]]>-->
+	<![CDATA[shiftTwoExc ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]><irp:shf_refuel_factor/><![CDATA[ ]]><irp:shf_delivered_quantity_factor/><![CDATA[ ]]>
         <or/>
-           <![CDATA[ref ]]><irp:refuelInitialValue/><![CDATA[ ]]><irp:refuelStep/><![CDATA[ ]]>
+	<![CDATA[shiftIns ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]><irp:shf_refuel_factor/><![CDATA[ ]]><irp:shf_delivered_quantity_factor/><![CDATA[ ]]>
+        <or/>
+	<![CDATA[shiftRem ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]><irp:shf_refuel_factor/><![CDATA[ ]]><irp:shf_delivered_quantity_factor/><![CDATA[ ]]>
+        <or/>
+        <![CDATA[ref ]]><irp:ref_step/><![CDATA[ ]]><irp:ref_delivered_quantity_step/><![CDATA[ ]]><irp:gen_random_factor/><![CDATA[ ]]><irp:gen_urgency_policy/><![CDATA[ ]]>
 </irp:neighborhood>
 
 <irp:pertubation>
