@@ -7,7 +7,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (1) cout
+#define COUT if (0) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -206,7 +206,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     vector<long unsigned int> indexes = sort_indexes(objectiveCandidateSolutions);
     COUT<<"CL:\n";
     for(int i=0; i<indexes.size(); i++){
-        cout<<objectiveCandidateSolutions[indexes[i]]<<"\n";
+        COUT<<objectiveCandidateSolutions[indexes[i]]<<"\n";
         cumulatedProbabilities.push_back((double)objectiveCandidateSolutions[indexes[i]]/(double)total);
     }
 
@@ -217,7 +217,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
         COUT<<cumulatedProbabilities[i]<<"\n";
     }
 
-    double randomPick = (double)rand()/RAND_MAX;
+    double randomPick = generateRealRandomNumber();//(double)rand()/RAND_MAX;
     unsigned int pickIndex = 0;
     while(randomPick > cumulatedProbabilities[pickIndex])
         pickIndex++;
@@ -441,12 +441,12 @@ emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::computeStep(Soluti
     else
         this->numberFeasibleSolutions++;
 
-    int a; cin>>a;
+    int a; CIN>>a;
     /*
     * QUI COPIA lo stato interno di irs in currentSolution
     * neighboringSolution e currentSolution puntano allo stesso oggetto
     */
-//int b;cin>>b;
+//int b;CIN>>b;
     *neighboringSolution = irs;
     return dynamic_cast<Solution *> (currentSolution);
 

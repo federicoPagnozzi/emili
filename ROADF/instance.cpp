@@ -5,9 +5,11 @@
 #include "tinyxml.h"
 #include "tinystr.h"
 
-#include "/home/antoniofisk/Desktop/Uni/MasterThesis/Project/emilibase.h"
+//#include "/home/antoniofisk/Desktop/Uni/MasterThesis/Project/emilibase.h"
+#include "../emilibase.h"
 
-
+#define COUT if (0) cout
+#define CIN if (0) cin
 
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
@@ -72,12 +74,12 @@ void Instance::loadInstance(const char* pFilename)
       
       //Read unit
       istringstream ( pInnerElem->GetText()) >> this->unit;
-//    cout<<pInnerElem->GetText()<<" "<<this->unit<<"\n";
+//    COUT<<pInnerElem->GetText()<<" "<<this->unit<<"\n";
       
       //Read horizon
       pInnerElem=pInnerElem->NextSiblingElement();
       istringstream ( pInnerElem->GetText()) >> this->horizon;
-//    cout<<pInnerElem->Value()<<" "<<this->horizon<<"\n";
+//    COUT<<pInnerElem->Value()<<" "<<this->horizon<<"\n";
       
       //Read time matrix
       pInnerElem=hDoc.FirstChild( "IRP_Roadef_Challenge_Instance" ).FirstChild("timeMatrices").FirstChild().Element();
@@ -93,10 +95,10 @@ void Instance::loadInstance(const char* pFilename)
 		int elem;
 		istringstream(pMatrixElem ->GetText()) >> elem;
 		this->timeMatrices.at(i).push_back(elem);
-//		cout<<this->timeMatrices.at(i).at(j)<<" ";
+//		COUT<<this->timeMatrices.at(i).at(j)<<" ";
 		j++;
 	      }
-//	      cout<<"\n";
+//	      COUT<<"\n";
 	      i++;
       }
       
@@ -111,13 +113,13 @@ void Instance::loadInstance(const char* pFilename)
 	//Read driver's index
 	istringstream(pDriverElem->GetText()) >> index;
 	d.setIndex(index);
-//	cout<<pDriverElem->Value()<< " " << d.getIndex()<<"\n";
+//	COUT<<pDriverElem->Value()<< " " << d.getIndex()<<"\n";
 	
 	//Read driver's masimum driving duration
 	pDriverElem=pDriverElem->NextSiblingElement();	
 	istringstream(pDriverElem->GetText()) >> index;
 	d.setMaxDrivingDuration(index);	
-//	cout<<pDriverElem->Value()<< " " << d.getMaxDrivingDuration()<<"\n";
+//	COUT<<pDriverElem->Value()<< " " << d.getMaxDrivingDuration()<<"\n";
 	
 	//Read driver's time windows (start,end)
 	pDriverElem=pDriverElem->NextSiblingElement();
@@ -136,20 +138,20 @@ void Instance::loadInstance(const char* pFilename)
 	pDriverElem=pDriverElem->NextSiblingElement();	
 	istringstream(pDriverElem->GetText()) >> index;
 	d.setTrailer(index);	
-//	cout<<pDriverElem->Value()<< " " << d.getTrailer()<<"\n";
+//	COUT<<pDriverElem->Value()<< " " << d.getTrailer()<<"\n";
 	
 	//Read driver's minimum interval shift duration
 	pDriverElem=pDriverElem->NextSiblingElement();	
 	istringstream(pDriverElem->GetText()) >> index;
 	d.setMinInterSHIFTDURATION(index);	
-//	cout<<pDriverElem->Value()<< " " << d.getMinInterSHIFTDURATION()<<"\n";
+//	COUT<<pDriverElem->Value()<< " " << d.getMinInterSHIFTDURATION()<<"\n";
 	
 	//Read driver's time cost
 	double tc;
 	pDriverElem=pDriverElem->NextSiblingElement();	
 	istringstream(pDriverElem->GetText()) >> tc;
 	d.setTimeCost(tc);	
-//	cout<<pDriverElem->Value()<< " " <<d.getTimeCost()<<"\n";
+//	COUT<<pDriverElem->Value()<< " " <<d.getTimeCost()<<"\n";
 	
 	this->drivers.push_back(d);
 	
@@ -166,25 +168,25 @@ void Instance::loadInstance(const char* pFilename)
 	//Read trailer's index	
 	istringstream(pTrailerElem->GetText()) >> index;
 	t.setIndex(index);	
-//	cout<<pTrailerElem->Value()<< " " << t.getIndex()<<"\n";
+//	COUT<<pTrailerElem->Value()<< " " << t.getIndex()<<"\n";
 	
 	//Read trailer's capacity
 	pTrailerElem=pTrailerElem->NextSiblingElement();	
 	istringstream(pTrailerElem->GetText()) >> d;
 	t.setCapacity(d);	
-//	cout<<pTrailerElem->Value()<< " " << t.getCapacity()<<"\n";
+//	COUT<<pTrailerElem->Value()<< " " << t.getCapacity()<<"\n";
 	
 	//Read trailer's initial quantity
 	pTrailerElem=pTrailerElem->NextSiblingElement();	
 	istringstream(pTrailerElem->GetText()) >> d;
 	t.setInitialQuantity(d);	
-//	cout<<pTrailerElem->Value()<< " " << t.getInitialQuantity()<<"\n";
+//	COUT<<pTrailerElem->Value()<< " " << t.getInitialQuantity()<<"\n";
 	
 	//Read trailer's distance cost
 	pTrailerElem=pTrailerElem->NextSiblingElement();	
 	istringstream(pTrailerElem->GetText()) >> d;
 	t.setDistanceCost(d);	
-//	cout<<pTrailerElem->Value()<< " " << t.getDistanceCost()<<"\n";
+//	COUT<<pTrailerElem->Value()<< " " << t.getDistanceCost()<<"\n";
 	
 	this->trailers.push_back(t);
 	
@@ -201,7 +203,7 @@ void Instance::loadInstance(const char* pFilename)
 	//Read base's index
 	istringstream(pInnerElem->GetText()) >> index;
 	b.setIndex(index);	
-//	cout<<pInnerElem->Value()<< " " << b.getIndex()<<"\n";
+//	COUT<<pInnerElem->Value()<< " " << b.getIndex()<<"\n";
 
 	/*this->bases.push_back(b);*/this->customers.push_back(b);
 	
@@ -219,13 +221,13 @@ void Instance::loadInstance(const char* pFilename)
 	//Read source's index
 	istringstream(pSourceElem->GetText()) >> index;
 	s.setIndex(index);	
-//	cout<<pSourceElem->Value()<< " " << s.getIndex()<<"\n";
+//	COUT<<pSourceElem->Value()<< " " << s.getIndex()<<"\n";
 	
 	//Read source's setup time
 	pSourceElem=pSourceElem->NextSiblingElement();	
 	istringstream(pSourceElem->GetText()) >> index;
 	s.setSetupTime(index);	
-//	cout<<pSourceElem->Value()<< " " << s.getSetupTime()<<"\n";
+//	COUT<<pSourceElem->Value()<< " " << s.getSetupTime()<<"\n";
 	
 	/*this->sources.push_back(s);*/this->customers.push_back(s);
 	
@@ -243,13 +245,13 @@ void Instance::loadInstance(const char* pFilename)
 	//Read customer's indes
 	istringstream(pCustomerElem->GetText()) >> index;
 	c.setIndex(index);
-//	cout<<pCustomerElem->Value()<< " " << c.getIndex()<<"\n";
+//	COUT<<pCustomerElem->Value()<< " " << c.getIndex()<<"\n";
 	
 	//Read customer's setup time
 	pCustomerElem=pCustomerElem->NextSiblingElement();	
 	istringstream(pCustomerElem->GetText()) >> index;
 	c.setSetupTime(index);	
-//	cout<<pCustomerElem->Value()<< " " << c.getSetupTime()<<"\n";
+//	COUT<<pCustomerElem->Value()<< " " << c.getSetupTime()<<"\n";
 	
         //Read customer's allowed trailers
 	pCustomerElem=pCustomerElem->NextSiblingElement();
@@ -259,7 +261,7 @@ void Instance::loadInstance(const char* pFilename)
 	    
 	    istringstream(pAllowedTrailersElem->ToElement()->GetText()) >> index;
 	    at.push_back(index);
-//	    cout<<pAllowedTrailersElem->Value()<< " " << at.at(0)<<"\n";
+//	    COUT<<pAllowedTrailersElem->Value()<< " " << at.at(0)<<"\n";
 	    pAllowedTrailersElem=pAllowedTrailersElem->NextSiblingElement();
 	}
 	c.setAllowedTrailers(at);
@@ -271,7 +273,7 @@ void Instance::loadInstance(const char* pFilename)
 	while(pForecastElem!= NULL and strcmp(pForecastElem->Value(), "double")==0){
 	    istringstream(pForecastElem->ToElement()->GetText()) >> d;
 	    f.push_back(d);
-//	    cout<<"here here"<<pForecastElem->Value()<< " " << f.at(0)<<"\n";
+//	    COUT<<"here here"<<pForecastElem->Value()<< " " << f.at(0)<<"\n";
 	    pForecastElem=pForecastElem->NextSiblingElement();
 	}
 	c.setForecast(f);
@@ -280,19 +282,19 @@ void Instance::loadInstance(const char* pFilename)
 	pCustomerElem=pCustomerElem->NextSiblingElement();	
 	istringstream(pCustomerElem->GetText()) >> d;
 	c.setCapacity(d);	
-//	cout<<pCustomerElem->Value()<< " " << c.getCapacity()<<"\n";
+//	COUT<<pCustomerElem->Value()<< " " << c.getCapacity()<<"\n";
 	
 	//Read customer's initial tank quantity
 	pCustomerElem=pCustomerElem->NextSiblingElement();	
 	istringstream(pCustomerElem->GetText()) >> d;
 	c.setInitialTankQuantity(d);	
-//	cout<<pCustomerElem->Value()<< " " << c.getInitialTankQuantity()<<"\n";
+//	COUT<<pCustomerElem->Value()<< " " << c.getInitialTankQuantity()<<"\n";
 	
 	//Read customer's safety level
 	pCustomerElem=pCustomerElem->NextSiblingElement();	
 	istringstream(pCustomerElem->GetText()) >> d;
 	c.setSafetyLevel(d);	
-//	cout<<pCustomerElem->Value()<< " " << c.getSafetyLevel()<<"\n";
+//	COUT<<pCustomerElem->Value()<< " " << c.getSafetyLevel()<<"\n";
 	 
 	this->customers.push_back(c);
 	
@@ -307,17 +309,17 @@ void Instance::loadInstance(const char* pFilename)
 	      int j = 0;
 	      vector<double> vec;
 	      this->distMatrices.push_back(vec);
-//	      cout<<pInnerElem ->Value()<<": ";
+//	      COUT<<pInnerElem ->Value()<<": ";
 	      TiXmlElement *pMatrixElem = pInnerElem->FirstChild()->ToElement();
 	      for( pMatrixElem ; pMatrixElem;pMatrixElem =pMatrixElem ->NextSiblingElement())
 	      {
 		int elem;
 		istringstream(pMatrixElem ->GetText()) >> elem;
 		this->distMatrices.at(i).push_back(elem);
-	//	cout<<this->distMatrices.at(i).at(j)<<" ";
+    //	COUT<<this->distMatrices.at(i).at(j)<<" ";
 		j++;
 	      }
-	//      cout<<"\n";
+    //      COUT<<"\n";
 	      i++;
       }
 
@@ -397,13 +399,13 @@ void Instance::loadInstance(const char* pFilename)
       }
 
       for(int d=0; d<this->drivers.size(); d++){
-          cout<<"DRIVER: "<<this->drivers[d].getIndex()<<"\n";
+          COUT<<"DRIVER: "<<this->drivers[d].getIndex()<<"\n";
           vector <vector <unsigned int> > cc = this->contributeMatrixes.find(d)->second;
           for(int c1=0; c1<cc.size(); c1++){
               vector<unsigned int> ccc = cc[c1];
               for(int c2=0; c2<ccc.size(); c2++)
-                  cout<<ccc[c2]<<" ";
-              cout<<"\n";
+                  COUT<<ccc[c2]<<" ";
+              COUT<<"\n";
           }
       }
 
@@ -449,13 +451,13 @@ bool Instance::dri01(irpSolution solution){
 	         + this->timeMatrices[shift1.getOperations().back().getPoint()][0];
 	  end2 = shift2.getOperations().back().getArrival() + this->customers.at(shift2.getOperations().back().getPoint()).getSetupTime()
 		 + this->timeMatrices[shift2.getOperations().back().getPoint()][0];
-//	  cout<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<shift1.getStart()<<" "<<end1<<" \n";
+//	  COUT<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<shift1.getStart()<<" "<<end1<<" \n";
 	  if(  not(  shift2.getStart() >= end1  + driver.getMinInterSHIFTDURATION() 
           //  or shift1.getStart()  >= end2 + driver.getMinInterSHIFTDURATION()
                  )
            ){
-	    cout<<"dri01 NOT FEASIBLE!!!!\n";
-//	    cout<<shift1.getStart()<<" "<<end1<<" "<<shift2.getStart()<<" "<<end2<<"\n";
+        COUT<<"dri01 NOT FEASIBLE!!!!\n";
+//	    COUT<<shift1.getStart()<<" "<<end1<<" "<<shift2.getStart()<<" "<<end2<<"\n";
         //exit(0);
 	    return true;
 	  }
@@ -483,14 +485,14 @@ bool Instance::dri01(irpSolution solution){
                  + this->timeMatrices[shift1.getOperations().back().getPoint()][0];
           end2 = shift2.getOperations().back().getArrival() + this->customers.at(shift2.getOperations().back().getPoint()).getSetupTime()
              + this->timeMatrices[shift2.getOperations().back().getPoint()][0];
-    //	  cout<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<shift1.getStart()<<" "<<end1<<" \n";
+    //	  COUT<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<shift1.getStart()<<" "<<end1<<" \n";
           if(  not(  shift2.getStart() >= end1  + driver.getMinInterSHIFTDURATION()
                 /*or shift1.getStart()  >= end2 + driver.getMinInterSHIFTDURATION() */)
                ){
-            cout<<"dri01 NOT FEASIBLE!!!!\n";
-            cout<<s1<<" "<<s2<<"\n";
-            cout<<shift1.getStart()<<" "<<end1<<" "<<shift2.getStart()<<" "<<end2<<"\n";
-            int a; cin>>a;
+            COUT<<"dri01 NOT FEASIBLE!!!!\n";
+            COUT<<s1<<" "<<s2<<"\n";
+            COUT<<shift1.getStart()<<" "<<end1<<" "<<shift2.getStart()<<" "<<end2<<"\n";
+            int a; CIN>>a;
             //exit(0);
             return true;
           }
@@ -510,24 +512,24 @@ bool Instance::dri03(irpSolution solution){
   for(int s=0; s<solution.getShifts().size(); s++){
     unsigned int cumulatedDrivingTime = 0;
     
-// cout<<"CHECK SHIFT: "<<  solution.getShifts().at(s).getIndex()<<" ";
+// COUT<<"CHECK SHIFT: "<<  solution.getShifts().at(s).getIndex()<<" ";
    vector<Operation> operations = solution.getShifts()[s].getOperations();
    cumulatedDrivingTime += this->timeMatrices[0][operations.front().getPoint()];
    for(int o=1; o<operations.size(); o++){
      
      cumulatedDrivingTime+=this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()];
- //    cout<<operations.at(o-1).getPoint()<<" "<<operations.at(o).getPoint()<<" "<<cumulatedDrivingTime<<"\n";
+ //    COUT<<operations.at(o-1).getPoint()<<" "<<operations.at(o).getPoint()<<" "<<cumulatedDrivingTime<<"\n";
    }
 
    cumulatedDrivingTime += this->timeMatrices[operations.back().getPoint()][0];
    if(not(cumulatedDrivingTime <= this->drivers.at(solution.getShifts()[s].getDriver()).getMaxDrivingDuration())){
-     cout<<"\nDRI03 NOT FEASIBLE!!!!";
-     cout<<s<<" "<<cumulatedDrivingTime<<"\n";
-     int a; cin>>a;
+     COUT<<"\nDRI03 NOT FEASIBLE!!!!";
+     COUT<<s<<" "<<cumulatedDrivingTime<<"\n";
+     int a; CIN>>a;
      /* exit(0);*/
       return true;
    }
-//    cout<<"\n";
+//    COUT<<"\n";
   }
   return false; 
 }
@@ -543,12 +545,12 @@ bool Instance::dri08(irpSolution solution){
     bool flag=true;
     Shift shift=solution.getShifts()[s];
     vector<pair<int,int> > timeWindows=this->drivers[shift.getDriver()].getTimeWindows();
-//    cout<<"SHIFT: "<<shift.getIndex()<<"\n";
+//    COUT<<"SHIFT: "<<shift.getIndex()<<"\n";
     for(int tw=0; tw<timeWindows.size(); tw++){
       
       unsigned int end = shift.getOperations().back().getArrival() + this->customers.at(shift.getOperations().back().getPoint()).getSetupTime()
 			 + this->timeMatrices[shift.getOperations().back().getPoint()][0];
-//      cout<<timeWindows[tw].first<<" "<<timeWindows[tw].second<<" "<<shift.getStart()<<" "<<end<<"\n";
+//      COUT<<timeWindows[tw].first<<" "<<timeWindows[tw].second<<" "<<shift.getStart()<<" "<<end<<"\n";
       if(shift.getStart() >= timeWindows[tw].first && end <= timeWindows[tw].second
               /*&& shift.getStart() <= timeWindows[tw].second && end >= timeWindows[tw].first*/
         && shift.getStart()<= end && timeWindows[tw].first<=timeWindows[tw].second){
@@ -558,8 +560,8 @@ bool Instance::dri08(irpSolution solution){
     }
     
     if(flag){
-       cout<<"DRI08 NOT FEASIBLE!!!!";
-       int a; cin>>a;
+       COUT<<"DRI08 NOT FEASIBLE!!!!";
+       int a; CIN>>a;
 	/*exit(0);*/
 	return true;
     }
@@ -588,11 +590,11 @@ bool Instance::tl01(irpSolution solution){
 		  + this->timeMatrices[shift1.getOperations().back().getPoint()][0];
 	  end2 = shift2.getOperations().back().getArrival() + this->customers.at(shift2.getOperations().back().getPoint()).getSetupTime()
 		  + this->timeMatrices[shift2.getOperations().back().getPoint()][0];
-//	  cout<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<end1<<" \n";
+//	  COUT<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<end1<<" \n";
 
       if(  not(  shift2.getStart() >= end1 //or shift1.getStart()  >= end2
                  )){
-	     cout<<"TL01 NOT FEASIBLE!!!!";
+         COUT<<"TL01 NOT FEASIBLE!!!!";
        //exit(0);
 	    return true;
 	  }
@@ -619,12 +621,12 @@ bool Instance::tl01(irpSolution solution){
               + this->timeMatrices[shift1.getOperations().back().getPoint()][0];
           end2 = shift2.getOperations().back().getArrival() + this->customers.at(shift2.getOperations().back().getPoint()).getSetupTime()
               + this->timeMatrices[shift2.getOperations().back().getPoint()][0];
-    //	  cout<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<end1<<" \n";
+    //	  COUT<<"CHECK: "<<solution.getShifts().at(s1).getIndex()<< " " << solution.getShifts().at(s2).getIndex()<<" "<<end1<<" \n";
 
           if(  not(  shift2.getStart() >= end1 //or shift1.getStart()  >= end2
                      )){
-             cout<<"TL01 NOT FEASIBLE!!!!";
-             int a; cin>>a;
+             COUT<<"TL01 NOT FEASIBLE!!!!";
+             int a; CIN>>a;
            //exit(0);
             return true;
           }
@@ -646,11 +648,11 @@ bool Instance::tl03(irpSolution solution){
   
   for(int s=0; s<solution.getShifts().size(); s++){
     
-//    cout<<solution.getShifts()[s].getTrailer().getIndex()<<" "<<solution.getShifts()[s].getDriver().getIndex()<<" "
+//    COUT<<solution.getShifts()[s].getTrailer().getIndex()<<" "<<solution.getShifts()[s].getDriver().getIndex()<<" "
 //    <<this->drivers[solution.getShifts()[s].getDriver().getIndex()].getTrailer()<<"\n";
     if( not(solution.getShifts()[s].getTrailer()==this->drivers[solution.getShifts()[s].getDriver()].getTrailer() ) ){
-       cout<<"TL03 NOT FEASIBLE!!!!";
-       int a; cin>>a;
+       COUT<<"TL03 NOT FEASIBLE!!!!";
+       int a; CIN>>a;
 	/*exit(0);*/
 	return true;
     }
@@ -684,9 +686,9 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
 
         if(operations[o].getPoint() > 1){
           if(not (operations[o].getQuantity() >= -EPSILON)){
-             cout<<"SHI11 NOT FEASIBLE!!!!";
-                cout<<"\n"<<s<<" "<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
-                int a; cin>>a;
+             COUT<<"SHI11 NOT FEASIBLE!!!!";
+                COUT<<"\n"<<s<<" "<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
+                int a; CIN>>a;
 //                unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
 //              return true;
@@ -695,8 +697,8 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
         }
         else if(operations[o].getPoint() == 1)
           if(not (operations[o].getQuantity() <= EPSILON)){
-             cout<<"SHI11 NOT FEASIBLE!!!!";
-             int a; cin>>a;
+             COUT<<"SHI11 NOT FEASIBLE!!!!";
+             int a; CIN>>a;
 //             unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
 //              return true;
@@ -719,7 +721,7 @@ double Instance::dyn01(irpSolution solution, bool feasibility){
           && ( tankQuantities[p][f] >= this->customers[p].getSafetyLevel() or abs(tankQuantities[p][f] - this->customers[p].getSafetyLevel()) <= EPSILON)
                    )
              ){
-//               cout<<"DYN01 QS02 NOT FEASIBLE!!!!";
+//               COUT<<"DYN01 QS02 NOT FEASIBLE!!!!";
                   if(abs(f) < unfeasibilityCounter)
                     unfeasibilityCounter = abs(f);
 
@@ -744,7 +746,7 @@ double Instance::dyn01partial(irpSolution solution, bool feasibility, unsigned i
 
 
   partialHorizon = (unsigned int)(partialHorizon/60) + 1;
-  cout<<"PARTIAL HORIZON: "<<partialHorizon<<"\n";
+  COUT<<"PARTIAL HORIZON: "<<partialHorizon<<"\n";
   double unfeasibilityCounter = 1/EPSILON;
 
   vector<vector<double> > tankQuantities(this->customers.size());
@@ -763,9 +765,9 @@ double Instance::dyn01partial(irpSolution solution, bool feasibility, unsigned i
 
         if(operations[o].getPoint() > 1){
           if(not (operations[o].getQuantity() >= -EPSILON)){
-             cout<<"SHI11 NOT FEASIBLE!!!!";
-                cout<<"\n"<<s<<" "<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
-                int a; cin>>a;
+             COUT<<"SHI11 NOT FEASIBLE!!!!";
+                COUT<<"\n"<<s<<" "<<operations[o].getPoint()<<" "<<operations[o].getQuantity()<<" ";
+                int a; CIN>>a;
 //                unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
 //              return true;
@@ -774,8 +776,8 @@ double Instance::dyn01partial(irpSolution solution, bool feasibility, unsigned i
         }
         else if(operations[o].getPoint() == 1)
           if(not (operations[o].getQuantity() <= EPSILON)){
-             cout<<"SHI11 NOT FEASIBLE!!!!";
-             int a; cin>>a;
+             COUT<<"SHI11 NOT FEASIBLE!!!!";
+             int a; CIN>>a;
 //             unfeasibilityCounter = operations[o].getArrival();
               /*exit(0);*/
 //              return true;
@@ -796,7 +798,7 @@ double Instance::dyn01partial(irpSolution solution, bool feasibility, unsigned i
           && ( tankQuantities[p][f] >= this->customers[p].getSafetyLevel() or abs(tankQuantities[p][f] - this->customers[p].getSafetyLevel()) <= EPSILON)
                    )
              ){
-//               cout<<"DYN01 QS02 NOT FEASIBLE!!!!";
+//               COUT<<"DYN01 QS02 NOT FEASIBLE!!!!";
                   if(abs(f) < unfeasibilityCounter)
                     unfeasibilityCounter = abs(f);
             }
@@ -822,8 +824,8 @@ bool Instance::shi02(irpSolution solution){
 
         double departure=shift.getStart();
         if(not(  operations[0].getArrival() >= departure + this->timeMatrices[0][operations[0].getPoint()] )){
-        cout<<"SHI03 NOT FEASIBLE!!!!";
-        int a; cin>>a;
+        COUT<<"SHI03 NOT FEASIBLE!!!!";
+        int a; CIN>>a;
          /*exit(0);*/
          return true;
         }
@@ -831,11 +833,11 @@ bool Instance::shi02(irpSolution solution){
         for(int o=1; o<operations.size(); o++){
           departure = operations[o-1].getArrival() + this->customers[operations[o-1].getPoint()].getSetupTime();
     //      if(s==1)
-    //      cout<<operations[o].getArrival()<<" "<<departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()]<<"\n";
+    //      COUT<<operations[o].getArrival()<<" "<<departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()]<<"\n";
           if(not(  operations[o].getArrival() >= departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()] )){
-         cout<<"SHI02 NOT FEASIBLE!!!!\n";
-         int a; cin>>a;
-         cout<<s<<" "<<o<<" "<<departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()]<<" "<<operations[o].getArrival()<<"\n";
+         COUT<<"SHI02 NOT FEASIBLE!!!!\n";
+         int a; CIN>>a;
+         COUT<<s<<" "<<o<<" "<<departure + this->timeMatrices[operations[o-1].getPoint()][operations[o].getPoint()]<<" "<<operations[o].getArrival()<<"\n";
          /*exit(0);*/
          return true;
           }
@@ -859,7 +861,7 @@ bool Instance::shi05(irpSolution solution){
       bool flag = false;
       vector<unsigned int> allowedTrailers = this->customers[operations[o].getPoint()].getAllowedTrailers();
 
-      int a; if(operations[o].getPoint() == 0)cin>>a;
+      int a; if(operations[o].getPoint() == 0)CIN>>a;
 
       //Every trailer is allowed at the source location
       if(operations[o].getPoint()==1)
@@ -870,9 +872,9 @@ bool Instance::shi05(irpSolution solution){
           flag = true;
       }
       if(not(flag)){
-         cout<<"SHI05 NOT FEASIBLE!!!!\n";
-         cout<<s<<" "<<o<<"\n";
-         cin>>a;
+         COUT<<"SHI05 NOT FEASIBLE!!!!\n";
+         COUT<<s<<" "<<o<<"\n";
+         CIN>>a;
          /* exit(0);*/
          return true;
       }
@@ -914,9 +916,9 @@ bool Instance::shi06(irpSolution solution){
                       trailerQuantities[shift.getTrailer()][oper]>=-EPSILON
                   and trailerQuantities[shift.getTrailer()][oper]<=this->trailers[shift.getTrailer()].getCapacity() + EPSILON   )
                   ){
-            cout<<"SHI06 NOT FEASIBLE!!!!  ";
-             cout<<s<<" "<<o<<"     "<<oper<<"    "<<trailerQuantities[shift.getTrailer()][oper]<<"\n";
-             int a; cin>>a;
+            COUT<<"SHI06 NOT FEASIBLE!!!!  ";
+             COUT<<s<<" "<<o<<"     "<<oper<<"    "<<trailerQuantities[shift.getTrailer()][oper]<<"\n";
+             int a; CIN>>a;
            /* exit(0);*/
             return true;
           }
@@ -1018,7 +1020,7 @@ double Instance::computeObjective(irpSolution &solution){
   solution.setTotalQuantity(totalQuantity);
   solution.setCost(LR);
   LR/=totalQuantity;
-//  cout<<"COMPUTE: "<<solution.getShifts()[2].getShiftQuantity()<<" "<<solution.getShifts()[2].getShiftDistance()<<" "<<solution.getShifts()[2].getShiftTime()<<"\n";
+//  COUT<<"COMPUTE: "<<solution.getShifts()[2].getShiftQuantity()<<" "<<solution.getShifts()[2].getShiftDistance()<<" "<<solution.getShifts()[2].getShiftTime()<<"\n";
   return LR;
 }
 
@@ -1068,7 +1070,7 @@ double Instance::computeDeltaObjective(irpSolution oldSolution, irpSolution newS
     newObjectiveValue /= (oldSolution.getTotalQuantity() - oldQuantity + newQuantity);
     newObjectiveValue += newShiftObjective;
 
-//    cout<<"\nINSIDE DELTA: "<<oldShiftObjective<<" "<<newShiftObjective<<" "<<oldQuantity<<" "<<newQuantity<<"\n";
+//    COUT<<"\nINSIDE DELTA: "<<oldShiftObjective<<" "<<newShiftObjective<<" "<<oldQuantity<<" "<<newQuantity<<"\n";
 
     return newObjectiveValue;
 
@@ -1085,14 +1087,14 @@ double Instance::computePartialObjective(irpSolution oldSolution, irpSolution ne
 
     if(shiftIndex > 0){
         oldQuantity += oldSolution.getShifts()[shiftIndex-1].getShiftQuantity();
-//         cout<<"OLDQ: "<<oldSolution.getShifts()[shiftIndex-1].getShiftQuantity()<<"\n";
+//         COUT<<"OLDQ: "<<oldSolution.getShifts()[shiftIndex-1].getShiftQuantity()<<"\n";
         oldDistance = oldSolution.getShifts()[shiftIndex-1].getShiftDistance();
         oldTime = oldSolution.getShifts()[shiftIndex-1].getShiftTime();
         oldShiftObjective = oldSolution.getShifts()[shiftIndex-1].getShiftCost();
     }
 
 
-//    cout<<"OLD QUANTITY: "<<oldQuantity<<" "<<oldDistance<<" "<<oldTime<<" "<<oldShiftObjective<<"\n";
+//    COUT<<"OLD QUANTITY: "<<oldQuantity<<" "<<oldDistance<<" "<<oldTime<<" "<<oldShiftObjective<<"\n";
 
     double newShiftObjective = 0.0;
     for(int s=shiftIndex; s<newSolution.getShifts().size(); s++){
@@ -1130,14 +1132,14 @@ double Instance::computePartialDeltaObjective(irpSolution oldSolution, irpSoluti
     /*
     clock_t end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    cout<<"INNER ELAPSED: "<<elapsed_secs<<"\n";
+    COUT<<"INNER ELAPSED: "<<elapsed_secs<<"\n";
     */
 
     if(not(feas < EPSILON and feas > -EPSILON)){
         double factor = feas/(this->horizon*60);
         p /=  (factor * FEASIBILITY_PENALTY);
         p += 1.0;
-        cout<<"\n NOT FEASIBLE! \n";
+        COUT<<"\n NOT FEASIBLE! \n";
     }
 
     return p;
@@ -1172,9 +1174,9 @@ void Instance::sortPair(vector< pair< pair<unsigned int,unsigned int>, unsigned 
               - 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getInitialQuantity()/this->maxInitialQuantity
               - 100 * EPSILON * this->trailers[this->drivers[priorities[p].second].getTrailer()].getCapacity()/this->maxCapacity;
 
- /* cout<<setprecision(15);
+ /* COUT<<setprecision(15);
   for(int p=0; p<addP.size(); p++)
-      cout<<(double)((double)priorities[p].first.first + addP[p])<<"    ";
+      COUT<<(double)((double)priorities[p].first.first + addP[p])<<"    ";
 */
   pair< pair<unsigned int,unsigned int>, unsigned int > app;
   double a;
@@ -1333,7 +1335,7 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
     operation.setPoint(customer);
 
 
-//    cout<<"         Tank: "<<tankQuantities[customer]<<"   trail:"<<trailerQuantities[trailer]<<"   horizon: "<<horizon<<" "<<this->customers[customer].getCapacity()<< "\n";
+//    COUT<<"         Tank: "<<tankQuantities[customer]<<"   trail:"<<trailerQuantities[trailer]<<"   horizon: "<<horizon<<" "<<this->customers[customer].getCapacity()<< "\n";
 
 
     if(customer == 1){
@@ -1408,10 +1410,10 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
           urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
           flag = false;
 
-  //        cout<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
-  //        cout<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
-//            int a;cin>>a;
-//          cout<<c<<" "<<distanceFactor<<" "<<urgency[c]<<"\n";
+  //        COUT<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
+  //        COUT<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
+//            int a;CIN>>a;
+//          COUT<<c<<" "<<distanceFactor<<" "<<urgency[c]<<"\n";
         }
         f++;
       }
@@ -1443,15 +1445,15 @@ vector<Operation> Instance::recursiveRandomShift(irpSolution solution,
       customerList.insert(customerList.begin() + 1, 1);
     }
 
-//    cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+//    COUT<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
     /*
     for(int c=0; c<customerList.size(); c++)
-      cout<<customerList[c]<<" ";
-    cout<<"\n";
+      COUT<<customerList[c]<<" ";
+    COUT<<"\n";
 
     for(int u=0; u<urgency.size(); u++)
-      cout<<urgency[u]<<" ";
-    cout<<"\n";
+      COUT<<urgency[u]<<" ";
+    COUT<<"\n";
     */
 
     return recursiveRandomShift(
@@ -1537,10 +1539,10 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
               urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
               flag = false;
 
-      //        cout<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
-      //        cout<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
-    //            int a;cin>>a;
-    //          cout<<c<<" "<<totalForecast - this->customers[c].getInitialTankQuantity() + this->customers[c].getSafetyLevel()<<" "<<urgency[c]<<"\n";
+      //        COUT<<"Fs: "<<(double)this->timeMatrices[currentPoint][c]<<" "<<totalDistance<<"\n";
+      //        COUT<<"Fs: "<<c<<" "<<timeFactor<<" "<<quantityFactor<<" "<<distanceFactor<<" "<<urgency[c]<<"\n\n";
+    //            int a;CIN>>a;
+    //          COUT<<c<<" "<<totalForecast - this->customers[c].getInitialTankQuantity() + this->customers[c].getSafetyLevel()<<" "<<urgency[c]<<"\n";
           }
           f++;
         }
@@ -1561,15 +1563,15 @@ irpSolution Instance::recursiveRandomSolution(irpSolution solution,
 
 /*
       for(int c=0; c<customerList.size(); c++)
-        cout<<customerList[c]<<";
-      cout<<"\n";
+        COUT<<customerList[c]<<";
+      COUT<<"\n";
 
       for(int u=0; u<urgency.size(); u++)
-        cout<<urgency[u]<<" ";
-      cout<<"\n";
+        COUT<<urgency[u]<<" ";
+      COUT<<"\n";
 */
-//      int a;cin>>a;
-//      cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<"  \n";
+//      int a;CIN>>a;
+//      COUT<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<"  \n";
       vector<bool> refuelFlags(this->trailers.size(), false);
       vector<Operation> operations;
       operations = recursiveRandomShift(solution, shift.getStart(), 0, horizonQuantities, tankQuantities, trailerQuantities,
@@ -1728,7 +1730,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            if(trailerQuantities[t] <= EPSILON)
                refuelFlag[t] = true;
 
-       cout<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+       COUT<<"SHIFT: "<<shift.getIndex()<<" start: "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
        time = timeWindows[0].first.first;
 
        unsigned int prec;
@@ -1789,7 +1791,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
            operation.setArrival(cumulatedTime);
            operation.setPoint(succ);
 
-//           cout<<"         Tank: "<<this->actualQuantity[succ][operation.getArrival()]<<"   trail:"<<trailerQuantities[trailer]<<" "<<this->customers[succ].getCapacity()<<"       \n";
+//           COUT<<"         Tank: "<<this->actualQuantity[succ][operation.getArrival()]<<"   trail:"<<trailerQuantities[trailer]<<" "<<this->customers[succ].getCapacity()<<"       \n";
            double quantity = 0.0;
 
            if(refuelFlag[trailer] == true or succ == 1){
@@ -1799,7 +1801,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
 
                operation.setQuantity(-quantity);
 
-               cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+               COUT<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
                operations.push_back(operation);
 
                prec = 1;
@@ -1943,7 +1945,7 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
 
            operation.setQuantity(quantity);
 
-           cout<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
+           COUT<<"     Operation: "<<operation.getPoint()<<"   arr: "<<operation.getArrival()<<"   q: "<<operation.getQuantity()<<"\n";
            operations.push_back(operation);
            solutionRepresentation.erase(solutionRepresentation.begin());
            if(refuelFlag[trailer]){
@@ -2001,9 +2003,9 @@ irpSolution Instance::rebuildSolution(irpSolution &initialSolution, vector<unsig
       solution.setShifts(shifts);
 
    for(int s=0; s<solution.getShifts().size(); s++){
-       cout<<"SHIFT R: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
+       COUT<<"SHIFT R: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
        for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-           cout<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+           COUT<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
                  <<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
                    <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
    }
@@ -2014,16 +2016,16 @@ unsigned int Instance::computeTime(unsigned int succ, unsigned int nextSucc){
 
     vector<unsigned int> travellingTimes = this->timeMatrices[succ];
 
-//    cout<<"\n"<<succ<<"times: \n";
+//    COUT<<"\n"<<succ<<"times: \n";
     for(int c=0; c<travellingTimes.size(); c++){
-//        cout<<travellingTimes[c]<<" ";
+//        COUT<<travellingTimes[c]<<" ";
         travellingTimes[c] += this->customers[c].getSetupTime();
-//        cout<<travellingTimes[c]<<" ";
+//        COUT<<travellingTimes[c]<<" ";
         travellingTimes[c] += this->timeMatrices[c][0];
-//        cout<<travellingTimes[c]<<"\n";
+//        COUT<<travellingTimes[c]<<"\n";
     }
 
-//    cout<<"MIN: "<<*std::min_element(travellingTimes.begin(), travellingTimes.end())<<"\n";
+//    COUT<<"MIN: "<<*std::min_element(travellingTimes.begin(), travellingTimes.end())<<"\n";
     return *std::min_element(travellingTimes.begin(), travellingTimes.end());
 
 }
@@ -2046,7 +2048,7 @@ void Instance::computeUrgency2(vector<unsigned int> &customerList, vector<double
         if(c > 1){
             costFactor = ((double)v[c]/maxC);
 
-            cout<<"COST: "<<costFactor<<" "<<v[c]<<" "<<maxC<<"\n";
+            COUT<<"COST: "<<costFactor<<" "<<v[c]<<" "<<maxC<<"\n";
             Customer customer = this->customers[c];
             vector<double> forecast = customer.getForecast();
             double deliveredQuantity = deliveredQuantities[c];
@@ -2058,7 +2060,7 @@ void Instance::computeUrgency2(vector<unsigned int> &customerList, vector<double
               if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
                   demandFactor = (double)f/forecast.size();
                   flag = false;
-                  cout<<"DEMAND: "<<demandFactor<<" "<<f<<"\n";
+                  COUT<<"DEMAND: "<<demandFactor<<" "<<f<<"\n";
               }
               f++;
             }
@@ -2171,7 +2173,7 @@ irpSolution Instance::constructSolution2(irpSolution initialSolution, double cos
         shift.setTrailer(this->drivers[shift.getDriver()].getTrailer());
         shift.setStart(lastTimeWindows.front().first.first);
 
-//        cout<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+//        COUT<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
 
         time = shift.getStart();
 
@@ -2347,7 +2349,7 @@ irpSolution Instance::constructSolution2(irpSolution initialSolution, double cos
               customerList.erase(customerList.begin());
 
 
-//              cout<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
+//              COUT<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
 
               vector<unsigned int> customerList;
               for(int c=0; c<this->customers.size(); c++)
@@ -2374,10 +2376,10 @@ irpSolution Instance::constructSolution2(irpSolution initialSolution, double cos
                 }
               }
 
-              cout<<"\n";
+              COUT<<"\n";
               for(int i=0; i<urgency.size(); i++)
-                  cout<<urgency[i]<<" ";
-              cout<<"\n";
+                  COUT<<urgency[i]<<" ";
+              COUT<<"\n";
               this->sort(customerList, urgency);
 
               succ = customerList.front();
@@ -2392,7 +2394,7 @@ irpSolution Instance::constructSolution2(irpSolution initialSolution, double cos
             shift.setOperations(operations);
             shifts.push_back(shift);
             index++;
-   //         cout<<"SI: "<<shift.getIndex()<<"\n";
+   //         COUT<<"SI: "<<shift.getIndex()<<"\n";
             if(shift.getIndex()+1 >= maxShifts)
                 break;
           }
@@ -2413,9 +2415,9 @@ irpSolution Instance::constructSolution2(irpSolution initialSolution, double cos
     fullShifts = solution.getShifts();
 /*
         for(int s=0; s<fullShifts.size(); s++){
-            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            COUT<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
             for(int o=0; o<fullShifts[s].getOperations().size(); o++)
-              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+              COUT<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
                  <<fullShifts[s].getOperations()[o].getPoint()<<" "
                 <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
         }
@@ -2555,7 +2557,7 @@ irpSolution Instance::constructSolution(irpSolution initialSolution, double time
         shift.setTrailer(this->drivers[shift.getDriver()].getTrailer());
         shift.setStart(lastTimeWindows.front().first.first);
 
-//        cout<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+//        COUT<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
 
         time = shift.getStart();
 
@@ -2730,7 +2732,7 @@ irpSolution Instance::constructSolution(irpSolution initialSolution, double time
               customerList.erase(customerList.begin());
 
 
-//              cout<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
+//              COUT<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
 
               vector<unsigned int> customerList;
               for(int c=0; c<this->customers.size(); c++)
@@ -2771,7 +2773,7 @@ irpSolution Instance::constructSolution(irpSolution initialSolution, double time
             shift.setOperations(operations);
             shifts.push_back(shift);
             index++;
-   //         cout<<"SI: "<<shift.getIndex()<<"\n";
+   //         COUT<<"SI: "<<shift.getIndex()<<"\n";
             if(shift.getIndex()+1 >= maxShifts)
                 break;
           }
@@ -2792,9 +2794,9 @@ irpSolution Instance::constructSolution(irpSolution initialSolution, double time
     fullShifts = solution.getShifts();
 /*
         for(int s=0; s<fullShifts.size(); s++){
-            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            COUT<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
             for(int o=0; o<fullShifts[s].getOperations().size(); o++)
-              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+              COUT<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
                  <<fullShifts[s].getOperations()[o].getPoint()<<" "
                 <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
         }
@@ -2901,7 +2903,7 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
         shift.setTrailer(this->drivers[shift.getDriver()].getTrailer());
         shift.setStart(lastTimeWindows.front().first.first);
 
-//        cout<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+//        COUT<<"SHIFT C: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
 
         time = shift.getStart();
 
@@ -3014,7 +3016,7 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
               double rndPick, randomNumber;
               rndPick = randomPick;
               randomNumber = emili::generateRealRandomNumber()/*(double)rand()/RAND_MAX*/;
-   //           cout<<"RANDOM: "<<rndPick<<" "<<randomNumber<<"\n"; //int a; cin>>a;
+   //           COUT<<"RANDOM: "<<rndPick<<" "<<randomNumber<<"\n"; //int a; CIN>>a;
 
               while(not(
                 //max driving duration constraint
@@ -3061,7 +3063,7 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
 
                   randomNumber = emili::generateRealRandomNumber()/*(double)rand()/RAND_MAX*/;
                   rndPick += rndPick/2;
-//                  cout<<"RANDOM: "<<rndPick<<" "<<randomNumber<<"\n";// int a; cin>>a;
+//                  COUT<<"RANDOM: "<<rndPick<<" "<<randomNumber<<"\n";// int a; CIN>>a;
 
                   if(customerList.size() <= 1 or succ == 1){
                       breakFlag = true;
@@ -3119,7 +3121,7 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
               customerList.erase(customerList.begin());
 
 
-//              cout<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
+//              COUT<<"   "<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<operation.getQuantity()<<"\n";
 
               vector<unsigned int> customerList;
               for(int c=0; c<this->customers.size(); c++)
@@ -3217,9 +3219,9 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
     fullShifts = solution.getShifts();
 /*
         for(int s=0; s<fullShifts.size(); s++){
-            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            COUT<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
             for(int o=0; o<fullShifts[s].getOperations().size(); o++)
-              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+              COUT<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
                  <<fullShifts[s].getOperations()[o].getPoint()<<" "
                 <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
         }
@@ -3347,7 +3349,7 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
 
         unsigned int succ =  customerList.front();
 
- //       cout<<"SHIFT: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
+ //       COUT<<"SHIFT: "<<shift.getIndex()<<" "<<shift.getStart()<<" "<<shift.getDriver()<<" "<<shift.getTrailer()<<"\n";
         lastIndex++;
 
         unsigned int twD=0;
@@ -3447,7 +3449,7 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
             operation.setPoint(succ);
             operation.setArrival(time);
 
-//            cout<<"                     "<<finalTrailerQuantities[trailer]<<" "<<finalTankQuantities[succ]<<" "<<this->customers[succ].getCapacity()<<"\n";
+//            COUT<<"                     "<<finalTrailerQuantities[trailer]<<" "<<finalTankQuantities[succ]<<" "<<this->customers[succ].getCapacity()<<"\n";
             double quantity = 0.0;
             if(succ == 1){
                 quantity = finalTrailerQuantities[trailer] - this->trailers[trailer].getCapacity();
@@ -3514,11 +3516,11 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
 
     }
 /*
-    cout<<"NEW SHIFTS: \n";
+    COUT<<"NEW SHIFTS: \n";
     for(int s=0; s<shifts.size(); s++){
-        cout<<"SHIFT: "<<shifts[s].getIndex()<<" "<<shifts[s].getStart()<<" "<<shifts[s].getDriver()<<" "<<shifts[s].getTrailer()<<"\n";
+        COUT<<"SHIFT: "<<shifts[s].getIndex()<<" "<<shifts[s].getStart()<<" "<<shifts[s].getDriver()<<" "<<shifts[s].getTrailer()<<"\n";
         for(int o=0; o<shifts[s].getOperations().size(); o++)
-          cout<<"   "<<shifts[s].getOperations()[o].getArrival()<<" "<<shifts[s].getOperations()[o].getPoint()<<" "<<shifts[s].getOperations()[o].getQuantity()<<"\n";
+          COUT<<"   "<<shifts[s].getOperations()[o].getArrival()<<" "<<shifts[s].getOperations()[o].getPoint()<<" "<<shifts[s].getOperations()[o].getQuantity()<<"\n";
     }
 
 */
@@ -3535,11 +3537,11 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
     solution.setShifts(allShifts);
 
 /*
-    cout<<"FULL SHIFTS: \n";
+    COUT<<"FULL SHIFTS: \n";
     for(int s=0; s<solution.getShifts().size(); s++){
-        cout<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
+        COUT<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
         for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-          cout<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+          COUT<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
              <<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
             <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
     }
@@ -3781,9 +3783,9 @@ irpSolution Instance::exchangeShiftSolution(irpSolution solution, unsigned int s
     shifts = solution.getShifts();
 
     for(int s=0; s<shifts.size(); s++){
-        cout<<"SHIFT E: "<<shifts[s].getIndex()<<" "<<shifts[s].getStart()<<" "<<shifts[s].getDriver()<<"\n";
+        COUT<<"SHIFT E: "<<shifts[s].getIndex()<<" "<<shifts[s].getStart()<<" "<<shifts[s].getDriver()<<"\n";
         for(int o=0; o<shifts[s].getOperations().size(); o++)
-            cout<<"     "<<shifts[s].getOperations()[o].getPoint()<<" "
+            COUT<<"     "<<shifts[s].getOperations()[o].getPoint()<<" "
                   <<shifts[s].getOperations()[o].getArrival()<<" "
                     <<shifts[s].getOperations()[o].getQuantity()<<"\n";
     }
@@ -3839,12 +3841,12 @@ irpSolution Instance::insertShiftSolution(irpSolution solution, unsigned int shi
     vector<unsigned int> routes = this->fastestSubroute[point1][point2];
 /*
     for(int i=0; i<routes.size(); i++)
-        cout<<routes[i]<<" ";
-    cout<<"\n";
+        COUT<<routes[i]<<" ";
+    COUT<<"\n";
 */
     vector<long unsigned int> indexes = sort_indexes(routes);
  /*   for(int i=0; i<indexes.size(); i++) {
-      cout << indexes[i] << " "<<i<<endl;
+      COUT << indexes[i] << " "<<i<<endl;
     }*/
     unsigned int i = 0;
     while(indexes[i] == 0 or indexes[i] == 1 or indexes[i] == point1 or indexes[i] == point2){
@@ -3853,7 +3855,7 @@ irpSolution Instance::insertShiftSolution(irpSolution solution, unsigned int shi
     if(insertedOperation == 0)
         insertedOperation = indexes[i];
 
-    cout<<"\nFASTEST: "<<point1<<" "<<point2<<" "<<insertedOperation<<"\n";
+    COUT<<"\nFASTEST: "<<point1<<" "<<point2<<" "<<insertedOperation<<"\n";
 
     bool allowedTrailerFlag = false;
     for(int t=0; t<this->customers[insertedOperation].getAllowedTrailers().size(); t++)
@@ -3891,13 +3893,13 @@ irpSolution Instance::insertShiftSolution(irpSolution solution, unsigned int shi
     vector<unsigned int> customerList;
     customerList.push_back(insertedOperation);
 
-//    cout<<"CC: ";
+//    COUT<<"CC: ";
     for(int o=operationIndex; o<shift.getOperations().size(); o++)
         if(shift.getOperations()[o].getPoint() != 1){
             customerList.push_back(shift.getOperations()[o].getPoint());
-//            cout<<customerList.back()<<" ";
+//            COUT<<customerList.back()<<" ";
         }
-//    cout<<"\n";
+//    COUT<<"\n";
 
     Shift newShift;
     newShift.setIndex(shift.getIndex());
@@ -4070,9 +4072,9 @@ irpSolution Instance::insertShiftSolution(irpSolution solution, unsigned int shi
     solution.setShifts(shifts);
 /*
     for(int s=0; s<solution.getShifts().size(); s++){
-        cout<<"SHIFT E: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
+        COUT<<"SHIFT E: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
         for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-            cout<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+            COUT<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
                   <<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
                     <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
     }
@@ -4154,13 +4156,13 @@ irpSolution Instance::removeShiftSolution(irpSolution solution, unsigned int shi
     unsigned int i = operations.size()-1;
     if((int)operationIndex+1 < operations.size())
         i = (int)operationIndex+1;
-    cout<<"CC: ";
+    COUT<<"CC: ";
     for(int o=i; o<shift.getOperations().size(); o++)
         if(shift.getOperations()[o].getPoint() != 1 and o != operationIndex and o >= 0){
             customerList.push_back(shift.getOperations()[o].getPoint());
-            cout<<customerList.back()<<" ";
+            COUT<<customerList.back()<<" ";
         }
-    cout<<"\n";
+    COUT<<"\n";
 
     Shift newShift;
     newShift.setIndex(shift.getIndex());
@@ -4168,7 +4170,7 @@ irpSolution Instance::removeShiftSolution(irpSolution solution, unsigned int shi
     newShift.setTrailer(shift.getTrailer());
     newShift.setStart(shift.getStart());
 
-    cout<<"\nOperation: \n";
+    COUT<<"\nOperation: \n";
     vector<Operation> newOperations;
     i = 0;
     if((int)operationIndex > 0)
@@ -4176,10 +4178,10 @@ irpSolution Instance::removeShiftSolution(irpSolution solution, unsigned int shi
     for(int o=0; o<i; o++){
         if(o>=0){
             newOperations.push_back(operations[o]);
-            cout<<newOperations.back().getPoint()<<" ";
+            COUT<<newOperations.back().getPoint()<<" ";
         }
     }
-//    cout<<"\n";
+//    COUT<<"\n";
     unsigned int prec, succ;
 
     unsigned int time;
@@ -4292,7 +4294,7 @@ irpSolution Instance::removeShiftSolution(irpSolution solution, unsigned int shi
 
         if(quantity > this->trailers[trailer].getCapacity() * servingRatio){
             quantity = this->trailers[trailer].getCapacity() * servingRatio;
-            cout<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<quantity<<"\n";
+            COUT<<operation.getPoint()<<" "<<operation.getArrival()<<" "<<quantity<<"\n";
         }
 
         if(quantity < -EPSILON and succ!=1){
@@ -4324,9 +4326,9 @@ irpSolution Instance::removeShiftSolution(irpSolution solution, unsigned int shi
         solution.setShift(newShift, shiftIndex);
 /*
     for(int s=0; s<solution.getShifts().size(); s++){
-        cout<<"SHIFT E: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
+        COUT<<"SHIFT E: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<"\n";
         for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-            cout<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
+            COUT<<"     "<<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
                   <<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
                     <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
     }
@@ -4339,7 +4341,7 @@ irpSolution Instance::perturbation(irpSolution solution, unsigned int customer){
 
     irpSolution newSolution = solution;
 
-    int a; cin>>a;
+    int a; CIN>>a;
 /*
     bool flag = false;
     do{
@@ -4351,9 +4353,9 @@ irpSolution Instance::perturbation(irpSolution solution, unsigned int customer){
         for(int s=0; s<shifts.size(); s++){
             vector<Operation> operations = shifts[s].getOperations();
             operationIndex = 0;
-            cout<<s<<" :"<<" ";
+            COUT<<s<<" :"<<" ";
             for(int o=0; o<operations.size(); o++){
-                cout<<operations[o].getPoint()<<" ";
+                COUT<<operations[o].getPoint()<<" ";
                 if(operations[o].getPoint() == customer){
                     shiftIndex = s;
                     operationIndex = o;
@@ -4362,7 +4364,7 @@ irpSolution Instance::perturbation(irpSolution solution, unsigned int customer){
                     break;
                     }
             }
-            cout<<"\n";
+            COUT<<"\n";
             if(breakFlag)
                 break;
         }
@@ -4382,8 +4384,8 @@ irpSolution Instance::perturbation(irpSolution solution, unsigned int customer){
         newSolution = this->constructSolution(newSolution, 0.1, 0.0, 2, 1.0, 0.0, 0);
         newSolution = this->extendSolution(newSolution, 1.0, 0.0, 0);
 
-        cout<<"n\n";
-        cin>>a;
+        COUT<<"n\n";
+        CIN>>a;
     }
     while(flag);
 */
