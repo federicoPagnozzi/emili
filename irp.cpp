@@ -288,8 +288,11 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
 
         double randomPick = generateRealRandomNumber();/*(double)rand()/RAND_MAX*/;
         unsigned int pickIndex = 0;
-        while(randomPick > cumulatedProbabilities[pickIndex] and pickIndex < cumulatedProbabilities.size()-1)
+        while(randomPick > cumulatedProbabilities[pickIndex]){
             pickIndex++;
+            if(pickIndex >= cumulatedProbabilities.size())
+                break;
+        }
 
 
 //        solution = candidateSolutions[indexes.front()]->getIrpSolution();
