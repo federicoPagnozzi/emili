@@ -155,6 +155,8 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
                     bestIrs = new InventoryRoutingSolution(irps);
                     instance.evaluateSolution(*bestIrs);
                     bf = true;
+                    candidateSolutions.push_back(bestIrs);
+                    objectiveCandidateSolutions.push_back(bestValue);
                 }
                 COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
 
@@ -299,7 +301,7 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
 
 
 //        solution = candidateSolutions[indexes.front()]->getIrpSolution();
-        solution = candidateSolutions[indexes[randomPick]]->getIrpSolution();
+        solution = candidateSolutions[indexes[0/*randomPick*/]]->getIrpSolution();
 
         bestIrs = new InventoryRoutingSolution(solution);
         COUT<<"PARTIAL OBJ: "<<irp.evaluateSolution(*bestIrs)<<"\n";
