@@ -3547,7 +3547,7 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
     }
 */
 
-    solution.saveSolution("ExtendedSolution.xml");
+//    solution.saveSolution("ExtendedSolution.xml");
 
     return solution;
 }
