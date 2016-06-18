@@ -219,8 +219,11 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
 
     double randomPick = generateRealRandomNumber();//(double)rand()/RAND_MAX;
     unsigned int pickIndex = 0;
-    while(randomPick > cumulatedProbabilities[pickIndex] and pickIndex < cumulatedProbabilities.size()-1)
+    while(randomPick > cumulatedProbabilities[pickIndex]){
         pickIndex++;
+        if(pickIndex >= cumulatedProbabilities.size()-1)
+            break;
+    }
 
     bestIrs = candidateSolutions[indexes[pickIndex]];
 
@@ -290,7 +293,7 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
         unsigned int pickIndex = 0;
         while(randomPick > cumulatedProbabilities[pickIndex]){
             pickIndex++;
-            if(pickIndex >= cumulatedProbabilities.size())
+            if(pickIndex >= cumulatedProbabilities.size()-1)
                 break;
         }
 
