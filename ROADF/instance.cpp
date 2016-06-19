@@ -3225,8 +3225,12 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
     solution.setShifts(fullShifts);
     */
     while(fullShifts.back().getOperations().size() == 0
-          or (fullShifts.back().getOperations().size() == 1 and fullShifts.back().getOperations().back().getPoint() == 1))
-        fullShifts.erase(fullShifts.end());
+          or (fullShifts.back().getOperations().size() == 1 and fullShifts.back().getOperations().back().getPoint() == 1)){
+            fullShifts.erase(fullShifts.end());
+            if(fullShifts.size() == 0)
+                break;
+
+    }
     solution.setShifts(fullShifts);
 
     fullShifts = solution.getShifts();
@@ -3545,8 +3549,11 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
 
     allShifts = solution.getShifts();
     while(allShifts.back().getOperations().size() == 0
-          or (allShifts.back().getOperations().size() == 1 and allShifts.back().getOperations().back().getPoint() == 1))
+          or (allShifts.back().getOperations().size() == 1 and allShifts.back().getOperations().back().getPoint() == 1)){
         allShifts.erase(allShifts.end());
+        if(allShifts.size() == 0)
+            break;
+    }
     solution.setShifts(allShifts);
 
 /*
