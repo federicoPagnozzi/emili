@@ -8,7 +8,7 @@
 //#include "/home/antoniofisk/Desktop/Uni/MasterThesis/Project/emilibase.h"
 #include "../emilibase.h"
 
-#define COUT if (1) cout
+#define COUT if (0) cout
 #define CIN if (0) cin
 
 #define EPSILON 0.000001
