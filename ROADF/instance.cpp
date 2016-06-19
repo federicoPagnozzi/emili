@@ -2880,7 +2880,7 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
                   if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or initialSolution.getShifts()[/*s*/shifts.size()-1-d].getStart()==tw.first.first)
                          and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
                       lastTimeWindows.erase(lastTimeWindows.end());
-                  }
+               }
           }
       }
     }
@@ -3215,6 +3215,7 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
 
 
     vector<Shift> fullShifts = solution.getShifts();
+    /*
     for(int s=fullShifts.size() - 1; s>= 0; s--){
         if(fullShifts[s].getOperations().size() == 0){
             fullShifts.erase(fullShifts.end());
@@ -3222,6 +3223,12 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
 
     }
     solution.setShifts(fullShifts);
+    */
+    while(fullShifts.back().getOperations().size() == 0
+          or (fullShifts.back().getOperations().size() == 1 and fullShifts.back().getOperations().back().getPoint() == 1))
+        fullShifts.erase(fullShifts.end());
+    solution.setShifts(fullShifts);
+
     fullShifts = solution.getShifts();
 /*
         for(int s=0; s<fullShifts.size(); s++){
