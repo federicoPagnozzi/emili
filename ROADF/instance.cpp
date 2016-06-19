@@ -8,7 +8,7 @@
 //#include "/home/antoniofisk/Desktop/Uni/MasterThesis/Project/emilibase.h"
 #include "../emilibase.h"
 
-#define COUT if (0) cout
+#define COUT if (1) cout
 #define CIN if (0) cin
 
 #define EPSILON 0.000001
@@ -2135,16 +2135,18 @@ irpSolution Instance::constructSolution2(irpSolution initialSolution, double cos
           int numberOfDrivers = this->drivers.size();
 
           if(numberOfDrivers > shifts.size())
-              numberOfDrivers -= (numberOfDrivers - shifts.size());
+              numberOfDrivers = shifts.size();
 
           for(int d=0; d<numberOfDrivers; d++){
-              Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
-              int lastOperationTime = lastOperation.getArrival()
-                      + this->customers[lastOperation.getPoint()].getSetupTime()
-                      + this->timeMatrices[lastOperation.getPoint()][0];
-              if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or shifts[/*s*/initialSolution.getShifts().size()-1-d].getStart()==tw.first.first)
-                     and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
-                  lastTimeWindows.erase(lastTimeWindows.end());
+              if(shifts.size()-1-d >= 0){
+                  Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
+                  int lastOperationTime = lastOperation.getArrival()
+                          + this->customers[lastOperation.getPoint()].getSetupTime()
+                          + this->timeMatrices[lastOperation.getPoint()][0];
+                  if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or shifts[/*s*/initialSolution.getShifts().size()-1-d].getStart()==tw.first.first)
+                         and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
+                      lastTimeWindows.erase(lastTimeWindows.end());
+              }
           }
       }
     }
@@ -2519,16 +2521,18 @@ irpSolution Instance::constructSolution(irpSolution initialSolution, double time
           int numberOfDrivers = this->drivers.size();
 
           if(numberOfDrivers > shifts.size())
-              numberOfDrivers -= (numberOfDrivers - shifts.size());
+              numberOfDrivers = shifts.size();
 
           for(int d=0; d<numberOfDrivers; d++){
-              Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
-              int lastOperationTime = lastOperation.getArrival()
-                      + this->customers[lastOperation.getPoint()].getSetupTime()
-                      + this->timeMatrices[lastOperation.getPoint()][0];
-              if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or shifts[/*s*/initialSolution.getShifts().size()-1-d].getStart()==tw.first.first)
-                     and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
-                  lastTimeWindows.erase(lastTimeWindows.end());
+              if(shifts.size()-1-d >= 0){
+                  Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
+                  int lastOperationTime = lastOperation.getArrival()
+                          + this->customers[lastOperation.getPoint()].getSetupTime()
+                          + this->timeMatrices[lastOperation.getPoint()][0];
+                  if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or shifts[/*s*/initialSolution.getShifts().size()-1-d].getStart()==tw.first.first)
+                         and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
+                      lastTimeWindows.erase(lastTimeWindows.end());
+              }
           }
       }
     }
@@ -2865,16 +2869,18 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
           int numberOfDrivers = this->drivers.size();
 
           if(numberOfDrivers > shifts.size())
-              numberOfDrivers -= (numberOfDrivers - shifts.size());
+              numberOfDrivers = shifts.size();
 
           for(int d=0; d<numberOfDrivers; d++){
-              Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
-              int lastOperationTime = lastOperation.getArrival()
-                      + this->customers[lastOperation.getPoint()].getSetupTime()
-                      + this->timeMatrices[lastOperation.getPoint()][0];
-              if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or initialSolution.getShifts()[/*s*/shifts.size()-1-d].getStart()==tw.first.first)
-                     and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
-                  lastTimeWindows.erase(lastTimeWindows.end());
+              if(shifts.size()-1-d >= 0){
+                  Operation lastOperation = shifts[/*s*/shifts.size()-1-d].getOperations().back();
+                  int lastOperationTime = lastOperation.getArrival()
+                          + this->customers[lastOperation.getPoint()].getSetupTime()
+                          + this->timeMatrices[lastOperation.getPoint()][0];
+                  if( (abs(lastOperationTime - (int)tw.first.first) < this->drivers[tw.second].getMinInterSHIFTDURATION() or initialSolution.getShifts()[/*s*/shifts.size()-1-d].getStart()==tw.first.first)
+                         and (int)tw.second == (int)shifts[/*s*/shifts.size()-1-d].getDriver() )
+                      lastTimeWindows.erase(lastTimeWindows.end());
+                  }
           }
       }
     }
