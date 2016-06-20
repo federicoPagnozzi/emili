@@ -3523,11 +3523,21 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
             }
 
 
-        shift.setOperations(operations);
-        shifts.push_back(shift);
+//        shift.setOperations(operations);
+//        shifts.push_back(shift);
+//        if(lastIndex-1 >= maxShift)
+//            break;
 
-        if(lastIndex-1 >= maxShift)
-            break;
+        if(operations.size() != 0){
+          shift.setOperations(operations);
+          shifts.push_back(shift);
+          if(lastIndex >= maxShift)
+              break;
+        }
+        else
+            lastIndex--;
+
+
 
 
         lastTimeWindows.erase(lastTimeWindows.begin());
