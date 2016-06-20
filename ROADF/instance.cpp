@@ -3224,25 +3224,26 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
     }
     solution.setShifts(fullShifts);
     */
-    while(fullShifts.back().getOperations().size() == 0
-          or (fullShifts.back().getOperations().size() == 1 and fullShifts.back().getOperations().back().getPoint() == 1)){
-            fullShifts.erase(fullShifts.end());
-            if(fullShifts.size() == 0)
-                break;
+    if(fullShifts.size() > 0)
+        while(fullShifts.back().getOperations().size() == 0
+              or (fullShifts.back().getOperations().size() == 1 and fullShifts.back().getOperations().back().getPoint() == 1)){
+                fullShifts.erase(fullShifts.end());
+                if(fullShifts.size() == 0)
+                    break;
 
-    }
+        }
     solution.setShifts(fullShifts);
 
     fullShifts = solution.getShifts();
-/*
+
         for(int s=0; s<fullShifts.size(); s++){
-            COUT<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
             for(int o=0; o<fullShifts[s].getOperations().size(); o++)
-              COUT<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
                  <<fullShifts[s].getOperations()[o].getPoint()<<" "
                 <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
         }
-*/
+
     return solution;
 }
 
@@ -3548,24 +3549,25 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
     solution.setShifts(allShifts);
 
     allShifts = solution.getShifts();
-    while(allShifts.back().getOperations().size() == 0
-          or (allShifts.back().getOperations().size() == 1 and allShifts.back().getOperations().back().getPoint() == 1)){
-        allShifts.erase(allShifts.end());
-        if(allShifts.size() == 0)
-            break;
-    }
+    if(allShifts.size() > 0)
+        while(allShifts.back().getOperations().size() == 0
+              or (allShifts.back().getOperations().size() == 1 and allShifts.back().getOperations().back().getPoint() == 1)){
+            allShifts.erase(allShifts.end());
+            if(allShifts.size() == 0)
+                break;
+        }
     solution.setShifts(allShifts);
 
-/*
+
     COUT<<"FULL SHIFTS: \n";
     for(int s=0; s<solution.getShifts().size(); s++){
-        COUT<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
+        cout<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
         for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-          COUT<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+          cout<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
              <<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
             <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
     }
-*/
+
 
 //    solution.saveSolution("ExtendedSolution.xml");
 
