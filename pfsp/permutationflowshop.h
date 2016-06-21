@@ -777,8 +777,7 @@ public:
 class FSTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
 protected:
-    bool improved;
-    void computeTAmatrices(std::vector<int>& sol);
+    bool improved;    
     virtual Solution* computeStep(Solution *value);
     virtual void reverseLastMove(Solution *step);
     int current_value;

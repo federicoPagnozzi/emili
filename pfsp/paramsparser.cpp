@@ -693,7 +693,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     {
         int d = tm.getInteger();
         int omega = tm.getInteger();
-        int pc = tm.getDecimal();
+        float pc = tm.getDecimal();
         oss.str(""); oss  << "Compound perturbation :  d= " << d << ", omega= " << omega << ",pc= "<< pc;
         printTab(oss.str().c_str());
         per = new emili::pfsp::CompoundPerturbation(*istance,omega,d,pc);
