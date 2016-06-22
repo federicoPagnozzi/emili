@@ -1326,6 +1326,42 @@ public:
 
 };
 
+
+class CH6 : public emili::BestImprovementSearch
+{
+protected:
+    emili::Neighborhood* neigh1;
+    emili::Neighborhood* neigh2;
+public:
+    CH6(emili::InitialSolution& is, emili::Termination& tc, emili::Neighborhood&  n1,emili::Neighborhood&  n2):emili::BestImprovementSearch(is,tc,n1),neigh1(&n1),neigh2(&n2) { }
+    //CH6(emili::BestImprovementSearch& ls, std::vector<emili::Neighborhood*> n):emili::BestImprovementSearch(ls),neigh(n) { }
+    virtual emili::Solution* search(emili::Solution *initial)
+    {
+        emili::Solution* incumbent = initial->clone();
+        emili::Solution* new_s;
+        emili::Solution* new_s2;
+        int i = 1;
+        while(i){
+            this->neighbh = neigh1;
+            new_s = emili::BestImprovementSearch::search(incumbent);
+            this->neighbh = neigh2;
+            new_s2 = emili::BestImprovementSearch::search(new_s);
+            if(*new_s2 < *incumbent)
+            {
+                delete incumbent;
+                incumbent = new_s2;
+            }
+            else
+            {
+                delete new_s2;
+                i = 0;
+            }
+            delete new_s;
+        }
+        return incumbent;
+    }
+};
+
 }
 }
 

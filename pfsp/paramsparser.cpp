@@ -21,6 +21,7 @@
 #define BEST "best"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
+#define CH6_LS "ch6"
 #define TEST_INIT "stin"
 #define EMPTY_LOCAL "nols"
 
@@ -468,6 +469,11 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         printTab("BEST IMPROVEMENT");
         params(tm);
         ls =  new emili::BestImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(CH6_LS))
+    {
+        printTab("CH6");
+        ls = ch6_params(tm);
     }
     else if(tm.checkToken(VND))
     {
@@ -973,6 +979,16 @@ void prs::ParamsParser::params(prs::TokenManager& tm)
     in = init(tm);
     te = term(tm);
     ne = neigh(tm,true);
+}
+
+emili::LocalSearch* prs::ParamsParser::ch6_params(prs::TokenManager& tm)
+{
+    in = init(tm);
+    te = term(tm);
+    ne = neigh(tm,true);
+    emili::Neighborhood* ne2 = neigh(tm,true);
+    return new emili::pfsp::CH6(*in,*te,*ne,*ne2);
+
 }
 
 emili::LocalSearch* prs::ParamsParser::vparams(prs::TokenManager& tm)
