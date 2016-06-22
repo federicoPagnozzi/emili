@@ -715,5 +715,8 @@ virtual Solution* search(Solution *initial);
 virtual ~SimulatedAnnealing() { delete acceptance;}
 };
 */
+
+/* Kind of a reflection thing...*/
+emili::LocalSearch* getAlgo();
 }
 #endif // EMILIBASE_H

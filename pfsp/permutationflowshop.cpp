@@ -6485,10 +6485,14 @@ int emili::pfsp::CompoundPerturbation::calc_distance(std::vector<int> &x, std::v
 
 emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *solution)
 {
+
     int i=0;
     std::vector < emili::pfsp::PermutationFlowShopSolution* > phy(omega);
     std::vector< int > distance_vector(omega);
-    std::vector< int >& sol_schedule = ((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule();
+    emili::Solution* best_sf = getAlgo()->getBestSoFar();
+    std::vector< int >& sol_schedule = ((emili::pfsp::PermutationFlowShopSolution*)best_sf)->getJobSchedule();
+    emili::pfsp::PermutationFlowShopSolution* best_per=nullptr;
+    int min_value = std::numeric_limits<int>::max();
     do
     {
         emili::pfsp::PermutationFlowShopSolution* candidate = (emili::pfsp::PermutationFlowShopSolution*)solution->clone();
@@ -6510,6 +6514,12 @@ emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *sol
         int dd = calc_distance(candidate->getJobSchedule(),sol_schedule);
         if(dd > 0)
         {
+            int val = candidate->getSolutionValue();
+            if(min_value > val)
+            {
+                best_per = candidate;
+                min_value = val;
+            }
 
             phy[i] = candidate;
             distance_vector[i] = dd;
@@ -6524,13 +6534,9 @@ emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *sol
     emili::pfsp::PermutationFlowShopSolution* toRet = nullptr;
     int min_d = nbj*nbj;
     int min_d_index=0;
-    for(i=0;i<omega;i++)
+    if(min_value < best_sf->getSolutionValue())
     {
-
-        if(*phy[i]<*solution)
-        {
-            toRet=phy[i];
-        }
+        toRet = best_per;
     }
 
     if(toRet==nullptr)

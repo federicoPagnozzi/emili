@@ -105,6 +105,11 @@ double emili::getCurrentExecutionTime()
     return (double)((clock()-beginTime)/ (double)CLOCKS_PER_SEC);
 }
 
+emili::LocalSearch* emili::getAlgo()
+{
+    return localsearch;
+}
+
 static void finalise (int _)
 {
     keep_going = false;

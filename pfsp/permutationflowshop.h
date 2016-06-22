@@ -1339,21 +1339,24 @@ public:
     {
         emili::Solution* incumbent = initial->clone();
         emili::Solution* new_s;
-        emili::Solution* new_s2;
+        emili::Solution* new_s2 = incumbent->clone();
         int i = 1;
         while(i){
+            //*bestSoFar = *incumbent;
             this->neighbh = neigh1;
-            new_s = emili::BestImprovementSearch::search(incumbent);
+            new_s = emili::BestImprovementSearch::search(new_s2);
             this->neighbh = neigh2;
+            delete new_s2;
             new_s2 = emili::BestImprovementSearch::search(new_s);
             if(*new_s2 < *incumbent)
             {
-                delete incumbent;
-                incumbent = new_s2;
+                //delete incumbent;
+                *incumbent = *new_s2;
+                //std::cout << "xxxx ," << incumbent->getSolutionValue() << " " << emili::iteration_counter() << std::endl;
             }
             else
             {
-                delete new_s2;
+                //delete new_s2;
                 i = 0;
             }
             delete new_s;
