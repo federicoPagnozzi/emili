@@ -6413,7 +6413,7 @@ emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
         return new emili::pfsp::PermutationFlowShopSolution(best_res,bestCombination);
     }
 }
-
+/*
 int emili::pfsp::CompoundPerturbation::calc_distance(std::vector< int >& x, std::vector< int >& y)
 {
     int dis = 0;
@@ -6443,6 +6443,44 @@ int emili::pfsp::CompoundPerturbation::calc_distance(std::vector< int >& x, std:
     }
 
     return dis;
+}
+*/
+int emili::pfsp::CompoundPerturbation::calc_distance(std::vector<int> &x, std::vector<int> &y)
+{
+            int arrX[nbj];
+            int arrY[nbj];
+            int E[nbj][nbj];
+            int F[nbj][nbj];
+
+
+            int i,j;
+            for(i=0; i<nbj; i++)
+            {
+
+                arrX[x[i+1]] = i;
+                arrY[y[i+1]] = i;
+            }
+
+            for(i=0; i<nbj; i++)
+                for(j=0; j<nbj; j++)
+                {
+                    if( arrX[i] > arrX[j] )
+                        E[i][j] = 1;
+                    else
+                        E[i][j] = 0;
+
+                    if( arrY[i] < arrY[j] )
+                        F[i][j] = 1;
+                    else
+                        F[i][j] = 0;
+                }
+
+            int count = 0;
+            for(i=0; i<nbj; i++)
+                for(j=0; j<nbj; j++)
+                    if( E[i][j]==1&&F[i][j]==1 )
+                        count++;
+            return count;
 }
 
 emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *solution)
