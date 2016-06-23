@@ -1327,13 +1327,13 @@ public:
 };
 
 
-class CH6 : public emili::BestImprovementSearch
+class CH6 : public emili::FirstImprovementSearch
 {
 protected:
     emili::Neighborhood* neigh1;
     emili::Neighborhood* neigh2;
 public:
-    CH6(emili::InitialSolution& is, emili::Termination& tc, emili::Neighborhood&  n1,emili::Neighborhood&  n2):emili::BestImprovementSearch(is,tc,n1),neigh1(&n1),neigh2(&n2) { }
+    CH6(emili::InitialSolution& is, emili::Termination& tc, emili::Neighborhood&  n1,emili::Neighborhood&  n2):emili::FirstImprovementSearch(is,tc,n1),neigh1(&n1),neigh2(&n2) { }
     //CH6(emili::BestImprovementSearch& ls, std::vector<emili::Neighborhood*> n):emili::BestImprovementSearch(ls),neigh(n) { }
     virtual emili::Solution* search(emili::Solution *initial)
     {
@@ -1344,10 +1344,10 @@ public:
         while(i){
             //*bestSoFar = *incumbent;
             this->neighbh = neigh1;
-            new_s = emili::BestImprovementSearch::search(new_s2);
+            new_s = emili::FirstImprovementSearch::search(new_s2);
             this->neighbh = neigh2;
             delete new_s2;
-            new_s2 = emili::BestImprovementSearch::search(new_s);
+            new_s2 = emili::FirstImprovementSearch::search(new_s);
             if(*new_s2 < *incumbent)
             {
                 //delete incumbent;
