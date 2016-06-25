@@ -529,6 +529,7 @@ bool Instance::dri03(irpSolution solution){
      /* exit(0);*/
       return true;
    }
+
 //    COUT<<"\n";
   }
   return false; 
