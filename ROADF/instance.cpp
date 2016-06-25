@@ -3237,9 +3237,9 @@ irpSolution Instance::randomizedConstructSolution(irpSolution initialSolution, d
     fullShifts = solution.getShifts();
 
         for(int s=0; s<fullShifts.size(); s++){
-            cout<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
+            COUT<<"SHIFT C: "<<fullShifts[s].getIndex()<<" "<<fullShifts[s].getStart()<<" "<<fullShifts[s].getDriver()<<" "<<fullShifts[s].getTrailer()<<"\n";
             for(int o=0; o<fullShifts[s].getOperations().size(); o++)
-              cout<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
+              COUT<<"   "<<fullShifts[s].getOperations()[o].getArrival()<<" "
                  <<fullShifts[s].getOperations()[o].getPoint()<<" "
                 <<fullShifts[s].getOperations()[o].getQuantity()<<"\n";
         }
@@ -3571,9 +3571,9 @@ irpSolution Instance::extendSolution(irpSolution &solution, double servingRatio,
 
     COUT<<"FULL SHIFTS: \n";
     for(int s=0; s<solution.getShifts().size(); s++){
-        cout<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
+        COUT<<"SHIFT: "<<solution.getShifts()[s].getIndex()<<" "<<solution.getShifts()[s].getStart()<<" "<<solution.getShifts()[s].getDriver()<<" "<<solution.getShifts()[s].getTrailer()<<"\n";
         for(int o=0; o<solution.getShifts()[s].getOperations().size(); o++)
-          cout<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
+          COUT<<"   "<<solution.getShifts()[s].getOperations()[o].getArrival()<<" "
              <<solution.getShifts()[s].getOperations()[o].getPoint()<<" "
             <<solution.getShifts()[s].getOperations()[o].getQuantity()<<"\n";
     }
