@@ -100,6 +100,11 @@ void emili::set_print(bool p)
     print = p;
 }
 
+bool emili::get_print()
+{
+    return print;
+}
+
 double emili::getCurrentExecutionTime()
 {
     return (double)((clock()-beginTime)/ (double)CLOCKS_PER_SEC);
@@ -149,9 +154,14 @@ static void finalise (int _)
     }
     //std::cout << std::flush;
     if(print)
+    {
       lastMessage = messages.str();
-    
-    exit(0);
+    }
+    else
+    {
+        exit(0);
+    }
+
 }
 
 
@@ -276,7 +286,7 @@ inline void emili::printSolstats(emili::Solution* sol)
 #ifdef WITH_STATS
     if(print)
     {
-      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << std::endl;
+      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << "\n";
     }
 #endif
 }
@@ -955,7 +965,14 @@ emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 
 bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
-    return false;
+    if(keep_going)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 /*

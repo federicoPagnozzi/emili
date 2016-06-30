@@ -50,6 +50,7 @@ void iteration_increment();
 void iteration_decrement();
 /* Function to tell the system timer hook if it has to print solution info*/
 void set_print(bool p);
+bool get_print();
 class Solution;
 /*
  * The istance of the problem to solve.

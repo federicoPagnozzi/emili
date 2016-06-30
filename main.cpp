@@ -91,16 +91,19 @@ prs::emili_header();
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
 #endif
-    solution = ls->getBestSoFar();    
-    double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-    std::cout << "time : " << time_elapsed << std::endl;
-    std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-    std::cerr << solution->getSolutionValue() << std::endl;
-    //cerr << time_elapsed << " ";    
-    std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;        
-    std::cout << "Found solution: ";
-    std::cout << solution->getSolutionRepresentation() << std::endl;
-    std::cout << std::endl;
+    if(!emili::get_print())
+    {
+        solution = ls->getBestSoFar();
+        double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+        std::cout << "time : " << time_elapsed << std::endl;
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        std::cerr << solution->getSolutionValue() << std::endl;
+        //cerr << time_elapsed << " ";
+        std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+        std::cout << "Found solution: ";
+        std::cout << solution->getSolutionRepresentation() << std::endl;
+        std::cout << std::endl;
+    }
     delete ls;
     //delete solution;
 }
