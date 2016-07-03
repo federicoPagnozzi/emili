@@ -123,6 +123,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
     file << "-------------------------------------------------" << std::endl;
     file.close();
 
+
     return bestIrs;
 
 }
@@ -254,6 +255,9 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     file.precision(15);
     file << "-------------------------------------------------" << std::endl;
     file.close();
+
+    int a;
+        cout<<"CIAOOO\n"; cout<<filepath2; cin>>a;
 
     return bestIrs;
 
