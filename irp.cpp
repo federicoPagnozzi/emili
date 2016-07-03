@@ -7,8 +7,8 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (0) cout
-#define CIN if (0) cin
+#define COUT if (1) cout
+#define CIN if (1) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
 
@@ -106,6 +106,17 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         COUT<<irs->getSolutionRepresentation();
                         COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
                         COUT<<irs->getSolutionValue();
+
+                        ofstream file;
+                        string filepath2;
+                        filepath2.append("./Neighborhood/");
+                        filepath2.append(irp.getIrpInstance().getName());
+                        filepath2.append("/Objective");
+                        file.open (filepath2,fstream::app);
+                        file.precision(15);
+                        file << "-------------------------------------------------" << std::endl;
+                        file.close();
+
                         return bestIrs;
                     
                     }
@@ -256,8 +267,10 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     file << "-------------------------------------------------" << std::endl;
     file.close();
 
-    int a;
-        cout<<"CIAOOO\n"; cout<<filepath2; cin>>a;
+    cout<<filepath2;
+    int a; cin>>a;
+
+
 
     return bestIrs;
 
