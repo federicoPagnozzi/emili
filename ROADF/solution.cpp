@@ -44,7 +44,6 @@ void Shift::setShiftTime(double st) {this->shiftTime = st;}
 double Shift::getShiftCost()    {return this->shiftCost;}
 void Shift::setShiftCost(double sc) {this->shiftCost= sc;}
 
-
 vector<unsigned int> irpSolution::getRepresentation()  {return this->representation;}
 void irpSolution::setRepresentation(vector<unsigned int> representation) {this->representation = representation;}
 

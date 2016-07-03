@@ -86,7 +86,7 @@ private:
 public:
 		
     irpSolution();
-	
+
 	vector<Shift> getShifts();
     void setShifts(vector<Shift> s);
     void setShift(Shift s, int index);

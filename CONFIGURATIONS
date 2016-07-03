@@ -1,0 +1,9 @@
+ 
+1  ->  IRP ils vnd best greedyRandomized 0.4934 2 locmin shiftTwoExc 0.3430 1 0.0280 0.9052 shiftIns 0.8489 2 0.1141 0.6256 ref 0.3971 0.5592 0.2055 1 true rndmv shiftRem 0.9994 2 0.5127 0.7453 9 metropolis 23.5253 
+2  ->  IRP ils first greedy 0.6720 2 locmin shiftRem 0.4606 1 0.3497 0.9168 true rndmv shiftRem 0.3276 1 0.4338 0.7427 2 always diversify 
+3  ->  IRP ils vnd best greedyRandomized 0.3096 2 locmin shiftTwoExc 0.1982 2 0.3288 0.8834 shiftIns 0.6501 2 0.8500 0.5013 ref 0.3887 0.8359 0.3062 1 true rndmv shiftRem 0.9674 2 0.4939 0.7489 7 metropolis 23.9641 
+4  ->  IRP ils first greedy 0.6657 1 locmin shiftRem 0.7624 1 0.3457 0.8645 true rndmv shiftRem 0.8173 1 0.1038 0.0828 5 always diversify 
+5  ->  IRP ils first greedy 0.4816 2 locmin shiftRem 0.5374 1 0.0787 0.8337 true rndmv shiftRem 0.5831 1 0.1645 0.8245 7 always diversify 
+6  ->  IRP ils first greedy 0.4738 2 locmin shiftRem 0.8573 1 0.0420 0.8788 true rndmv shiftRem 0.8948 1 0.3735 0.9617 5 always diversify 
+7  ->  IRP ils first greedy 0.5098 1 locmin shiftRem 0.4994 1 0.4477 0.9750 true rndmv shiftRem 0.8052 1 0.1220 0.6562 9 always diversify 
+8  ->  IRP ils first greedy 0.4949 2 locmin shiftRem 0.4986 1 0.2714 0.9961 true rndmv shiftRem 0.6603 1 0.6270 0.7807 4 always diversify 
