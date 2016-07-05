@@ -68,6 +68,8 @@ is a good thing...
 
 class Solution
 {
+public:
+    typedef double Value;
 protected:    
     double solution_value;
     /*
@@ -85,8 +87,8 @@ public:
     virtual bool operator>(Solution& a);
     //virtual Solution clone()=0;
     virtual std::string getSolutionRepresentation();
-    virtual double getSolutionValue();
-    virtual void setSolutionValue(double value);
+    virtual Value getSolutionValue();
+    virtual void setSolutionValue(Value value);
     virtual Solution* clone()=0;
     virtual void swap(Solution*);
     virtual ~Solution() {}
@@ -123,6 +125,21 @@ public:
      * this method shall return true if the termination condition has been reached (otherwise false)
     */
     virtual bool terminate(Solution* currentSolution, Solution* newSolution)=0;
+
+    /**
+     * Given a new solution and a "delta". Return true if the delta is accepted or not.
+     * if ONLY_NEED_DELTA == true, this method is prefered to terminate
+     */
+    virtual bool terminateViaDelta(Solution *newSolution, double delta) {
+        throw std::invalid_argument("not implemented");
+    }
+
+    /**
+     * @brief ONLY_NEED_DELTA
+     * if true, will call terminateViaDelta
+     */
+    const bool ONLY_NEED_DELTA = false;
+
     /*
      *it should be possible to reset the state ( e.g. counters) of a Termination rule.
      */
@@ -317,6 +334,7 @@ public:
      * yield may throw an exception if the iteration wants to stop
      *
      * generally an iterate function is way more easy to code than computeStep/reverseLastStep
+     * reset() is not called
      */
     virtual void iterate(Solution* base, std::function<void()> yield);
 
@@ -385,20 +403,19 @@ public:
  *       return y
  * assert x unchanged
  * assert y is not x
+ * assert x and y not deleted
  *
  * VOID | MODIFY_AND_RETURN_SAME
  *    def f(x):
  *       x[0] = 5
  *       return x
  *
- * assert y is x
+ * assert x is y or x is deleted
  *
  * CAUTION, when calling applyWithBehaviour(... VOID), use :
  * x = search(x, VOID)
  * and NOT : search(x, VOID)
  * @see applyWithBehaviour
- *
- * assert x is deleted or x is y
  *
  * MIX | RETURN_NEW_AND_MODIFY
  *    def f(x):
@@ -407,10 +424,12 @@ public:
  *
  * assert x unchanged or x changed
  * assert y is not x
+ * assert x not deleted and y not deleted
  *
  * UNKNOWN
  * assert x unchanged or x changed
  * assert y is x or y is not x
+ * This shouldn't happen. Implementation must know if they return a new solution or not.
  */
 enum struct Behaviour {
     FUNC,
@@ -434,12 +453,12 @@ Solution* applyWithBehaviour(Behaviour me, Behaviour target, Solution* initial, 
 
     if(target == Behaviour::VOID) {
         Solution* y = search(initial);
-        if(y != initial) // in case it is lying about the "new"
+        if(y != initial) // Normal func or Normal mix should have y != initial. In case it is lying about the "new", we don't do anything.
             delete initial;
         return y; // x = search(x, VOID)
     } else if(target == Behaviour::MIX) {
         if(me == Behaviour::VOID) {
-            search(initial);
+            search(initial); // only semantics y is x
             return initial->clone();
         } else { // FUNC
             return search(initial); // lost semantics "NOT_MODIFY"
@@ -519,7 +538,7 @@ public:
     /**
      * @brief behaviour of search(Solution) -> Solution
      */
-    Behaviour behaviour = Behaviour::MIX; // MIX is the more general
+    const Behaviour behaviour = Behaviour::MIX; // MIX is the more general
 
     /**
      * @brief impose a VOID behavior
@@ -556,11 +575,11 @@ public:
 class EmptyLocalSearch: public emili::LocalSearch
 {
 public:
-    EmptyLocalSearch(InitialSolution& in):emili::LocalSearch() {
+    EmptyLocalSearch(InitialSolution& in) : emili::LocalSearch() {
         this->init = &in;
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
-        behaviour = Behaviour::FUNC;
+        const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
     }
 
     virtual Solution* search(Solution* initial) { return initial->clone(); }
@@ -571,11 +590,18 @@ public:
 class IdentityLocalSearch: public emili::LocalSearch
 {
 public:
+    IdentityLocalSearch():emili::LocalSearch() {
+        this->init = nullptr;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::MaxStepsTermination(0);
+        const_cast<Behaviour&>(behaviour) = Behaviour::VOID;
+    }
+
     IdentityLocalSearch(InitialSolution& in):emili::LocalSearch() {
         this->init = &in;
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
-        behaviour = Behaviour::VOID;
+        const_cast<Behaviour&>(behaviour) = Behaviour::VOID;
     }
 
     virtual Solution* search(Solution* initial) { return initial; }
@@ -590,7 +616,8 @@ public:
 class BestImprovementSearch : public emili::LocalSearch
 {
 public:
-    BestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh);
+    BestImprovementSearch(Termination& terminationcriterion, Neighborhood& neighborh);
+    BestImprovementSearch(InitialSolution& initialSolutionGenerator, Termination& terminationcriterion, Neighborhood& neighborh);
 
     virtual Solution* search(emili::Solution* initial);
 
@@ -607,6 +634,7 @@ public:
 class FirstImprovementSearch : public emili::LocalSearch
 {
 public:
+    FirstImprovementSearch(Termination& terminationcriterion, Neighborhood& neighborh);
     FirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh);
     virtual Solution* search(emili::Solution* intial);
 };
@@ -709,6 +737,21 @@ public:
      *  in the last iteration and as second parameter the result of the local search around the pertubed solution.
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
+
+    /**
+     * Given a new solution (diversification) and a "delta". Return true if the delta is accepted or not.
+     * if ONLY_NEED_DELTA == true, this method is prefered to accept(Solution, Solution)
+     */
+    virtual bool acceptViaDelta(Solution *newSolution, double delta) {
+        throw std::invalid_argument("not implemented");
+    }
+
+    /**
+     * @brief ONLY_NEED_DELTA
+     * if true, will call acceptViaDelta
+     */
+    const bool ONLY_NEED_DELTA = false;
+
     virtual void reset() { }
     virtual ~Acceptance() {}
 };
@@ -785,7 +828,7 @@ public:
         this->per = per;
         this->acc = acc;
 
-        behaviour = Behaviour::FUNC;
+        const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
     }
 
     ~MyIteratedLocalSearch() {
@@ -1081,8 +1124,31 @@ public:
     IteratedGreedy(Constructor& c,Termination& t,Destructor& d,Acceptance& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
 };
 
+class InitAndSearch : public emili::LocalSearch
+{
+protected:
+    LocalSearch* ls = nullptr;
+public:
+    // only search->search(sol) will be called, not search->search()
+    InitAndSearch(InitialSolution* init, LocalSearch* ls) : LocalSearch() {
+        this->init = init;
+        this->ls = ls;
+        const_cast<Behaviour&>(behaviour) = ls->behaviour;
+    }
+
+    Solution* search() override {
+        return searchBehave(init->generateSolution(), Behaviour::VOID);
+    }
+
+    Solution* search(Solution* sol) override {
+        return ls->search(sol);
+    }
+};
+
 /**
  * @brief MyIteratedGreedy
+ * search() uses cons->constructFull()
+ * search(sol) uses ls(sol), destr(sol), cons(sol)
  */
 class MyIteratedGreedy : public emili::LocalSearch {
     LocalSearch* ls;
@@ -1100,7 +1166,7 @@ public:
         this->acc = ac;
         // init and neigh are forgotten
 
-        behaviour = Behaviour::MIX;
+        const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
     }
 
     ~MyIteratedGreedy() {
@@ -1117,13 +1183,14 @@ public:
         return searchBehave(cons->constructFull(), Behaviour::VOID);
     }
 
-    /**
-     * @return new solution and modify (MIX)
-     */
-    Solution* search(Solution* sol) {
-        bestSoFar = sol->clone();
+    Solution* search(Solution* solInit) {
+        bestSoFar = solInit->clone();
+
+        // idea : if acc->ONLY_NEED_DELTA && term->ONLY_NEED_DELTA, then try VOID|VOID|VOID behaviour, doing nothing if accepted, using REVERT if not accepted
+        // determines a way to quickly know if 3 REVERTs are better than 1 CLONE.
 
         bool terminate = false;
+        Solution* sol = solInit->clone(); // FUNC behaviour
         while(! terminate) {
             Solution* newSol = dest->destructBehave(sol, Behaviour::FUNC);
             newSol = cons->searchBehave(newSol, Behaviour::VOID);
@@ -1139,8 +1206,11 @@ public:
                 sol = newSol;
             } else {
                 delete newSol;
+                // sol = sol;
             }
         }
+
+        delete sol;
 
         return bestSoFar;
     }

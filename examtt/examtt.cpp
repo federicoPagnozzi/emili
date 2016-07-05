@@ -3864,6 +3864,8 @@ void KempeChainNeighborhoodFastIter::iterate(Solution *base, std::function<void 
 
     int E = instance.E(), P = instance.P();
 
+    // TODO: examsByPeriod can be a structure of the solution, so, not need to calculate it in the beginning
+
     examsByPeriod.assign(P, std::set<ExamId>());
     for(ExamId e = 0; e < E; e++)
         examsByPeriod[sol->periods[e]].insert(e);
@@ -3895,6 +3897,8 @@ Solution *KempeChainNeighborhoodFastIter::computeStep(Solution *rawStep) {
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
 
     int E = instance.E(), P = instance.P(), R = instance.R();
+
+    // TODO: examsByPeriod can be a structure of the solution, so, not need to calculate it in the beginning
 
     if(examsByPeriod.empty()) {
         examsByPeriod.resize(P); // assign each color to a set of exam of that color

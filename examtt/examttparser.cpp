@@ -125,10 +125,14 @@ void ExamTTParser::errorExpected(prs::TokenManager& tm, string name, const std::
 }
 
 namespace {
-bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::string> const& params) {
+bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::string> const& params, std::string prefix = "") {
     if(tm.peek() == val) {
         std::ostringstream oss;
-        oss << val << " (" << params.size() << ") ";
+        if(! prefix.empty())
+            oss << prefix << ": ";
+        oss << val;
+        if(params.size())
+            oss << " (" << params.size() << ") ";
         for(auto const& p : params)
             oss << p << " ";
         printTab(oss.str());
@@ -313,7 +317,7 @@ struct ArgParser {
     }
 
 };
-emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
+emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
 {
     static const std::string SA_BSU = "sa_bsu";
     static const std::string INTERACTIVE = "interactive";
@@ -327,14 +331,14 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     static const std::string TEST_KEMPE_LARGE_COUNT = "test_kempe_large_count";
     static const std::string ITERATED_GREEDY = "iterated-greedy";
     static const std::string MY_ITERATED_GREEDY = "my-iterated-greedy";
-    static const std::string MY_ITERATED_GREEDY_INIT = "my-iterated-greedy-init";
+    static const std::string INIT_AND_SEARCH = "init-search";
 
     static const std::string IDENTITY = "identity";
 
     static const std::string MY_ILS = "my-ils";
 
     static const std::vector<std::string> available = {
-        ILS, MY_ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY, MY_ITERATED_GREEDY,
+        ILS, MY_ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY, MY_ITERATED_GREEDY, INIT_AND_SEARCH,
 
         // below "test" or "info" => NoSearch
         BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
@@ -354,18 +358,18 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
 
     prs::TabLevel level;
 
-    if(checkTokenParams(tm, ILS, {"search", "term", "perturb", "acc"})) {
-        auto a = search(tm);
-        auto b = term(tm);
-        auto c = per(tm);
-        auto d = acc(tm);
+    if(checkTokenParams(tm, ILS, {"search", "termination", "perturbation", "acceptance"})) {
+        auto a = search(tm, mustHaveInit); // the init will be the init of the search
+        auto b = termination(tm);
+        auto c = perturbation(tm);
+        auto d = acceptance(tm);
         return new emili::IteratedLocalSearch(*a,*b,*c,*d);
     }
-    else if(checkTokenParams(tm, MY_ILS, {"search", "term", "perturb", "acc"})) {
-        auto a = search(tm);
-        auto b = term(tm);
-        auto c = per(tm);
-        auto d = acc(tm);
+    else if(checkTokenParams(tm, MY_ILS, {"search", "term", "perturbation", "acc"})) {
+        auto a = search(tm, mustHaveInit); // the init will be the init of the search
+        auto b = termination(tm);
+        auto c = perturbation(tm);
+        auto d = acceptance(tm);
         return new emili::MyIteratedLocalSearch(a,b,c,d);
     }
     else if(tm.checkToken(TABU))
@@ -373,33 +377,61 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         printTab(TABU);
         return tparams(tm);
     }
-    else if(checkTokenParams(tm, IDENTITY, {"init"}))
+    else if(mustHaveInit && checkTokenParams(tm, IDENTITY, {"init"}, prefix))
     {
-        auto a = init(tm);
+        auto a = initializer(tm);
         return new emili::IdentityLocalSearch(*a);
     }
-    else if(checkTokenParams(tm, FIRST, {"init", "term", "neigh"}))
+    else if(!mustHaveInit && checkTokenParams(tm, IDENTITY, {}, prefix))
     {
-        auto a = init(tm);
-        auto b = term(tm);
+        return new emili::IdentityLocalSearch();
+    }
+    else if(mustHaveInit && checkTokenParams(tm, FIRST, {"init", "term", "neigh"}, prefix))
+    {
+        auto a = initializer(tm);
+        auto b = termination(tm);
         auto c = neigh(tm);
         return new emili::FirstImprovementSearch(*a, *b, *c);
     }
-    else if(checkTokenParams(tm, BEST, {"init", "term", "neigh"}))
+    else if(!mustHaveInit && checkTokenParams(tm, FIRST, {"term", "neigh"}, prefix))
     {
-        auto a = init(tm);
-        auto b = term(tm);
+        auto b = termination(tm);
+        auto c = neigh(tm);
+        return new emili::FirstImprovementSearch(*b, *c);
+    }
+    else if(mustHaveInit && checkTokenParams(tm, BEST, {"init", "term", "neigh"}, prefix))
+    {
+        auto a = initializer(tm);
+        auto b = termination(tm);
         auto c = neigh(tm);
         return new emili::BestImprovementSearch(*a, *b, *c);
     }
-    else if(checkTokenParams(tm, SA, {"init", "nei", "inittemp", "acceptance", "cooling", "term", "templ"}))
+    else if(!mustHaveInit && checkTokenParams(tm, BEST, {"term", "neigh"}, prefix))
     {
-        auto initsol = init(tm);
+        auto b = termination(tm);
+        auto c = neigh(tm);
+        return new emili::BestImprovementSearch(*b, *c);
+    }
+    else if(mustHaveInit && checkTokenParams(tm, SA, {"init", "nei", "inittemp", "acceptance", "cooling", "term", "templ"}, prefix))
+    {
+        auto initsol = initializer(tm);
         auto nei = neigh(tm);
         return sa.buildSA(tm, initsol, nei);
     }
+    else if(!mustHaveInit && checkTokenParams(tm, SA, {"nei", "inittemp", "acceptance", "cooling", "term", "templ"}, prefix))
+    {
+        auto initsol = new emili::ExamTT::RandomInitialSolution(instance);
+        auto nei = neigh(tm);
+        return sa.buildSA(tm, initsol, nei); // initsol will not be used
+    }
+    else if(mustHaveInit && checkTokenParams(tm, INIT_AND_SEARCH, {"init", "search"}))
+    {
+        auto a = initializer(tm);
+        auto b = search(tm, false);
+        return new emili::InitAndSearch(a,b);
+    }
     else if(is(tm.peek(), SA_BSU)){
-        printTab(SA_BSU);
+        printTab(prefix + ": " + SA_BSU);
         tm.next();
 
         ArgParser p;
@@ -584,34 +616,24 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     }
     else if(tm.checkToken(VND))
     {
-        return vparams(tm);
+        return vnd(tm, mustHaveInit);
     }
-    else if(checkTokenParams(tm, ITERATED_GREEDY, {"cons", "termin", "destr", "accept"}))
+    else if(checkTokenParams(tm, ITERATED_GREEDY, {"cons", "termin", "destr", "accept"}, prefix))
     {
-        auto c = constructor(tm);
-        auto t = term(tm);
+        auto c = constructor(tm); // if must have init, will use constructFull of constructor
+        auto t = termination(tm);
         auto d = destructor(tm);
-        auto ac = acc(tm);
+        auto ac = acceptance(tm);
         return new emili::IteratedGreedy(*c,*t,*d,*ac);
     }
-    else if(checkTokenParams(tm, MY_ITERATED_GREEDY, {"search", "cons", "termin", "destr", "accept"}))
+    else if(checkTokenParams(tm, MY_ITERATED_GREEDY, {"search", "cons", "termin", "destr", "accept"}, prefix))
     {
-        // use constructFull as init
-        auto ls = search(tm);
-        auto c = constructor(tm);
-        auto t = term(tm);
+        auto ls = search(tm, false);
+        auto c = constructor(tm); // if mustHaveInit, use constructFull as init
+        auto t = termination(tm);
         auto d = destructor(tm);
-        auto ac = acc(tm);
+        auto ac = acceptance(tm);
         return new emili::MyIteratedGreedy(c,t,d,ac,ls);
-    }
-    else if(checkTokenParams(tm, MY_ITERATED_GREEDY_INIT, {"init", "search", "cons", "termin", "destr", "accept"})) {
-        auto a = init(tm);
-        auto b = search(tm);
-        auto c = constructor(tm);
-        auto t = term(tm);
-        auto d = destructor(tm);
-        auto e = acc(tm);
-        return new emili::MyIteratedGreedyInit(a,c,t,d,e,b);
     }
     else if(tm.checkToken(INFO)) {
         instance.presentation(std::cout);
@@ -621,6 +643,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     else if(tm.peek() == TEST_DELTA || tm.peek() == TEST_DELTA_REMOVE_ADD) {
         bool isTestDelta = tm.peek() == TEST_DELTA;
         bool isTestDeltaRemoveAdd = tm.peek() == TEST_DELTA_REMOVE_ADD;
+        printTab(tm.peek());
         tm.next();
 
         ArgParser p;
@@ -719,7 +742,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
     }
     else if(tm.checkToken(TEST_INIT))
     {
-        emili::InitialSolution* ini = init(tm);
+        emili::InitialSolution* ini = initializer(tm);
         emili::Solution* s = ini->generateSolution();
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << s->getSolutionValue() << std::endl;
@@ -728,6 +751,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm)
         throw NoSearch();
     }
     else if(tm.checkToken(BRUTE)) {
+        printTab(prefix + ": " + BRUTE);
         int n = -1;
         if(tm.checkToken("n")) {
             n = tm.getInteger();
@@ -783,10 +807,8 @@ SimulatedAnnealing* ExamTTParser::SAParser::buildSA(prs::TokenManager& tm, emili
     return new SimulatedAnnealing(initsol, inittemp, acceptance, cooling, temprestart, term, templ, explo, nei);
 }
 
-emili::Perturbation* ExamTTParser::per(prs::TokenManager& tm)
+emili::Perturbation* ExamTTParser::perturbation(prs::TokenManager& tm, std::string prefix)
 {
-    printTab(*tm);
-
     static const std::string NO = "no";
     static const std::string NOPERTURB = "nopertub";
     static const std::string RandomMovePerturbationInPlace = "random-move";
@@ -800,18 +822,19 @@ emili::Perturbation* ExamTTParser::per(prs::TokenManager& tm)
     prs::TabLevel level;
 
     if(tm.checkToken(NOPERTURB) || tm.checkToken(NO)) {
+        printTab(prefix + ": no");
         return new emili::NoPerturbation();
-    } else if(checkTokenParams(tm, RandomMovePerturbationInPlace, {"rneigh", "steps"})) {
+    } else if(checkTokenParams(tm, RandomMovePerturbationInPlace, {"rneigh", "steps"}, prefix)) {
         auto n = neigh(tm);
         int s = getIntParam(tm, "s");
         return new emili::RandomMovePerturbationInPlace(*n, s);
-    } else if(checkTokenParams(tm, VNRandomMovePerturbationInPlace, {"steps", "iter", "rneigh..."})) {
+    } else if(checkTokenParams(tm, VNRandomMovePerturbationInPlace, {"steps", "iter", "rneigh..."}, prefix)) {
         TabLevel l;
         int steps = getIntParam(tm, "steps");
         int iterations = getIntParam(tm, "iter");
         auto neigh = neighs(tm);
         return new emili::VNRandomMovePerturbationInPlace(neigh, steps, iterations);
-    } else if(checkTokenParams(tm, constructperturb, {"construct", "destruct"})) {
+    } else if(checkTokenParams(tm, constructperturb, {"construct", "destruct"}, prefix)) {
         auto a = constructor(tm);
         auto b = destructor(tm);
         return new emili::ConstructDestructPertub(a,b);
@@ -821,14 +844,17 @@ emili::Perturbation* ExamTTParser::per(prs::TokenManager& tm)
     return nullptr;
 }
 
-emili::Acceptance* ExamTTParser::acc(prs::TokenManager& tm)
+emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string prefix)
 {
     prs::TabLevel level;
+
+    ostringstream oss; oss << prefix << ": ";
 
     if(tm.checkToken(ACCEPTANCE_METRO))
     {
         float n = tm.getDecimal();
-        printTab("metropolis acceptance. temperature : " + to_string(n));
+        oss << "metropolis(temperature = " << n << ")";
+        printTab(oss.str());
         return new emili::MetropolisAcceptance(n);
     }
     else if(tm.checkToken(ACCEPTANCE_ALWAYS))
@@ -845,41 +871,43 @@ emili::Acceptance* ExamTTParser::acc(prs::TokenManager& tm)
         else
             errorExpected(tm, ACCEPTANCE_INTENSIFY, {ACCEPTANCE_INTENSIFY, ACCEPTANCE_DIVERSIFY});
 
-        printTab("Acceptance always " + t1);
+        oss << "always(" << t1 << ")";
+        printTab(oss.str());
         return new emili::AlwaysAccept(accc);
     }
     else if(tm.checkToken(ACCEPTANCE_IMPROVE)) {
 
-        printTab("Improve acceptance");
-
-        return new  emili::ImproveAccept();
+        oss << "improve";
+        printTab(oss.str());
+        return new emili::ImproveAccept();
     }
     else if(tm.checkToken(ACCEPTANCE_SA_METRO))
     {
         float start =tm.getDecimal();
         float end =tm.getDecimal();
         float ratio =tm.getDecimal();
-        printTab("Metropolis acceptance. start, end, ratio : " + to_string(start) + ", " + to_string(end)+ "," + to_string(ratio));
+        oss << "metropolis(start = " << start << ", end = " << end << ", ratio = " << ratio << ")";
+        printTab(oss.str());
         return new emili::Metropolis(start,end,ratio);
     }
     else if(tm.checkToken(ACCEPTANCE_PMETRO))
     {
-        float start =tm.getDecimal();
-        float end =tm.getDecimal();
-        float ratio =tm.getDecimal();
+        float start = tm.getDecimal();
+        float end = tm.getDecimal();
+        float ratio = tm.getDecimal();
         int iterations = tm.getInteger();
-        ostringstream oss; oss << "metropolis acceptance. start, end, ratio, frequence : "<< start << ", "<< end << "," << ratio <<"," << iterations;
+        oss << "metropolis(start = " << start << ", end = " << end << ", ratio = " << ratio << ", frequence = " << iterations << ")";
         printTab(oss.str());
         return new emili::Metropolis(start,end,ratio,iterations);
     }
     else if(tm.checkToken(ACCEPTANCE_SA))
     {
-        float start =tm.getDecimal();
-        float end =tm.getDecimal();
-        float ratio =tm.getDecimal();
+        float start = tm.getDecimal();
+        float end = tm.getDecimal();
+        float ratio = tm.getDecimal();
         int iterations = tm.getInteger();
-        float alpha =tm.getDecimal();
-        ostringstream oss; oss << "metropolis acceptance. start ,end , ratio, frequence, alpha : "<< start << ", "<< end << "," << ratio <<","<< iterations << "," << alpha;
+        float alpha = tm.getDecimal();
+        oss << "metropolis(start = " << start << ", end = " << end << ", ratio = " << ratio << ", frequence = " << iterations << ", alpha = " << alpha << ")";
         printTab(oss.str());
         return new emili::Metropolis(start,end,ratio,iterations,alpha);
     }
@@ -887,7 +915,7 @@ emili::Acceptance* ExamTTParser::acc(prs::TokenManager& tm)
     {
         int plateau_steps = tm.getInteger();
         int threshold = tm.getInteger();
-        ostringstream oss; oss << "Accept a diversification solution if it improves on the intensification otherwise it will accept "<< plateau_steps << " non improving steps once it reaches the threshold of " << threshold;
+        oss << "Accept a diversification solution if it improves on the intensification otherwise it will accept " << plateau_steps << " non improving steps once it reaches the threshold of " << threshold;
         printTab(oss.str());
         return new emili::AcceptPlateau(plateau_steps,threshold);
     }
@@ -900,16 +928,16 @@ emili::BestTabuSearch* ExamTTParser::tparams(prs::TokenManager& tm)
 {
     if(tm.checkToken(BEST))
     {
-        auto a = init(tm);
-        auto b = term(tm);
+        auto a = initializer(tm);
+        auto b = termination(tm);
         auto c = neigh(tm);
         auto tmem = tmemory(c, tm);
         return new emili::BestTabuSearch(*a, *b, *c, *tmem);
     }
     else if(tm.checkToken(FIRST))
     {
-        auto a = init(tm);
-        auto b = term(tm);
+        auto a = initializer(tm);
+        auto b = termination(tm);
         auto c = neigh(tm);
         auto tmem = tmemory(c, tm);
         return new emili::FirstTabuSearch(*a, *b, *c, *tmem);
@@ -930,23 +958,35 @@ emili::TabuMemory* ExamTTParser::tmemory(emili::Neighborhood* n,prs::TokenManage
     return tmem;
 }
 
-emili::LocalSearch* ExamTTParser::vparams(prs::TokenManager& tm)
+emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
 {
-    printTab("VND SEARCH");
-
     prs::TabLevel level;
 
-    if(checkTokenParams(tm, FIRST, {"init", "term", "neigh"}))
+    if(mustHaveInit && checkTokenParams(tm, FIRST, {"init", "term", "neigh"}, prefix))
     {
-        auto in = init(tm);
-        auto te = term(tm);
+        auto in = initializer(tm);
+        auto te = termination(tm);
         auto nes = neighs(tm);
         return new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
     }
-    else if(checkTokenParams(tm, BEST, {"init", "term", "neigh"}))
+    else if(!mustHaveInit && checkTokenParams(tm, FIRST, {"term", "neigh"}, prefix))
     {
-        auto in = init(tm);
-        auto te = term(tm);
+        auto in = new emili::ExamTT::RandomInitialSolution(instance);
+        auto te = termination(tm);
+        auto nes = neighs(tm);
+        return new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
+    }
+    else if(mustHaveInit && checkTokenParams(tm, BEST, {"init", "term", "neigh"}, prefix))
+    {
+        auto in = initializer(tm);
+        auto te = termination(tm);
+        auto nes = neighs(tm);
+        return new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
+    }
+    else if(!mustHaveInit && checkTokenParams(tm, BEST, {"term", "neigh"}, prefix))
+    {
+        auto in = new emili::ExamTT::RandomInitialSolution(instance);
+        auto te = termination(tm);
         auto nes = neighs(tm);
         return new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
     }
@@ -955,7 +995,7 @@ emili::LocalSearch* ExamTTParser::vparams(prs::TokenManager& tm)
     return nullptr;
 }
 
-emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager& tm) {
+emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager& tm, std::string prefix) {
     static const std::string BestInsertHeuristic = "best";
 
     TabLevel l;
@@ -964,7 +1004,7 @@ emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager&
         BestInsertHeuristic
     };
 
-    if(checkTokenParams(tm, BestInsertHeuristic, {})) {
+    if(checkTokenParams(tm, BestInsertHeuristic, {}, prefix)) {
         return new emili::ExamTT::BestInsertHeuristic(instance);
     }
 
@@ -972,7 +1012,7 @@ emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager&
     return nullptr;
 }
 
-emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm) {
+emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm, std::string prefix) {
     static const std::string RandomOrderInserter = "random-order";
     static const std::string DegreeInserter = "degree";
 
@@ -982,11 +1022,11 @@ emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm) {
 
     TabLevel l;
 
-    if(checkTokenParams(tm, RandomOrderInserter, {"heur"})) {
-        auto heur = insertHeuristic(tm);
+    if(checkTokenParams(tm, RandomOrderInserter, {"heur"}, prefix)) {
+        auto heur = insertHeuristic(tm, "heur");
         return new emili::ExamTT::RandomOrderInserter(instance, heur);
-    } else if(checkTokenParams(tm, DegreeInserter, {"heur"})) {
-        auto heur = insertHeuristic(tm);
+    } else if(checkTokenParams(tm, DegreeInserter, {"heur"}, prefix)) {
+        auto heur = insertHeuristic(tm, "heur");
         return new emili::ExamTT::DegreeInserter(instance, heur);
     }
 
@@ -994,7 +1034,7 @@ emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm) {
     return nullptr;
 }
 
-emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm) {
+emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string prefix) {
     static const std::string FixedRandomDestructor = "fixed-random";
     static const std::string NRandomDaysDestructor = "random-days";
     static const std::string NGroupedDaysDestructor = "grouped-days";
@@ -1007,19 +1047,19 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm) {
         NGroupedPeriodsDestructor,
     };
 
-    if(checkTokenParams(tm, FixedRandomDestructor, {"N"})) {
+    if(checkTokenParams(tm, FixedRandomDestructor, {"N"}, prefix)) {
         TabLevel l;
         int N = getIntPercentParam(tm, "N", instance.E());
         return new emili::ExamTT::FixedRandomDestructor(instance, N);
-    } else if(checkTokenParams(tm, NRandomDaysDestructor, {"N"})) {
+    } else if(checkTokenParams(tm, NRandomDaysDestructor, {"N"}, prefix)) {
         TabLevel l;
         int N = getIntPercentParam(tm, "N", instance.Days());
         return new emili::ExamTT::NRandomDaysDestructor(instance, N);
-    } else if(checkTokenParams(tm, NGroupedDaysDestructor, {"N"})) {
+    } else if(checkTokenParams(tm, NGroupedDaysDestructor, {"N"}, prefix)) {
         TabLevel l;
         int N = getIntPercentParam(tm, "N", instance.Days());
         return new emili::ExamTT::NGroupedDaysDestructor(instance, N);
-    } else if(checkTokenParams(tm, NGroupedPeriodsDestructor, {"N"})) {
+    } else if(checkTokenParams(tm, NGroupedPeriodsDestructor, {"N"}, prefix)) {
         TabLevel l;
         int N = getIntPercentParam(tm, "N", instance.P());
         return new emili::ExamTT::NGroupedPeriodsDestructor(instance, N);
@@ -1029,7 +1069,7 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm) {
     return nullptr;
 }
 
-emili::InitialSolution* ExamTTParser::init(prs::TokenManager& tm)
+emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::string prefix)
 {
     prs::TabLevel level;
     static const std::string INITIAL_CONSTRUCTOR = "initial-constructor";
@@ -1038,11 +1078,9 @@ emili::InitialSolution* ExamTTParser::init(prs::TokenManager& tm)
         INITIAL_RANDOM, INITIAL_CONSTRUCTOR
     };
 
-    printTab(*tm);
-
-    if(tm.checkToken(INITIAL_RANDOM)) {
+    if(checkTokenParams(tm, INITIAL_RANDOM, {}, prefix)){
         return new emili::ExamTT::RandomInitialSolution(instance);
-    } else if(tm.checkToken(INITIAL_CONSTRUCTOR)){
+    } else if(checkTokenParams(tm, INITIAL_CONSTRUCTOR, {"constructor"}, prefix)){
         auto cons = constructor(tm);
         return new emili::ExamTT::ConstructorInitialSolution(instance, cons);
     }
@@ -1051,9 +1089,12 @@ emili::InitialSolution* ExamTTParser::init(prs::TokenManager& tm)
     return nullptr;
 }
 
-emili::Termination* ExamTTParser::term(prs::TokenManager& tm)
+emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string prefix)
 {
     prs::TabLevel level;
+
+    ostringstream oss;
+    oss << prefix << ": ";
 
     static const std::vector<std::string> available = {
         TERMINATION_LOCMIN, TERMINATION_WTRUE, TERMINATION_TIME, TERMINATION_MAXSTEPS
@@ -1061,12 +1102,14 @@ emili::Termination* ExamTTParser::term(prs::TokenManager& tm)
 
     if(tm.checkToken(TERMINATION_LOCMIN))
     {
-        printTab(TERMINATION_LOCMIN);
+        oss << TERMINATION_LOCMIN;
+        printTab(oss.str());
         return new emili::LocalMinimaTermination();
     }
     else if(tm.checkToken(TERMINATION_WTRUE))
     {
-        printTab(TERMINATION_WTRUE);
+        oss << TERMINATION_WTRUE;
+        printTab(oss.str());
         return new emili::WhileTrueTermination();
     }
     else if(tm.checkToken(TERMINATION_TIME))
@@ -1075,13 +1118,15 @@ emili::Termination* ExamTTParser::term(prs::TokenManager& tm)
         if(time == 0)
             time = 1;
 
-        printTab("Timed termination. ratio: " + to_string(time));
+        oss << "timed(ratio = " << time << ")";
+        printTab(oss.str());
         return new emili::TimedTermination(time);
     }
     else if(tm.checkToken(TERMINATION_MAXSTEPS))
     {
         int steps = tm.getInteger();
-        printTab("Max Steps termination. # steps: " + to_string(steps));
+        oss << "maxSteps(steps = " << steps << ")";
+        printTab(oss.str());
         return new emili::MaxStepsTermination(steps);
     }
 
@@ -1151,7 +1196,7 @@ void ExamTTParser::problem(prs::TokenManager& tm)
 emili::LocalSearch* ExamTTParser::buildAlgo(prs::TokenManager& tm)
 {
     problem(tm);
-    emili::LocalSearch* local = search(tm);
+    emili::LocalSearch* local = search(tm, true);
     std::cout << "------" << std::endl;
     return local;
 }

@@ -288,7 +288,7 @@ bool emili::Solution::operator>(emili::Solution& a)
     return solution_value > a.solution_value;
 }
 
-double emili::Solution::getSolutionValue()
+emili::Solution::Value emili::Solution::getSolutionValue()
 {    
     return solution_value;
 }
@@ -299,7 +299,7 @@ std::string emili::Solution::getSolutionRepresentation()
     return s;
 }
 
-void emili::Solution::setSolutionValue(double value)
+void emili::Solution::setSolutionValue(emili::Solution::Value value)
 {
     this->solution_value = value;
 }
@@ -371,7 +371,8 @@ void emili::Neighborhood::iterate(emili::Solution *base, std::function<void ()> 
 
 emili::Solution* emili::LocalSearch::search()
 {
-    assert(init != nullptr);
+    if(init == nullptr)
+        throw std::invalid_argument("local search was not constructed with initializer");
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
@@ -488,11 +489,19 @@ emili::InitialSolution& emili::LocalSearch::getInitialSolution()
     return *this->init;
 }
 
+emili::BestImprovementSearch::BestImprovementSearch(emili::Termination &terminationcriterion, emili::Neighborhood &neighborh)
+    : emili::LocalSearch()
+{
+    this->init = nullptr;
+    this->termcriterion = &terminationcriterion;
+    this->neighbh = &neighborh;
+    const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
+}
 
 emili::BestImprovementSearch::BestImprovementSearch(emili::InitialSolution &initialSolutionGenerator, emili::Termination &terminationcriterion, emili::Neighborhood &neighborh)
     : emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh)
 {
-    behaviour = Behaviour::FUNC;
+    const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
 }
 
 /*
@@ -513,7 +522,7 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
         ithSolution = *iter;
         for(;iter!=end;++iter)
         {
-            if(incumbent->operator >( *ithSolution)){
+            if(*ithSolution < *incumbent) {
                 *incumbent = *ithSolution;
             }
         }
@@ -527,10 +536,20 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
  * First improvement local search
  */
 
+emili::FirstImprovementSearch::FirstImprovementSearch(emili::Termination &terminationcriterion, emili::Neighborhood &neighborh)
+    : emili::LocalSearch()
+{
+    this->init = nullptr;
+    this->termcriterion = &terminationcriterion;
+    this->neighbh = &neighborh;
+    const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
+}
+
+
 emili::FirstImprovementSearch::FirstImprovementSearch(emili::InitialSolution &initialSolutionGenerator, emili::Termination &terminationcriterion, emili::Neighborhood &neighborh)
     : emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh)
 {
-    behaviour = Behaviour::FUNC;
+    const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
 }
 
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
@@ -551,8 +570,8 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 
         for(;iter!=end;++iter)
         {
-            if(incumbent->operator >(*ithSolution)){
-                *incumbent=*ithSolution;
+            if(*ithSolution < *incumbent) {
+                *incumbent = *ithSolution;
                 break;
             }
         }

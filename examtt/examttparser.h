@@ -28,18 +28,18 @@ protected:
 protected:    
     //insert a variable to hold the problem instance
     emili::ExamTT::ExamTT instance;
-    emili::LocalSearch* search(prs::TokenManager& tm);
+    emili::LocalSearch* search(prs::TokenManager& tm, bool mustHaveInit, string prefix = "search");
     emili::BestTabuSearch* tparams(prs::TokenManager& tm);
     emili::TabuMemory* tmemory(emili::Neighborhood* n,prs::TokenManager& tm);
-    emili::LocalSearch* vparams(prs::TokenManager& tm);
+    emili::LocalSearch* vnd(prs::TokenManager& tm, bool mustHaveInit, string prefix = "vnd");
 
-    emili::InitialSolution* init(prs::TokenManager& tm);
-    emili::Termination* term(prs::TokenManager& tm);
-    emili::Acceptance* acc(prs::TokenManager& tm);
-    emili::Perturbation* per(prs::TokenManager& tm);
-    emili::Constructor* constructor(prs::TokenManager&);
-    emili::Destructor* destructor(prs::TokenManager&);
-    emili::ExamTT::InsertHeuristic* insertHeuristic(prs::TokenManager& tm);
+    emili::InitialSolution* initializer(prs::TokenManager& tm, string prefix = "initializer");
+    emili::Termination* termination(prs::TokenManager& tm, string prefix = "termination");
+    emili::Acceptance* acceptance(prs::TokenManager& tm, string prefix = "acceptance");
+    emili::Perturbation* perturbation(prs::TokenManager& tm, string prefix = "perturbation");
+    emili::Constructor* constructor(prs::TokenManager&, string prefix = "constructor");
+    emili::Destructor* destructor(prs::TokenManager&, string prefix = "destructor");
+    emili::ExamTT::InsertHeuristic* insertHeuristic(prs::TokenManager& tm, string prefix = "insertHeuristic");
 
     emili::Neighborhood* neigh(prs::TokenManager& tm, bool errorIfNotFound = true);
     std::vector<emili::Neighborhood *> neighs(prs::TokenManager& tm);

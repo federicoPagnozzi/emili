@@ -25,7 +25,7 @@ namespace ExamTT
 // Output iterator that counts the number of times ++ is called
 // can be casted to a int to get the value or get attribute .count
 struct CountIterator {
-    int count = 0; // contain the numer of times ++ has been applied
+    int count = 0; // contain the number of times ++ has been applied
     int dummyWrite; // contain last value written
 
     int&           operator*()          { return dummyWrite; }
@@ -1115,8 +1115,9 @@ public:
 
 struct BaseConstructor : Constructor {
     Instance const& instance;
+
     BaseConstructor(Instance const& inst) : instance(inst) {
-        behaviour = Behaviour::VOID;
+        const_cast<Behaviour&>(behaviour) = Behaviour::VOID;
     }
 
     Solution* constructFull() override {
