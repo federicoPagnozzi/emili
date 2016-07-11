@@ -1,0 +1,89 @@
+git clone https://afiscarelli@iridia-dev.ulb.ac.be/projects/emili/git // copia la direcrory remota in locale
+
+
+git checkout Filename
+
+git status //visualizzare lo status: differenze tra cartella locale e remota
+
+
+env GIT_SSL_NO_VERIFY=true git clone https://afiscarelli:antonio@iridia-dev.ulb.ac.be/projects/emili/git .
+
+/////////////
+PROCECURE
+git add .
+
+git -c user.name='afiscare' -c user.email='afiscare@ulb.ac.be' commit -m "File unitili cancellati" // confermare cambiamenti (da rosso a verde) ma la remota rimane ancora alla versione precedente
+
+env GIT_SSL_NO_VERIFY=true git push //aggiornare la cartella remota
+///////
+
+
+
+////////////////////////
+ssh afiscarelli@majorana.ulb.ac.be
+
+//////create paramiter files for Irace
+grammar2code ../MasterThesis/grammars/irp-grammar-ILS.xml -p parameters.txt
+
+qstat -g c       //occupazione cluster
+
+./tune-main-cluster-mpi-em $IRACE_HOME/bin run/ --parallel 100 --rack 2 --queue long 
+
+jobstats	//job che girano sul cluster al mmomento
+
+iu_extract_candidates_emili irace irace.Rdata ../../MasterThesis/grammars/irp-grammar-ILS.xml
+
+
+
+////////////////////
+
+/tune-main-cluster-mpi-em <BINDIR> <EXECDIR> --parallel <NB_SLAVES> --rack <rack_number> --queue <queue> additional_args_to_irace
+<BINDIR> Irace's bin directory
+<EXECDIR> Irace's working directory (stdout, stderr)
+--queue [long|short]    long jobs running for more than 1 day, short for 24 at most 
+
+
+qstat -g c   /check queue status and racks usage
+
+qstat        / get jobID
+qdel jobID   /kill the job
+
+
+tune-conf file: where to specify budget
+budget 5000, irace is performing 5000 tests
+ERROR: EMILI's errors
+run/stdout: you can check how many paramteres
+run/stderr: Irace's errors
+
+
+
+
+
+control+A e poi D  per detach screen
+
+screen -r per tornarci
+
+
+////WHAT TO DO
+run Irace
+check ERROR file, see first error, fix it
+stop irace
+rerun irace
+check again ERROR
+
+
+if errors on my pc, fix it
+if error not in my pc, try on cluster
+    if erro on cluster, fix it (for segmentation fault, use gdb)
+    if not error, ignore it and go to next error
+    
+
+/// GDB
+gdb challengeAL
+run /home/afiscarelli/Instances//Instance_V_1.6.xml  IRP ils first grasp 0.1803 2 maxstep 15 shiftTwoExc 0.4747 2 0.5638 0.4109 true rndmv shiftRem 0.9914 2 0.8444 0.2068 10 pmetro 1.165 0.4935 0.0281 209   -it 300
+///////
+
+
+run /home/afiscarelli/Instances//Instance_V_1.8.xml  IRP ils vnd first greedy 0.9184 1 locmin shiftTwoExc 0.8027 1 0.0846 0.8619 ref 0.5785 0.5262 0.2513 2 shiftRem 0.9334 1 0.9737 0.722 true rndmv shiftTwoExc 0.6511 2 0.7855 0.3972 10 improve -it 300
+
+

@@ -106,7 +106,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         COUT<<irs->getSolutionRepresentation();
                         COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
                         COUT<<irs->getSolutionValue();
-
+/*
                         ofstream file;
                         string filepath2;
                         filepath2.append("./Neighborhood/");
@@ -116,14 +116,14 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         file.precision(15);
                         file << "-------------------------------------------------" << std::endl;
                         file.close();
-
+*/
                         return bestIrs;
                     
                     }
             }
         }
     }
-
+/*
     ofstream file;
     string filepath2;
     filepath2.append("./Neighborhood/");
@@ -133,7 +133,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
     file.precision(15);
     file << "-------------------------------------------------" << std::endl;
     file.close();
-
+*/
 
     return bestIrs;
 
@@ -256,7 +256,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     COUT<<"BEST PICK: "<<randomPick<<" "<<pickIndex<<" "<<bestIrs->getSolutionValue()<<"\n";
     COUT<<"BEST Value: "<<bestIrs->getSolutionValue()<<"\n";
     COUT<<bestIrs->getSolutionRepresentation();
-
+/*
     ofstream file;
     string filepath2;
     filepath2.append("./Neighborhood/");
@@ -266,12 +266,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     file.precision(15);
     file << "-------------------------------------------------" << std::endl;
     file.close();
-
-    cout<<filepath2;
-    int a; cin>>a;
-
-
-
+*/
     return bestIrs;
 
 }
@@ -357,7 +352,7 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
 
     COUT<<"PARTIAL OBJ: "<<irp.evaluateSolution(*bestIrs)<<"\n";
     COUT<<bestIrs->getSolutionRepresentation();
-
+/*
     ofstream file;
     string filepath2;
     filepath2.append("./Neighborhood/");
@@ -367,7 +362,7 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
     file.precision(15);
     file << "-------------------------------------------------" << std::endl;
     file.close();
-
+*/
     return bestIrs;
 
 }
@@ -481,7 +476,7 @@ emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::computeStep(Soluti
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
         */
-
+/*
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -491,7 +486,7 @@ emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::computeStep(Soluti
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-
+*/
 
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
@@ -644,7 +639,7 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* c
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
 */
-
+/*
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -654,7 +649,7 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* c
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-
+*/
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
     else
@@ -807,7 +802,7 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* c
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
 */
-
+/*
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -817,7 +812,7 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* c
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-
+*/
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
     else
@@ -1001,7 +996,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         filepath.append("NeighSolution.xml");
         irs.getIrpSolution().saveSolution(filepath);
 */
-
+/*
         ofstream file;
         string filepath2;
         filepath2.append("./Neighborhood/");
@@ -1011,7 +1006,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         file.precision(15);
         file << this->bestValueFound << std::endl;
         file.close();
-
+*/
 
         COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
    }
