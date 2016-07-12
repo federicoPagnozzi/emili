@@ -90,19 +90,19 @@ std::string ExamTTParser::info()
 
 void ExamTTParser::genericError(string name) {
     cerr << "ERROR: " << name << endl;
-    cout << info() << endl;
+    // cout << info() << endl;
     exit(-1);
 }
 
 void ExamTTParser::genericError(std::ostream& stream) {
     stream << endl << "ERROR" << endl;
-    cout << info() << endl;
+    // cout << info() << endl;
     exit(-1);
 }
 
 void ExamTTParser::genericError(std::ostringstream& stream) {
     cerr << endl << "ERROR: " << stream.str() << endl;
-    cout << info() << endl;
+    // cout << info() << endl;
     exit(-1);
 }
 
@@ -120,7 +120,6 @@ void ExamTTParser::errorExpected(prs::TokenManager& tm, string name, const std::
     }
     cerr << endl;
 
-    cout << info() << endl;
     exit(-1);
 }
 
@@ -193,8 +192,24 @@ struct ArgParser {
     std::map<std::string, float> dataFloat;
     std::vector<std::string> order;
     std::set<std::string> given;
+    std::set<std::string> required;
 
     // add
+
+    void addIntRequired(std::string s) {
+        addInt(s, 0);
+        required.insert(s);
+    }
+
+    void addBoolRequired(std::string s) {
+        addBool(s, false);
+        required.insert(s);
+    }
+
+    void addFloatRequired(std::string s) {
+        addFloat(s, 0.0f);
+        required.insert(s);
+    }
 
     void addInt(std::string s, int d) {
         if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
@@ -252,7 +267,10 @@ struct ArgParser {
     void parse(prs::TokenManager& tm) {
         /*
          * Simple Algo : for(;;) if(tm.checkToken("A")) A = tm.getInteger() else if()... else break;
+         * More over, may start/end with {}
          */
+
+        bool hasBrace = tm.checkToken("{");
 
         for(;;) {
             bool found = false;
@@ -289,6 +307,14 @@ struct ArgParser {
             if(! found)
                 break;
         }
+
+        // assert(given <= required);
+        for(auto s : required)
+            if(! given.count(s))
+                ExamTTParser::genericError("Argument '" + s + "' is required");
+
+        if(hasBrace && ! tm.checkToken("}"))
+            ExamTTParser::errorExpected(tm, "}", {"}"});
     }
 
     /**
@@ -307,16 +333,39 @@ struct ArgParser {
      * @brief Insertion order
      */
     void print() {
+        int m = 0;
         for(auto x : order)
+            m = std::max(m, (int)x.size());
+        std::ostringstream oss;
+        for(auto x : order) {
             if(dataInt.count(x))
-                cout << setw(20) << x << ": " << dataInt[x] << endl;
+                oss << setw(m) << x << ": " << dataInt[x];
             else if(dataFloat.count(x))
-                cout << setw(20) << x << ": " << dataInt[x] << endl;
+                cout << setw(m) << x << ": " << dataInt[x];
             else if(dataBool.count(x))
-                cout << setw(20) << x << ": " << boolalpha << dataBool[x] << endl;
+                cout << setw(m) << x << ": " << boolalpha << dataBool[x];
+
+            printTab(oss.str());
+            oss.str("");
+        }
     }
 
 };
+
+struct CheckBrac {
+    bool has;
+    TokenManager& tm;
+
+    CheckBrac(TokenManager& tm_) : tm(tm_) {
+        has = tm.checkToken("[");
+    }
+
+    ~CheckBrac() {
+        if(has && ! tm.checkToken("]"))
+            ExamTTParser::errorExpected(tm, "]", {"]"});
+    }
+};
+
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
 {
     static const std::string SA_BSU = "sa_bsu";
@@ -433,6 +482,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     else if(is(tm.peek(), SA_BSU)){
         printTab(prefix + ": " + SA_BSU);
         tm.next();
+        TabLevel lvl;
 
         ArgParser p;
         p.addInt("factor", 1);
@@ -537,15 +587,23 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         int nS = useIrace ? 764141 : (int)(- itmax / (std::log(tr) / std::log(alpha)));
         int nA = useIrace ? 106980 : rho * nS;
 
-        cout << "Features as in BSU Table 2 : " << endl
-             << "E S P R PHC RHC FLP CD ExR SxE S/Cap PC" << endl
-             << E << ' ' << S << ' ' << P << ' ' << R << ' '<< PHC << ' '<< RHC << ' '
-             << FLP << ' '<< CD << ' ' << ExR << ' ' << SxE << ' ' << SCap << ' ' << PC << ' '
-             << endl
-             << "nA " << nA << " " << "nS " << nS
-             << endl;
+        ostringstream oss;
 
-        cout << setw(20) << "Hard weight " << instance.hardWeight << endl;
+        printTab("Features as in BSU Table 2 : ");
+        printTab("E S P R PHC RHC FLP CD ExR SxE S/Cap PC");
+
+        oss << E << ' ' << S << ' ' << P << ' ' << R << ' '<< PHC << ' '<< RHC << ' '
+            << FLP << ' '<< CD << ' ' << ExR << ' ' << SxE << ' ' << SCap << ' ' << PC;
+        printTab(oss.str());
+        oss.str("");
+
+        oss << "nA " << nA << " " << "nS " << nS;
+        printTab(oss.str());
+        oss.str("");
+
+        oss << "Hard weight " << instance.hardWeight;
+        printTab(oss.str());
+        oss.str("");
 
         // 251_629
         // 111_107
@@ -620,6 +678,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(checkTokenParams(tm, ITERATED_GREEDY, {"cons", "termin", "destr", "accept"}, prefix))
     {
+        CheckBrac br(tm);
         auto c = constructor(tm); // if must have init, will use constructFull of constructor
         auto t = termination(tm);
         auto d = destructor(tm);
@@ -628,6 +687,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(checkTokenParams(tm, MY_ITERATED_GREEDY, {"search", "cons", "termin", "destr", "accept"}, prefix))
     {
+        CheckBrac br(tm);
         auto ls = search(tm, false);
         auto c = constructor(tm); // if mustHaveInit, use constructFull as init
         auto t = termination(tm);
@@ -852,13 +912,27 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
 
     if(tm.checkToken(ACCEPTANCE_METRO))
     {
-        float n = tm.getDecimal();
+        CheckBrac br(tm);
+        float n;
+
+        if(! br.has && tm.checkToken("{")) {
+            ArgParser p;
+            p.addFloatRequired("temperature");
+            p.parse(tm);
+            n = p.Float("temperature");
+            if(! tm.checkToken("}"))
+                errorExpected(tm, "}", {"}"});
+        } else {
+            n = tm.getDecimal();
+        }
+
         oss << "metropolis(temperature = " << n << ")";
         printTab(oss.str());
         return new emili::MetropolisAcceptance(n);
     }
     else if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {
+        CheckBrac br(tm);
         emili::accept_candidates accc;
         string t1 = *tm;
 
@@ -875,14 +949,16 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
         printTab(oss.str());
         return new emili::AlwaysAccept(accc);
     }
-    else if(tm.checkToken(ACCEPTANCE_IMPROVE)) {
-
+    else if(tm.checkToken(ACCEPTANCE_IMPROVE))
+    {
+        CheckBrac br(tm);
         oss << "improve";
         printTab(oss.str());
         return new emili::ImproveAccept();
     }
     else if(tm.checkToken(ACCEPTANCE_SA_METRO))
     {
+        CheckBrac br(tm);
         float start =tm.getDecimal();
         float end =tm.getDecimal();
         float ratio =tm.getDecimal();
@@ -892,6 +968,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
     }
     else if(tm.checkToken(ACCEPTANCE_PMETRO))
     {
+        CheckBrac br(tm);
         float start = tm.getDecimal();
         float end = tm.getDecimal();
         float ratio = tm.getDecimal();
@@ -902,6 +979,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
     }
     else if(tm.checkToken(ACCEPTANCE_SA))
     {
+        CheckBrac br(tm);
         float start = tm.getDecimal();
         float end = tm.getDecimal();
         float ratio = tm.getDecimal();
@@ -913,6 +991,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
     }
     else if(tm.checkToken(ACCEPTANCE_IMPROVE_PLATEAU))
     {
+        CheckBrac br(tm);
         int plateau_steps = tm.getInteger();
         int threshold = tm.getInteger();
         oss << "Accept a diversification solution if it improves on the intensification otherwise it will accept " << plateau_steps << " non improving steps once it reaches the threshold of " << threshold;
@@ -1005,6 +1084,7 @@ emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager&
     };
 
     if(checkTokenParams(tm, BestInsertHeuristic, {}, prefix)) {
+        CheckBrac br(tm);
         return new emili::ExamTT::BestInsertHeuristic(instance);
     }
 
@@ -1023,9 +1103,11 @@ emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm, std::string
     TabLevel l;
 
     if(checkTokenParams(tm, RandomOrderInserter, {"heur"}, prefix)) {
+        CheckBrac br(tm);
         auto heur = insertHeuristic(tm, "heur");
         return new emili::ExamTT::RandomOrderInserter(instance, heur);
     } else if(checkTokenParams(tm, DegreeInserter, {"heur"}, prefix)) {
+        CheckBrac br(tm);
         auto heur = insertHeuristic(tm, "heur");
         return new emili::ExamTT::DegreeInserter(instance, heur);
     }
@@ -1049,18 +1131,22 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
 
     if(checkTokenParams(tm, FixedRandomDestructor, {"N"}, prefix)) {
         TabLevel l;
+        CheckBrac br(tm);
         int N = getIntPercentParam(tm, "N", instance.E());
         return new emili::ExamTT::FixedRandomDestructor(instance, N);
     } else if(checkTokenParams(tm, NRandomDaysDestructor, {"N"}, prefix)) {
         TabLevel l;
+        CheckBrac br(tm);
         int N = getIntPercentParam(tm, "N", instance.Days());
         return new emili::ExamTT::NRandomDaysDestructor(instance, N);
     } else if(checkTokenParams(tm, NGroupedDaysDestructor, {"N"}, prefix)) {
         TabLevel l;
+        CheckBrac br(tm);
         int N = getIntPercentParam(tm, "N", instance.Days());
         return new emili::ExamTT::NGroupedDaysDestructor(instance, N);
     } else if(checkTokenParams(tm, NGroupedPeriodsDestructor, {"N"}, prefix)) {
         TabLevel l;
+        CheckBrac br(tm);
         int N = getIntPercentParam(tm, "N", instance.P());
         return new emili::ExamTT::NGroupedPeriodsDestructor(instance, N);
     }
@@ -1079,8 +1165,10 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
     };
 
     if(checkTokenParams(tm, INITIAL_RANDOM, {}, prefix)){
+        CheckBrac br(tm);
         return new emili::ExamTT::RandomInitialSolution(instance);
     } else if(checkTokenParams(tm, INITIAL_CONSTRUCTOR, {"constructor"}, prefix)){
+        CheckBrac br(tm);
         auto cons = constructor(tm);
         return new emili::ExamTT::ConstructorInitialSolution(instance, cons);
     }
@@ -1102,18 +1190,21 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
 
     if(tm.checkToken(TERMINATION_LOCMIN))
     {
+        CheckBrac br(tm);
         oss << TERMINATION_LOCMIN;
         printTab(oss.str());
         return new emili::LocalMinimaTermination();
     }
     else if(tm.checkToken(TERMINATION_WTRUE))
     {
+        CheckBrac br(tm);
         oss << TERMINATION_WTRUE;
         printTab(oss.str());
         return new emili::WhileTrueTermination();
     }
     else if(tm.checkToken(TERMINATION_TIME))
     {
+        CheckBrac br(tm);
         float time = tm.getDecimal();
         if(time == 0)
             time = 1;
@@ -1124,6 +1215,7 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
     }
     else if(tm.checkToken(TERMINATION_MAXSTEPS))
     {
+        CheckBrac br(tm);
         int steps = tm.getInteger();
         oss << "maxSteps(steps = " << steps << ")";
         printTab(oss.str());

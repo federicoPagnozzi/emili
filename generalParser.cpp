@@ -69,10 +69,10 @@ void prs::info()
 
 void prs::check(const char* t, const char* message)
 {
-    if(t==nullptr)
+    if(t == nullptr)
     {
-        prs::info();
-        std::cerr <<"PARSING ERROR "<< message << std::endl;
+        // prs::info();
+        std::cerr << "PARSING ERROR : " << message << std::endl;
         exit(-1);
     }
 }
@@ -197,10 +197,11 @@ bool prs::TokenManager::checkDecimal(double & res) {
 int prs::TokenManager::getInteger()
 {
     const char* t = peek();
-    check(t,"A NUMBER WAS EXPECTED!");
+    std::string s = std::string("Int was expected, '") + t + "' found";
+    check(t, s.c_str());
     std::string num(t);
     if( !std::all_of(num.begin(),num.end(),::isdigit))
-       check(nullptr,"A NUMBER WAS EXPECTED!");
+       check(nullptr, s.c_str());
 
     int k = atoi(t);
    // std::cout << k << "\n\t";
@@ -211,11 +212,12 @@ int prs::TokenManager::getInteger()
 float prs::TokenManager::getDecimal()
 {
     const char* t = peek();
-    check(t,"A DECIMAL NUMBER WAS EXPECTED!");
+    std::string s = std::string("Decimal expected, '") + t + "' found";
+    check(t, s.c_str());
     std::string num(t);
 
     if(std::none_of(num.begin(),num.end(),::isdigit))
-        check(nullptr,"A DECIMAL NUMBER WAS EXPECTED!");
+        check(nullptr, s.c_str());
 
     float k = atof(t);
     //std::cout << k << "\n\t";
