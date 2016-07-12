@@ -130,10 +130,12 @@ bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::s
         if(! prefix.empty())
             oss << prefix << ": ";
         oss << val;
+        /*
         if(params.size())
             oss << " (" << params.size() << ") ";
         for(auto const& p : params)
             oss << p << " ";
+        */
         printTab(oss.str());
         tm.next();
         return true;
@@ -160,7 +162,7 @@ float getDecimalParam(prs::TokenManager& tm, std::string val) {
 
 int getIntPercentParam(prs::TokenManager& tm, std::string val, int max) {
     int i;
-    if(tm.checkToken("percent")) {
+    if(tm.checkToken("percent") || tm.checkToken("%")) {
         i = tm.getInteger() * max / 100;
     } else {
         i = tm.getInteger();
@@ -173,7 +175,7 @@ int getIntPercentParam(prs::TokenManager& tm, std::string val, int max) {
 
 float getFloatPercentParam(prs::TokenManager& tm, std::string val, float max) {
     float i;
-    if(tm.checkToken("percent")) {
+    if(tm.checkToken("percent") || tm.checkToken("%")) {
         i = tm.getDecimal() * max / 100;
     } else {
         i = tm.getDecimal();
@@ -186,6 +188,41 @@ float getFloatPercentParam(prs::TokenManager& tm, std::string val, float max) {
 
 }
 
+/**
+ * @brief ArgParser parse command line args into a dict(str: (int|float|bool))
+ *
+ * examples:
+ *
+ *  // numbers with defaults
+ *  addInt("a", 10);
+ *  addInt("b", 20);
+ *  addFloat("x", 1.5);
+ *  (1) a 10
+ *  (2) { a 10 }
+ *  (3) a 10 c ...
+ *  -> {a:10, b:20, x:1.5}
+ *  (4) { a 10 c 20 }
+ *  -> ERROR "c" is not a valid param
+ *
+ *  in (3), parsing stops at "c" because it is not a valid param
+ *  in (4), error because "c" is not a valid param
+ *
+ *  // bools using {param} or no-{param}
+ *  addBool("premium", false);
+ *  addBool("valid", true);
+ *  (1)
+ *  -> {premium: false, valid: true}
+ *  (2) valid premium
+ *  -> {premium: true, valid: true}
+ *  (3) no-valid premium
+ *  -> {premium: true, valid: false}
+ *
+ *  // required
+ *  addIntRequired("a", 5);
+ *  (1)
+ *  (2) { }
+ *  -> ERROR "a" required
+ */
 struct ArgParser {
     std::map<std::string, int> dataInt;
     std::map<std::string, bool> dataBool;
@@ -193,6 +230,10 @@ struct ArgParser {
     std::vector<std::string> order;
     std::set<std::string> given;
     std::set<std::string> required;
+
+    enum Tag {
+        REQUIRED
+    };
 
     // add
 
@@ -230,6 +271,23 @@ struct ArgParser {
             throw std::invalid_argument(" argument " + s + " already exist !");
         dataBool[s] = d;
         order.push_back(s);
+    }
+
+    // synonyms for add
+
+    void addInt(std::string s, Tag t) {
+        if(t == REQUIRED)
+            addIntRequired(s);
+    }
+
+    void addBool(std::string s, Tag t) {
+        if(t == REQUIRED)
+            addBoolRequired(s);
+    }
+
+    void addFloat(std::string s, Tag t) {
+        if(t == REQUIRED)
+            addFloatRequired(s);
     }
 
     // get
@@ -321,12 +379,27 @@ struct ArgParser {
      * @brief Sort by type, then name
      */
     void printTypeAlpha() {
-        for(auto& p : dataInt)
-            cout << setw(20) << p.first << ": " << p.second << endl;
-        for(auto& p : dataFloat)
-            cout << setw(20) << p.first << ": " << p.second << endl;
-        for(auto& p : dataBool)
-            cout << setw(20) << p.first << ": " << boolalpha << p.second << endl;
+        int m = 0;
+        for(auto x : order)
+            m = std::max(m, (int)x.size());
+
+        for(auto& p : dataInt) {
+            std::ostringstream oss;
+            oss << setw(m) << p.first << ": " << p.second << endl;
+            printTab(oss.str());
+        }
+
+        for(auto& p : dataFloat) {
+            std::ostringstream oss;
+            oss << setw(m) << p.first << ": " << p.second << endl;
+            printTab(oss.str());
+        }
+
+        for(auto& p : dataBool) {
+            std::ostringstream oss;
+            oss << setw(m) << p.first << ": " << boolalpha << p.second << endl;
+            printTab(oss.str());
+        }
     }
 
     /**
@@ -336,8 +409,9 @@ struct ArgParser {
         int m = 0;
         for(auto x : order)
             m = std::max(m, (int)x.size());
-        std::ostringstream oss;
         for(auto x : order) {
+            std::ostringstream oss;
+
             if(dataInt.count(x))
                 oss << setw(m) << x << ": " << dataInt[x];
             else if(dataFloat.count(x))
@@ -346,7 +420,6 @@ struct ArgParser {
                 cout << setw(m) << x << ": " << boolalpha << dataBool[x];
 
             printTab(oss.str());
-            oss.str("");
         }
     }
 
@@ -368,8 +441,9 @@ struct CheckBrac {
 
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
 {
-    static const std::string SA_BSU = "sa_bsu";
+    static const std::string SA_BSU = "sa-bsu";
     static const std::string INTERACTIVE = "interactive";
+    static const std::string SHOW_PARAMS = "show-params";
     static const std::string TEST_KEMPE = "test_kempe";
     static const std::string TEST_KEMPE_RANDOM_VS_ITER = "test_kempe_random_vs_iter";
     static const std::string TEST_DELTA = "test_delta";
@@ -392,17 +466,6 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         // below "test" or "info" => NoSearch
         BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
         TEST_KEMPE_RANDOM_VS_ITER, TEST_ITERATION_YIELD_VS_STATE, TEST_KEMPE_LARGE_COUNT
-    };
-
-    auto rep = [](std::string s) -> string {
-        for(char& c : s)
-            if(c == '_')
-                c = '-';
-        return s;
-    };
-
-    auto is = [rep](std::string const& a, std::string const& b) {
-        return rep(a) == rep(b);
     };
 
     prs::TabLevel level;
@@ -479,7 +542,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         auto b = search(tm, false);
         return new emili::InitAndSearch(a,b);
     }
-    else if(is(tm.peek(), SA_BSU)){
+    else if(tm.peek() == SA_BSU){
         printTab(prefix + ": " + SA_BSU);
         tm.next();
         TabLevel lvl;
@@ -533,7 +596,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
             CD = instance.meta.ConflictDensity,
             PC = 0, // ?
             ExR = 1.0 * E / (P * R),
-            SxE = [this, E, S](){ // sum(map(instance.numberOfExams, instance.students)) / E
+            SxE = [this, E, S](){ // sum(map(instance.numberOfExamsOfStudent, instance.students)) / E
                 /*
                 int s = 0;
                 for(int student : instance.students)
@@ -565,7 +628,6 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         // 2) final temperature
         // 3) how many accepting moves / temperature
         // 4) cooling scheme
-        //
 
         instance.hardWeight = 16.73100
                 + 102.30000 * CD
@@ -687,6 +749,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(checkTokenParams(tm, MY_ITERATED_GREEDY, {"search", "cons", "termin", "destr", "accept"}, prefix))
     {
+        // what about the hard weight ?
         CheckBrac br(tm);
         auto ls = search(tm, false);
         auto c = constructor(tm); // if mustHaveInit, use constructFull as init
@@ -729,6 +792,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         else if(isTestDeltaRemoveAdd)
             emili::ExamTT::test::deltaRemoveAdd(instance, N, checkEachMove, G, checkEachMovePartial);
 
+        throw NoSearch();
+    }
+    else if(tm.checkToken(SHOW_PARAMS)) {
+        search(tm, mustHaveInit);
         throw NoSearch();
     }
     else if(tm.checkToken(INTERACTIVE)) {

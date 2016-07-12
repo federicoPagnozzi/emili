@@ -49,7 +49,7 @@ void iteration_increment();
 void iteration_decrement();
 class Solution;
 /*
- * The istance of the problem to solve.
+ * The instance of the problem to solve.
 */
 class Problem{
 public:
