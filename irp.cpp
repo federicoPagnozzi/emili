@@ -7,7 +7,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (0) cout
+#define COUT if (1) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -90,6 +90,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                     {
                         COUT<<"INITIAL SOLUTION FEASIBLE! \n";
 
+                        delete bestIrs;
                         bestIrs = new InventoryRoutingSolution(irps);
 
                         instance.evaluateSolution(*bestIrs);
@@ -106,6 +107,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         COUT<<irs->getSolutionRepresentation();
                         COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
                         COUT<<irs->getSolutionValue();
+           //             int a;cin>>a;
 /*
                         ofstream file;
                         string filepath2;
@@ -120,6 +122,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         return bestIrs;
                     
                     }
+                    delete irs;
             }
         }
     }
@@ -177,6 +180,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
                 if(not bf){
                     bestIrs = new InventoryRoutingSolution(irps);
                     instance.evaluateSolution(*bestIrs);
+                    bestValue = bestIrs->getSolutionValue();
                     bf = true;
                     candidateSolutions.push_back(bestIrs);
                     objectiveCandidateSolutions.push_back(bestValue);
@@ -187,10 +191,11 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
                     {
                         COUT<<"INITIAL SOLUTION FEASIBLE! \n";
 
+        //                delete bestIrs;
                         bestIrs = new InventoryRoutingSolution(irps);
 
                         instance.evaluateSolution(*bestIrs);
-                        bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
+//                        bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
                         bestValue = bestIrs->getSolutionValue();
 /*
                         string filepath;
@@ -222,16 +227,20 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
         cout<<candidateSolutions[indexes[i]].second<<"\n";
     }
     */
-    double total;
+    double total = 0.0;
     vector<double> cumulatedProbabilities;
-
+/*
+    for(int i=0; i<objectiveCandidateSolutions.size(); i++){
+        objectiveCandidateSolutions[i] = 1.0/objectiveCandidateSolutions[i];
+    }
+*/
     for(int i=0; i<objectiveCandidateSolutions.size(); i++){
         total += objectiveCandidateSolutions[i];
     }
     vector<long unsigned int> indexes = sort_indexes(objectiveCandidateSolutions);
     COUT<<"CL:\n";
     for(int i=0; i<indexes.size(); i++){
-        COUT<<objectiveCandidateSolutions[indexes[i]]<<"\n";
+        COUT<<objectiveCandidateSolutions[indexes[i]]<<" "<<indexes[i]<<" "<<total<< "\n";
         cumulatedProbabilities.push_back((double)objectiveCandidateSolutions[indexes[i]]/(double)total);
     }
 
@@ -252,10 +261,9 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
 
     bestIrs = candidateSolutions[indexes[pickIndex]];
 
-
-    COUT<<"BEST PICK: "<<randomPick<<" "<<pickIndex<<" "<<bestIrs->getSolutionValue()<<"\n";
-    COUT<<"BEST Value: "<<bestIrs->getSolutionValue()<<"\n";
-    COUT<<bestIrs->getSolutionRepresentation();
+    cout<<"BEST PICK: "<<randomPick<<" "<<pickIndex<<" "<<bestIrs->getSolutionValue()<<"\n";
+    cout<<"BEST Value: "<<bestIrs->getSolutionValue()<<"\n";
+    cout<<bestIrs->getSolutionRepresentation();
 /*
     ofstream file;
     string filepath2;
@@ -267,6 +275,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     file << "-------------------------------------------------" << std::endl;
     file.close();
 */
+
     return bestIrs;
 
 }
@@ -545,6 +554,8 @@ emili::Solution* emili::irp::irpShiftTwoExchangeNeighborhood::random(Solution* c
     /////
 //    irs = neighboringSolution;
     /////
+
+    delete neighboringSolution;
     return dynamic_cast<Solution *> (irs);
 }
 
@@ -639,7 +650,7 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* c
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
 */
-/*
+
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -649,7 +660,7 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* c
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-*/
+
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
     else
@@ -703,6 +714,8 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::random(Solution* curren
 
     irs = new InventoryRoutingSolution(irps);
     this->irp.evaluateSolution(*irs);
+
+    delete neighboringSolution;
 
     return dynamic_cast<Solution *> (irs);
 }
@@ -802,7 +815,7 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* c
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
 */
-/*
+
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -812,7 +825,7 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* c
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-*/
+
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
     else
@@ -864,6 +877,8 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::random(Solution* curren
 
     irs = new InventoryRoutingSolution(irps);
     this->irp.evaluateSolution(*irs);
+
+    delete neighboringSolution;
 
     return dynamic_cast<Solution *> (irs);
 }
@@ -996,7 +1011,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         filepath.append("NeighSolution.xml");
         irs.getIrpSolution().saveSolution(filepath);
 */
-/*
+
         ofstream file;
         string filepath2;
         filepath2.append("./Neighborhood/");
@@ -1006,7 +1021,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         file.precision(15);
         file << this->bestValueFound << std::endl;
         file.close();
-*/
+
 
         COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
    }
@@ -1058,6 +1073,8 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolu
     irs = new InventoryRoutingSolution(irps);
 
     this->irp.evaluateSolution(*irs);
+
+    delete neighboringSolution;
 
     return dynamic_cast<Solution *> (irs);
 }
