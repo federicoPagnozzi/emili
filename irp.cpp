@@ -7,7 +7,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (1) cout
+#define COUT if (0) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -191,11 +191,9 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
                     {
                         COUT<<"INITIAL SOLUTION FEASIBLE! \n";
 
-        //                delete bestIrs;
                         bestIrs = new InventoryRoutingSolution(irps);
 
                         instance.evaluateSolution(*bestIrs);
-//                        bestIrs->getIrpSolution().fromSolutionToRepresentation(bestIrs->getIrpSolution());
                         bestValue = bestIrs->getSolutionValue();
 /*
                         string filepath;
@@ -262,9 +260,9 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
 
     bestIrs = candidateSolutions[indexes[pickIndex]];
 
-    cout<<"BEST PICK: "<<randomPick<<" "<<pickIndex<<" "<<bestIrs->getSolutionValue()<<"\n";
-    cout<<"BEST Value: "<<bestIrs->getSolutionValue()<<"\n";
-    cout<<bestIrs->getSolutionRepresentation();
+    COUT<<"BEST PICK: "<<randomPick<<" "<<pickIndex<<" "<<bestIrs->getSolutionValue()<<"\n";
+    COUT<<"BEST Value: "<<bestIrs->getSolutionValue()<<"\n";
+    COUT<<bestIrs->getSolutionRepresentation();
 /*
     ofstream file;
     string filepath2;
