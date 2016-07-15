@@ -138,6 +138,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
     file.close();
 */
 
+
     return bestIrs;
 
 }
@@ -649,7 +650,7 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* c
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
 */
-
+/*
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -659,7 +660,7 @@ emili::Solution* emili::irp::irpShiftInsertNeighborhood::computeStep(Solution* c
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-
+*/
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
     else
@@ -814,7 +815,7 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* c
        filepath.append("NeighSolution.xml");
        irs.getIrpSolution().saveSolution(filepath);
 */
-
+/*
        ofstream file;
        string filepath2;
        filepath2.append("./Neighborhood/");
@@ -824,7 +825,7 @@ emili::Solution* emili::irp::irpShiftRemoveNeighborhood::computeStep(Solution* c
        file.precision(15);
        file << this->bestValueFound << " "<<emili::iteration_counter()<<" "<< this->numberFeasibleSolutions << std::endl;
        file.close();
-
+*/
        COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
     }
     else
@@ -1010,7 +1011,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         filepath.append("NeighSolution.xml");
         irs.getIrpSolution().saveSolution(filepath);
 */
-
+/*
         ofstream file;
         string filepath2;
         filepath2.append("./Neighborhood/");
@@ -1020,7 +1021,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::computeStep(Solution* curren
         file.precision(15);
         file << this->bestValueFound << std::endl;
         file.close();
-
+*/
 
         COUT<<"A BEST FOUND: "<<this->bestValueFound<<"\n";
    }
