@@ -209,6 +209,7 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
                         objectiveCandidateSolutions.push_back(bestValue);
 
 
+
                     }
 
                     COUT<<irs->getSolutionRepresentation();
