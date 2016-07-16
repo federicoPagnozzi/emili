@@ -7,7 +7,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (1) cout
+#define COUT if (0) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
