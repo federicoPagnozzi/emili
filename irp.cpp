@@ -7,7 +7,7 @@
 #define EPSILON 0.000001
 #define FEASIBILITY_PENALTY 1
 
-#define COUT if (0) cout
+#define COUT if (1) cout
 #define CIN if (0) cin
 
 const void* emili::irp::InventoryRoutingSolution::getRawData()const{
@@ -213,6 +213,8 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
 
                     COUT<<irs->getSolutionRepresentation();
                     COUT<<"OBJ VALUE: "<<irs->getSolutionValue();
+
+                    delete irs;
             }
         }
     }
@@ -313,24 +315,30 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
 
                     candidateSolutions.push_back(irs);
                     objectiveCandidateSolutions.push_back(objValue);
+
                 }
             }
         }
 
         double total = 0.0;
         vector<double> cumulatedProbabilities;
-
+/*
+        for(int i=0; i<objectiveCandidateSolutions.size(); i++){
+            objectiveCandidateSolutions[i] = 1.0/objectiveCandidateSolutions[i];
+        }
+*/
         for(int i=0; i<objectiveCandidateSolutions.size(); i++){
             total += objectiveCandidateSolutions[i];
         }
         vector<long unsigned int> indexes = sort_indexes(objectiveCandidateSolutions);
         for(int i=0; i<indexes.size(); i++){
             cumulatedProbabilities.push_back((double)objectiveCandidateSolutions[indexes[i]]/(double)total);
+            COUT<<objectiveCandidateSolutions[indexes[i]]<<"\n";
         }
-
         for(int i=0; i<cumulatedProbabilities.size(); i++){
             if(i>0)
                 cumulatedProbabilities[i] += cumulatedProbabilities[i-1];
+                COUT<<cumulatedProbabilities[i]<<"\n";
         }
 
         double randomPick = generateRealRandomNumber();/*(double)rand()/RAND_MAX*/;
