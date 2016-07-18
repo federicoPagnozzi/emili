@@ -2694,6 +2694,15 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::Natx2Neighborhood::begin(
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
 
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::NrzTCTNeighborhood::begin(Solution *base)
+{
+    ep_iterations = 1;
+    sp_iterations = 1;
+    std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
+    this->seed_seq = sol;
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::NoIdleAcceleratedInsertNeighborhood::begin(Solution *base)
 {
     ep_iterations = 1;
@@ -4788,6 +4797,103 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
         return value;
     }
 }
+
+/* Approximation based neighborhoods for other objectives ( no Weighted Tardiness)
+ *
+ * */
+
+emili::Solution* emili::pfsp::NrzTCTNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+
+    std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+    int sol_i;
+
+    sp_iterations++;
+    //  ep_iterations = 1;
+    start_position = ((start_position)%njobs)+1;
+    int seed = seed_seq[start_position];
+    int actual_pos = 1;
+    for(int i=1;i<=njobs;i++)
+        if(seed == newsol[i])
+            actual_pos = i;
+
+    sol_i = seed;
+    newsol.erase(newsol.begin()+actual_pos);
+#ifdef ENABLE_SSE
+    computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
+    computeHead(newsol);
+#endif
+
+    int best_wt =  std::numeric_limits< int >::max();
+    int best_ins = 1;
+    for(best_ins=1; best_ins <= njobs;best_ins++)
+    {
+        //  newsol.insert(newsol.begin()+end_position,sol_i);
+        // compute Ct for sol_i
+        int ins_pos[nmac+1];
+        long int c_cur = head[1][best_ins-1]+pmatrix[sol_i][1];
+        ins_pos[1] = c_cur;
+
+        for (int i = 2; i <= nmac; ++i) {
+            int c_pm = head[i][best_ins-1];
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
+            }
+            c_cur += pmatrix[sol_i][i];
+            ins_pos[i] =  c_cur;
+        }
+
+        int wt = c_cur;
+
+        // add Ct for jobs before end_position
+        for (int j = 1; j< best_ins; ++j )
+        {
+            wt += head[nmac][j];
+        }
+
+        //compute Ct for jobs after end_position
+        for(int k=best_ins; k< njobs; k++)
+        {
+            int job = newsol[k];
+            c_cur = ins_pos[1] + pmatrix[job][1];
+            ins_pos[1] = c_cur;
+            for(int m=2; m <= nmac ; m++)
+            {
+                int c_pm = ins_pos[m];
+                if(c_pm > c_cur)
+                {
+                    c_cur = c_pm;
+                }
+                c_cur += pmatrix[job][m];
+                ins_pos[m] = c_cur;
+            }
+            wt += c_cur;
+        }
+
+        if(wt < best_wt)
+        {
+            best_wt = wt;
+            end_position = best_ins;
+        }
+
+    }
+    newsol.insert(newsol.begin()+end_position,sol_i);
+    value->setSolutionValue(best_wt);
+    return value;
+    }
+
+}
+
+
 
 emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *value)
 {

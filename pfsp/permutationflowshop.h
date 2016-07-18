@@ -928,6 +928,22 @@ public:
 };
 
 /*
+ * Total Completion Time
+ * RZ kind of Neighborhood
+ *
+ */
+class NrzTCTNeighborhood: public emili::pfsp::Natx2Neighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+    std::vector< int > seed_seq;
+public:
+    NrzTCTNeighborhood(PermutationFlowShop& problem):emili::pfsp::Natx2Neighborhood(problem){ }
+    NrzTCTNeighborhood(PermutationFlowShop& problem, int starting_threshold):emili::pfsp::Natx2Neighborhood(problem,starting_threshold) { }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+/*
  * Total Tardiness
  * One level approximation with experimental performance improvement tricks
  */

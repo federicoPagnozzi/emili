@@ -34,7 +34,9 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
     return *this;
 }
  */
-
+/*
+ * RANDOM NUMBER GENERATOR
+ */
 #ifndef NOC11
 
 std::mt19937 generator;
@@ -95,15 +97,6 @@ clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch;
 
-void emili::set_print(bool p)
-{
-    print = p;
-}
-
-bool emili::get_print()
-{
-    return print;
-}
 
 double emili::getCurrentExecutionTime()
 {
@@ -125,12 +118,12 @@ static void finalise (int _)
         double sol_val = s_cap->getSolutionValue();
         if(print)
         {
-    	    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+            messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
             messages << "objective function value : "<< sol_val << std::endl;
             messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+            //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
         else
         {
@@ -143,25 +136,24 @@ static void finalise (int _)
     else
     {
         if(print)
-	{
-		messages << "No valid solution found!" << std::endl;
-    	}
-	else
-	{
-		std::cout  << "No valid solution found!" << std::endl;
+        {
+            messages << "No valid solution found!" << std::endl;
+        }
+        else
+        {
+            std::cout  << "No valid solution found!" << std::endl;
 
-	}
+        }
     }
     //std::cout << std::flush;
     if(print)
     {
-      lastMessage = messages.str();
+        lastMessage = messages.str();
     }
     else
     {
         exit(0);
     }
-
 }
 
 
@@ -223,7 +215,7 @@ static inline void setTimer(int maxTime)
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
         if(print)
-	   atexit(lastPrint);
+            atexit(lastPrint);
         max_time = maxTime;
     }
 }
@@ -290,6 +282,17 @@ inline void emili::printSolstats(emili::Solution* sol)
     }
 #endif
 }
+
+void emili::set_print(bool p)
+{
+    print = p;
+}
+
+bool emili::get_print()
+{
+    return print;
+}
+
 
 /*
  * Solution implementation

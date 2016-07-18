@@ -99,6 +99,7 @@
 #define INITIAL_NRZ2 "nrz2"
 #define INITIAL_NRZ2FF "nrz2ff"
 #define INITIAL_LR "lr"
+#define INITIAL_LR_NM "lrnm"
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
 #define INITIAL_WNSLACK "nwslack"
@@ -148,6 +149,7 @@
 
 /* Total Completion Time*/
 #define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
+#define NEIGHBORHOOD_RZ_TCT_INSERT "nrztctinsert"
 
 /* Total Tardiness*/
 #define NEIGHBORHOOD_NATA_TT_INSERT "nttinsert"
@@ -1080,6 +1082,14 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             // testIS(*istance);
             init = new emili::pfsp::LRSolution(*istance,n);
         }
+    else if(tm.checkToken(INITIAL_LR_NM))
+        {
+            int n = istance->getNjobs()/istance->getNmachines();
+            oss.str(""); oss << "LR initial solution with "<<n<<" starting sequences";
+            printTab(oss.str().c_str());
+            // testIS(*istance);
+            init = new emili::pfsp::LRSolution(*istance,n);
+        }
     else if(tm.checkToken(INITIAL_NLR))
         {
         int n = tm.getInteger();
@@ -1371,6 +1381,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     {
         printTab( "Improved Approximated Insert for Total Completion Times with 1 level approximation and online tuned threshold");
         neigh = new emili::pfsp::NatxTCTNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_RZ_TCT_INSERT))
+    {
+        printTab( "iRZ neighborhood see PanRui2012");
+        neigh = new emili::pfsp::NrzTCTNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA_TT_INSERT))
     {

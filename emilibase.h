@@ -192,7 +192,8 @@ public:
 };
 
 /*
- *
+ * Triggers termination if the newSolution does not improve
+ * or max number of steps is reached
  */
 
 class MaxStepsOrLocmin : public emili::MaxStepsTermination
@@ -336,7 +337,10 @@ public:
 
 };
 
-
+/*
+ * This empty localsearch can be combined with ILS to
+ * create a Simulated annealing
+ */
 class EmptyLocalSearch: public emili::LocalSearch
 {
 public:
@@ -520,14 +524,14 @@ public:
 
 };
 
-class TabuNeighborhood: public emili::Neighborhood
+/*class TabuNeighborhood: public emili::Neighborhood
 {
 protected:
     int tabutenure;
 public:
     TabuNeighborhood(int tt_size):tabutenure(tt_size) { }
 };
-
+*/
 class BestTabuSearch: public emili::LocalSearch
 {
 protected:
