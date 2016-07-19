@@ -160,30 +160,20 @@ float getDecimalParam(prs::TokenManager& tm, std::string val) {
     return i;
 }
 
-int getIntPercentParam(prs::TokenManager& tm, std::string val, int max) {
-    int i;
+int getIntPercentParam(prs::TokenManager& tm, int max) {
     if(tm.checkToken("percent") || tm.checkToken("%")) {
-        i = tm.getInteger() * max / 100;
+        return tm.getInteger() * max / 100;
     } else {
-        i = tm.getInteger();
+        return tm.getInteger();
     }
-    std::ostringstream oss;
-    oss << val << ":" << i;
-    printTab(oss.str());
-    return i;
 }
 
-float getFloatPercentParam(prs::TokenManager& tm, std::string val, float max) {
-    float i;
+float getFloatPercentParam(prs::TokenManager& tm, float max) {
     if(tm.checkToken("percent") || tm.checkToken("%")) {
-        i = tm.getDecimal() * max / 100;
+        return tm.getDecimal() * max / 100;
     } else {
-        i = tm.getDecimal();
+        return tm.getDecimal();
     }
-    std::ostringstream oss;
-    oss << val << ":" << i << endl;
-    printTab(oss.str());
-    return i;
 }
 
 }
@@ -439,6 +429,105 @@ struct CheckBrac {
     }
 };
 
+void ExamTTParser::calculateHardweightFromFeatures() {
+    int Cap = 0;
+    for(emili::ExamTT::Room& r : instance.rooms)
+        Cap += r.capacity;
+    Cap *= instance.P();
+
+    int PHC = instance.examsCoincidence.size() + instance.examsAfter.size() + instance.examsExclusion.size();
+    int RHC = instance.examsRoomsExclusive.size();
+    int FLP = instance.institutionalWeightings.frontload.time;
+
+    int P = instance.P(),
+        R = instance.R(),
+        E = instance.E(),
+        S = instance.students.size();
+
+    std::string canonicalInstanceName = instanceFilename.rfind('/') == std::string::npos
+                ? instanceFilename
+                : instanceFilename.substr(instanceFilename.rfind('/') + 1); // set1.exam
+
+    std::cout << "instance name : " << canonicalInstanceName << endl;
+
+    double
+        CD = instance.meta.ConflictDensity,
+        ExR = 1.0 * E / (P * R),
+        SxE = [this, E, S](){ // sum(map(instance.numberOfExamsOfStudent, instance.students)) / E
+            // int s = 0;
+            // for(int student : instance.students)
+            //     s += instance.numberOfExamsOfStudent(student);
+            // return 1.0 * s / E;
+
+            std::map<int, int> numberOfExamsOfStudent;
+
+            for(int student : instance.students)
+                numberOfExamsOfStudent[student] = 0;
+
+            for(auto& e : instance.exams)
+                for(int student : e.students)
+                    numberOfExamsOfStudent[student]++;
+
+            int s = 0;
+            for(auto p : numberOfExamsOfStudent)
+                s += p.second;
+
+            return 1.0 * s / E;
+        }(),
+        SCap = 1.0 * S / Cap, // StudentCapacityRatio ?
+        PC = 0; // ?
+
+    static map<string, tuple<double,double>> InstanceDataMap = {
+        {"set1.exam", make_tuple(0.75, 15.93)},
+        {"set2.exam", make_tuple(0.23, 26.45)},
+        {"set3.exam", make_tuple(0.33, 34.11)},
+        {"set4.exam", make_tuple(0.86, 19.05)},
+        {"set5.exam", make_tuple(0.34, 72.62)},
+        {"set6.exam", make_tuple(0.56, 35.00)},
+        {"set7.exam", make_tuple(0.22, 43.63)},
+        {"set8.exam", make_tuple(0.43, 177.00)},
+        {"set9.exam", make_tuple(0.60, 32.80)},
+        {"set10.exam", make_tuple(0.13, 89.38)},
+        {"set11.exam", make_tuple(0.48, 51.08)},
+        {"set12.exam", make_tuple(0.20, 36.67)},
+    };
+
+    if(InstanceDataMap.count(canonicalInstanceName))
+        tie(SCap, PC) = InstanceDataMap[canonicalInstanceName];
+
+    // *) Check validator
+    // *) SxE ExR and PC
+    // 1) run more isntances
+    // 2) final temperature
+    // 3) how many accepting moves / temperature
+    // 4) cooling scheme
+
+    instance.hardWeight = 16.73100
+            + 102.30000 * CD
+            - 0.48330 * P
+            - 0.17740 * SxE
+            - 1.23900 * ExR
+            - 0.00076 * S
+            + 0.11590 * PHC
+            + 0.66660 * FLP
+            + 0.78080 * RHC
+            + 32.46000 * SCap
+            + 0.10100 * PC;
+
+    printTab("Features as in BSU Table 2 : ");
+    printTab("E S P R PHC RHC FLP CD ExR SxE S/Cap PC");
+
+    ostringstream oss;
+    oss << E << ' ' << S << ' ' << P << ' ' << R << ' '<< PHC << ' '<< RHC << ' '
+        << FLP << ' '<< CD << ' ' << ExR << ' ' << SxE << ' ' << SCap << ' ' << PC;
+    printTab(oss.str());
+    oss.str("");
+
+    oss << "Hard weight " << instance.hardWeight;
+    printTab(oss.str());
+    oss.str("");
+}
+
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
 {
     static const std::string SA_BSU = "sa-bsu";
@@ -500,6 +589,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(mustHaveInit && checkTokenParams(tm, FIRST, {"init", "term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto a = initializer(tm);
         auto b = termination(tm);
         auto c = neigh(tm);
@@ -507,12 +597,14 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(!mustHaveInit && checkTokenParams(tm, FIRST, {"term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto b = termination(tm);
         auto c = neigh(tm);
         return new emili::FirstImprovementSearch(*b, *c);
     }
     else if(mustHaveInit && checkTokenParams(tm, BEST, {"init", "term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto a = initializer(tm);
         auto b = termination(tm);
         auto c = neigh(tm);
@@ -520,6 +612,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(!mustHaveInit && checkTokenParams(tm, BEST, {"term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto b = termination(tm);
         auto c = neigh(tm);
         return new emili::BestImprovementSearch(*b, *c);
@@ -578,68 +671,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         double sr = 0.70;
         double wH = 21;
 
-        int Cap = 0;
-        for(emili::ExamTT::Room& r : instance.rooms)
-            Cap += r.capacity;
-        Cap *= instance.P();
-
-        int PHC = instance.examsCoincidence.size() + instance.examsAfter.size() + instance.examsExclusion.size();
-        int RHC = instance.examsRoomsExclusive.size();
-        int FLP = instance.institutionalWeightings.frontload.time;
-
-        int P = instance.P(),
-            R = instance.R(),
-            E = instance.E(),
-            S = instance.students.size();
-
-        double
-            CD = instance.meta.ConflictDensity,
-            PC = 0, // ?
-            ExR = 1.0 * E / (P * R),
-            SxE = [this, E, S](){ // sum(map(instance.numberOfExamsOfStudent, instance.students)) / E
-                /*
-                int s = 0;
-                for(int student : instance.students)
-                    s += instance.numberOfExamsOfStudent(student);
-                return 1.0 * s / E;
-                */
-
-                std::map<int, int> numberOfExamsOfStudent;
-
-                for(int student : instance.students)
-                    numberOfExamsOfStudent[student] = 0;
-
-                for(auto& e : instance.exams)
-                    for(int student : e.students)
-                        numberOfExamsOfStudent[student]++;
-
-                int s = 0;
-                for(auto p : numberOfExamsOfStudent)
-                    s += p.second;
-
-                return 1.0 * s / E;
-            }(),
-            SCap = 1.0 * S / Cap; // StudentCapacityRatio ?
-
-
-        // *) Check validator
-        // *) SxE ExR and PC
-        // 1) run more isntances
-        // 2) final temperature
-        // 3) how many accepting moves / temperature
-        // 4) cooling scheme
-
-        instance.hardWeight = 16.73100
-                + 102.30000 * CD
-                - 0.48330 * P
-                - 0.17740 * SxE
-                - 1.23900 * ExR
-                - 0.00076 * S
-                + 0.11590 * PHC
-                + 0.66660 * FLP
-                + 0.78080 * RHC
-                + 32.46000 * SCap,
-                + 0.10100 * PC;
+        calculateHardweightFromFeatures();
 
         // derived
         // double tmin = 0.50;
@@ -651,19 +683,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
 
         ostringstream oss;
 
-        printTab("Features as in BSU Table 2 : ");
-        printTab("E S P R PHC RHC FLP CD ExR SxE S/Cap PC");
-
-        oss << E << ' ' << S << ' ' << P << ' ' << R << ' '<< PHC << ' '<< RHC << ' '
-            << FLP << ' '<< CD << ' ' << ExR << ' ' << SxE << ' ' << SCap << ' ' << PC;
-        printTab(oss.str());
-        oss.str("");
-
         oss << "nA " << nA << " " << "nS " << nS;
-        printTab(oss.str());
-        oss.str("");
-
-        oss << "Hard weight " << instance.hardWeight;
         printTab(oss.str());
         oss.str("");
 
@@ -1190,31 +1210,37 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
     static const std::string NGroupedPeriodsDestructor = "grouped-periods";
 
     TabLevel l;
+    ostringstream oss;
+    oss << prefix << ": ";
 
-    const std::vector<std::string> available = {
+    static const std::vector<std::string> available = {
         FixedRandomDestructor, NRandomDaysDestructor, NGroupedDaysDestructor,
         NGroupedPeriodsDestructor,
     };
 
-    if(checkTokenParams(tm, FixedRandomDestructor, {"N"}, prefix)) {
-        TabLevel l;
+    if(tm.checkToken(FixedRandomDestructor)) {
         CheckBrac br(tm);
-        int N = getIntPercentParam(tm, "N", instance.E());
+        int N = getIntPercentParam(tm, instance.E());
+        oss << FixedRandomDestructor << "(N = " << N << ")";
+        printTab(oss.str());
         return new emili::ExamTT::FixedRandomDestructor(instance, N);
-    } else if(checkTokenParams(tm, NRandomDaysDestructor, {"N"}, prefix)) {
-        TabLevel l;
+    } else if(tm.checkToken(NRandomDaysDestructor)) {
         CheckBrac br(tm);
-        int N = getIntPercentParam(tm, "N", instance.Days());
+        int N = getIntPercentParam(tm, instance.Days());
+        oss << NRandomDaysDestructor << "(N = " << N << ")";
+        printTab(oss.str());
         return new emili::ExamTT::NRandomDaysDestructor(instance, N);
-    } else if(checkTokenParams(tm, NGroupedDaysDestructor, {"N"}, prefix)) {
-        TabLevel l;
+    } else if(tm.checkToken(NGroupedDaysDestructor)) {
         CheckBrac br(tm);
-        int N = getIntPercentParam(tm, "N", instance.Days());
+        int N = getIntPercentParam(tm, instance.Days());
+        oss << NGroupedDaysDestructor << "(N = " << N << ")";
+        printTab(oss.str());
         return new emili::ExamTT::NGroupedDaysDestructor(instance, N);
-    } else if(checkTokenParams(tm, NGroupedPeriodsDestructor, {"N"}, prefix)) {
-        TabLevel l;
+    } else if(tm.checkToken(NGroupedPeriodsDestructor)) {
         CheckBrac br(tm);
-        int N = getIntPercentParam(tm, "N", instance.P());
+        int N = getIntPercentParam(tm, instance.P());
+        oss << NGroupedPeriodsDestructor << "(N = " << N << ")";
+        printTab(oss.str());
         return new emili::ExamTT::NGroupedPeriodsDestructor(instance, N);
     }
 
@@ -1293,7 +1319,7 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
     return nullptr;
 }
 
-emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm, bool errorIfNotFound)
+emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm, bool errorIfNotFound, string prefix)
 {
     const static std::string MoveNeighborhood = "move";
     const static std::string SwapNeighborhood = "swap";
@@ -1305,15 +1331,22 @@ emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm, bool errorIfNotF
 
     prs::TabLevel level;
 
-    printTab(*tm);
+    ostringstream oss;
+    oss << prefix << ": ";
 
     if(tm.checkToken(MoveNeighborhood)) {
+        oss << MoveNeighborhood;
+        printTab(oss.str());
         return new emili::ExamTT::MoveNeighborhood(instance);
     }
     else if(tm.checkToken(SwapNeighborhood)) {
+        oss << SwapNeighborhood;
+        printTab(oss.str());
         return new emili::ExamTT::SwapNeighborhood(instance);
     }
     else if(tm.checkToken(KempeChainNeighborhoodFastIter)) {
+        oss << KempeChainNeighborhoodFastIter;
+        printTab(oss.str());
         return new emili::ExamTT::KempeChainNeighborhoodFastIter(instance);
     }
 
@@ -1349,7 +1382,9 @@ void ExamTTParser::problem(prs::TokenManager& tm)
 {
     tm.nextToken();
     emili::ExamTT::InstanceParser parser(tm.tokenAt(1));
+    instanceFilename = tm.tokenAt(1);
     parser.parse(instance);
+    calculateHardweightFromFeatures();
 }
 
 emili::LocalSearch* ExamTTParser::buildAlgo(prs::TokenManager& tm)

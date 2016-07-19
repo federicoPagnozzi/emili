@@ -48,6 +48,12 @@ public:
     std::string tr_type; // temperature restart
 
     SAStatus(void) {
+        reset();
+    }
+
+    void reset() {
+        temp = init_temp;
+
         counter = 0;
         total_counter = 0;
         temp_counter = 0;

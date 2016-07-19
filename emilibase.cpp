@@ -349,6 +349,8 @@ emili::Solution* emili::Neighborhood::NeighborhoodIterator::operator *()
 emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::begin(emili::Solution *startSolution)
 {
     // do not reset here because of FirstImprovement behaviour !
+    if(needToResetWhenInstanceChanged) // unless problem (like kempe neigh)
+        reset();
     return emili::Neighborhood::NeighborhoodIterator(this,startSolution);
 }
 
@@ -527,7 +529,7 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
             }
         }
         delete ithSolution;
-    } while(!termcriterion->terminate(bestSoFar,incumbent));
+    } while(!termcriterion->terminate(bestSoFar, incumbent));
     delete incumbent;
     return bestSoFar;
 }
@@ -562,20 +564,23 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 
     //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
     Neighborhood::NeighborhoodIterator end = neighbh->end();
-    do{
-
+    do {
         *bestSoFar = *incumbent;
+        // std::cout << "Best = Incumbent = " << bestSoFar << ", " << bestSoFar->getSolutionValue() << std::endl;
         Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent); // incumbent may be different from initial ? This causes problem in Kempe Neighborhood
         ithSolution = *iter;
-
-        for(;iter!=end;++iter)
+        // std::cout << "  Ith = " << ithSolution << ", " << ithSolution->getSolutionValue() << std::endl;
+        int nIter = 0;
+        for(;iter!=end;++iter, ++nIter)
         {
+            // std::cout << "  Ith after " << nIter << " = " << ithSolution << ", " << ithSolution->getSolutionValue() << " : " << ithSolution->getSolutionRepresentation() <<  std::endl;
             if(*ithSolution < *incumbent) {
                 *incumbent = *ithSolution;
                 break;
             }
         }
         delete ithSolution;
+        // std::cout << "  Incumbent in the end after " << nIter << " = " << incumbent->getSolutionValue() << std::endl;
     }while(!termcriterion->terminate(bestSoFar,incumbent));
     delete incumbent;
     return bestSoFar;
@@ -928,7 +933,7 @@ emili::Solution *emili::MyIteratedLocalSearch::search(emili::Solution * initial)
     bestSoFar = ls->searchBehave(initial, Behaviour::FUNC);
 
     Solution* sol = bestSoFar->clone();
-    do {
+    for(;;) {
         Solution* newSol = per->perturbBehave(sol, Behaviour::FUNC);
         newSol = ls->searchBehave(newSol, Behaviour::VOID);
 
@@ -946,7 +951,7 @@ emili::Solution *emili::MyIteratedLocalSearch::search(emili::Solution * initial)
         }
         if(done);
             break;
-    } while(true);
+    }
 
     delete sol;
 

@@ -3337,6 +3337,7 @@ KempeChainNeighborhood::KempeChainNeighborhood(const ExamTT &instance_)
     : instance(instance_)
 {
     reset();
+    const_cast<bool&>(needToResetWhenInstanceChanged) = true;
 }
 
 void KempeChainNeighborhood::iterate(Solution* rawStep, std::function<void ()> yield) {

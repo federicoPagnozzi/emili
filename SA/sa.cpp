@@ -3,13 +3,16 @@
 emili::Solution* SimulatedAnnealing::search() {
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
-    if(current!=sol)
-    delete current;
+    if(current != sol)
+        delete current;
 
     return sol;
 } // end search
 
 emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
+    reset();
+    terminationCriterion->reset();
+
     emili::Solution* incumbent = init->generateEmptySolution();
     // emili::Solution* accepted;
     *incumbent = *initial;
@@ -38,5 +41,5 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
 void SimulatedAnnealing::reset(void) {
     temp = status->init_temp;
-    status->temp = status->init_temp;
+    status->reset();
 }

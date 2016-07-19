@@ -27,6 +27,7 @@ public:
 protected:    
     //insert a variable to hold the problem instance
     emili::ExamTT::ExamTT instance;
+    std::string instanceFilename;
     emili::LocalSearch* search(prs::TokenManager& tm, bool mustHaveInit, string prefix = "search");
     emili::BestTabuSearch* tparams(prs::TokenManager& tm);
     emili::TabuMemory* tmemory(emili::Neighborhood* n,prs::TokenManager& tm);
@@ -40,10 +41,12 @@ protected:
     emili::Destructor* destructor(prs::TokenManager&, string prefix = "destructor");
     emili::ExamTT::InsertHeuristic* insertHeuristic(prs::TokenManager& tm, string prefix = "insertHeuristic");
 
-    emili::Neighborhood* neigh(prs::TokenManager& tm, bool errorIfNotFound = true);
+    emili::Neighborhood* neigh(prs::TokenManager& tm, bool errorIfNotFound = true, string prefix = "neighborhood");
     std::vector<emili::Neighborhood *> neighs(prs::TokenManager& tm);
 
     void problem(prs::TokenManager& tm);
+
+    void calculateHardweightFromFeatures();
 
     struct SAParser : SAQAPParser {
         SimulatedAnnealing* buildSA(prs::TokenManager& tm, emili::InitialSolution* initsol, emili::Neighborhood* nei);

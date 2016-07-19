@@ -233,7 +233,7 @@ protected:
     virtual Solution* computeStep(Solution* step)=0;
 
     /**
-     * First call to computeStep will be computeFirstStep
+     * First call (in begin()) to computeStep will be computeFirstStep
      * Useful when the neighborhood wants to setup init variables
      *
      * defaults to computeStep
@@ -273,6 +273,8 @@ public:
         emili::Solution* line_;
         emili::Neighborhood* n;
     };
+
+    const bool needToResetWhenInstanceChanged = false;
 
     /**
      * Used in iterator based iteration :
@@ -752,6 +754,9 @@ public:
      */
     const bool ONLY_NEED_DELTA = false;
 
+    /**
+     * @brief reset will be used if the algo is used repeatedly
+     */
     virtual void reset() { }
     virtual ~Acceptance() {}
 };
@@ -1192,10 +1197,14 @@ public:
         bool terminate = false;
         Solution* sol = solInit->clone(); // FUNC behaviour
         while(! terminate) {
+            // std::cout << "Starting from " << sol << ", " << sol->getSolutionValue() << " ";
+            // std::cout.flush();
+
             Solution* newSol = dest->destructBehave(sol, Behaviour::FUNC);
             newSol = cons->searchBehave(newSol, Behaviour::VOID);
             newSol = ls->searchBehave(newSol, Behaviour::VOID);
 
+            // std::cout << "Found:" << newSol->getSolutionValue() << std::endl;
             if(*newSol < *bestSoFar)
                 *bestSoFar = *newSol;
 
