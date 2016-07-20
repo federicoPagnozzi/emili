@@ -552,8 +552,8 @@ public:
      * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds, Solution* initial);
+    virtual Solution* timedSearch(int seconds) final;
+    virtual Solution* timedSearch(int seconds, Solution* initial) final;
 
     /*
      * In order to make easier the creation of batchs of LocalSearch objects the time of execution
@@ -584,9 +584,9 @@ public:
         const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
     }
 
-    virtual Solution* search(Solution* initial) { return initial->clone(); }
-    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone(); }
-    virtual Solution* timedSearch(Solution* initial) { return initial->clone(); }
+    Solution* search(Solution* initial) override { return initial->clone(); }
+    // virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone(); }
+    // virtual Solution* timedSearch(Solution* initial) { return initial->clone(); }
 };
 
 class IdentityLocalSearch: public emili::LocalSearch
@@ -606,9 +606,9 @@ public:
         const_cast<Behaviour&>(behaviour) = Behaviour::VOID;
     }
 
-    virtual Solution* search(Solution* initial) { return initial; }
-    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial; }
-    virtual Solution* timedSearch(Solution* initial) {return initial; }
+    Solution* search(Solution* initial) override { return initial; }
+    // Solution* timedSearch(int seconds, Solution *initial) { return initial; }
+    // Solution* timedSearch(Solution* initial) {return initial; }
 };
 
 /*
@@ -811,11 +811,11 @@ protected:
 public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationcriterion,Perturbation& perturb,Acceptance& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationcriterion,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}
 
-    virtual Solution* search();
-    virtual Solution* search(emili::Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
-    virtual Solution* getBestSoFar();
+    Solution* search() override;
+    Solution* search(emili::Solution* initial) override;
+    // virtual Solution* timedSearch(int seconds);
+    // virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    Solution* getBestSoFar() override;
 };
 
 class MyIteratedLocalSearch : public emili::LocalSearch
@@ -1092,9 +1092,9 @@ public:
   * @return new solution fully constructed (not partial)
   */
   virtual emili::Solution* constructFull() = 0;
-  virtual emili::Solution* search() {return constructFull(); }
-  virtual emili::Solution* search(emili::Solution* initial) { return construct(initial); }
-  virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial); }
+  emili::Solution* search() override {return constructFull(); }
+  emili::Solution* search(emili::Solution* initial) override { return construct(initial); }
+  // virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial); }
 
   emili::Solution* constructBehave(Solution* initial, Behaviour target) {
       return applyWithBehaviour(behaviour, target, initial, [this](Solution* sol){

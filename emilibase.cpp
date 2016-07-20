@@ -384,17 +384,6 @@ emili::Solution* emili::LocalSearch::search()
     return sol;
 }
 
-emili::Solution* emili::LocalSearch::timedSearch(int time_seconds)
-{
-    neighbh->reset();
-    emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = timedSearch(time_seconds,current);
-    if(current!=sol)
-        delete current;
-
-    return sol;
-}
-
 emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
 {
     termcriterion->reset();
@@ -428,9 +417,18 @@ void emili::LocalSearch::searchInPlace(Solution *initial) {
     bestSoFar = initial; // if the caller did keep the reference
 }
 
+emili::Solution* emili::LocalSearch::timedSearch(int time_seconds)
+{
+    setTimer(time_seconds);
+    beginTime = clock();
+    localsearch = this;
+    emili::Solution* s = search();
+    stopTimer();
+    return s;
+}
+
 emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *initial)
 {
-
     setTimer(time_seconds);
     beginTime = clock();
     localsearch = this;
@@ -441,20 +439,22 @@ emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *ini
 
 emili::Solution* emili::LocalSearch::timedSearch()
 {
-    neighbh->reset();
-    emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = timedSearch(seconds,current);
-    if(current!=sol)
-        delete current;
-
-    return sol;
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
+    emili::Solution* s = search();
+    stopTimer();
+    return s;
 }
 
 emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
 {
-    neighbh->reset();
-    emili::Solution* sol = timedSearch(seconds,initial);
-    return sol;
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
+    emili::Solution* s = search(initial);
+    stopTimer();
+    return s;
 }
 
 int emili::LocalSearch::getSearchTime()
@@ -958,15 +958,14 @@ emili::Solution *emili::MyIteratedLocalSearch::search(emili::Solution * initial)
     return bestSoFar;
 }
 
+/*
 emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
 {
         termcriterion->reset();
         acc.reset();
         localsearch = this;
         setTimer(maxTime);
-        /*
-            search start
-        */
+        // search start
         beginTime = clock();
         bestSoFar = init->generateSolution();
         emili::Solution*  s = ls.search(bestSoFar);
@@ -1013,9 +1012,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         acc.reset();
         setTimer(maxTime);
         localsearch = this;
-        /*
-            search start
-        */
+        // search start
         beginTime = clock();
         bestSoFar = initial;
         bestSoFar = ls.search(initial);
@@ -1054,6 +1051,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         stopTimer();
         return bestSoFar;
 }
+*/
 
 emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 {
