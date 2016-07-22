@@ -3135,6 +3135,7 @@ MoveNeighborhood::MoveNeighborhood(const ExamTT &instance_)
     : instance(instance_)
 {
     reset();
+    const_cast<bool&>(needToResetWhenInstanceChanged) = true;
 }
 
 Neighborhood::NeighborhoodIterator MoveNeighborhood::begin(Solution *base) {
@@ -3289,6 +3290,7 @@ SwapNeighborhood::SwapNeighborhood(const ExamTT &instance_)
     : instance(instance_)
 {
     reset();
+    const_cast<bool&>(needToResetWhenInstanceChanged) = true;
 }
 
 Solution *SwapNeighborhood::step(Solution *currentSolution)
