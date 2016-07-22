@@ -3265,9 +3265,9 @@ void SwapNeighborhood::iterate(Solution *rawStep, std::function<void ()> yield) 
 
 Solution *SwapNeighborhood::computeStep(Solution *rawStep) {
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
-    int E = instance.students.size();
+    int E = instance.E();
 
-    if(e1 == E)
+    if(e1 >= E - 1)
         return nullptr;
 
     sol->swap(instance, e1, e2);
