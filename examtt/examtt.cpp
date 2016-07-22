@@ -3277,7 +3277,7 @@ Solution *SwapNeighborhood::computeStep(Solution *rawStep) {
 
 void SwapNeighborhood::reverseLastMove(Solution *rawStep) {
     ExamTTSolution* sol = (ExamTTSolution*) rawStep;
-    int E = instance.students.size();
+    int E = instance.E();
 
     sol->swap(instance, e1, e2);
 
@@ -3302,7 +3302,7 @@ void SwapNeighborhood::reset() {
 }
 
 int SwapNeighborhood::size() {
-    int E = instance.students.size();
+    int E = instance.E();
     return E * (E-1) / 2;
 }
 
