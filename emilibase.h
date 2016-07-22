@@ -606,7 +606,7 @@ public:
         const_cast<Behaviour&>(behaviour) = Behaviour::VOID;
     }
 
-    Solution* search(Solution* initial) override { return initial; }
+    Solution* search(Solution* initial) override { setBestSoFar(initial); return initial; }
     // Solution* timedSearch(int seconds, Solution *initial) { return initial; }
     // Solution* timedSearch(Solution* initial) {return initial; }
 };
@@ -942,6 +942,7 @@ public:
                 i = i+1;
             }
         }while(i < neigh.size());
+        T::setBestSoFar(incumbent);
         return incumbent;
     }
 };

@@ -502,7 +502,17 @@ void ExamTTParser::calculateHardweightFromFeatures() {
     // 3) how many accepting moves / temperature
     // 4) cooling scheme
 
-    instance.hardWeight = 16.73100
+    static const bool USE_FORMULA_1 = true;
+
+    if(USE_FORMULA_1) {
+        instance.hardWeight = 23.45040
+            - 0.01924   * E
+            + 29.10456  * SCap
+            - 191.44258 * CD
+            - 0.05139   * PC
+            - 0.11727   * R;
+    } else {
+        instance.hardWeight = 16.73100
             + 102.30000 * CD
             - 0.48330 * P
             - 0.17740 * SxE
@@ -513,6 +523,10 @@ void ExamTTParser::calculateHardweightFromFeatures() {
             + 0.78080 * RHC
             + 32.46000 * SCap
             + 0.10100 * PC;
+    }
+
+    if(instance.hardWeight < 1) // also negative ones...
+        instance.hardWeight = 1;
 
     printTab("Features as in BSU Table 2 : ");
     printTab("E S P R PHC RHC FLP CD ExR SxE S/Cap PC");
@@ -617,7 +631,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         auto c = neigh(tm);
         return new emili::BestImprovementSearch(*b, *c);
     }
-    else if(mustHaveInit && checkTokenParams(tm, SA, {"init", "nei", "inittemp", "acceptance", "cooling", "term", "templ"}, prefix))
+    else if(mustHaveInit && checkTokenParams(tm, SA, {"init", "neigh", "inittemp", "acceptance", "cooling", "term", "templ"}, prefix))
     {
         auto initsol = initializer(tm);
         auto nei = neigh(tm);
@@ -963,7 +977,8 @@ emili::Perturbation* ExamTTParser::perturbation(prs::TokenManager& tm, std::stri
     static const std::string constructperturb = "construct-perturb";
 
     static const std::vector<std::string> available = {
-        NO, RandomMovePerturbationInPlace,
+        NO, RandomMovePerturbationInPlace, VNRandomMovePerturbationInPlace,
+        constructperturb
     };
 
     prs::TabLevel level;

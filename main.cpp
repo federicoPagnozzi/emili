@@ -56,15 +56,15 @@ int main(int argc, const char *argv[])
 
     int pls = ls->getSearchTime(); // ps.ils_time;
 
-    emili::Solution* returnedSolution = pls > 0 ? ls->timedSearch(pls) : ls->search();
+    emili::Solution* solution = pls > 0 ? ls->timedSearch(pls) : ls->search();
 
-    emili::Solution* solution = ls->getBestSoFar();
+    emili::Solution* solutionBestSoFar = ls->getBestSoFar();
 
     using std::cout;
     using std::cerr;
     using std::endl;
 
-    if(returnedSolution != solution) {
+    if(solutionBestSoFar != solution) {
         cout << "Warning: " << "LocalSearch::search did not returned the same as BestSoFar" << endl;
     }
 
@@ -77,6 +77,7 @@ int main(int argc, const char *argv[])
         << "numberOfTotalCompute: " << emili::ExamTT::ExamTTSolution::numberOfTotalCompute << endl
     ;
 
+    // print best value so that irace will know about it
     cerr << std::fixed << solution->getSolutionValue() << endl;
 
     return 0;

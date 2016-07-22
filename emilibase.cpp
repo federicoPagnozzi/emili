@@ -424,6 +424,7 @@ emili::Solution* emili::LocalSearch::timedSearch(int time_seconds)
     localsearch = this;
     emili::Solution* s = search();
     stopTimer();
+    setBestSoFar(s);
     return s;
 }
 
@@ -434,6 +435,7 @@ emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *ini
     localsearch = this;
     emili::Solution* s = search(initial);
     stopTimer();
+    setBestSoFar(s);
     return s;
 }
 
@@ -444,6 +446,7 @@ emili::Solution* emili::LocalSearch::timedSearch()
     localsearch = this;
     emili::Solution* s = search();
     stopTimer();
+    setBestSoFar(s);
     return s;
 }
 
@@ -454,6 +457,7 @@ emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
     localsearch = this;
     emili::Solution* s = search(initial);
     stopTimer();
+    setBestSoFar(s);
     return s;
 }
 
