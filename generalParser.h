@@ -22,20 +22,55 @@ protected:
     char** tokens;
     int numberOfTokens;
     int currentToken;
+    int previousCurrentToken;
 public:
-    TokenManager(char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(0) { }
+    TokenManager(char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(0),previousCurrentToken(0) { }
+    /*
+     * comsumes the token and return it
+        */
     char* nextToken();
+    /*
+     * returns the token without consuming it
+     */
     char* peek();
     // same as peek
     char* operator *();
+    /*
+     * consumes the token
+    */
     void next();
     // same as next
     void operator ++(int);
     int getInteger();
     float getDecimal();
+    /*
+     * check if the parameter matches the current token
+     *  if it does the token is consumed and it returns true.
+    */
     bool checkToken(std::string& token);
     bool checkToken(const char* );
+    /*
+     * returns the token at position i
+    */
     char* tokenAt(int i);
+    /*
+     * return the position of the string in the token list if present, -1 otherwise
+    */
+    int seek(const char*);
+    /*
+     * moves the current token to position i and return true.
+     * returns false if the position is less than zero or more than the number of tokens
+     *
+    */
+    bool move(int i);
+    /*
+     * restores the current token index to before the last move operation
+    */
+    void restore();
+    /*
+    * returns true if there are more tokens to parse
+    */
+    bool hasMoreTokens();
 
 };
 
