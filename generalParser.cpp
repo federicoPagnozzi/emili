@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "6535d730afa1766cdebe220217140ef7dfdc3243"
+#define GIT_COMMIT_NUMBER "69a12f3106810feacafb7cdf2868023e04bf4a4f"
 
 int tab_level = 0;
 
@@ -157,6 +157,40 @@ bool prs::TokenManager::checkToken(const char* token)
         return false;
 }
 
+bool prs::TokenManager::hasMoreTokens()
+{
+    return currentToken < numberOfTokens;
+}
+
+bool prs::TokenManager::move(int i)
+{
+    if(i>=0 && i<numberOfTokens)
+    {
+            previousCurrentToken = currentToken;
+            currentToken = i;
+            return true;
+    }
+    return false;
+}
+
+void prs::TokenManager::restore()
+{
+    currentToken = previousCurrentToken;
+}
+
+int prs::TokenManager::seek(const char * token)
+{
+    for(int i=0;i<numberOfTokens;i++)
+    {
+        if(strcmp(tokens[i],token)==0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 int prs::TokenManager::getInteger()
 {
     char* t = peek();
@@ -226,9 +260,11 @@ int getTime(prs::TokenManager& tm,int problemSize)
 int getSeed(prs::TokenManager& tm)
 {
     int rnds = 0;
-    if(tm.checkToken(RNDSEED))
+    if(tm.move(tm.seek(RNDSEED)))
     {
+        tm++;
         rnds = tm.getInteger();
+        tm.restore();
     }
     std::cout << "Random seed : " << rnds << std::endl;
     return rnds;
@@ -248,9 +284,9 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
         AlgoBuilder* bld = *iter;
         if(bld->isParsable(prob))
         {
-            emili::LocalSearch* ls = bld->buildAlgo(tm);
-            ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
             emili::initializeRandom(getSeed(tm));
+            emili::LocalSearch* ls = bld->buildAlgo(tm);                        
+            ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));            
             if(tm.checkToken(PRINT_SOLUTION))
             {
                 emili::set_print(true);
