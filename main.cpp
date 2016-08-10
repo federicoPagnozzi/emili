@@ -65,6 +65,8 @@ prs::emili_header();
     std::cout << "searching..." << std::endl;
     //SAPFSPParser p;
     SAQAPParser p;
+    //pls = atoi(argv[2]);
+    //int seed = atoi(argv[3]);
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
     ls = ps.parseParams();
@@ -75,11 +77,11 @@ prs::emili_header();
     }
     pls = ls->getSearchTime();//ps.ils_time;
 #else
-    pls = atoi(argv[2]);
-    int seed = atoi(argv[3]);
     emili::initializeRandom(seed);
     time = clock();
 #endif
+    pls = atoi(argv[2]);
+    int seed = atoi(argv[3]);
     emili::Solution* solution;
     if(pls>0)
     {

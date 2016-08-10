@@ -449,6 +449,9 @@ public:
         double bestcost = c2,
                costsum = 0;
 
+        maxdelta = 0;
+        mindelta = bestcost;
+
         for (i = 0 ; i < length ; i++) {
             s1 = s2;
             s2 = nei->random(s1);; //is->generateSolution();
@@ -474,6 +477,8 @@ public:
 
         ti = (1 - l11 - l12) * mindelta + l11 * avgdelta + l12 * maxdelta;
         tf = (1 - l21 - l22) * mindelta + l12 * avgdelta + l22 * maxdelta;
+
+        std::cout << std::fixed << mindelta << " " << avgdelta << " " << maxdelta << std::endl;
 
         return ti;
     }

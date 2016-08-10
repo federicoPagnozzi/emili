@@ -409,6 +409,7 @@ public:
                 setA(1);
                 setB(0);
                 in_fixed_temp_state = true;
+                std::cout << "stopped cooling at: " << status->best_temp << std::endl;
                 return status->best_temp;
             }
 
@@ -416,7 +417,9 @@ public:
             status->step = status->step + 1;
             float tmp = (temp / (a + b*temp));
 
-            return tempRestart->adjust(tmp);
+            tmp = tempRestart->adjust(tmp);
+            std::cout << "cooling at: " << tmp << std::endl;
+            return tmp;
 
         }
 
@@ -470,6 +473,7 @@ public:
                 setA(1);
                 setB(0);
                 in_fixed_temp_state = true;
+                std::cout << "stopped cooling at: " << status->best_temp << std::endl;
                 return status->best_temp;
             }
 
@@ -478,7 +482,9 @@ public:
             
             float tmp = (temp / (1 + b*temp));
 
-            return tempRestart->adjust(tmp);
+            tmp = tempRestart->adjust(tmp);
+            std::cout << "cooling at: " << tmp << std::endl;
+            return tmp;
 
         }
 
