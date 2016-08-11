@@ -126,36 +126,37 @@ void prs::TokenManager::operator ++(int k)
 const char* prs::TokenManager::tokenAt(int i)
 {
     if(i < numberOfTokens)
-    {
         return tokens[i];
-    }
+
     return nullptr;
 }
 
 bool prs::TokenManager::checkToken(std::string const& token)
 {
-    if(currentToken < numberOfTokens)
-    {
-        if(tokens[currentToken] == token)
-        {
-            currentToken++;
-            return true;
-        }
+    if(peekIs(token)) {
+        currentToken++;
+        return true;
+    } else {
+        return false;
     }
-    return false;
 }
 
 bool prs::TokenManager::checkToken(const char* token)
 {
-    if(currentToken < numberOfTokens)
-    {
-        if(strcmp(tokens[currentToken], token)==0)
-        {
-            currentToken++;
-            return true;
-        }
+    if(peekIs(token)) {
+        currentToken++;
+        return true;
+    } else {
+        return false;
     }
-    return false;
+}
+
+bool prs::TokenManager::peekIs(const char* token) {
+    return currentToken < numberOfTokens && strcmp(tokens[currentToken], token) == 0;
+}
+
+bool prs::TokenManager::peekIs(std::string const& token) {
+    return currentToken < numberOfTokens && tokens[currentToken] == token;
 }
 
 bool prs::TokenManager::checkInteger(int & res) {
@@ -227,56 +228,8 @@ float prs::TokenManager::getDecimal()
 
 bool prs::AlgoBuilder::operator ==(const AlgoBuilder& b)
 {
-    if(this->availableProblems()==b.availableProblems())
-    {
-        return true;
-    }
-    return false;
+    return this->availableProblems() == b.availableProblems();
 }
-
-
-int getTime(prs::TokenManager& tm,int problemSize)
-{
-        if(tm.checkToken(IT))
-        {
-            int n = tm.getInteger();
-            std::ostringstream oss;
-            oss << "Run time secs : " << n;
-            //printTab(oss.str().c_str());
-            std::cout << oss.str() << std::endl;
-            return n;
-        }
-        else if(tm.checkToken(RO))
-        {
-            float d = tm.getDecimal();
-            float time = d*problemSize;
-            int n = floorf(time);
-            std::ostringstream oss;
-            oss << "Rho = "<< d << " Run time secs : " << n;
-            //printTab(oss.str().c_str());
-            std::cout << oss.str() << std::endl;
-            return n;
-        }
-
-
-    return DEFAULT_IT;
-}
-
-int getSeed(prs::TokenManager& tm)
-{
-    int rnds = 0;
-    if(tm.checkToken(RNDSEED))
-    {
-        if(tm.checkToken("random")) {
-            rnds = emili::getRandomSeedFromRandom();
-        } else {
-            rnds = tm.getInteger();
-        }
-    }
-    std::cout << "Random seed : " << rnds << std::endl;
-    return rnds;
-}
-
 
 emili::LocalSearch* prs::GeneralParser::parseParams()
 {
@@ -286,18 +239,33 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
     if(p != nullptr)
     {
         std::string prob(p);
-        // Is the project c++11 ? Should we put for(AlgoBuilder* bld : builders) ?
-        for(std::vector< AlgoBuilder*> ::iterator iter= builders.begin(); iter!=builders.end(); ++iter)
-        {
-            AlgoBuilder* bld = *iter;
+        for(AlgoBuilder* bld : builders) {
             if(bld->isParsable(prob))
             {
                 emili::LocalSearch* ls = bld->buildAlgo(tm);
                 emili::Problem* instance = bld->getInstance();
                 if(! instance)
                     instance = &ls->getInitialSolution().getProblem();
-                ls->setSearchTime(getTime(tm, instance->problemSize()));
-                emili::initializeRandom(getSeed(tm));
+
+                noSearch = false;
+                int it = DEFAULT_IT;
+                int seed = 0;
+                for(;;) {
+                    if(tm.checkToken("no-search"))
+                        noSearch = true;
+                    else if(tm.checkToken(IT))
+                        it = tm.getInteger();
+                    else if(tm.checkToken(RO))
+                        it = floorf(tm.getDecimal() * instance->problemSize());
+                    else if(tm.checkToken(RNDSEED))
+                        seed = tm.getInteger();
+                    else
+                        break;
+                }
+                std::cout << "Run time secs : " << it << std::endl;
+                std::cout << "Random seed : " << seed << std::endl;
+                ls->setSearchTime(it);
+                emili::initializeRandom(seed);
                 return ls;
             }
         }
@@ -317,14 +285,8 @@ void prs::GeneralParser::registerBuilder(AlgoBuilder* builder)
 
 void prs::GeneralParser::removeBuilder(AlgoBuilder* builder)
 {
-    int ind = 0;
-    for(;ind<builders.size();ind++)
-    {
-        if(builder == builders[ind])
-        {
-            builders.erase(builders.begin()+ind);
-            return;
-        }
-    }
+    auto it = std::find(builders.begin(), builders.end(), builder);
+    if(it != builders.end())
+        builders.erase(it);
 }
 

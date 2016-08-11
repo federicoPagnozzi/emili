@@ -24,14 +24,16 @@ public:
     static void genericError(std::string name);
     static void genericError(std::ostringstream&);
     static void errorExpected(prs::TokenManager& tm, std::string name, std::vector<std::string> const& tokens);
+public:
+    emili::ExamTT::ExamTT instance;
 protected:    
     //insert a variable to hold the problem instance
-    emili::ExamTT::ExamTT instance;
     std::string instanceFilename;
     emili::LocalSearch* search(prs::TokenManager& tm, bool mustHaveInit, string prefix = "search");
-    emili::BestTabuSearch* tparams(prs::TokenManager& tm);
-    emili::TabuMemory* tmemory(emili::Neighborhood* n,prs::TokenManager& tm);
+    emili::BestTabuSearch* tabu(prs::TokenManager& tm);
+    emili::TabuMemory* tabuMemory(emili::Neighborhood* n,prs::TokenManager& tm);
     emili::LocalSearch* vnd(prs::TokenManager& tm, bool mustHaveInit, string prefix = "vnd");
+    void globalParams(prs::TokenManager& tm);
 
     emili::InitialSolution* initializer(prs::TokenManager& tm, string prefix = "initializer");
     emili::Termination* termination(prs::TokenManager& tm, string prefix = "termination");
@@ -46,7 +48,7 @@ protected:
 
     void problem(prs::TokenManager& tm);
 
-    void calculateHardweightFromFeatures();
+    double getHardweightFromFeatures(bool USE_FORMULA_1 = true);
 
     struct SAParser : SAQAPParser {
         SimulatedAnnealing* buildSA(prs::TokenManager& tm, emili::InitialSolution* initsol, emili::Neighborhood* nei);

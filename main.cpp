@@ -37,10 +37,10 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    prs::ExamTT::ExamTTParser p;
+    prs::ExamTT::ExamTTParser examParser;
 
     prs::GeneralParser ps(argv,argc);
-    ps.registerBuilder(&p);
+    ps.registerBuilder(&examParser);
 
     emili::LocalSearch* ls = nullptr;
 
@@ -54,9 +54,16 @@ int main(int argc, const char *argv[])
         return -1;
     }
 
+    if(ps.noSearch) {
+        std::cout << "No search" << std::endl;
+        return 0;
+    }
+
     int pls = ls->getSearchTime(); // ps.ils_time;
 
+    ls->theInstance = &examParser.instance; // only used in finalise
     emili::Solution* solution = pls > 0 ? ls->timedSearch(pls) : ls->search();
+    // if pls > 0 and solution times out, look at finalise function in emilibase.cpp
 
     emili::Solution* solutionBestSoFar = ls->getBestSoFar();
 
@@ -77,8 +84,8 @@ int main(int argc, const char *argv[])
         << "numberOfTotalCompute: " << emili::ExamTT::ExamTTSolution::numberOfTotalCompute << endl
     ;
 
-    // print best value so that irace will know about it
-    cerr << std::fixed << solution->getSolutionValue() << endl;
+    examParser.instance.finaliseSolution(solution); // will apply final hardweight
+    cerr << std::fixed << solution->getSolutionValue() << endl; // to inform hook-run about the value found
 
     return 0;
 }

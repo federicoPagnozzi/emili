@@ -51,6 +51,7 @@ const std::string
 
 // Termination criteria
     TERMINATION_MAXSTEPS = "maxstep",
+    TERMINATION_MAXSTEPS_DEBUG = "maxstep-debug",
     TERMINATION_TIME = "time",
     TERMINATION_LOCMIN = "locmin",
     TERMINATION_ITERA = "iteration",
@@ -217,6 +218,7 @@ struct ArgParser {
     std::map<std::string, int> dataInt;
     std::map<std::string, bool> dataBool;
     std::map<std::string, float> dataFloat;
+    std::map<std::string, std::string> dataString;
     std::vector<std::string> order;
     std::set<std::string> given;
     std::set<std::string> required;
@@ -232,6 +234,11 @@ struct ArgParser {
         required.insert(s);
     }
 
+    void addStringRequired(std::string s) {
+        addString(s, "");
+        required.insert(s);
+    }
+
     void addBoolRequired(std::string s) {
         addBool(s, false);
         required.insert(s);
@@ -242,22 +249,33 @@ struct ArgParser {
         required.insert(s);
     }
 
+    bool exists(std::string s) {
+        return dataInt.count(s) || dataBool.count(s) || dataFloat.count(s) || dataString.count(s);
+    }
+
     void addInt(std::string s, int d) {
-        if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
+        if(exists(s))
             throw std::invalid_argument(" argument " + s + " already exist !");
         dataInt[s] = d;
         order.push_back(s);
     }
 
+    void addString(std::string s, std::string d) {
+        if(exists(s))
+            throw std::invalid_argument(" argument " + s + " already exist !");
+        dataString[s] = d;
+        order.push_back(s);
+    }
+
     void addFloat(std::string s, float d) {
-        if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
+        if(exists(s))
             throw std::invalid_argument(" argument " + s + " already exist !");
         dataFloat[s] = d;
         order.push_back(s);
     }
 
     void addBool(std::string s, bool d) {
-        if(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s))
+        if(exists(s))
             throw std::invalid_argument(" argument " + s + " already exist !");
         dataBool[s] = d;
         order.push_back(s);
@@ -280,6 +298,11 @@ struct ArgParser {
             addFloatRequired(s);
     }
 
+    void addString(std::string s, Tag t) {
+        if(t == REQUIRED)
+            addStringRequired(s);
+    }
+
     // get
 
     int Int(std::string s) {
@@ -300,6 +323,12 @@ struct ArgParser {
         return dataBool[s];
     }
 
+    std::string const& String(std::string s) {
+        if(! dataString.count(s))
+            throw std::invalid_argument("Missing bool " + s);
+        return dataString[s];
+    }
+
     bool has(std::string s) {
         if(!(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s)))
             throw std::invalid_argument("Argument " + s + " does not exist");
@@ -312,43 +341,81 @@ struct ArgParser {
         parse(tm);
     }
 
-    void parse(prs::TokenManager& tm) {
+    /**
+     * @brief parseSequence so that multiple { } are like a same { }
+     * @example { a 5 } { b 6 } will be the same as { a 5 b 6 }
+     * Caution: must begin with "{" to be parsed
+     * @example a 5 b 6 will not be parsed
+     */
+    void parseSequence(prs::TokenManager& tm){
+        while (tm.peekIs("{"))
+            parse(tm, false);
+        testRequired();
+    }
+
+    void parse(prs::TokenManager& tm, bool callTestRequired = true) {
         /*
-         * Simple Algo : for(;;) if(tm.checkToken("A")) A = tm.getInteger() else if()... else break;
+         * Simple Algo : for(;;) if(tm.checkToken("A")) A = tm.getInteger() else if()... else if(stop) break else if(!peekIs("}"));
          * More over, may start/end with {}
          */
+        // has a b not x
+        // a 5 b 2 => OK
+        // a 5 x 1 b 2 => OK but b is not read...
+        // { a 5 b 2 } => OK
+        // { a 5 b 2 x 1 } => NOT OK ("x" found expected "}")
+        // { a 5 x 1 b 2 } => NOT OK ("x" found expected "}")
 
         bool hasBrace = tm.checkToken("{");
 
         for(;;) {
             bool found = false;
 
+            if(!found)
             for(auto& p : dataInt) {
                 if(tm.checkToken(p.first)) {
                     p.second = tm.getInteger();
                     found = true;
                     given.insert(p.first);
+                    break;
                 }
             }
 
+            if(! found)
+            for(auto& p : dataString) {
+                if(tm.checkToken(p.first)) {
+                    auto n = tm.nextToken();
+                    if(!n)
+                        throw std::invalid_argument("expected string token");
+                    p.second = n;
+                    found = true;
+                    given.insert(p.first);
+                    break;
+                }
+            }
+
+            if(!found)
             for(auto& p : dataFloat) {
                 if(tm.checkToken(p.first)) {
                     p.second = tm.getDecimal();
                     found = true;
                     given.insert(p.first);
+                    break;
                 }
             }
 
+            if(!found)
             for(auto& p : dataBool) {
                 if(tm.checkToken(p.first)) {
                     p.second = true;
                     found = true;
                     given.insert(p.first);
+                    break;
                 }
                 else if(tm.checkToken("no-" + p.first)) {
                     p.second = false;
                     found = true;
                     given.insert(p.first);
+                    break;
                 }
             }
 
@@ -357,23 +424,38 @@ struct ArgParser {
         }
 
         // assert(given <= required);
-        for(auto s : required)
-            if(! given.count(s))
-                ExamTTParser::genericError("Argument '" + s + "' is required");
+        if(callTestRequired)
+            testRequired();
 
         if(hasBrace && ! tm.checkToken("}"))
             ExamTTParser::errorExpected(tm, "}", {"}"});
     }
 
     /**
+     * @brief throw an error if any required parameter is not given
+     */
+    void testRequired() {
+        for(auto s : required)
+            if(! given.count(s))
+                ExamTTParser::genericError("Argument '" + s + "' is required");
+    }
+
+    /**
      * @brief Sort by type, then name
      */
     void printTypeAlpha() {
+        TabLevel l;
         int m = 0;
         for(auto x : order)
             m = std::max(m, (int)x.size());
 
         for(auto& p : dataInt) {
+            std::ostringstream oss;
+            oss << setw(m) << p.first << ": " << p.second << endl;
+            printTab(oss.str());
+        }
+
+        for(auto& p : dataString) {
             std::ostringstream oss;
             oss << setw(m) << p.first << ": " << p.second << endl;
             printTab(oss.str());
@@ -392,10 +474,38 @@ struct ArgParser {
         }
     }
 
+    void printInline(std::string msg) {
+        std::ostringstream oss;
+        oss << msg << "(";
+        const char* f = "";
+        for(auto x : order) {
+            oss << f;
+            f = ", ";
+
+            if(dataInt.count(x))
+                oss << x << " = " << dataInt[x];
+            else if(dataFloat.count(x))
+                oss << x << " = " << dataInt[x];
+            else if(dataBool.count(x))
+                oss << x << " = " << boolalpha << dataBool[x];
+            else if(dataString.count(x))
+                oss << x << " = " << dataString[x];
+        }
+
+        oss << ")";
+        printTab(oss.str());
+    }
+
+    void print(std::string msg) {
+        printTab(msg);
+        print();
+    }
+
     /**
      * @brief Insertion order
      */
     void print() {
+        TabLevel l;
         int m = 0;
         for(auto x : order)
             m = std::max(m, (int)x.size());
@@ -405,9 +515,11 @@ struct ArgParser {
             if(dataInt.count(x))
                 oss << setw(m) << x << ": " << dataInt[x];
             else if(dataFloat.count(x))
-                cout << setw(m) << x << ": " << dataInt[x];
+                oss << setw(m) << x << ": " << dataInt[x];
             else if(dataBool.count(x))
-                cout << setw(m) << x << ": " << boolalpha << dataBool[x];
+                oss << setw(m) << x << ": " << boolalpha << dataBool[x];
+            else if(dataString.count(x))
+                oss << setw(m) << x << ": " << dataString[x];
 
             printTab(oss.str());
         }
@@ -429,7 +541,7 @@ struct CheckBrac {
     }
 };
 
-void ExamTTParser::calculateHardweightFromFeatures() {
+double ExamTTParser::getHardweightFromFeatures(bool USE_FORMULA_1) {
     int Cap = 0;
     for(emili::ExamTT::Room& r : instance.rooms)
         Cap += r.capacity;
@@ -502,17 +614,16 @@ void ExamTTParser::calculateHardweightFromFeatures() {
     // 3) how many accepting moves / temperature
     // 4) cooling scheme
 
-    static const bool USE_FORMULA_1 = true;
-
+    double hardWeight;
     if(USE_FORMULA_1) {
-        instance.hardWeight = 23.45040
+        hardWeight = 23.45040
             - 0.01924   * E
             + 29.10456  * SCap
             - 191.44258 * CD
             - 0.05139   * PC
             - 0.11727   * R;
     } else {
-        instance.hardWeight = 16.73100
+        hardWeight = 16.73100
             + 102.30000 * CD
             - 0.48330 * P
             - 0.17740 * SxE
@@ -525,8 +636,8 @@ void ExamTTParser::calculateHardweightFromFeatures() {
             + 0.10100 * PC;
     }
 
-    if(instance.hardWeight < 1) // also negative ones...
-        instance.hardWeight = 1;
+    if(hardWeight < 1) // also negative ones...
+        hardWeight = 1;
 
     printTab("Features as in BSU Table 2 : ");
     printTab("E S P R PHC RHC FLP CD ExR SxE S/Cap PC");
@@ -537,9 +648,7 @@ void ExamTTParser::calculateHardweightFromFeatures() {
     printTab(oss.str());
     oss.str("");
 
-    oss << "Hard weight " << instance.hardWeight;
-    printTab(oss.str());
-    oss.str("");
+    return hardWeight;
 }
 
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
@@ -564,7 +673,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     static const std::string MY_ILS = "my-ils";
 
     static const std::vector<std::string> available = {
-        ILS, MY_ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY, MY_ITERATED_GREEDY, INIT_AND_SEARCH,
+        ILS, MY_ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY, MY_ITERATED_GREEDY, INIT_AND_SEARCH, IDENTITY,
 
         // below "test" or "info" => NoSearch
         BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
@@ -590,15 +699,17 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     else if(tm.checkToken(TABU))
     {
         printTab(TABU);
-        return tparams(tm);
+        return tabu(tm);
     }
     else if(mustHaveInit && checkTokenParams(tm, IDENTITY, {"init"}, prefix))
     {
+        CheckBrac br(tm);
         auto a = initializer(tm);
         return new emili::IdentityLocalSearch(*a);
     }
     else if(!mustHaveInit && checkTokenParams(tm, IDENTITY, {}, prefix))
     {
+        CheckBrac br(tm);
         return new emili::IdentityLocalSearch();
     }
     else if(mustHaveInit && checkTokenParams(tm, FIRST, {"init", "term", "neigh"}, prefix))
@@ -633,18 +744,21 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(mustHaveInit && checkTokenParams(tm, SA, {"init", "neigh", "inittemp", "acceptance", "cooling", "term", "templ"}, prefix))
     {
+        CheckBrac br(tm);
         auto initsol = initializer(tm);
         auto nei = neigh(tm);
         return sa.buildSA(tm, initsol, nei);
     }
     else if(!mustHaveInit && checkTokenParams(tm, SA, {"nei", "inittemp", "acceptance", "cooling", "term", "templ"}, prefix))
     {
+        CheckBrac br(tm);
         auto initsol = new emili::ExamTT::RandomInitialSolution(instance);
         auto nei = neigh(tm);
         return sa.buildSA(tm, initsol, nei); // initsol will not be used
     }
     else if(mustHaveInit && checkTokenParams(tm, INIT_AND_SEARCH, {"init", "search"}))
     {
+        CheckBrac br(tm);
         auto a = initializer(tm);
         auto b = search(tm, false);
         return new emili::InitAndSearch(a,b);
@@ -652,17 +766,17 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     else if(tm.peek() == SA_BSU){
         printTab(prefix + ": " + SA_BSU);
         tm.next();
-        TabLevel lvl;
 
         ArgParser p;
         p.addInt("factor", 1);
         p.addInt("factor-exponent", 0);
         p.addInt("freq", 0);
-        p.addBool("percent", true);
+        p.addBool("percent", false);
         p.addInt("percent-kempe", 0);
 
         p.parse(tm);
         p.print();
+        TabLevel lvl;
 
         if(p.has("factor") && p.has("factor-exponent"))
             throw std::invalid_argument("factor and factor-exponent given");
@@ -684,8 +798,6 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         double rho = 0.14;
         double sr = 0.70;
         double wH = 21;
-
-        calculateHardweightFromFeatures();
 
         // derived
         // double tmin = 0.50;
@@ -768,7 +880,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
 
         return sa;
     }
-    else if(tm.checkToken(VND))
+    else if(checkTokenParams(tm, VND, {}, prefix))
     {
         return vnd(tm, mustHaveInit);
     }
@@ -783,13 +895,39 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     }
     else if(checkTokenParams(tm, MY_ITERATED_GREEDY, {"search", "cons", "termin", "destr", "accept"}, prefix))
     {
+        emili::LocalSearch* ls = nullptr;
+        emili::Constructor* c = nullptr;
+        emili::Termination* t = nullptr;
+        emili::Destructor* d = nullptr;
+        emili::Acceptance* ac = nullptr;
+
         // what about the hard weight ?
-        CheckBrac br(tm);
-        auto ls = search(tm, false);
-        auto c = constructor(tm); // if mustHaveInit, use constructFull as init
-        auto t = termination(tm);
-        auto d = destructor(tm);
-        auto ac = acceptance(tm);
+        if(tm.checkToken("{")) {
+            while(! tm.checkToken("}")){
+                if(tm.checkToken("search"))
+                    ls = search(tm, false);
+                else if(tm.checkToken("constructor"))
+                    c = constructor(tm);
+                else if(tm.checkToken("termination"))
+                    t = termination(tm);
+                else if(tm.checkToken("destructor"))
+                    d = destructor(tm);
+                else if(tm.checkToken("acceptance"))
+                    ac = acceptance(tm);
+                else
+                    errorExpected(tm, MY_ITERATED_GREEDY + " params", {"search", "constructor", "termination", "destructor", "acceptance", "}"});
+            }
+            if(!(ls && c && t && d && ac))
+                genericError(MY_ITERATED_GREEDY + " missing parameter.");
+        } else {
+            CheckBrac br(tm);
+            ls = search(tm, false);
+            c = constructor(tm); // if mustHaveInit, use constructFull as init
+            t = termination(tm);
+            d = destructor(tm);
+            ac = acceptance(tm);
+        }
+
         return new emili::MyIteratedGreedy(c,t,d,ac,ls);
     }
     else if(tm.checkToken(INFO)) {
@@ -1105,14 +1243,14 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
     return nullptr;
 }
 
-emili::BestTabuSearch* ExamTTParser::tparams(prs::TokenManager& tm)
+emili::BestTabuSearch* ExamTTParser::tabu(prs::TokenManager& tm)
 {
     if(tm.checkToken(BEST))
     {
         auto a = initializer(tm);
         auto b = termination(tm);
         auto c = neigh(tm);
-        auto tmem = tmemory(c, tm);
+        auto tmem = tabuMemory(c, tm);
         return new emili::BestTabuSearch(*a, *b, *c, *tmem);
     }
     else if(tm.checkToken(FIRST))
@@ -1120,7 +1258,7 @@ emili::BestTabuSearch* ExamTTParser::tparams(prs::TokenManager& tm)
         auto a = initializer(tm);
         auto b = termination(tm);
         auto c = neigh(tm);
-        auto tmem = tmemory(c, tm);
+        auto tmem = tabuMemory(c, tm);
         return new emili::FirstTabuSearch(*a, *b, *c, *tmem);
     }
 
@@ -1128,7 +1266,7 @@ emili::BestTabuSearch* ExamTTParser::tparams(prs::TokenManager& tm)
     return nullptr;
 }
 
-emili::TabuMemory* ExamTTParser::tmemory(emili::Neighborhood* n,prs::TokenManager& tm)
+emili::TabuMemory* ExamTTParser::tabuMemory(emili::Neighborhood* n,prs::TokenManager& tm)
 {
     prs::TabLevel level;
 
@@ -1145,6 +1283,7 @@ emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, 
 
     if(mustHaveInit && checkTokenParams(tm, FIRST, {"init", "term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto in = initializer(tm);
         auto te = termination(tm);
         auto nes = neighs(tm);
@@ -1152,6 +1291,7 @@ emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, 
     }
     else if(!mustHaveInit && checkTokenParams(tm, FIRST, {"term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto in = new emili::ExamTT::RandomInitialSolution(instance);
         auto te = termination(tm);
         auto nes = neighs(tm);
@@ -1159,6 +1299,7 @@ emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, 
     }
     else if(mustHaveInit && checkTokenParams(tm, BEST, {"init", "term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto in = initializer(tm);
         auto te = termination(tm);
         auto nes = neighs(tm);
@@ -1166,6 +1307,7 @@ emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, 
     }
     else if(!mustHaveInit && checkTokenParams(tm, BEST, {"term", "neigh"}, prefix))
     {
+        CheckBrac br(tm);
         auto in = new emili::ExamTT::RandomInitialSolution(instance);
         auto te = termination(tm);
         auto nes = neighs(tm);
@@ -1329,6 +1471,34 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
         printTab(oss.str());
         return new emili::MaxStepsTermination(steps);
     }
+    else if(tm.checkToken(TERMINATION_MAXSTEPS_DEBUG))
+    {
+        int steps;
+        double percent = 10;
+        std::string prefix;
+        if(tm.peekIs("{")) {
+            ArgParser p;
+            p.addIntRequired("steps");
+            p.addInt("percent", 10);
+            p.addString("prefix", "");
+            p.parse(tm);
+            oss << "maxSteps";
+            p.printInline(oss.str());
+            steps = p.Int("steps");
+            percent = p.Int("percent");
+            prefix = p.String("prefix");
+        } else {
+            CheckBrac br(tm);
+            steps = tm.getInteger();
+            percent = 10;
+            prefix = "";
+            oss << "maxSteps(steps = " << steps << ", debugPercent = " << percent << ")";
+            printTab(oss.str());
+        }
+        auto x = new emili::MaxStepsTerminationDebug(steps, percent);
+        x->setPrefix(prefix);
+        return x;
+    }
 
     errorExpected(tm, "TERMINATION_CRITERIA", available);
     return nullptr;
@@ -1395,12 +1565,60 @@ std::vector<emili::Neighborhood*> ExamTTParser::neighs(prs::TokenManager& tm)
 
 void ExamTTParser::problem(prs::TokenManager& tm)
 {
-    tm.nextToken();
+    tm.nextToken(); // skip the problem "ExamTT" without reading it
     emili::ExamTT::InstanceParser parser(tm.tokenAt(1));
     instanceFilename = tm.tokenAt(1);
     parser.parse(instance);
-    calculateHardweightFromFeatures();
+    globalParams(tm);
 }
+
+void ExamTTParser::globalParams(TokenManager &tm) {
+    ArgParser p;
+    p.addString("hard-weight", "sa-bsu-1");
+    p.addString("output-hard-weight", "same");
+
+    // p.addBool("search", true);
+    // p.addInt("time-seconds", 0);
+    // p.addInt("time-ratio-size", 0);
+    // p.addInt("random-seed", 0);
+    //      error if p.has("time-seconds") && p.has("time-ratio-size")
+    // else parse if p.has("time-seconds") || p.has("time-ratio-size")
+    // else do nothing
+
+    p.parseSequence(tm);
+    p.print();
+    auto x = p.String("hard-weight");
+    auto y = p.String("output-hard-weight");
+    if(y == "same")
+        y = x;
+
+    auto checkHardWeightParam = [](std::string s) -> bool {
+        return s == "sa-bsu-1" || s == "sa-bsu-2" || all_of(
+            s.begin(), s.end(), [](char c){ return ::isdigit(c) || c == '.'; }
+        );
+    };
+
+    if(! checkHardWeightParam(x))
+        genericError("hard-weight expected, got '" + x + "'");
+
+    if(! checkHardWeightParam(y))
+        genericError("hard-weight expected, got '" + y + "'");
+
+    // compute hardWeight
+    instance.hardWeight =
+        x == "sa-bsu-1" ? getHardweightFromFeatures(true) :
+        x == "sa-bsu-2" ? getHardweightFromFeatures(false) :
+        atof(x.c_str()); // float
+
+    // compute hardWeightFinal
+    instance.hardWeightFinal =
+        y == "sa-bsu-1" ? getHardweightFromFeatures(true) :
+        y == "sa-bsu-2" ? getHardweightFromFeatures(false) :
+        atof(y.c_str()); // float
+
+    printTab("Hard weight: " + to_string(instance.hardWeight));
+}
+
 
 emili::LocalSearch* ExamTTParser::buildAlgo(prs::TokenManager& tm)
 {

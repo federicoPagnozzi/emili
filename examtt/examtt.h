@@ -323,8 +323,17 @@ public:
     // Weights of institution
     InstitutionalWeightings institutionalWeightings;
 
-    // will be featured based, now it's just a constant
+    // used to compute scalar cost from (Hc,SC) cost
     double hardWeight = 0;
+
+    // factor used at the end at the algorithm
+    // irace will be based on this value
+    // better integration of HC/SC problems should output the pair at the end of the program
+    // then it's depend on the user (here irace) to use it's hardWeight
+    // the hardWeight may be dependent on the instance (feature based)
+    // Irace will need that a single hardWeight is used per instance,
+    // do not compare different costs with different hardWeight on the same instance !
+    double hardWeightFinal = -1; // < 0 means = hardWeight
 
     // Quick numbers of information
     MetaInfo meta;
@@ -368,6 +377,8 @@ public:
     int sizeOfExam(ExamId e) const;
 
     void buildStructures();
+
+    void finaliseSolution(Solution* solution) override;
 
     /////////////
     // Methods //

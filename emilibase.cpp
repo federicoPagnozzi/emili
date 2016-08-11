@@ -124,27 +124,32 @@ double emili::getCurrentExecutionTime()
     return (double)((clock()-beginTime)/ (double)CLOCKS_PER_SEC);
 }
 
+emili::Problem* emili::LocalSearch::theInstance = nullptr;
+
 static void finalise (int _)
 {
     keep_going = false;
     endTime = clock();
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-    emili::Solution* s_cap = localsearch->getBestSoFar();
-    if(s_cap != nullptr)
+    emili::Solution* bestSoFar = localsearch->getBestSoFar();
+
+    if(emili::LocalSearch::theInstance)
+        emili::LocalSearch::theInstance->finaliseSolution(bestSoFar); // will apply "final" weight
+
+    if(bestSoFar != nullptr)
     {
-        double sol_val = s_cap->getSolutionValue();
+        double sol_val = bestSoFar->getSolutionValue();
         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
         std::cout << sol_val << std::endl;
-       //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-        //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
-        std::cerr << std::fixed << sol_val << std::endl;
-        std::cerr << std::flush;
+        // std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        // std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+        std::cerr << std::fixed << sol_val << std::endl; // to give hook-run the best so far solution
     }
     else
     {
         std::cout << "No valid solution found!" << std::endl;
+        std::cerr << "timeout and no bestSoFar" << std::endl; // to inform hook-run
     }
-    std::cout << std::flush;
 #ifndef NOSIG
     _Exit(EXIT_SUCCESS);
 #else
@@ -1171,6 +1176,27 @@ void emili::MaxStepsTermination::reset()
     current_step = 0;
 }
 
+bool emili::MaxStepsTerminationDebug::terminate(emili::Solution *currentSolution, emili::Solution *newSolution) {
+    bool r = MaxStepsTermination::terminate(currentSolution, newSolution);
+
+    double percent = 100 * current_step / max_steps_;
+    while(percent >= currentPercent) {
+        currentPercent += stepPercent;
+        if(! prefix.empty())
+            std::cout << prefix << ": ";
+        std::cout << (int)(percent) << "%" << std::endl;
+    }
+
+    return r;
+}
+
+void emili::MaxStepsTerminationDebug::reset()
+{
+    MaxStepsTermination::reset();
+    currentPercent = 0;
+}
+
+
 /*
  * Piped Local Search
 */
@@ -1308,6 +1334,4 @@ emili::Solution* emili::GVNS::getBestSoFar()
     }
     return bestSoFar;
 }
-
-
 

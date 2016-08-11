@@ -361,6 +361,14 @@ void ExamTT::buildStructures()  {
     daysToPeriod.back().second = P();
 }
 
+void ExamTT::finaliseSolution(Solution *raw) {
+    ExamTTSolution* sol = dynamic_cast<ExamTTSolution*>(raw);
+    if(hardWeightFinal >= 0) {
+        hardWeight = hardWeightFinal;
+        sol->computeCost(*this);
+    }
+}
+
 bool ExamTT::correctExam(int i) const {
     return 0 <= i && i < (int)exams.size();
 }

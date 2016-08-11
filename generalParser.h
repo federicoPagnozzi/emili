@@ -42,8 +42,10 @@ public:
     int getInteger();
     float getDecimal();
     bool checkToken(const std::string &token);
-    bool checkToken(const char* );
+    bool checkToken(const char*);
     const char* tokenAt(int i);
+    bool peekIs(const char*);
+    bool peekIs(const std::string &);
 
     /**
      * @brief if(the next token is an integer) { res = the integer; return true } else { return false }
@@ -100,6 +102,7 @@ public:
     virtual emili::LocalSearch* parseParams();
     virtual void registerBuilder(AlgoBuilder* builder);
     virtual void removeBuilder(AlgoBuilder* builder);
+    bool noSearch = false;
 };
 }
 

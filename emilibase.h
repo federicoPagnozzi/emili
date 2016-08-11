@@ -54,9 +54,9 @@ class Solution;
 class Problem{
 public:
 
-    virtual double evaluateSolution(Solution & solution)=0;
+    virtual double evaluateSolution(Solution & solution) = 0;
     virtual int problemSize() {return 1;}
-
+    virtual void finaliseSolution(Solution* solution) {}
 };
 
 /*
@@ -196,8 +196,24 @@ protected:
     int current_step;
 public:
     MaxStepsTermination(int max_steps):max_steps_(max_steps), current_step(0){ }
-    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
-    virtual void reset();
+    bool terminate(Solution *currentSolution, Solution *newSolution) override;
+    void reset() override;
+};
+
+/*
+ * MaxStepsTermination with cout at fixed iterations
+ */
+class MaxStepsTerminationDebug : public MaxStepsTermination
+{
+protected:
+    double currentPercent = 0;
+    double stepPercent;
+    std::string prefix;
+public:
+    MaxStepsTerminationDebug(int max_steps, double percentToPrint=10):MaxStepsTermination(max_steps), stepPercent(percentToPrint) { }
+    void setPrefix(std::string p) { prefix = p; }
+    virtual bool terminate(Solution *currentSolution, Solution *newSolution) override;
+    virtual void reset() override;
 };
 
 /*
@@ -515,6 +531,8 @@ public:
     LocalSearch(InitialSolution* initialSolutionGenerator, Termination* terminationcriterion, Neighborhood* neighborh, int time):
         init(initialSolutionGenerator),termcriterion(terminationcriterion),neighbh(neighborh),seconds(time) {}
 
+    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh; /* delete bestSoFar ... ? */ }
+
     /**
      * @brief Search use the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -569,8 +587,8 @@ public:
     emili::InitialSolution& getInitialSolution();
     virtual Solution* getBestSoFar() { return bestSoFar;}
     virtual void setBestSoFar(Solution* newBest) {this->bestSoFar=newBest;}
-    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh;}
 
+    static emili::Problem* theInstance; // ugly way to get the pointer in finalise
 };
 
 
@@ -922,26 +940,22 @@ protected:
 public:
     VNDSearch(emili::InitialSolution& is, emili::Termination& tc, std::vector< emili::Neighborhood* > n):T(is,tc,*n[0]),neigh(n) { }
     VNDSearch(T& ls, std::vector<emili::Neighborhood*> n):T(ls),neigh(n) { }
-    virtual emili::Solution* search(emili::Solution *initial)
+    emili::Solution* search(emili::Solution *initial) override
     {
-
         this->neighbh = neigh[0];
         Solution* incumbent = T::search(initial);
-        int i = 0;
-        do{
+        int i = 1;
+        while(i < neigh.size()) {
             this->neighbh = neigh[i];
             Solution* new_s = T::search(incumbent);
-            if(*new_s < *incumbent)
-            {
+            if(*new_s < *incumbent) {
                 delete incumbent;
                 incumbent = new_s;
                 i = 0;
+            } else {
+                i++;
             }
-            else
-            {
-                i = i+1;
-            }
-        }while(i < neigh.size());
+        }
         T::setBestSoFar(incumbent);
         return incumbent;
     }
@@ -1143,11 +1157,15 @@ public:
     }
 
     Solution* search() override {
-        return searchBehave(init->generateSolution(), Behaviour::VOID);
+        auto s = searchBehave(init->generateSolution(), Behaviour::VOID);
+        setBestSoFar(s);
+        return s;
     }
 
     Solution* search(Solution* sol) override {
-        return ls->search(sol);
+        auto s = ls->search(sol);
+        setBestSoFar(s);
+        return s;
     }
 };
 
@@ -1175,7 +1193,7 @@ public:
         const_cast<Behaviour&>(behaviour) = Behaviour::FUNC;
     }
 
-    ~MyIteratedGreedy() {
+    ~MyIteratedGreedy() override {
         delete ls;
         delete dest;
         delete cons;
@@ -1201,9 +1219,12 @@ public:
             // std::cout << "Starting from " << sol << ", " << sol->getSolutionValue() << " ";
             // std::cout.flush();
 
+            // std::cout << "(1) Before    " << sol->getSolutionValue() << std::endl;
             Solution* newSol = dest->destructBehave(sol, Behaviour::FUNC);
             newSol = cons->searchBehave(newSol, Behaviour::VOID);
+            // std::cout << "(2) CDeconstr " << newSol->getSolutionValue() << std::endl;
             newSol = ls->searchBehave(newSol, Behaviour::VOID);
+            // std::cout << "(3) Searched  " << newSol->getSolutionValue() << std::endl;
 
             // std::cout << "Found:" << newSol->getSolutionValue() << std::endl;
             if(*newSol < *bestSoFar)
@@ -1218,6 +1239,7 @@ public:
                 delete newSol;
                 // sol = sol;
             }
+            // std::cout << "(4) Accepted  " << sol->getSolutionValue() << std::endl;
         }
 
         delete sol;

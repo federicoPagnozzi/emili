@@ -70,7 +70,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
 
 
     emili::Solution* incumbent = startingSolution->clone();
-    emili::Solution* accepted;
+    emili::Solution* accepted = nullptr; // will never be nullptr, but = nullptr removes the waring
     emili::Solution* ithSolution;
 
     emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
