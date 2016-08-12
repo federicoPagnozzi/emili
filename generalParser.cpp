@@ -44,7 +44,8 @@ void prs::incrementTabLevel()
 void prs::decrementTabLevel()
 {
     tab_level--;
-    tab_level= tab_level < 0 ? 0 : tab_level;
+    if(tab_level < 0)
+        tab_level = 0;
 }
 
 void prs::emili_header()
@@ -198,14 +199,15 @@ bool prs::TokenManager::checkDecimal(double & res) {
 int prs::TokenManager::getInteger()
 {
     const char* t = peek();
-    std::string s = std::string("Int was expected, '") + t + "' found";
-    check(t, s.c_str());
-    std::string num(t);
-    if( !std::all_of(num.begin(),num.end(),::isdigit))
-       check(nullptr, s.c_str());
+    std::string errorMessage = std::string("Int expected, '") + t + "' found";
+    check(t, errorMessage.c_str());
 
-    int k = atoi(t);
-   // std::cout << k << "\n\t";
+    int k;
+    std::istringstream iss(t);
+    iss >> k;
+    if(!iss)
+        check(nullptr, errorMessage.c_str());
+
     next();
     return k;
 }
@@ -213,15 +215,15 @@ int prs::TokenManager::getInteger()
 float prs::TokenManager::getDecimal()
 {
     const char* t = peek();
-    std::string s = std::string("Decimal expected, '") + t + "' found";
-    check(t, s.c_str());
-    std::string num(t);
+    std::string errorMessage = std::string("Decimal expected, '") + t + "' found";
+    check(t, errorMessage.c_str());
 
-    if(std::none_of(num.begin(),num.end(),::isdigit))
-        check(nullptr, s.c_str());
+    float k;
+    std::istringstream iss(t);
+    iss >> k;
+    if(!iss)
+        check(nullptr, errorMessage.c_str());
 
-    float k = atof(t);
-    //std::cout << k << "\n\t";
     next();
     return k;
 }

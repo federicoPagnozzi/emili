@@ -661,6 +661,8 @@ void ExamTTSolution::printTimelineTo(ExamTT const& instance, std::ostream& out) 
             // std::set<ExamId> exams = intersection(sol.examsByPeriods[p], sol.examsByRooms[r]);
             std::list<ExamId> const& exams = examsByPeriodRoom[p][r];
 
+            if(exams.empty())
+                continue;
             out << setw(5) << " " << RPrefix(r)
                 << " : " << print(exams);
 
@@ -4102,6 +4104,40 @@ Solution* NGroupedPeriodsDestructor::destruct(Solution *solution) {
                 sol->removeExam(instance, e);
 
     return solution;
+}
+
+NBiggestWeightedDestructor::NBiggestWeightedDestructor(const Instance &instance_, const int N_)
+     : instance(instance_)
+     , N(N_)
+{
+    if(!(N <= instance.E()))
+        throw std::invalid_argument("assert N <= instance.E()");
+    behaviour = Behaviour::VOID;
+}
+
+Solution* NBiggestWeightedDestructor::destruct(Solution *solution) {
+    ExamTTSolution* sol = (ExamTTSolution*) solution;
+
+    std::vector<std::pair<double, ExamId>> vec;
+    vec.reserve(instance.E());
+
+    for(ExamId e = 0; e < instance.E(); e++) {
+        if(sol->isAssigned(e)) {
+            Assignement a = sol->assignement(e);
+            sol->removeExam(instance, e);
+            auto x = solution->getSolutionValue();
+            sol->addExam(instance, e, a);
+            vec.push_back(make_pair(x, e));
+        }
+    }
+
+    std::sort(vec.begin(), vec.end(), std::greater<std::pair<double, ExamId>>());
+
+    int M = min((int)N, (int)vec.size());
+    for(int i = 0; i < M; i++)
+        sol->removeExam(instance, vec[i].second);
+
+    return sol;
 }
 
 Solution *DSaturInserter::construct(Solution *partial) {

@@ -300,8 +300,7 @@ emili::Solution::Value emili::Solution::getSolutionValue()
 
 std::string emili::Solution::getSolutionRepresentation()
 {
-    std::string s("");
-    return s;
+    return "";
 }
 
 void emili::Solution::setSolutionValue(emili::Solution::Value value)
@@ -1184,7 +1183,7 @@ bool emili::MaxStepsTerminationDebug::terminate(emili::Solution *currentSolution
         currentPercent += stepPercent;
         if(! prefix.empty())
             std::cout << prefix << ": ";
-        std::cout << (int)(percent) << "%" << std::endl;
+        std::cout << (int)(percent) << "%" << " " << currentSolution->getSolutionValue() << " vs " << newSolution->getSolutionValue() << std::endl;
     }
 
     return r;

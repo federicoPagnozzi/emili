@@ -661,6 +661,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     static const std::string TEST_DELTA = "test_delta";
     static const std::string TEST_DELTA_REMOVE_ADD = "test_delta_remove_add";
     static const std::string INFO = "info";
+    static const std::string INFO_INIT = "info-init";
     static const std::string BRUTE = "brute";
     static const std::string TEST_ITERATION_YIELD_VS_STATE = "test_iteration_yield_vs_state";
     static const std::string TEST_KEMPE_LARGE_COUNT = "test_kempe_large_count";
@@ -676,7 +677,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         ILS, MY_ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY, MY_ITERATED_GREEDY, INIT_AND_SEARCH, IDENTITY,
 
         // below "test" or "info" => NoSearch
-        BRUTE, INFO, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
+        BRUTE, INFO, INFO_INIT, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
         TEST_KEMPE_RANDOM_VS_ITER, TEST_ITERATION_YIELD_VS_STATE, TEST_KEMPE_LARGE_COUNT
     };
 
@@ -772,7 +773,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         p.addInt("factor-exponent", 0);
         p.addInt("freq", 0);
         p.addBool("percent", false);
-        p.addInt("percent-kempe", 0);
+        p.addFloat("percent-kempe", 0);
 
         p.parse(tm);
         p.print();
@@ -802,7 +803,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         // derived
         // double tmin = 0.50;
         constexpr bool wantToUseIrace = false;
-        constexpr bool useIrace = itmax == baselineitmax && wantToUseIrace;
+        bool useIrace = itmax == baselineitmax && wantToUseIrace;
 
         int nS = useIrace ? 764141 : (int)(- itmax / (std::log(tr) / std::log(alpha)));
         int nA = useIrace ? 106980 : rho * nS;
@@ -821,10 +822,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         auto init = new emili::ExamTT::RandomInitialSolution(instance);
 
         emili::Neighborhood* neigh = nullptr;
-        if(p.Int("percent-kempe") == 0) {
+        if(p.Float("percent-kempe") == 0) {
             neigh = new emili::ExamTT::MixedMoveSwapNeighborhood(instance, sr);
         } else {
-            double k = p.Int("percent-kempe") / 100.0;
+            double k = p.Float("percent-kempe") / 100.0;
             neigh = new emili::ExamTT::MixedRandomNeighborhoodProba(
                 {
                     new emili::ExamTT::KempeChainNeighborhood(instance),
@@ -1046,6 +1047,15 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << s->getSolutionValue() << std::endl;
         std::cerr << s->getSolutionValue() << std::endl;
+
+        throw NoSearch();
+    }
+    else if(tm.checkToken(INFO_INIT))
+    {
+        auto ini = initializer(tm);
+        auto raw = ini->generateSolution();
+        auto s = (emili::ExamTT::ExamTTSolution*) raw;
+        s->printTo(instance, std::cout);
 
         throw NoSearch();
     }
@@ -1365,6 +1375,7 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
     static const std::string NRandomDaysDestructor = "random-days";
     static const std::string NGroupedDaysDestructor = "grouped-days";
     static const std::string NGroupedPeriodsDestructor = "grouped-periods";
+    static const std::string NBiggestWeightedDestructor = "greedy-biggest";
 
     TabLevel l;
     ostringstream oss;
@@ -1372,7 +1383,7 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
 
     static const std::vector<std::string> available = {
         FixedRandomDestructor, NRandomDaysDestructor, NGroupedDaysDestructor,
-        NGroupedPeriodsDestructor,
+        NGroupedPeriodsDestructor, NBiggestWeightedDestructor
     };
 
     if(tm.checkToken(FixedRandomDestructor)) {
@@ -1399,6 +1410,12 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
         oss << NGroupedPeriodsDestructor << "(N = " << N << ")";
         printTab(oss.str());
         return new emili::ExamTT::NGroupedPeriodsDestructor(instance, N);
+    } else if(tm.checkToken(NBiggestWeightedDestructor)) {
+        CheckBrac br(tm);
+        int N = getIntPercentParam(tm, instance.E());
+        oss << NBiggestWeightedDestructor << "(N = " << N << ")";
+        printTab(oss.str());
+        return new emili::ExamTT::NBiggestWeightedDestructor(instance, N);
     }
 
     errorExpected(tm, "DESTRUCTOR", available);
@@ -1409,9 +1426,10 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
 {
     prs::TabLevel level;
     static const std::string INITIAL_CONSTRUCTOR = "initial-constructor";
+    static const std::string given_solution = "given-solution";
 
     static const std::vector<std::string> available = {
-        INITIAL_RANDOM, INITIAL_CONSTRUCTOR
+        INITIAL_RANDOM, INITIAL_CONSTRUCTOR, given_solution
     };
 
     if(checkTokenParams(tm, INITIAL_RANDOM, {}, prefix)){
@@ -1421,6 +1439,63 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
         CheckBrac br(tm);
         auto cons = constructor(tm);
         return new emili::ExamTT::ConstructorInitialSolution(instance, cons);
+    } else if(checkTokenParams(tm, given_solution, {}, prefix)) {
+        CheckBrac br(tm);
+        std::vector<int> vec;
+
+        if(tm.checkToken("list-exact")) {
+            // [ 1 2 3 4 5 6 ]
+            // 1 2 3 4 5 6
+            CheckBrac br(tm);
+            while(vec.size() != instance.E() * 2)
+                vec.push_back(tm.getInteger());
+        }
+        else if(tm.checkToken("string-like")) {
+            // One String containing E*2 numbers
+            auto x = tm.nextToken();
+            if(!x)
+                genericError("expected string");
+            string s = x;
+            for(char & c : s)
+                if(!('0' <= c && c <= '9'))
+                    c = ' ';
+            istringstream iss(s);
+            vec.push_back(-1);
+            while(iss >> vec.back())
+                vec.push_back(-1);
+            vec.pop_back();
+        }
+        else if(tm.checkToken("list-like")) {
+            // valid: [[1, 2], [3, 4], [5, 6]]
+            // valid: [1, 2, 3, 4, 5, 6]
+            // valid: [[1 ,2 [3,4] 5 6,,
+            // last token must have at least one int
+            while(vec.size() < instance.E() * 2) {
+                auto x = tm.nextToken();
+                if(!x)
+                    genericError("int...");
+                std::string s = x;
+                for(char & c : s)
+                    if(!('0' <= c && c <= '9'))
+                        c = ' ';
+                istringstream iss(s);
+                vec.push_back(-1);
+                while(iss >> vec.back())
+                    vec.push_back(-1);
+                vec.pop_back();
+            }
+        // } else if(tm.checkToken("file")) {
+        } else {
+            errorExpected(tm, "given-solution-type", {"list-like", "list-exact", "string-like"});
+        }
+
+        if(vec.size() != instance.E() * 2)
+            genericError("expeccted E * 2 ints, got " + to_string(vec.size()));
+        std::vector<std::pair<int,int>> firstAssign;
+        for(int i = 0; i < vec.size(); i += 2)
+            firstAssign.push_back(make_pair(vec[i], vec[i+1]));
+
+        return new emili::ExamTT::ZeroInitialSolution(instance, firstAssign);
     }
 
     errorExpected(tm, "INITIAL_SOLUTION", available);

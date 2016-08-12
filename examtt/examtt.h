@@ -1115,6 +1115,16 @@ public:
     Solution* destruct(Solution *solution) override;
 };
 
+struct NBiggestWeightedDestructor : Destructor {
+private:
+    Instance const& instance;
+    const int N;
+public:
+    NBiggestWeightedDestructor(Instance const& instance_, const int N_);
+public:
+    Solution* destruct(Solution *solution) override;
+};
+
 class InsertHeuristic {
 protected:
     ExamTT const& instance;
