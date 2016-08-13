@@ -485,7 +485,7 @@ struct ArgParser {
             if(dataInt.count(x))
                 oss << x << " = " << dataInt[x];
             else if(dataFloat.count(x))
-                oss << x << " = " << dataInt[x];
+                oss << x << " = " << dataFloat[x];
             else if(dataBool.count(x))
                 oss << x << " = " << boolalpha << dataBool[x];
             else if(dataString.count(x))
@@ -515,7 +515,7 @@ struct ArgParser {
             if(dataInt.count(x))
                 oss << setw(m) << x << ": " << dataInt[x];
             else if(dataFloat.count(x))
-                oss << setw(m) << x << ": " << dataInt[x];
+                oss << setw(m) << x << ": " << dataFloat[x];
             else if(dataBool.count(x))
                 oss << setw(m) << x << ": " << boolalpha << dataBool[x];
             else if(dataString.count(x))
