@@ -7,6 +7,7 @@
 #include <string>
 #include <iomanip>
 #include <map>
+#include <functional>
 
 #include "../emilibase.h"
 
@@ -107,20 +108,13 @@ void ExamTTParser::genericError(std::ostringstream& stream) {
     exit(-1);
 }
 
+/**
+ * @deprecated throw ErrorExpected instead
+ */
 void ExamTTParser::errorExpected(prs::TokenManager& tm, string name, const std::vector<string> &tokens)
 {
-    cerr << "'" << *tm << "' -> ERROR a " << name << " is expected : ";
-    if(tokens.size() == 0)
-        cerr << "<>";
-    else {
-        auto it = tokens.begin();
-        cerr << "<" << *it++;
-        while(it != tokens.end())
-            cerr << " | " << *it++;
-        cerr << ">";
-    }
-    cerr << endl;
-
+    ErrorExpected e(tm, name, tokens);
+    std::cerr << e.what() << std::endl;
     exit(-1);
 }
 
@@ -146,9 +140,10 @@ bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::s
 }
 
 int getIntParam(prs::TokenManager& tm, std::string val) {
+    TabLevel l;
     int i = tm.getInteger();
     std::ostringstream oss;
-    oss << val << ":" << i << endl;
+    oss << val << ": " << i << endl;
     printTab(oss.str());
     return i;
 }
@@ -156,7 +151,7 @@ int getIntParam(prs::TokenManager& tm, std::string val) {
 float getDecimalParam(prs::TokenManager& tm, std::string val) {
     float i = tm.getDecimal();
     std::ostringstream oss;
-    oss << val << ":" << i << endl;
+    oss << val << ": " << i << endl;
     printTab(oss.str());
     return i;
 }
@@ -219,9 +214,11 @@ struct ArgParser {
     std::map<std::string, bool> dataBool;
     std::map<std::string, float> dataFloat;
     std::map<std::string, std::string> dataString;
+    typedef std::function<void(TokenManager&)> Func;
+    std::map<std::string, Func> dataFunc;
     std::vector<std::string> order;
     std::set<std::string> given;
-    std::set<std::string> required;
+    std::vector<std::string> required;
 
     enum Tag {
         REQUIRED
@@ -231,26 +228,31 @@ struct ArgParser {
 
     void addIntRequired(std::string s) {
         addInt(s, 0);
-        required.insert(s);
+        required.push_back(s);
     }
 
     void addStringRequired(std::string s) {
         addString(s, "");
-        required.insert(s);
+        required.push_back(s);
     }
 
     void addBoolRequired(std::string s) {
         addBool(s, false);
-        required.insert(s);
+        required.push_back(s);
     }
 
     void addFloatRequired(std::string s) {
         addFloat(s, 0.0f);
-        required.insert(s);
+        required.push_back(s);
+    }
+
+    void addFuncRequired(std::string s, Func d) {
+        addFunc(s, d);
+        required.push_back(s);
     }
 
     bool exists(std::string s) {
-        return dataInt.count(s) || dataBool.count(s) || dataFloat.count(s) || dataString.count(s);
+        return dataInt.count(s) || dataBool.count(s) || dataFloat.count(s) || dataString.count(s) || dataFunc.count(s);
     }
 
     void addInt(std::string s, int d) {
@@ -281,6 +283,13 @@ struct ArgParser {
         order.push_back(s);
     }
 
+    void addFunc(std::string s, Func d) {
+        if(exists(s))
+            throw std::invalid_argument(" argument " + s + " already exist !");
+        dataFunc[s] = d;
+        order.push_back(s);
+    }
+
     // synonyms for add
 
     void addInt(std::string s, Tag t) {
@@ -301,6 +310,11 @@ struct ArgParser {
     void addString(std::string s, Tag t) {
         if(t == REQUIRED)
             addStringRequired(s);
+    }
+
+    void addFunc(std::string s, Func d, Tag t) {
+        if(t == REQUIRED)
+            addFuncRequired(s, d);
     }
 
     // get
@@ -330,7 +344,7 @@ struct ArgParser {
     }
 
     bool has(std::string s) {
-        if(!(dataInt.count(s) || dataBool.count(s) || dataFloat.count(s)))
+        if(! exists(s))
             throw std::invalid_argument("Argument " + s + " does not exist");
         return given.count(s);
     }
@@ -372,7 +386,8 @@ struct ArgParser {
 
             if(!found)
             for(auto& p : dataInt) {
-                if(tm.checkToken(p.first)) {
+                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
+                    tm.checkToken(":");
                     p.second = tm.getInteger();
                     found = true;
                     given.insert(p.first);
@@ -382,7 +397,8 @@ struct ArgParser {
 
             if(! found)
             for(auto& p : dataString) {
-                if(tm.checkToken(p.first)) {
+                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
+                    tm.checkToken(":");
                     auto n = tm.nextToken();
                     if(!n)
                         throw std::invalid_argument("expected string token");
@@ -395,7 +411,8 @@ struct ArgParser {
 
             if(!found)
             for(auto& p : dataFloat) {
-                if(tm.checkToken(p.first)) {
+                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
+                    tm.checkToken(":");
                     p.second = tm.getDecimal();
                     found = true;
                     given.insert(p.first);
@@ -419,8 +436,25 @@ struct ArgParser {
                 }
             }
 
-            if(! found)
-                break;
+            if(!found)
+            for(auto& p : dataFunc) {
+                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
+                    tm.checkToken(":");
+                    p.second(tm);
+                    found = true;
+                    given.insert(p.first);
+                    break;
+                }
+            }
+
+            if(! found) {
+                if(!hasBrace)
+                    break;
+                else if(! tm.peekIs("}"))
+                    ExamTTParser::errorExpected(tm, "param", order);
+                else
+                    break;
+            }
         }
 
         // assert(given <= required);
@@ -435,9 +469,24 @@ struct ArgParser {
      * @brief throw an error if any required parameter is not given
      */
     void testRequired() {
+        std::vector<std::string> r;
         for(auto s : required)
             if(! given.count(s))
-                ExamTTParser::genericError("Argument '" + s + "' is required");
+                r.push_back(s);
+
+        if(! r.empty()) {
+            if(r.size() == 1)
+                ExamTTParser::genericError("Argument '" + r.front() + "' is required");
+            else {
+                auto it = r.begin();
+                ostringstream oss;
+                oss << *it++;
+                while(it != r.end())
+                    oss << ", " << *it++;
+
+                ExamTTParser::genericError("Arguments '" + oss.str() + "' are required");
+            }
+        }
     }
 
     /**
@@ -472,6 +521,8 @@ struct ArgParser {
             oss << setw(m) << p.first << ": " << boolalpha << p.second << endl;
             printTab(oss.str());
         }
+
+        // no func print (already done when called)
     }
 
     void printInline(std::string msg) {
@@ -490,6 +541,8 @@ struct ArgParser {
                 oss << x << " = " << boolalpha << dataBool[x];
             else if(dataString.count(x))
                 oss << x << " = " << dataString[x];
+
+            // no func print (already done when called)
         }
 
         oss << ")";
@@ -520,6 +573,8 @@ struct ArgParser {
                 oss << setw(m) << x << ": " << boolalpha << dataBool[x];
             else if(dataString.count(x))
                 oss << setw(m) << x << ": " << dataString[x];
+            else
+                continue; // no func print (already done when called)
 
             printTab(oss.str());
         }
@@ -691,10 +746,34 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         return new emili::IteratedLocalSearch(*a,*b,*c,*d);
     }
     else if(checkTokenParams(tm, MY_ILS, {"search", "term", "perturbation", "acc"})) {
-        auto a = search(tm, mustHaveInit); // the init will be the init of the search
-        auto b = termination(tm);
-        auto c = perturbation(tm);
-        auto d = acceptance(tm);
+        emili::LocalSearch* a = nullptr;
+        emili::Termination* b = nullptr;
+        emili::Perturbation* c = nullptr;
+        emili::Acceptance* d = nullptr;
+
+        // what about the hard weight ?
+        if(tm.peekIs("{")) {
+            ArgParser p;
+
+            p.addFuncRequired("search", [&a, this, mustHaveInit](TokenManager& tm){
+                a = search(tm, mustHaveInit); });
+            p.addFuncRequired("termination", [&b, this](TokenManager& tm){
+                b = termination(tm); });
+            p.addFuncRequired("perturbation", [&c, this](TokenManager& tm){
+                c = perturbation(tm); });
+            p.addFuncRequired("acceptance", [&d, this](TokenManager& tm){
+                d = acceptance(tm); });
+
+            p.parse(tm);
+            p.print();
+        } else {
+            CheckBrac br(tm);
+            a = search(tm, mustHaveInit); // the init will be the init of the search
+            b = termination(tm);
+            c = perturbation(tm);
+            d = acceptance(tm);
+        }
+
         return new emili::MyIteratedLocalSearch(a,b,c,d);
     }
     else if(tm.checkToken(TABU))
@@ -902,24 +981,22 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         emili::Destructor* d = nullptr;
         emili::Acceptance* ac = nullptr;
 
-        // what about the hard weight ?
-        if(tm.checkToken("{")) {
-            while(! tm.checkToken("}")){
-                if(tm.checkToken("search"))
-                    ls = search(tm, false);
-                else if(tm.checkToken("constructor"))
-                    c = constructor(tm);
-                else if(tm.checkToken("termination"))
-                    t = termination(tm);
-                else if(tm.checkToken("destructor"))
-                    d = destructor(tm);
-                else if(tm.checkToken("acceptance"))
-                    ac = acceptance(tm);
-                else
-                    errorExpected(tm, MY_ITERATED_GREEDY + " params", {"search", "constructor", "termination", "destructor", "acceptance", "}"});
-            }
-            if(!(ls && c && t && d && ac))
-                genericError(MY_ITERATED_GREEDY + " missing parameter.");
+        if(tm.peekIs("{")) {
+            ArgParser p;
+
+            p.addFuncRequired("search", [this, &ls](TokenManager& tm) {
+                 ls = search(tm, false); });
+            p.addFuncRequired("constructor", [this, &c](TokenManager& tm) {
+                c = constructor(tm); });
+            p.addFuncRequired("termination", [this, &t](TokenManager& tm) {
+                t = termination(tm); });
+            p.addFuncRequired("destructor", [this, &d](TokenManager& tm) {
+                d = destructor(tm); });
+            p.addFuncRequired("acceptance", [this, &ac](TokenManager& tm) {
+                ac = acceptance(tm); });
+
+            p.parse(tm);
+            // p.print();
         } else {
             CheckBrac br(tm);
             ls = search(tm, false);
@@ -1080,7 +1157,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
                         assignements.push_back({ints[i], ints[i+1]});
                     ret = new emili::ExamTT::BruteForce(instance, assignements);
                 } else {
-                    errorExpected(tm, "]", {"]"});
+                    throw ErrorExpected(tm, "]", {"]"});
                 }
             } else {
                 cerr << "(BRUTE) Even number of integers expected, got " << ints.size() << endl;
@@ -1097,9 +1174,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         return ret;
     }
 
-    errorExpected(tm, "SEARCH", available);
-
-    return nullptr;
+    throw ErrorExpected(tm, "SEARCH", available);
 }
 
 SimulatedAnnealing* ExamTTParser::SAParser::buildSA(prs::TokenManager& tm, emili::InitialSolution* initsol, emili::Neighborhood* nei) {
@@ -1139,7 +1214,6 @@ emili::Perturbation* ExamTTParser::perturbation(prs::TokenManager& tm, std::stri
         int s = getIntParam(tm, "s");
         return new emili::RandomMovePerturbationInPlace(*n, s);
     } else if(checkTokenParams(tm, VNRandomMovePerturbationInPlace, {"steps", "iter", "rneigh..."}, prefix)) {
-        TabLevel l;
         int steps = getIntParam(tm, "steps");
         int iterations = getIntParam(tm, "iter");
         auto neigh = neighs(tm);
@@ -1150,7 +1224,7 @@ emili::Perturbation* ExamTTParser::perturbation(prs::TokenManager& tm, std::stri
         return new emili::ConstructDestructPertub(a,b);
     }
 
-    errorExpected(tm, "PERTURBATION", available);
+    throw ErrorExpected(tm, "PERTURBATION", available);
     return nullptr;
 }
 
@@ -1171,7 +1245,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
             p.parse(tm);
             n = p.Float("temperature");
             if(! tm.checkToken("}"))
-                errorExpected(tm, "}", {"}"});
+                throw ErrorExpected(tm, "}", {"}"});
         } else {
             n = tm.getDecimal();
         }
@@ -1179,6 +1253,30 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
         oss << "metropolis(temperature = " << n << ")";
         printTab(oss.str());
         return new emili::MetropolisAcceptance(n);
+    }
+    else if(tm.checkToken("metropolis-proba"))
+    {
+        CheckBrac br(tm);
+        float value, proba;
+        if(! br.has && tm.checkToken("{")) {
+            ArgParser p;
+            p.addFloatRequired("value");
+            p.addFloat("proba", 0.5f);
+            p.parse(tm);
+            value = p.Float("value");
+            proba = p.Float("proba");
+            if(!(0 <= proba && proba <= 1))
+                genericError("proba must be between 0 and 1");
+            if(! tm.checkToken("}"))
+                throw ErrorExpected(tm, "}", {"}"});
+        } else {
+            value = tm.getDecimal();
+            proba = 0.5f;
+        }
+        // when the difference in cost = value, the proba is <proba>
+        double temperature = value / log(proba);
+        oss << "metropolis(temperature = " << temperature << ")";
+        return new emili::MetropolisAcceptance(temperature);
     }
     else if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {
@@ -1193,7 +1291,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
             accc = emili::ACC_DIVERSIFICATION;
 
         else
-            errorExpected(tm, ACCEPTANCE_INTENSIFY, {ACCEPTANCE_INTENSIFY, ACCEPTANCE_DIVERSIFY});
+            throw ErrorExpected(tm, ACCEPTANCE_INTENSIFY, {ACCEPTANCE_INTENSIFY, ACCEPTANCE_DIVERSIFY});
 
         oss << "always(" << t1 << ")";
         printTab(oss.str());
@@ -1249,7 +1347,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
         return new emili::AcceptPlateau(plateau_steps,threshold);
     }
 
-    errorExpected(tm, "ACCEPTANCE_CRITERIA", {ACCEPTANCE_METRO, ACCEPTANCE_ALWAYS, ACCEPTANCE_INTENSIFY, ACCEPTANCE_DIVERSIFY, ACCEPTANCE_IMPROVE, ACCEPTANCE_SA_METRO, ACCEPTANCE_PMETRO, ACCEPTANCE_SA, ACCEPTANCE_IMPROVE_PLATEAU});
+    throw ErrorExpected(tm, "ACCEPTANCE_CRITERIA", {ACCEPTANCE_METRO, ACCEPTANCE_ALWAYS, ACCEPTANCE_INTENSIFY, ACCEPTANCE_DIVERSIFY, ACCEPTANCE_IMPROVE, ACCEPTANCE_SA_METRO, ACCEPTANCE_PMETRO, ACCEPTANCE_SA, ACCEPTANCE_IMPROVE_PLATEAU});
     return nullptr;
 }
 
@@ -1272,7 +1370,7 @@ emili::BestTabuSearch* ExamTTParser::tabu(prs::TokenManager& tm)
         return new emili::FirstTabuSearch(*a, *b, *c, *tmem);
     }
 
-    errorExpected(tm, "PIVOTAL_RULE", {BEST,FIRST});
+    throw ErrorExpected(tm, "PIVOTAL_RULE", {BEST,FIRST});
     return nullptr;
 }
 
@@ -1324,7 +1422,7 @@ emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, 
         return new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
     }
 
-    errorExpected(tm, "VND_SEARCH", {FIRST, BEST});
+    throw ErrorExpected(tm, "VND_SEARCH", {FIRST, BEST});
     return nullptr;
 }
 
@@ -1342,7 +1440,7 @@ emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager&
         return new emili::ExamTT::BestInsertHeuristic(instance);
     }
 
-    errorExpected(tm, "INSERT_HEURISTIC", available);
+    throw ErrorExpected(tm, "INSERT_HEURISTIC", available);
     return nullptr;
 }
 
@@ -1366,7 +1464,7 @@ emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm, std::string
         return new emili::ExamTT::DegreeInserter(instance, heur);
     }
 
-    errorExpected(tm, "CONSTRUCTOR", available);
+    throw ErrorExpected(tm, "CONSTRUCTOR", available);
     return nullptr;
 }
 
@@ -1418,7 +1516,7 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
         return new emili::ExamTT::NBiggestWeightedDestructor(instance, N);
     }
 
-    errorExpected(tm, "DESTRUCTOR", available);
+    throw ErrorExpected(tm, "DESTRUCTOR", available);
     return nullptr;
 }
 
@@ -1486,7 +1584,7 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
             }
         // } else if(tm.checkToken("file")) {
         } else {
-            errorExpected(tm, "given-solution-type", {"list-like", "list-exact", "string-like"});
+            throw ErrorExpected(tm, "given-solution-type", {"list-like", "list-exact", "string-like"});
         }
 
         if(vec.size() != instance.E() * 2)
@@ -1498,7 +1596,7 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
         return new emili::ExamTT::ZeroInitialSolution(instance, firstAssign);
     }
 
-    errorExpected(tm, "INITIAL_SOLUTION", available);
+    throw ErrorExpected(tm, "INITIAL_SOLUTION", available);
     return nullptr;
 }
 
@@ -1575,7 +1673,7 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
         return x;
     }
 
-    errorExpected(tm, "TERMINATION_CRITERIA", available);
+    throw ErrorExpected(tm, "TERMINATION_CRITERIA", available);
     return nullptr;
 }
 
@@ -1611,7 +1709,7 @@ emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm, bool errorIfNotF
     }
 
     if(errorIfNotFound)
-        errorExpected(tm, "NEIGHBORHOOD", available);
+        throw ErrorExpected(tm, "NEIGHBORHOOD", available);
 
     return nullptr;
 }
@@ -1716,6 +1814,10 @@ std::string ExamTTParser::availableProblems() const
         oss << problem << " ";
 
     return oss.str();
+}
+
+std::vector<string> ExamTTParser::availableProblemsList() const {
+    return std::vector<string>(PROBLEMS_DEF.begin(), PROBLEMS_DEF.end());
 }
 
 } // namespace ExamTT

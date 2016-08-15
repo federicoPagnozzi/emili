@@ -10,6 +10,8 @@
 #include "../QAP/qapneighborhood.h"
 #include "../QAP/qap.h"
 
+using prs::ErrorExpected;
+
 /* QAP */
 // #define QAP "QAP"
 
@@ -32,7 +34,6 @@
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"*/
 
-
 // char* problem_type;
 
 //using namespace prs;
@@ -42,14 +43,14 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
                                   emili::Neighborhood *nei) {
 
     if (tm.checkToken(FIXEDINITTEMP)) {
-        double             value     = tm.getDecimal();
+        double value = tm.getDecimal();
         SAInitTemp* init_temp = new FixedInitTemp();
         init_temp->set(value);
         return init_temp;
     } else if (tm.checkToken(INITFROMSOL)) {
-        double                  value    = tm.getDecimal();
+        double value = tm.getDecimal();
         emili::Solution* is = initsol->generateSolution();
-        SAInitTemp* init_temp     = new InitTempFromSolution(is);
+        SAInitTemp* init_temp = new InitTempFromSolution(is);
         init_temp->set(value);
         return init_temp;
     } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
@@ -93,12 +94,9 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
         init_temp->set(1);
         return init_temp;
-    } else {
-        std::cerr << "SAInitTemp expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
 
+    throw ErrorExpected(tm, "SAInitTemp", {FIXEDINITTEMP, INITFROMSOL, RANDOMWALKINITTEMP, CONNOLLYRWIT, RANDOMWALKAVGINITTEMP, RANDOMWALKINITPROB, MISEVICIUSINITTEMP, SIMPLEMISEVICIUSINITTEMP});
 }
 
 
@@ -130,12 +128,9 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
     } else if (tm.checkToken(LAHCACC)) {
         double te = tm.getInteger();
         return new LAHCAcceptance(te);
-    } else {
-        std::cerr << "SAAcceptance expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
 
+    throw ErrorExpected(tm, "SAAcceptance", {METROPOLIS, METROPOLISWFORCED, BASICACC, APPROXEXPACC, GEOMACC, GENSAACC, DETERMINISTICACC, GDAACC, RTRACC, LAHCACC});
 }
 
 
@@ -172,12 +167,9 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm,
     } else if (tm.checkToken(MAXSTEPSTERM)) {
         int ms = tm.getInteger();
         return new SAMaxStepsTermination(ms);
-    } else {
-        std::cerr << "SATermination expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
 
+    throw ErrorExpected(tm, "SATermination", {MAXBADITERS, MAXITERS, NEVERTERM, ACCRATETERM, LASTACCRATETERM, MAXTEMPRESTARTSTERM, NEIGHSIZEITERTERM, LOCALMINTERM, NEIGHSIZELOCALMINTERM, MAXSTEPSTERM});
 }
 
 
@@ -222,12 +214,8 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
         return new SATemperatureBandCooling(a, it);
     } else if (tm.checkToken(QUADRATICCOOLING)) {
         return new SAQuadraticCooling(it);
-    } else {
-        std::cerr << "SACooling expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
-
+    throw ErrorExpected(tm, "SACooling", {GEOM, MARKOV, LOGCOOLING, CONSTCOOLING, LUNDYMEES, LUNDYMEESCONNOLLY, Q87COOLING, CONNOLLYQ87COOLING, LINEARCOOLING, NOCOOLING, TEMPBANDCOOLING, QUADRATICCOOLING});
 }
 
 
@@ -275,12 +263,9 @@ SATempLength* SAQAPParser::TEMPLENGTH(prs::TokenManager& tm,
     } else if (tm.checkToken(BRGEOMTEMPLEN)) {
         float b = tm.getDecimal();
         return new BurkardRendlGeomTempLength(neigh, b);
-    } else {
-        std::cerr << "SATempLength expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
 
+    throw ErrorExpected(tm, "SATempLength", {CONSTTEMPLEN, NEIGHSIZETEMPLEN, BRNEIGHSIZETEMPLEN, MAXACCEPTEDTEMPLEN, CAPPEDMAXACCEPTEDTEMPLEN, NEIGHCAPPEDMAXACCEPTEDTEMPLEN, ARITMTEMPLEN, GEOMTEMPLEN, LOGTEMPLEN, EXPTEMPLEN, NOTEMPLEN, BRGEOMTEMPLEN});
 }
 
 
@@ -320,9 +305,7 @@ QAPNeighborhood* SAQAPParser::neigh(prs::TokenManager& tm)
         prs::printTab( "First improvement 2-opt neighborhood");
         neigh = new QAPFirst2optNeighborhood(*instance);
     } else {
-        std::cerr<< "'" << *tm << "' -> ERROR a neighborhood specification was expected! " << std::endl;
-        std::cout << SAQAPParser::info() << std::endl;
-        exit(-1);
+        throw ErrorExpected(tm, "NEIGHBORHOOD", {NEIGHBORHOOD_EXCHANGE, BEST2OPT_EXCHANGE, FIRST2OPT_EXCHANGE});
     }
     prs::decrementTabLevel();
     return neigh;
@@ -344,12 +327,9 @@ SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
         return new SARandomExploration(neigh, acc, term);
     } else if (tm.checkToken(SASEQUENTIALEXPLORATION)) {
         return new SASequentialExploration(neigh, acc, term);
-    } else {
-        std::cerr << "SAExploration expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
 
+    throw ErrorExpected(tm, "EXPLORATION", {SARANDOMEXPLORATION, SASEQUENTIALEXPLORATION});
 }
 
 SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
@@ -412,13 +392,9 @@ SATempRestart* SAQAPParser::TEMPRESTART(prs::TokenManager& tm,
         float   te = tm.getInteger();
         float va = tm.getDecimal();
         return new SANeighSizeMaxItersReheat(it, neigh, te, va);
-    } else {
-        std::cerr << "SATempRestart expected, not found : " << std::endl;
-        std::cerr << tm.peek() << std::endl;
-        exit(1);
     }
 
-
+    throw ErrorExpected(tm, "SATempRestart", {SANOTEMPRESTART, SAMINTEMPRESTART, SAPERCTEMPRESTART, SALOWRATERESTART, SALASTRATERESTART, SALOWRATEREHEAT, SALASTRATEREHEAT, SALOCALMINREHEAT, SALOWRATERESTARTBEST, SALOCALMINRESTARTBEST, SALOCALMINTEMPRESTART, SALOCALMINENHANCEDREHEAT, SAMAXITERSTEMPRESTART, SAMAXITERSREHEAT, SANEIGHSIZEMAXITERSTEMPRESTART, SANEIGHSIZEMAXITERSREHEAT});
 }
 
 

@@ -54,7 +54,8 @@ protected:
         SimulatedAnnealing* buildSA(prs::TokenManager& tm, emili::InitialSolution* initsol, emili::Neighborhood* nei);
     } sa;
 
-    virtual std::string availableProblems() const;
+    std::string availableProblems() const override;
+    std::vector<std::string> availableProblemsList() const override;
     emili::Problem* getInstance() override { return &instance; }
 public:
     virtual bool isParsable(std::string &problem) ;

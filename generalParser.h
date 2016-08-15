@@ -8,6 +8,9 @@
 #include "emilibase.h"
 
 #include <exception>
+#include <string>
+#include <vector>
+#include <sstream>
 
 namespace prs
 {
@@ -24,6 +27,16 @@ struct TabLevel {
     ~TabLevel() { decrementTabLevel(); }
 };
 
+struct ParsingError : std::exception {
+    std::string msg;
+    ParsingError() {}
+    ParsingError(std::string msg_) : msg(msg_) {}
+
+    const char* what() const throw() override {
+        return msg.c_str();
+    }
+};
+
 class TokenManager
 {
 protected:
@@ -31,18 +44,22 @@ protected:
     int numberOfTokens;
     int currentToken;
 public:
-    TokenManager(const char** tokens,int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(0) { }
-    const char *nextToken();
-    const char *peek();
-    // same as peek
-    const char *operator *();
+    TokenManager(const char** tokens, int numberOfTokens):tokens(tokens),numberOfTokens(numberOfTokens),currentToken(0) { }
+
+    bool hasNext();
     void next();
-    // same as next
-    void operator ++(int);
-    int getInteger();
-    float getDecimal();
+    void operator ++(int); // same as next
+    const char* nextToken(); // skip one token and return it, or null if no token left
+
+    const char* peek(); // return current token or " "
+    const char* operator *(); // same as peek
+
+    int getInteger() throw(ParsingError);
+    float getDecimal() throw(ParsingError);
+
     bool checkToken(const std::string &token);
     bool checkToken(const char*);
+
     const char* tokenAt(int i);
     bool peekIs(const char*);
     bool peekIs(const std::string &);
@@ -69,10 +86,28 @@ public:
     bool checkDecimal(double &res);
 };
 
+struct ErrorExpected : ParsingError {
+    ErrorExpected(prs::TokenManager& tm, std::string name, std::vector<std::string> const& tokens) {
+        std::ostringstream oss;
+        oss << "'" << tm.peek() << "' -> ERROR a " << name << " is expected : ";
+        if(tokens.size() == 0) {
+            oss << "<>";
+        } else {
+            auto it = tokens.begin();
+            oss << "<" << *it++;
+            while(it != tokens.end())
+                oss << " | " << *it++;
+            oss << ">";
+        }
+        msg = oss.str();
+    }
+};
+
 class AlgoBuilder
 {
-protected:
+public:
     virtual std::string availableProblems() const{ return std::string("Iamabstract!");}
+    virtual std::vector<std::string> availableProblemsList() const { return {}; }
 public:
     virtual bool isParsable(std::string& problem)=0 ; // should be const std::string &
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm) {return nullptr;}
@@ -88,7 +123,9 @@ public:
 };
 
 class NoSearch : public std::exception {
-
+    const char* what() const throw() {
+        return "NoSearch";
+    }
 };
 
 class GeneralParser

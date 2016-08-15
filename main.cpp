@@ -46,8 +46,12 @@ int main(int argc, const char *argv[])
 
     try {
         ls = ps.parseParams();
-    } catch(prs::NoSearch) {
+    } catch(prs::NoSearch&) {
         std::cout << "No Search" << std::endl;
+    } catch(prs::ErrorExpected& e) {
+        std::cerr << e.what() << std::endl;
+    } catch(prs::ParsingError& e) {
+        std::cerr << "PARSING ERROR: " << e.what() << std::endl;
     }
 
     if(ls == nullptr) {

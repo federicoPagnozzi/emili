@@ -820,41 +820,50 @@ emili::Solution* emili::VNRandomMovePerturbationInPlace::perturb(Solution *solut
 
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
-    if(acc==ACC_DIVERSIFICATION)
-    {
+    if(acc == ACC_DIVERSIFICATION)
         return diversification_solution;
-    }
     else
-    {
         return intensification_solution;
-    }
+}
+
+bool emili::AlwaysAccept::acceptViaDelta(Solution *diversification_solution, double delta)
+{
+    return acc == ACC_DIVERSIFICATION;
 }
 
 emili::Solution* emili::AcceptImproveEqual::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(*diversification_solution <= *intensification_solution)
-    {
         return diversification_solution;
-    }
-    return intensification_solution;
+    else
+        return intensification_solution;
+}
+
+bool emili::AcceptImproveEqual::acceptViaDelta(Solution *diversification_solution, double delta)
+{
+    return delta <= 0;
 }
 
 emili::Solution* emili::ImproveAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
-    Solution* k = intensification_solution;
-    if(intensification_solution->operator >(*diversification_solution)){
-        k = diversification_solution;
-    }
-    return k;
+    if(*diversification_solution < *intensification_solution)
+        return diversification_solution;
+    else
+        return intensification_solution;
+}
+
+bool emili::ImproveAccept::acceptViaDelta(Solution *newSolution, double delta)
+{
+    return delta < 0;
 }
 
 emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(*diversification_solution <= *intensification_solution)
     {
+        this->current_step = 0;
+        this->threshold_status = 0;
         return diversification_solution;
-        this->current_step=0;
-        this->threshold_status=0;
     }
     else
     {
@@ -875,6 +884,30 @@ emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution
         }
     }
     return intensification_solution;
+}
+
+bool emili::AcceptPlateau::acceptViaDelta(Solution *newSolution, double delta) {
+    if(delta <= 0) {
+        this->current_step = 0;
+        this->threshold_status = 0;
+        return true;
+    } else {
+        threshold_status++;
+        if(threshold_status >= this->plateau_threshold)
+        {
+            if(current_step <= max_plateau_steps)
+            {
+                current_step++;
+                return true;
+            }
+            else
+            {
+                threshold_status = 0;
+                current_step = 0;
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -957,7 +990,7 @@ emili::Solution *emili::MyIteratedLocalSearch::search(emili::Solution * initial)
             delete newSol;
             done = termcriterion->terminate(sol, sol);
         }
-        if(done);
+        if(done)
             break;
     }
 
@@ -1203,12 +1236,12 @@ void emili::MaxStepsTerminationDebug::reset()
 emili::Solution* emili::PipeSearch::search(Solution *initial)
 {
     Solution* bestSoFar = init->generateEmptySolution();
-    bestSoFar->operator =(*initial);
+    *bestSoFar = *initial;
     Solution* ithSolution = bestSoFar;
     for(std::vector< emili::LocalSearch*>::iterator iter = lss.begin();iter!=lss.end();++iter)
     {
         ithSolution = (*iter)->search(ithSolution);
-        if(ithSolution->operator <(*bestSoFar))
+        if(*ithSolution < *bestSoFar)
         {
             delete bestSoFar;
             bestSoFar = ithSolution;
@@ -1246,12 +1279,23 @@ emili::Solution* emili::MetropolisAcceptance::accept(Solution *intensification_s
     return diversification_solution;
 }
 
+bool emili::MetropolisAcceptance::acceptViaDelta(Solution* diversification_solution, double delta)
+{
+    // delta = divers - intens
+    if(delta < 0) {
+        float prob = std::exp(-delta/temperature);
+        if(prob < 1.0 && generateRealRandomNumber() > prob)
+            return false;
+    }
+    return true;
+}
+
 emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(counter == interval && temperature > end_temp)
     {     
-        temperature = (alpha * temperature) - rate;        
-        counter=0;
+        temperature = (alpha * temperature) - rate;
+        counter = 0;
     }    
     counter++;
     float intens = intensification_solution->getSolutionValue();
@@ -1266,6 +1310,23 @@ emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, S
     }
 
     return diversification_solution;
+}
+
+bool emili::Metropolis::acceptViaDelta(Solution *diversification_solution, double delta)
+{
+    if(counter == interval && temperature > end_temp)
+    {
+        temperature = (alpha * temperature) - rate;
+        counter = 0;
+    }
+    counter++;
+    if(delta < 0) {
+        float prob = std::exp(-delta/temperature);
+        if(prob < 1.0 && generateRealRandomNumber() > prob)
+            return false;
+    }
+
+    return true;
 }
 
 void emili::Metropolis::reset()

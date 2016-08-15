@@ -787,19 +787,22 @@ protected:
     accept_candidates acc;
 public:
     AlwaysAccept(accept_candidates choice):acc(choice) { }
-    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    Solution* accept(Solution *intensification_solution, Solution *diversification_solution) override;
+    bool acceptViaDelta(Solution *diversification_solution, double delta) override;
 };
 
 class ImproveAccept : public emili::Acceptance
 {
 public:
-    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    Solution* accept(Solution *intensification_solution, Solution *diversification_solution) override;
+    bool acceptViaDelta(Solution *newSolution, double delta);
 };
 
 class AcceptImproveEqual : public emili::Acceptance
 {
 public:
-    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    Solution* accept(Solution *intensification_solution, Solution *diversification_solution) override;
+    bool acceptViaDelta(Solution *newSolution, double delta) override;
 };
 
 class AcceptPlateau : public emili::Acceptance
@@ -811,7 +814,8 @@ protected:
     int plateau_threshold;
 public:
     AcceptPlateau(int maxNonImprovingSteps,int threshold):max_plateau_steps(maxNonImprovingSteps),plateau_threshold(threshold),current_step(0),threshold_status(0) { }
-    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    Solution* accept(Solution *intensification_solution, Solution *diversification_solution) override;
+    bool acceptViaDelta(Solution *diversification_solution, double delta) override;
 };
 
 /*
@@ -836,6 +840,11 @@ public:
     Solution* getBestSoFar() override;
 };
 
+/**
+ * @brief The MyIteratedLocalSearch class
+ * Supports "init" semantic
+ * Supports "behaviour" semantic
+ */
 class MyIteratedLocalSearch : public emili::LocalSearch
 {
 protected:
@@ -1038,7 +1047,8 @@ public:
     MetropolisAcceptance(float startTemp):temperature(startTemp) { }
     void setTemp(float temp);
     float getTemp();
-    virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution);
+    Solution* accept(Solution* intensification_solution, Solution* diversification_solution) override;
+    bool acceptViaDelta(Solution *newSolution, double delta) override;
 };
 /*
  * Proper Metropolis acceptance criterion
@@ -1057,8 +1067,9 @@ public:
     Metropolis(float initial_temperature,float final_temperature,float descending_ratio):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(1),counter(0),alpha(1) { }
     Metropolis(float initial_temperature,float final_temperature,float descending_ratio,int iterations):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(iterations),counter(0),alpha(1) { }
     Metropolis(float initial_temperature, float final_temperature, float descending_ratio, int iterations, float alpha):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(iterations),counter(0),alpha(alpha) { }
-    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
-    virtual void reset();
+    Solution* accept(Solution *intensification_solution, Solution *diversification_solution) override;
+    bool acceptViaDelta(Solution *newSolution, double delta);
+    void reset() override;
 };
 
 /*

@@ -92,18 +92,16 @@ const char* prs::TokenManager::nextToken()
     }
 }
 
+/**
+ * @brief prs::TokenManager::peek
+ * @return current token or " "
+ */
 const char* prs::TokenManager::peek()
 {
     if(currentToken < numberOfTokens)
-    {
-        const char* token = tokens[currentToken];
-     //   currentToken++;
-        return token;
-    }
+        return tokens[currentToken];
     else
-    {
         return " ";
-    }
 }
 
 const char* prs::TokenManager::operator *()
@@ -113,10 +111,12 @@ const char* prs::TokenManager::operator *()
 
 void prs::TokenManager::next()
 {
-    if(currentToken<numberOfTokens)
-    {
+    if(currentToken < numberOfTokens)
         currentToken++;
-    }
+}
+
+bool prs::TokenManager::hasNext() {
+    return currentToken < numberOfTokens;
 }
 
 void prs::TokenManager::operator ++(int k)
@@ -196,33 +196,25 @@ bool prs::TokenManager::checkDecimal(double & res) {
     return false;
 }
 
-int prs::TokenManager::getInteger()
+int prs::TokenManager::getInteger() throw(ParsingError)
 {
-    const char* t = peek();
-    std::string errorMessage = std::string("Int expected, '") + t + "' found";
-    check(t, errorMessage.c_str());
-
     int k;
-    std::istringstream iss(t);
+    std::istringstream iss(peek());
     iss >> k;
     if(!iss)
-        check(nullptr, errorMessage.c_str());
+        throw ParsingError(std::string("Int expected, '") + peek() + "' found");
 
     next();
     return k;
 }
 
-float prs::TokenManager::getDecimal()
+float prs::TokenManager::getDecimal() throw(ParsingError)
 {
-    const char* t = peek();
-    std::string errorMessage = std::string("Decimal expected, '") + t + "' found";
-    check(t, errorMessage.c_str());
-
     float k;
-    std::istringstream iss(t);
+    std::istringstream iss(peek());
     iss >> k;
     if(!iss)
-        check(nullptr, errorMessage.c_str());
+        throw ParsingError(std::string("Decimal expected, '") + peek() + "' found");
 
     next();
     return k;
@@ -238,46 +230,44 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
     tm++;
     tm++;
     const char* p = tm.peek();
-    if(p != nullptr)
-    {
-        std::string prob(p);
-        for(AlgoBuilder* bld : builders) {
-            if(bld->isParsable(prob))
-            {
-                emili::LocalSearch* ls = bld->buildAlgo(tm);
-                emili::Problem* instance = bld->getInstance();
-                if(! instance)
-                    instance = &ls->getInitialSolution().getProblem();
 
-                noSearch = false;
-                int it = DEFAULT_IT;
-                int seed = 0;
-                for(;;) {
-                    if(tm.checkToken("no-search"))
-                        noSearch = true;
-                    else if(tm.checkToken(IT))
-                        it = tm.getInteger();
-                    else if(tm.checkToken(RO))
-                        it = floorf(tm.getDecimal() * instance->problemSize());
-                    else if(tm.checkToken(RNDSEED))
-                        seed = tm.getInteger();
-                    else
-                        break;
-                }
-                std::cout << "Run time secs : " << it << std::endl;
-                std::cout << "Random seed : " << seed << std::endl;
-                ls->setSearchTime(it);
-                emili::initializeRandom(seed);
-                return ls;
+    std::string prob(p);
+    for(AlgoBuilder* bld : builders) {
+        if(bld->isParsable(prob))
+        {
+            emili::LocalSearch* ls = bld->buildAlgo(tm);
+            emili::Problem* instance = bld->getInstance();
+            if(! instance)
+                instance = &ls->getInitialSolution().getProblem();
+
+            noSearch = false;
+            int it = DEFAULT_IT;
+            int seed = 0;
+            for(;;) {
+                if(tm.checkToken("no-search"))
+                    noSearch = true;
+                else if(tm.checkToken(IT))
+                    it = tm.getInteger();
+                else if(tm.checkToken(RO))
+                    it = floorf(tm.getDecimal() * instance->problemSize());
+                else if(tm.checkToken(RNDSEED))
+                    seed = tm.getInteger();
+                else
+                    break;
             }
+            std::cout << "Run time secs : " << it << std::endl;
+            std::cout << "Random seed : " << seed << std::endl;
+            ls->setSearchTime(it);
+            emili::initializeRandom(seed);
+            return ls;
         }
-        std::cout << "------" << std::endl;
-        std::cout << "No parser for "<< p << " available" << std::endl;
     }
-    std::cerr << "A problem was expected!" << std::endl;
-    // info
-    prs::info();
-    return nullptr;
+    std::vector<std::string> avail;
+    for(AlgoBuilder* bld : builders) {
+        auto L = bld->availableProblemsList();
+        avail.insert(avail.end(), L.begin(), L.end());
+    }
+    throw ErrorExpected(tm, "problem", avail);
 }
 
 void prs::GeneralParser::registerBuilder(AlgoBuilder* builder)
