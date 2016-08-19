@@ -244,9 +244,11 @@ emili::Solution* GreatDelugeAcceptance::accept(emili::Solution *current_solution
     if (ns > temperature) {
         return current_solution;
     } else if (ns < status->best_cost) {
+std::cout << "hi 3 " << ns << " " << temperature << std::endl;
         status->new_best_solution(new_solution, ns, temperature);
     }
 
+std::cout << "hi 4" << std::endl;
     return new_solution;
 
 }
