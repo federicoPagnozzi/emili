@@ -74,6 +74,7 @@ public:
                         status->init_temp = init_temp;
                         status->final_temp = initialTemperature->getMinTemp();
                         status->temp = init_temp;
+                        acceptanceCriterion->setCurrentTemp(status->temp);
                         
 
                         /**
