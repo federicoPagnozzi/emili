@@ -496,6 +496,7 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
     }
     else if(tm.checkToken(EMPTY_LOCAL))
     {
+        printTab("NO LOCAL SEARCH");
         emili::InitialSolution* ini = init(tm);
         ls = new emili::EmptyLocalSearch(*ini);
     }

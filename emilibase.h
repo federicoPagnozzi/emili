@@ -348,6 +348,7 @@ public:
         this->init = &in;
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
+        this->bestSoFar = nullptr;
         }
     virtual Solution* search(Solution* initial) { return initial->clone();}
     virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
