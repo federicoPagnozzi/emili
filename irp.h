@@ -13,6 +13,7 @@ class InventoryRoutingProblem: public emili::Problem
 protected:
     /*Internal structure of the invetory routing problem*/
     Instance irpInstance;
+    clock_t time;
 public:
     InventoryRoutingProblem(char* instance_path);
     /*implement this method to get the objective Function value*/
@@ -21,6 +22,7 @@ public:
 
     /*Methods that are needed  for IRP */
     Instance getIrpInstance();
+    double getTime(){return this->time;}
 };
 
 class InventoryRoutingSolution: public emili::Solution

@@ -55,6 +55,9 @@ ERROR: EMILI's errors
 run/stdout: you can check how many paramteres
 run/stderr: Irace's errors
 
+max RAM used by a user
+qstat -u $USER -s r | tail -n +3 | cut -d ' ' -f 1 |  \
+ xargs -I {} qstat -j {} | fgrep "usage" | cut -d ',' -f 5
 
 
 

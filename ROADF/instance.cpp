@@ -1025,7 +1025,7 @@ double Instance::computeObjective(irpSolution &solution){
   return LR;
 }
 
-
+/*
 double Instance::computeDeltaObjective(irpSolution oldSolution, irpSolution newSolution, unsigned int shiftIndex){
 
     Shift oldShift = oldSolution.getShifts()[shiftIndex];
@@ -1076,7 +1076,7 @@ double Instance::computeDeltaObjective(irpSolution oldSolution, irpSolution newS
     return newObjectiveValue;
 
 }
-
+*/
 double Instance::computePartialObjective(irpSolution oldSolution, irpSolution newSolution, unsigned int shiftIndex){
 
     double oldQuantity, newQuantity;
@@ -1109,10 +1109,10 @@ double Instance::computePartialObjective(irpSolution oldSolution, irpSolution ne
             if(newOperations[o].getPoint() != 1)
                 newQuantity += newOperations[o].getQuantity();
         }
+        
         newDistance += this->distMatrices[newOperations.back().getPoint()][0];
-        newTime = (newOperations.back().getArrival() + this->customers[newOperations.back().getPoint()].getSetupTime() +  this->timeMatrices[newOperations.back().getPoint()][0] - newShift.getStart());
-
-
+        newTime = (newOperations.back().getArrival() + this->customers[newOperations.back().getPoint()].getSetupTime() + this->timeMatrices[newOperations.back().getPoint()][0] 
+                - newShift.getStart());
         newShiftObjective += (newDistance * this->trailers[newShift.getTrailer()].getDistanceCost() +
                                    newTime * this->drivers[newShift.getDriver()].getTimeCost());
     }
@@ -2453,6 +2453,7 @@ void Instance::computeUrgency(vector<unsigned int> &customerList, vector<double>
             if(totForecast > deliveredQuantity + this->customers[c].getInitialTankQuantity() - this->customers[c].getSafetyLevel()){
                 timeFactor = ((double)f/forecast.size()) * timeWeight/2;
                 quantityFactor = (abs(totalForecast - deliveredQuantity)/totalForecast) * quantityWeight/2;
+//                quantityFactor = (1.0 - (abs(totalForecast - deliveredQuantity)/totalForecast)) * quantityWeight/2;
                 distanceFactor = 100.0 * EPSILON * ((double)this->timeMatrices[currentPoint][c]/(totalDistance))*ties;
                 urgency[c] = 1.0 + timeFactor + quantityFactor + distanceFactor;
                 flag = false;
