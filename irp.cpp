@@ -110,7 +110,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         COUT<<"PARAMETERS: "<<tw<<" "<<qw<<" "<<t<<"\n";
                         COUT<<irs->getSolutionValue();
            //             int a;cin>>a;
-/*
+
                         ofstream file;
                         string filepath2;
                         filepath2.append("./Neighborhood/");
@@ -120,7 +120,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         file.precision(15);
                         file << "-------------------------------------------------" << std::endl;
                         file.close();
-*/
+
 
                         return bestIrs;
                     
