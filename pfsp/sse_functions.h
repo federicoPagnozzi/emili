@@ -1,3 +1,8 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
 #include <iostream>
 #include <xmmintrin.h>
 #include <emmintrin.h>
@@ -488,9 +493,9 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
         // third row
         mcw = _mm_set_ps(0,0,0,L[4]);                           // setup vec for compares
         mc = makespan;
-        mc = _mm_and_ps(mc,mask1100);                           // mc -> [C1,3 , C2,2, 0, 0 ]
-        mc = _mm_shuffle_ps(mc,mc,0x93);                        // mc -> [ 0, C1,3, C2,2, 0 ]
-        mcw = _mm_add_ps(mcw,mc);                               // mcw -> [L4, C1,3, C2,2  , 0 ]
+        mc = _mm_and_ps(mc,mask1100);                           // mc -> [C1,3 , C2,2,    0, 0 ]
+        mc = _mm_shuffle_ps(mc,mc,0x93);                        // mc -> [   0 , C1,3, C2,2, 0 ]
+        mcw = _mm_add_ps(mcw,mc);                               // mcw ->[  L4 , C1,3, C2,2, 0 ]
 
         makespan = _mm_max_ps(mcw,makespan);                    // makespan -> [ max(L4,C1,2),max(C1,3 , C2,2) , max( C2,2, C3,1 ) , C4,1]
         mcw = _mm_set_ps(0,processingTimesMatrix[j3][m],
