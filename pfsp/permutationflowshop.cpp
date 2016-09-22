@@ -1319,7 +1319,17 @@ emili::Solution* emili::pfsp::NEH::generate()
         tpt[i] = tpti;
         order.push_back(i);
     }
-    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+   // std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){
+        if(tpt[i1] == tpt[i2])
+        {
+            return i1>i2;
+        }
+        else
+        {
+            return tpt[i1] > tpt[i2];
+        }
+        });
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
