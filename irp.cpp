@@ -1162,34 +1162,3 @@ emili::Solution* emili::irp::irpPerturbation::perturb(Solution* solution){
     InventoryRoutingSolution *perturbedSolution = new InventoryRoutingSolution(*dynamic_cast<InventoryRoutingSolution *> (solution));
     irpSolution irpPerturbedSolution = perturbedSolution->getIrpSolution();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP stin random
-// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP best random locmin ref
-
-
-// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP ils best random locmin ref true rndmv twoExc 1 metropolis 3.5 -it 1800
-
-
-
-
-//1) /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.3.xml IRP ils best random locmin ref true rndmv twoExc 1 metropolis 3.5 -it 1800
-//2) /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.3.xml IRP ils best random locmin twoExc true rndmv ref 1 metropolis 3.5 -it 1800
-
-
-//file:///home/antoniofisk/Desktop/Uni/MasterThesis/Project/challengeAL
-
-// /home/antoniofisk/Desktop/Uni/MasterThesis/Project/build/Instance_V_1.1.xml IRP ils first random locmin twoExc 0 1 true rndmv ref 0 0.2 0 0.2 1 metropolis 3.5 -it 1800
-
