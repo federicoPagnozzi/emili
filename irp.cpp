@@ -132,7 +132,6 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         file << bestIrs->getSolutionValue() <<" "<< 0 <<" "<< 0 << " "<< time_elapsed<< std::endl;
                         file.close();
 
-                        cout<< bestIrs->getSolutionValue(); int  a;cin>>a;
                         return bestIrs;
                     
                     }
