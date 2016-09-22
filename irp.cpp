@@ -1142,6 +1142,7 @@ emili::Solution* emili::irp::irpRefuelNeighborhood::random(Solution* currentSolu
     delete neighboringSolution;
 
     return dynamic_cast<Solution *> (irs);
+
 }
 
 void emili::irp::irpRefuelNeighborhood::reverseLastMove(Solution * step){
