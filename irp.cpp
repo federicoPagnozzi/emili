@@ -121,6 +121,16 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
                         file << "-------------------------------------------------" << std::endl;
                         file.close();
 
+                        double time_elapsed = (double)(clock()-irp.getTime())/CLOCKS_PER_SEC;
+
+                        string filepath3;
+                        filepath3.append("./Neighborhood/");
+                        filepath3.append(irp.getIrpInstance().getName());
+                        filepath3.append("/Objective");
+                        file.open (filepath3,fstream::app);
+                        file.precision(15);
+                        file << bestIrs->getSolutionValue() <<" "<< 0 <<" "<< 0 << " "<< time_elapsed<< std::endl;
+                        file.close();
 
                         return bestIrs;
                     
@@ -140,7 +150,16 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
     file << "-------------------------------------------------" << std::endl;
     file.close();
 
+    double time_elapsed = (double)(clock()-irp.getTime())/CLOCKS_PER_SEC;
 
+    string filepath3;
+    filepath3.append("./Neighborhood/");
+    filepath3.append(irp.getIrpInstance().getName());
+    filepath3.append("/Objective");
+    file.open (filepath3,fstream::app);
+    file.precision(15);
+    file << bestIrs->getSolutionValue() <<" "<< 0 <<" "<< 0 << " "<< time_elapsed<< std::endl;
+    file.close();
 
     return bestIrs;
 
@@ -280,6 +299,16 @@ emili::Solution* emili::irp::GreedyRandomizedInitialSolution::generateSolution()
     file << "-------------------------------------------------" << std::endl;
     file.close();
 
+    double time_elapsed = (double)(clock()-irp.getTime())/CLOCKS_PER_SEC;
+
+    string filepath3;
+    filepath3.append("./Neighborhood/");
+    filepath3.append(irp.getIrpInstance().getName());
+    filepath3.append("/Objective");
+    file.open (filepath3,fstream::app);
+    file.precision(15);
+    file << bestIrs->getSolutionValue() <<" "<< 0 <<" "<< 0 << " "<< time_elapsed<< std::endl;
+    file.close();
 
     return bestIrs;
 
@@ -381,6 +410,17 @@ emili::Solution* emili::irp::GRASP::generateSolution(){
     file.open (filepath2,fstream::app);
     file.precision(15);
     file << "-------------------------------------------------" << std::endl;
+    file.close();
+
+    double time_elapsed = (double)(clock()-irp.getTime())/CLOCKS_PER_SEC;
+
+    string filepath3;
+    filepath3.append("./Neighborhood/");
+    filepath3.append(irp.getIrpInstance().getName());
+    filepath3.append("/Objective");
+    file.open (filepath3,fstream::app);
+    file.precision(15);
+    file << bestIrs->getSolutionValue() <<" "<< 0 <<" "<< 0 << " "<< time_elapsed<< std::endl;
     file.close();
 
     return bestIrs;

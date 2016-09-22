@@ -90,3 +90,5 @@ run /home/afiscarelli/Instances//Instance_V_1.6.xml  IRP ils first grasp 0.1803 
 run /home/afiscarelli/Instances//Instance_V_1.8.xml  IRP ils vnd first greedy 0.9184 1 locmin shiftTwoExc 0.8027 1 0.0846 0.8619 ref 0.5785 0.5262 0.2513 2 shiftRem 0.9334 1 0.9737 0.722 true rndmv shiftTwoExc 0.6511 2 0.7855 0.3972 10 improve -it 300
 
 
+
+
