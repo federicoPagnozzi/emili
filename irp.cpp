@@ -76,7 +76,7 @@ emili::Solution* emili::irp::GreedyInitialSolution::generateSolution(){
         for(double qw=0.0; qw<=1.0; qw+=0.1){
             for(double t=-1; t<=1; t+=2){
 
-                irps = irp.getIrpInstance().randomizedConstructSolution(solution, tw, qw, t, 1.0, 0.0, 0, INT_MAX, this->randomFactor, this->urgencyPolicy);
+                irps = irp.getIrpInstance().randomizedConstructSolution(solution, tw, qw, t, 1.0, 0.0, 0, INT_MAX, 0.2972/*this->randomFactor*/, this->urgencyPolicy);
                 irps = irp.getIrpInstance().extendSolution(irps, 1.0, 0.0, 0, INT_MAX);
                 irs = new InventoryRoutingSolution(irps);
                 instance.evaluateSolution(*irs);
