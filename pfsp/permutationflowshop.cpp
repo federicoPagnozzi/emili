@@ -522,14 +522,11 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
             long int c_max = c_cur+tail[1][r];
             for (int i = 2; i <= m; ++i) {
                 int c_pm = head[i][r-1];
-                if(c_pm < c_cur)
+                if(c_pm > c_cur)
                 {
-                    c_cur = c_cur + pmatrix[kk][i];
-                }
-                else
-                {
-                    c_cur = c_pm + pmatrix[kk][i];
-                }
+                    c_cur = c_pm;
+                }                
+                c_cur = c_cur + pmatrix[kk][i];
                 long int c_can = (c_cur+tail[i][r]);
                 c_max = c_max>c_can?c_max:c_can;
             }
@@ -2040,14 +2037,11 @@ emili::Solution* emili::pfsp::RSIOPerturbation::perturb(Solution *solution)
             long int c_max = c_cur+tail[1][r];
             for (int i = 2; i <= nmac; ++i) {
                 int c_pm = head[i][r-1];
-                if(c_pm < c_cur)
+                if(c_pm > c_cur)
                 {
-                    c_cur = c_cur + pmatrix[k][i];
+                    c_cur = c_pm;
                 }
-                else
-                {
-                    c_cur = c_pm + pmatrix[k][i];
-                }
+                c_cur = c_cur + pmatrix[k][i];
                 long int c_can = (c_cur+tail[i][r]);
                 c_max = c_max>c_can?c_max:c_can;
             }
@@ -2115,14 +2109,11 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
             long int c_max = c_cur+tail[1][r];
             for (int i = 2; i <= nmac; ++i) {
                 int c_pm = head[i][r-1];
-                if(c_pm < c_cur)
+                if(c_pm > c_cur)
                 {
-                    c_cur = c_cur + pmatrix[k][i];
+                    c_cur = c_pm;
                 }
-                else
-                {
-                    c_cur = c_pm + pmatrix[k][i];
-                }
+                c_cur = c_cur + pmatrix[k][i];
                 long int c_can = (c_cur+tail[i][r]);
                 c_max = c_max>c_can?c_max:c_can;
             }
@@ -2156,7 +2147,6 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
     //std::cout << "partial size " << solPartial.size() << std::endl;
     int size = solPartial.size();
     std::vector< int > solTMP(size,0);
-
     int sops = size-1;
     for(int k = 0; k < d; k++) {
         index = (emili::generateRandomNumber()%sops)+1;
@@ -2170,7 +2160,6 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
         k=removed[l];
         sops++;
         min = std::numeric_limits<int>::max();
-
 #ifdef ENABLE_SSE
         computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,nmac);
 #else
@@ -2193,14 +2182,11 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
             long int c_max = c_cur+tail[1][r];
             for (int i = 2; i <= nmac; ++i) {
                 int c_pm = head[i][r-1];
-                if(c_pm < c_cur)
+                if(c_pm > c_cur)
                 {
-                    c_cur = c_cur + pmatrix[k][i];
+                    c_cur = c_pm;
                 }
-                else
-                {
-                    c_cur = c_pm + pmatrix[k][i];
-                }
+                c_cur = c_cur + pmatrix[k][i];
                 long int c_can = (c_cur+tail[i][r]);
                 c_max = c_max>c_can?c_max:c_can;
             }
@@ -2397,14 +2383,11 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
             long int c_max = c_cur+tail[1][r];
             for (int i = 2; i <= mac; ++i) {
                 int c_pm = head[i][r-1];
-                if(c_pm < c_cur)
+                if(c_pm > c_cur)
                 {
-                    c_cur = c_cur + pmatrix[k][i];
+                    c_cur = c_pm;
                 }
-                else
-                {
-                    c_cur = c_pm + pmatrix[k][i];
-                }
+                c_cur = c_cur + pmatrix[k][i];
                 long int c_can = (c_cur+tail[i][r]);
                 c_max = c_max>c_can?c_max:c_can;
             }
