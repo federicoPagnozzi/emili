@@ -148,6 +148,7 @@
 	</pfsp:tabutenure>
 
 	<pfsp:nols>
+		<![CDATA[nols ]]>
 		<pfsp:initial_solution/>
 	</pfsp:nols>
 
@@ -268,7 +269,7 @@
 		<or/>
 		<pfsp:tabuf/>
                 <or/>
-                <pfsp:nols>
+                <pfsp:nols/>
 	</pfsp:ilsalgos>
 	
 	<pfsp:algos>

@@ -36,14 +36,22 @@
    <![CDATA[random ]]>
    <or/>
    <![CDATA[slack ]]>
-   <or/>
+   <!--<or/>
    <![CDATA[nwslack ]]>
+   <or/>
+   <![CDATA[nehedd ]]>-->
    <or/>
    <![CDATA[nrz ]]>
   <or/>
   <![CDATA[nrz2 ]]>
  <or/>
   <![CDATA[mneh ]]>
+ <or/>
+  <![CDATA[neh ]]>
+ <or/>
+  <![CDATA[nehff ]]>
+  <or/>
+  <![CDATA[lrnm ]]>
 </pfsp:initial_solution>
 
 <pfsp:termination>
@@ -73,6 +81,8 @@
 	   <![CDATA[binsert ]]>
 	<or/>
 	  <![CDATA[tinsert ]]>
+	<or/>
+	   <![CDATA[nrztctinsert ]]>
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
