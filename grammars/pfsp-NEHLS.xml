@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+     07/10/2016
+
+     Grammar for training NEHls for PFSP
+ -->
+
+<gr:grammar xmlns:gr="grammar">
+    <gr:derivations xmlns:pfsp="pfsp_automatic_generation">
+		
+	 <pfsp:steps type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
+	
+        <pfsp:termination>
+    		<![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
+   		<or/>
+    		<![CDATA[msorlocmin ]]><pfsp:steps/><![CDATA[ ]]>
+	</pfsp:termination>
+
+
+       <pfsp:neighborhood>
+	   <![CDATA[exchange ]]>
+	<or/>
+	   <![CDATA[transpose ]]>
+	<or/>
+	   <![CDATA[tainsert ]]>
+	<or/>
+	   <![CDATA[finsert ]]>
+	<or/>
+	   <![CDATA[binsert ]]>
+	<or/>
+	  <![CDATA[tinsert ]]>
+	<or/>
+	  <![CDATA[fstainsert ]]>
+	<or/>
+	  <![CDATA[cstainsert ]]>
+	</pfsp:neighborhood>
+	
+	<pfsp:tabutenure>
+	     <![CDATA[move ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
+	     <or/>
+	     <![CDATA[hash ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
+	     <or/>
+	     <![CDATA[solution ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
+	     <or/>
+	     <![CDATA[tsabm ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
+	     <or/>
+	     <![CDATA[tsabmt ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
+	</pfsp:tabutenure>
+
+	<pfsp:tabuf>
+           <![CDATA[tabu first random ]]>
+        	<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:tabuf>
+
+	<pfsp:tabu>
+           <![CDATA[tabu best random ]]>
+        	<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:tabutenure/>
+	</pfsp:tabu>
+
+	<pfsp:vnd>
+           <![CDATA[vnd ]]>
+		<pfsp:vnds/>
+		<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:neighborhood/>
+		<pfsp:neighborhood/>
+	</pfsp:vnd>
+
+	<pfsp:vnds>
+		<![CDATA[first random ]]>
+		<or/>
+		<![CDATA[best random ]]>
+	</pfsp:vnds>
+
+	<pfsp:main>
+		<pfsp:firstp/>
+		<or/>
+		<pfsp:bestp/>
+		<or/>
+		<pfsp:vnd/>
+		<or/>
+		<pfsp:tabu/>
+		<or/>
+		<pfsp:tabuf/>
+	</pfsp:main>
+
+	<pfsp:firstp>
+           <![CDATA[first random ]]>
+          	  <pfsp:termination/>
+  		  <pfsp:neighborhood/>
+	</pfsp:firstp>
+
+	<pfsp:bestp>
+           <![CDATA[best random ]]>
+           <pfsp:termination/>
+	   <pfsp:neighborhood/>
+	</pfsp:bestp>
+	
+
+        <pfsp:main_algorithm output="params">
+                <![CDATA[PFSP_MS stin nehls]]>
+        	<pfsp:main/>     
+        </pfsp:main_algorithm>
+
+    </gr:derivations>
+</gr:grammar>
+
