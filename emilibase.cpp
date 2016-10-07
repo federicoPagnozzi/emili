@@ -501,8 +501,29 @@ emili::InitialSolution& emili::LocalSearch::getInitialSolution()
     return *this->init;
 }
 
+/*
+ * Empty local search
+ */
+emili::Solution* emili::EmptyLocalSearch::search()
+{
+    bestSoFar = init->generateSolution();
+    return bestSoFar;
+}
 
+emili::Solution* emili::EmptyLocalSearch::timedSearch(int seconds)
+{
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
+    bestSoFar = init->generateSolution();
+    stopTimer();
+    return bestSoFar;
+}
 
+emili::Solution* emili::EmptyLocalSearch::timedSearch()
+{
+    return timedSearch(this->getSearchTime());
+}
 
 /*
  * Best improvement local search

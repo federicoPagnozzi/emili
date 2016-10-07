@@ -351,8 +351,12 @@ public:
         this->bestSoFar = nullptr;
         }
     virtual Solution* search(Solution* initial) { return initial->clone();}
+    virtual Solution* search();
+    virtual Solution* timedSearch();
+    virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
     virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
+
 };
 
 /*

@@ -2126,7 +2126,6 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
 
         }
         solPartial.insert(solPartial.begin()+ind,k);
-
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
 
@@ -2249,8 +2248,6 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
         solPartial.insert(solPartial.begin()+ind,k);        
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
-
-
     emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     //instance.evaluateSolution(*s);
     return s;
