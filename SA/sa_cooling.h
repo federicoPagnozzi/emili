@@ -28,9 +28,9 @@ protected:
 
 public:
 
-    SACooling(double a, double b, SAInitTemp *it):
-        a(a),
-        b(b),
+    SACooling(double a_, double b_, SAInitTemp *it):
+        a(a_),
+        b(b_),
         counter(0),
         inittemp(it->get()) {
             if (a < b) {
@@ -274,6 +274,7 @@ public:
             counter = 0;
             status->step = status->step + 1;
             float tmp = a*temp;
+            // std::cout << "t = " << tmp << "; cost = " << status->best->getSolutionValue() << std::endl;
 
             return tempRestart->adjust(tmp);
 

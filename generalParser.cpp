@@ -31,7 +31,7 @@ void prs::printTab(const std::string& string) {
 void prs::printTab(const char* string)
 {
     for(int i=0;i<tab_level; i++)
-        std::cout << "  ";
+        std::cout << "| ";
 
     std::cout << string << std::endl;
 }
@@ -96,7 +96,7 @@ const char* prs::TokenManager::nextToken()
  * @brief prs::TokenManager::peek
  * @return current token or " "
  */
-const char* prs::TokenManager::peek()
+const char* prs::TokenManager::peek() const
 {
     if(currentToken < numberOfTokens)
         return tokens[currentToken];
@@ -104,7 +104,7 @@ const char* prs::TokenManager::peek()
         return " ";
 }
 
-const char* prs::TokenManager::operator *()
+const char* prs::TokenManager::operator *() const
 {
     return peek();
 }
@@ -115,7 +115,7 @@ void prs::TokenManager::next()
         currentToken++;
 }
 
-bool prs::TokenManager::hasNext() {
+bool prs::TokenManager::hasNext() const {
     return currentToken < numberOfTokens;
 }
 
@@ -124,7 +124,7 @@ void prs::TokenManager::operator ++(int k)
     next();
 }
 
-const char* prs::TokenManager::tokenAt(int i)
+const char* prs::TokenManager::tokenAt(int i) const
 {
     if(i < numberOfTokens)
         return tokens[i];
@@ -152,11 +152,11 @@ bool prs::TokenManager::checkToken(const char* token)
     }
 }
 
-bool prs::TokenManager::peekIs(const char* token) {
+bool prs::TokenManager::peekIs(const char* token) const {
     return currentToken < numberOfTokens && strcmp(tokens[currentToken], token) == 0;
 }
 
-bool prs::TokenManager::peekIs(std::string const& token) {
+bool prs::TokenManager::peekIs(std::string const& token) const {
     return currentToken < numberOfTokens && tokens[currentToken] == token;
 }
 
@@ -196,6 +196,17 @@ bool prs::TokenManager::checkDecimal(double & res) {
     return false;
 }
 
+namespace {
+float toDecimal(std::string const& s) throw(prs::ParsingError) {
+    float k;
+    std::istringstream iss(s);
+    iss >> k;
+    if(!iss)
+        throw prs::ParsingError(std::string("Decimal expected, '") + s + "' found");
+    return k;
+}
+}
+
 int prs::TokenManager::getInteger() throw(ParsingError)
 {
     int k;
@@ -210,14 +221,32 @@ int prs::TokenManager::getInteger() throw(ParsingError)
 
 float prs::TokenManager::getDecimal() throw(ParsingError)
 {
-    float k;
-    std::istringstream iss(peek());
-    iss >> k;
-    if(!iss)
-        throw ParsingError(std::string("Decimal expected, '") + peek() + "' found");
-
+    float k = toDecimal(peek());
     next();
     return k;
+}
+
+float prs::TokenManager::getPercent(float N) throw(ParsingError)
+{
+    if(checkToken("percent") || checkToken("%")) {
+        return getDecimal() * N / 100;
+    } else {
+        try {
+            return getDecimal();
+        } catch(ParsingError&) {
+            std::string p = peek(), tok;
+            if(p.substr(p.size() - 1) == "%") {
+                tok = p.substr(0, p.size() - 1);
+            } else if(p.substr(0, 1) == "%") {
+                tok = p.substr(1);
+            } else {
+                tok = peek();
+            }
+            float k = toDecimal(tok);
+            next();
+            return k * N / 100;
+        }
+    }
 }
 
 bool prs::AlgoBuilder::operator ==(const AlgoBuilder& b)
@@ -227,16 +256,14 @@ bool prs::AlgoBuilder::operator ==(const AlgoBuilder& b)
 
 emili::LocalSearch* prs::GeneralParser::parseParams()
 {
-    tm++;
-    tm++;
-    const char* p = tm.peek();
-
-    std::string prob(p);
-    for(AlgoBuilder* bld : builders) {
-        if(bld->isParsable(prob))
+    tm++; // tokenAt(0) == argv[0]
+    tm++; // tokenAt(1) == instancePath
+    std::string problem = tm.peek(); // tokenAt(2) == problem
+    for(AlgoBuilder* builder : builders) {
+        if(builder->isParsable(problem))
         {
-            emili::LocalSearch* ls = bld->buildAlgo(tm);
-            emili::Problem* instance = bld->getInstance();
+            emili::LocalSearch* ls = builder->buildAlgo(tm);
+            emili::Problem* instance = builder->getInstance();
             if(! instance)
                 instance = &ls->getInitialSolution().getProblem();
 

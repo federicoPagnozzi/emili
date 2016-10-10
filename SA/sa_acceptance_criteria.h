@@ -52,7 +52,8 @@ public:
      * @return                  accepted solution (must be one of the two ?)
      */
     virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution)=0;
+                                    emili::Solution *new_solution) override = 0;
+
 
     /**
      * @brief acceptViaDelta
@@ -60,9 +61,7 @@ public:
      * @param delta = cost(new_solution) - cost(before)
      * @return true iff the change is accepted
      */
-    virtual bool acceptViaDelta(emili::Solution* new_solution, double delta) {
-        throw std::invalid_argument("not implemented");
-    }
+    virtual bool acceptViaDelta(emili::Solution* new_solution, double delta) override = 0;
 
 
     /**
@@ -83,7 +82,6 @@ public:
 
 }; // class SAAcceptance
 
-
 class SAMetropolisAcceptance: public SAAcceptance {
 public:
     SAMetropolisAcceptance(float initial_temperature):
@@ -99,7 +97,7 @@ public:
 class SAMetropolisAcceptanceDebug : public SAMetropolisAcceptance {
 public:
     SAMetropolisAcceptanceDebug(float initial_temperature): SAMetropolisAcceptance(initial_temperature) { }
-    virtual bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
     int nnotimproving = 0;
     double sumprob = 0;
@@ -113,8 +111,9 @@ public:
                 SAAcceptance(METROPOLISWFORCED,
                              initial_temperature) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
 }; // SAMetropolisWithForcedAcceptance
 
@@ -125,8 +124,9 @@ public:
                 SAAcceptance(APPROXEXPACC,
                              initial_temperature) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
 }; // SAApproxExpAcceptance
 
@@ -137,8 +137,9 @@ public:
                 SAAcceptance(BASICACC,
                              0) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
     
 }; // SABasicAcceptance
 
@@ -157,8 +158,9 @@ public:
                 SAAcceptance(GENSAACC,
                              initial_temperature) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
 }; // GeneralizedSAAcceptance
 
@@ -183,8 +185,10 @@ public:
                 SAAcceptance(GEOMACC,
                              initial_acceptance) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+
+    bool acceptViaDelta(emili::Solution *new_solution, double delta);
 
     void setStep(int newStep) {
         step = newStep;
@@ -201,16 +205,17 @@ public:
 class SADeterministicAcceptance: public SAAcceptance {
 
 protected:
-    float delta;
+    float deltaParam;
 
 public:
     SADeterministicAcceptance(float _delta):
-                delta(_delta),
+                deltaParam(_delta),
                 SAAcceptance(DETERMINISTICACC,
                              0) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double deltaParam) override;
 
 }; // SADeterministicAcceptance
 
@@ -225,8 +230,9 @@ public:
         SAAcceptance(GDAACC,
                      0) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
 }; // GreatDelugeAcceptance
 
@@ -249,8 +255,9 @@ public:
         SAAcceptance(RTRACC,
                      0) { }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
 }; // RecordToRecordAcceptance
 
@@ -266,20 +273,19 @@ protected:
 
 public:
     LAHCAcceptance(int _tenure):
-        tenure(_tenure),
-        SAAcceptance(LAHCACC,
-                     0) {
-            cost_list = (float *)malloc(sizeof(float) * tenure);
-            for (int i = 0 ; i < tenure ; i++) {
+        SAAcceptance(LAHCACC, 0),
+        tenure(_tenure) {
+            cost_list = new float[tenure];
+            for (int i = 0 ; i < tenure ; i++)
                 cost_list[i] = FLT_MAX;
-            }
         }
 
-    virtual emili::Solution* accept(emili::Solution *current_solution,
-                                    emili::Solution *new_solution);
+    emili::Solution* accept(emili::Solution *current_solution,
+                            emili::Solution *new_solution) override;
+    bool acceptViaDelta(emili::Solution *new_solution, double delta) override;
 
     ~LAHCAcceptance(void) {
-        free(cost_list);
+        delete cost_list;
     }
 
 };  // LAHCAcceptance

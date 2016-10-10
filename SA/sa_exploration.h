@@ -101,11 +101,10 @@ public:
                       _term,
                       SASEQUENTIALEXPLORATION) { }
 
-    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
-                                          SAStatus& status);
+    emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                  SAStatus& status) override;
 
 }; // SASequentialExploration
-
 
 class SAFirstImprovementExploration: public SAExploration {
 

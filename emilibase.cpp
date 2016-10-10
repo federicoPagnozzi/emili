@@ -93,6 +93,7 @@ int emili::generateRandRange(int from, int to)
 
 int emili::generateRandInt(int from, int to)
 {
+    assert(to >= from); // segfault prevention
     return std::uniform_int_distribution<>(from, to)(generator);
 }
 

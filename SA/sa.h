@@ -69,9 +69,9 @@ public:
         status = new SAStatus();
 
         status->set_types(terminationCriterion->getType(),
-        acceptanceCriterion->getType(),
-        tempLength->getType(),
-        temprestart->getType());
+                          acceptanceCriterion->getType(),
+                          tempLength->getType(),
+                          temprestart->getType());
         status->init_temp = init_temp;
         status->final_temp = initialTemperature->getMinTemp();
         status->temp = init_temp;
@@ -127,7 +127,7 @@ public:
       delete tempLength;
       delete status->last_accepted;
       delete status;
-    };
+    }
 
 }; // class SimulatedAnnealing
 

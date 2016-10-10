@@ -20,11 +20,6 @@ namespace  ExamTT
 class ExamTTParser: public AlgoBuilder
 {
 public:
-    static void genericError(std::ostream&);
-    static void genericError(std::string name);
-    static void genericError(std::ostringstream&);
-    static void errorExpected(prs::TokenManager& tm, std::string name, std::vector<std::string> const& tokens);
-public:
     emili::ExamTT::ExamTT instance;
 protected:    
     //insert a variable to hold the problem instance

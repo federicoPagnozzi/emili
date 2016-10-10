@@ -86,41 +86,13 @@ std::string ExamTTParser::info()
 {
     ostringstream oss;
     oss << "\nUsage: ";
-    oss << "EMILI INSTANCE_FILE_PATH ExamTT <LOCAL_SEARCH | ITERATED_LOCAL_SEARCH | TABU_SEARCH | VND_SEARCH> [rnds seed]";
+    oss << "EMILI INSTANCE_FILE_PATH ExamTT SEARCH [rnds seed]";
     return oss.str();
-}
-
-void ExamTTParser::genericError(string name) {
-    cerr << "ERROR: " << name << endl;
-    // cout << info() << endl;
-    exit(-1);
-}
-
-void ExamTTParser::genericError(std::ostream& stream) {
-    stream << endl << "ERROR" << endl;
-    // cout << info() << endl;
-    exit(-1);
-}
-
-void ExamTTParser::genericError(std::ostringstream& stream) {
-    cerr << endl << "ERROR: " << stream.str() << endl;
-    // cout << info() << endl;
-    exit(-1);
-}
-
-/**
- * @deprecated throw ErrorExpected instead
- */
-void ExamTTParser::errorExpected(prs::TokenManager& tm, string name, const std::vector<string> &tokens)
-{
-    ErrorExpected e(tm, name, tokens);
-    std::cerr << e.what() << std::endl;
-    exit(-1);
 }
 
 namespace {
 bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::string> const& params, std::string prefix = "") {
-    if(tm.peek() == val) {
+    if(tm.checkToken(val)) {
         std::ostringstream oss;
         if(! prefix.empty())
             oss << prefix << ": ";
@@ -132,7 +104,6 @@ bool checkTokenParams(prs::TokenManager& tm, std::string val, std::vector<std::s
             oss << p << " ";
         */
         printTab(oss.str());
-        tm.next();
         return true;
     } else {
         return false;
@@ -143,7 +114,7 @@ int getIntParam(prs::TokenManager& tm, std::string val) {
     TabLevel l;
     int i = tm.getInteger();
     std::ostringstream oss;
-    oss << val << ": " << i << endl;
+    oss << val << ": " << i;
     printTab(oss.str());
     return i;
 }
@@ -151,7 +122,7 @@ int getIntParam(prs::TokenManager& tm, std::string val) {
 float getDecimalParam(prs::TokenManager& tm, std::string val) {
     float i = tm.getDecimal();
     std::ostringstream oss;
-    oss << val << ": " << i << endl;
+    oss << val << ": " << i;
     printTab(oss.str());
     return i;
 }
@@ -173,428 +144,6 @@ float getFloatPercentParam(prs::TokenManager& tm, float max) {
 }
 
 }
-
-/**
- * @brief ArgParser parse command line args into a dict(str: (int|float|bool))
- *
- * examples:
- *
- *  // numbers with defaults
- *  addInt("a", 10);
- *  addInt("b", 20);
- *  addFloat("x", 1.5);
- *  (1) a 10
- *  (2) { a 10 }
- *  (3) a 10 c ...
- *  -> {a:10, b:20, x:1.5}
- *  (4) { a 10 c 20 }
- *  -> ERROR "c" is not a valid param
- *
- *  in (3), parsing stops at "c" because it is not a valid param
- *  in (4), error because "c" is not a valid param
- *
- *  // bools using {param} or no-{param}
- *  addBool("premium", false);
- *  addBool("valid", true);
- *  (1)
- *  -> {premium: false, valid: true}
- *  (2) valid premium
- *  -> {premium: true, valid: true}
- *  (3) no-valid premium
- *  -> {premium: true, valid: false}
- *
- *  // required
- *  addIntRequired("a", 5);
- *  (1)
- *  (2) { }
- *  -> ERROR "a" required
- */
-struct ArgParser {
-    std::map<std::string, int> dataInt;
-    std::map<std::string, bool> dataBool;
-    std::map<std::string, float> dataFloat;
-    std::map<std::string, std::string> dataString;
-    typedef std::function<void(TokenManager&)> Func;
-    std::map<std::string, Func> dataFunc;
-    std::vector<std::string> order;
-    std::set<std::string> given;
-    std::vector<std::string> required;
-
-    enum Tag {
-        REQUIRED
-    };
-
-    // add
-
-    void addIntRequired(std::string s) {
-        addInt(s, 0);
-        required.push_back(s);
-    }
-
-    void addStringRequired(std::string s) {
-        addString(s, "");
-        required.push_back(s);
-    }
-
-    void addBoolRequired(std::string s) {
-        addBool(s, false);
-        required.push_back(s);
-    }
-
-    void addFloatRequired(std::string s) {
-        addFloat(s, 0.0f);
-        required.push_back(s);
-    }
-
-    void addFuncRequired(std::string s, Func d) {
-        addFunc(s, d);
-        required.push_back(s);
-    }
-
-    bool exists(std::string s) {
-        return dataInt.count(s) || dataBool.count(s) || dataFloat.count(s) || dataString.count(s) || dataFunc.count(s);
-    }
-
-    void addInt(std::string s, int d) {
-        if(exists(s))
-            throw std::invalid_argument(" argument " + s + " already exist !");
-        dataInt[s] = d;
-        order.push_back(s);
-    }
-
-    void addString(std::string s, std::string d) {
-        if(exists(s))
-            throw std::invalid_argument(" argument " + s + " already exist !");
-        dataString[s] = d;
-        order.push_back(s);
-    }
-
-    void addFloat(std::string s, float d) {
-        if(exists(s))
-            throw std::invalid_argument(" argument " + s + " already exist !");
-        dataFloat[s] = d;
-        order.push_back(s);
-    }
-
-    void addBool(std::string s, bool d) {
-        if(exists(s))
-            throw std::invalid_argument(" argument " + s + " already exist !");
-        dataBool[s] = d;
-        order.push_back(s);
-    }
-
-    void addFunc(std::string s, Func d) {
-        if(exists(s))
-            throw std::invalid_argument(" argument " + s + " already exist !");
-        dataFunc[s] = d;
-        order.push_back(s);
-    }
-
-    // synonyms for add
-
-    void addInt(std::string s, Tag t) {
-        if(t == REQUIRED)
-            addIntRequired(s);
-    }
-
-    void addBool(std::string s, Tag t) {
-        if(t == REQUIRED)
-            addBoolRequired(s);
-    }
-
-    void addFloat(std::string s, Tag t) {
-        if(t == REQUIRED)
-            addFloatRequired(s);
-    }
-
-    void addString(std::string s, Tag t) {
-        if(t == REQUIRED)
-            addStringRequired(s);
-    }
-
-    void addFunc(std::string s, Func d, Tag t) {
-        if(t == REQUIRED)
-            addFuncRequired(s, d);
-    }
-
-    // get
-
-    int Int(std::string s) {
-        if(! dataInt.count(s))
-            throw std::invalid_argument("Missing int " + s);
-        return dataInt[s];
-    }
-
-    float Float(std::string s) {
-        if(! dataFloat.count(s))
-            throw std::invalid_argument("Missing int " + s);
-        return dataFloat[s];
-    }
-
-    bool Bool(std::string s) {
-        if(! dataBool.count(s))
-            throw std::invalid_argument("Missing bool " + s);
-        return dataBool[s];
-    }
-
-    std::string const& String(std::string s) {
-        if(! dataString.count(s))
-            throw std::invalid_argument("Missing bool " + s);
-        return dataString[s];
-    }
-
-    bool has(std::string s) {
-        if(! exists(s))
-            throw std::invalid_argument("Argument " + s + " does not exist");
-        return given.count(s);
-    }
-
-    // methods
-
-    void operator()(prs::TokenManager& tm) {
-        parse(tm);
-    }
-
-    /**
-     * @brief parseSequence so that multiple { } are like a same { }
-     * @example { a 5 } { b 6 } will be the same as { a 5 b 6 }
-     * Caution: must begin with "{" to be parsed
-     * @example a 5 b 6 will not be parsed
-     */
-    void parseSequence(prs::TokenManager& tm){
-        while (tm.peekIs("{"))
-            parse(tm, false);
-        testRequired();
-    }
-
-    void parse(prs::TokenManager& tm, bool callTestRequired = true) {
-        /*
-         * Simple Algo : for(;;) if(tm.checkToken("A")) A = tm.getInteger() else if()... else if(stop) break else if(!peekIs("}"));
-         * More over, may start/end with {}
-         */
-        // has a b not x
-        // a 5 b 2 => OK
-        // a 5 x 1 b 2 => OK but b is not read...
-        // { a 5 b 2 } => OK
-        // { a 5 b 2 x 1 } => NOT OK ("x" found expected "}")
-        // { a 5 x 1 b 2 } => NOT OK ("x" found expected "}")
-
-        bool hasBrace = tm.checkToken("{");
-
-        for(;;) {
-            bool found = false;
-
-            if(!found)
-            for(auto& p : dataInt) {
-                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
-                    tm.checkToken(":");
-                    p.second = tm.getInteger();
-                    found = true;
-                    given.insert(p.first);
-                    break;
-                }
-            }
-
-            if(! found)
-            for(auto& p : dataString) {
-                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
-                    tm.checkToken(":");
-                    auto n = tm.nextToken();
-                    if(!n)
-                        throw std::invalid_argument("expected string token");
-                    p.second = n;
-                    found = true;
-                    given.insert(p.first);
-                    break;
-                }
-            }
-
-            if(!found)
-            for(auto& p : dataFloat) {
-                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
-                    tm.checkToken(":");
-                    p.second = tm.getDecimal();
-                    found = true;
-                    given.insert(p.first);
-                    break;
-                }
-            }
-
-            if(!found)
-            for(auto& p : dataBool) {
-                if(tm.checkToken(p.first)) {
-                    p.second = true;
-                    found = true;
-                    given.insert(p.first);
-                    break;
-                }
-                else if(tm.checkToken("no-" + p.first)) {
-                    p.second = false;
-                    found = true;
-                    given.insert(p.first);
-                    break;
-                }
-            }
-
-            if(!found)
-            for(auto& p : dataFunc) {
-                if(tm.checkToken(p.first) || tm.checkToken(p.first + ":")) {
-                    tm.checkToken(":");
-                    p.second(tm);
-                    found = true;
-                    given.insert(p.first);
-                    break;
-                }
-            }
-
-            if(! found) {
-                if(!hasBrace)
-                    break;
-                else if(! tm.peekIs("}"))
-                    ExamTTParser::errorExpected(tm, "param", order);
-                else
-                    break;
-            }
-        }
-
-        // assert(given <= required);
-        if(callTestRequired)
-            testRequired();
-
-        if(hasBrace && ! tm.checkToken("}"))
-            ExamTTParser::errorExpected(tm, "}", {"}"});
-    }
-
-    /**
-     * @brief throw an error if any required parameter is not given
-     */
-    void testRequired() {
-        std::vector<std::string> r;
-        for(auto s : required)
-            if(! given.count(s))
-                r.push_back(s);
-
-        if(! r.empty()) {
-            if(r.size() == 1)
-                ExamTTParser::genericError("Argument '" + r.front() + "' is required");
-            else {
-                auto it = r.begin();
-                ostringstream oss;
-                oss << *it++;
-                while(it != r.end())
-                    oss << ", " << *it++;
-
-                ExamTTParser::genericError("Arguments '" + oss.str() + "' are required");
-            }
-        }
-    }
-
-    /**
-     * @brief Sort by type, then name
-     */
-    void printTypeAlpha() {
-        TabLevel l;
-        int m = 0;
-        for(auto x : order)
-            m = std::max(m, (int)x.size());
-
-        for(auto& p : dataInt) {
-            std::ostringstream oss;
-            oss << setw(m) << p.first << ": " << p.second << endl;
-            printTab(oss.str());
-        }
-
-        for(auto& p : dataString) {
-            std::ostringstream oss;
-            oss << setw(m) << p.first << ": " << p.second << endl;
-            printTab(oss.str());
-        }
-
-        for(auto& p : dataFloat) {
-            std::ostringstream oss;
-            oss << setw(m) << p.first << ": " << p.second << endl;
-            printTab(oss.str());
-        }
-
-        for(auto& p : dataBool) {
-            std::ostringstream oss;
-            oss << setw(m) << p.first << ": " << boolalpha << p.second << endl;
-            printTab(oss.str());
-        }
-
-        // no func print (already done when called)
-    }
-
-    void printInline(std::string msg) {
-        std::ostringstream oss;
-        oss << msg << "(";
-        const char* f = "";
-        for(auto x : order) {
-            oss << f;
-            f = ", ";
-
-            if(dataInt.count(x))
-                oss << x << " = " << dataInt[x];
-            else if(dataFloat.count(x))
-                oss << x << " = " << dataFloat[x];
-            else if(dataBool.count(x))
-                oss << x << " = " << boolalpha << dataBool[x];
-            else if(dataString.count(x))
-                oss << x << " = " << dataString[x];
-
-            // no func print (already done when called)
-        }
-
-        oss << ")";
-        printTab(oss.str());
-    }
-
-    void print(std::string msg) {
-        printTab(msg);
-        print();
-    }
-
-    /**
-     * @brief Insertion order
-     */
-    void print() {
-        TabLevel l;
-        int m = 0;
-        for(auto x : order)
-            m = std::max(m, (int)x.size());
-        for(auto x : order) {
-            std::ostringstream oss;
-
-            if(dataInt.count(x))
-                oss << setw(m) << x << ": " << dataInt[x];
-            else if(dataFloat.count(x))
-                oss << setw(m) << x << ": " << dataFloat[x];
-            else if(dataBool.count(x))
-                oss << setw(m) << x << ": " << boolalpha << dataBool[x];
-            else if(dataString.count(x))
-                oss << setw(m) << x << ": " << dataString[x];
-            else
-                continue; // no func print (already done when called)
-
-            printTab(oss.str());
-        }
-    }
-
-};
-
-struct CheckBrac {
-    bool has;
-    TokenManager& tm;
-
-    CheckBrac(TokenManager& tm_) : tm(tm_) {
-        has = tm.checkToken("[");
-    }
-
-    ~CheckBrac() {
-        if(has && ! tm.checkToken("]"))
-            ExamTTParser::errorExpected(tm, "]", {"]"});
-    }
-};
 
 double ExamTTParser::getHardweightFromFeatures(bool USE_FORMULA_1) {
     int Cap = 0;
@@ -1067,12 +616,12 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         x.pop_back();
 
         if(x.empty())
-            genericError("ints... are expected");
+            throw ParsingError("ints... are expected");
 
         const int P = instance.P();
         for(int y : x)
             if(!(0 <= y && y < P))
-                genericError(cerr << "int " << y << " is not a valid period in [0," << P << "[");
+                throw ParsingError("int " + to_string(y) + " is not a valid period in [0," + to_string(P) + "[");
 
         ArgParser p;
         p.addBool("use-fast-iter", false);
@@ -1225,7 +774,6 @@ emili::Perturbation* ExamTTParser::perturbation(prs::TokenManager& tm, std::stri
     }
 
     throw ErrorExpected(tm, "PERTURBATION", available);
-    return nullptr;
 }
 
 emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string prefix)
@@ -1266,7 +814,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
             value = p.Float("value");
             proba = p.Float("proba");
             if(!(0 <= proba && proba <= 1))
-                genericError("proba must be between 0 and 1");
+                throw ParsingError("proba must be between 0 and 1");
             if(! tm.checkToken("}"))
                 throw ErrorExpected(tm, "}", {"}"});
         } else {
@@ -1348,7 +896,6 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
     }
 
     throw ErrorExpected(tm, "ACCEPTANCE_CRITERIA", {ACCEPTANCE_METRO, ACCEPTANCE_ALWAYS, ACCEPTANCE_INTENSIFY, ACCEPTANCE_DIVERSIFY, ACCEPTANCE_IMPROVE, ACCEPTANCE_SA_METRO, ACCEPTANCE_PMETRO, ACCEPTANCE_SA, ACCEPTANCE_IMPROVE_PLATEAU});
-    return nullptr;
 }
 
 emili::BestTabuSearch* ExamTTParser::tabu(prs::TokenManager& tm)
@@ -1371,7 +918,6 @@ emili::BestTabuSearch* ExamTTParser::tabu(prs::TokenManager& tm)
     }
 
     throw ErrorExpected(tm, "PIVOTAL_RULE", {BEST,FIRST});
-    return nullptr;
 }
 
 emili::TabuMemory* ExamTTParser::tabuMemory(emili::Neighborhood* n,prs::TokenManager& tm)
@@ -1423,7 +969,6 @@ emili::LocalSearch* ExamTTParser::vnd(prs::TokenManager& tm, bool mustHaveInit, 
     }
 
     throw ErrorExpected(tm, "VND_SEARCH", {FIRST, BEST});
-    return nullptr;
 }
 
 emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager& tm, std::string prefix) {
@@ -1441,7 +986,6 @@ emili::ExamTT::InsertHeuristic* ExamTTParser::insertHeuristic(prs::TokenManager&
     }
 
     throw ErrorExpected(tm, "INSERT_HEURISTIC", available);
-    return nullptr;
 }
 
 emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm, std::string prefix) {
@@ -1465,7 +1009,6 @@ emili::Constructor* ExamTTParser::constructor(prs::TokenManager& tm, std::string
     }
 
     throw ErrorExpected(tm, "CONSTRUCTOR", available);
-    return nullptr;
 }
 
 emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string prefix) {
@@ -1517,7 +1060,6 @@ emili::Destructor* ExamTTParser::destructor(prs::TokenManager& tm, std::string p
     }
 
     throw ErrorExpected(tm, "DESTRUCTOR", available);
-    return nullptr;
 }
 
 emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::string prefix)
@@ -1552,7 +1094,7 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
             // One String containing E*2 numbers
             auto x = tm.nextToken();
             if(!x)
-                genericError("expected string");
+                throw ParsingError("expected string");
             string s = x;
             for(char & c : s)
                 if(!('0' <= c && c <= '9'))
@@ -1571,7 +1113,7 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
             while(vec.size() < instance.E() * 2) {
                 auto x = tm.nextToken();
                 if(!x)
-                    genericError("int...");
+                    throw ParsingError("int...");
                 std::string s = x;
                 for(char & c : s)
                     if(!('0' <= c && c <= '9'))
@@ -1588,7 +1130,7 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
         }
 
         if(vec.size() != instance.E() * 2)
-            genericError("expeccted E * 2 ints, got " + to_string(vec.size()));
+            throw ParsingError("expeccted E * 2 ints, got " + to_string(vec.size()));
         std::vector<std::pair<int,int>> firstAssign;
         for(int i = 0; i < vec.size(); i += 2)
             firstAssign.push_back(make_pair(vec[i], vec[i+1]));
@@ -1597,7 +1139,6 @@ emili::InitialSolution* ExamTTParser::initializer(prs::TokenManager& tm, std::st
     }
 
     throw ErrorExpected(tm, "INITIAL_SOLUTION", available);
-    return nullptr;
 }
 
 emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string prefix)
@@ -1674,7 +1215,6 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
     }
 
     throw ErrorExpected(tm, "TERMINATION_CRITERIA", available);
-    return nullptr;
 }
 
 emili::Neighborhood* ExamTTParser::neigh(prs::TokenManager& tm, bool errorIfNotFound, string prefix)
@@ -1731,16 +1271,16 @@ std::vector<emili::Neighborhood*> ExamTTParser::neighs(prs::TokenManager& tm)
     }
 
     if(vnds.empty())
-        genericError("neighs+");
+        throw ParsingError("neigh+");
 
     return vnds;
 }
 
 void ExamTTParser::problem(prs::TokenManager& tm)
 {
-    tm.nextToken(); // skip the problem "ExamTT" without reading it
-    emili::ExamTT::InstanceParser parser(tm.tokenAt(1));
+    tm.next(); // skip the problem "ExamTT" without reading it
     instanceFilename = tm.tokenAt(1);
+    emili::ExamTT::InstanceParser parser(instanceFilename);
     parser.parse(instance);
     globalParams(tm);
 }
@@ -1772,10 +1312,10 @@ void ExamTTParser::globalParams(TokenManager &tm) {
     };
 
     if(! checkHardWeightParam(x))
-        genericError("hard-weight expected, got '" + x + "'");
+        throw ParsingError("hard-weight expected, got '" + x + "'");
 
     if(! checkHardWeightParam(y))
-        genericError("hard-weight expected, got '" + y + "'");
+        throw ParsingError("hard-weight expected, got '" + y + "'");
 
     // compute hardWeight
     instance.hardWeight =

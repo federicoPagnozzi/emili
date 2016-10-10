@@ -4095,7 +4095,7 @@ NGroupedPeriodsDestructor::NGroupedPeriodsDestructor(const Instance &instance_, 
 Solution* NGroupedPeriodsDestructor::destruct(Solution *solution) {
     ExamTTSolution* sol = (ExamTTSolution*) solution;
 
-    int i = Random().randrange(instance.P() - N);
+    int i = Random().randrange(instance.P() - N + 1);
     int j = i+N;
 
     for(ExamId e = 0; e < instance.E(); e++)
