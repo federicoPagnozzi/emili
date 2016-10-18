@@ -13,6 +13,30 @@
 #include <limits>
 #include "sse_functions.h"
 
+#ifdef NOC11
+struct rzcomp{
+    std::vector< float >* tas;
+    bool operator()(int i1,int i2){
+        if((*tas)[i1]==(*tas)[i2] && i2!=0)
+            return i1>i2;
+        else
+           return (*tas)[i1] < (*tas)[i2];
+}
+}rzco;
+
+struct stdstartComp
+{
+    std::vector< float >* stds;
+    bool operator()(int i1,int i2){return (*stds)[i1] < (*stds)[i2];}
+}stdc;
+
+struct igioComp
+{
+    std::vector< int >* stds;
+    bool operator()(int i1,int i2){return (*stds)[i1] > (*stds)[i2];}
+}igioc;
+#endif
+
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
     int njobs = prob.getNjobs();
@@ -45,8 +69,12 @@ std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& p
         sTd = sTd * mm1;
         stds[i] = sqrtf(sTd);
     }
-
+#ifndef NOC11
     std::sort(seq.begin()+1,seq.end(),[stds](int i1,int i2){return stds[i1] < stds[i2];});
+#else
+    stdc.stds = &stds;
+    std::sort(seq.begin()+1,seq.end(),stdc);
+#endif
 
     return seq;
 
@@ -82,13 +110,18 @@ std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& pro
             temp.push_back(i);
         }
 
-
+#ifndef NOC11
         std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
                                                                 if(tas[i1]==tas[i2] && i2!=0)
                                                                     return i1>i2;
                                                                 else
                                                                    return tas[i1] < tas[i2];
         });
+#else
+    rzco.tas = &tas;
+    std::sort(temp.begin(),temp.end(),rzco);
+#endif
+
 
         int w = prob.computeObjectiveFunction(temp);
 
@@ -133,13 +166,17 @@ std::vector< int > inline rz_seed_sequence(std::vector< int > partial, std::vect
             tas[removed[i]] = tai;
             temp.push_back(removed[i]);
         }
-
+#ifndef NOC11
     std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
                                                             if(tas[i1]==tas[i2])
                                                                 return i1>i2;
                                                             else
                                                                return tas[i1] < tas[i2];
     });
+#else
+        rzco.tas = &tas;
+        std::sort(temp.begin(),temp.end(),rzco);
+#endif
 
         std::vector< int > test_sol(partial);
         test_sol.insert(test_sol.end(),temp.begin(),temp.end());
@@ -1317,6 +1354,7 @@ emili::Solution* emili::pfsp::NEH::generate()
         order.push_back(i);
     }
    // std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+#ifndef NOC11
     std::sort(order.begin(),order.end(),[tpt](int i1,int i2){
         if(tpt[i1] == tpt[i2])
         {
@@ -1327,6 +1365,10 @@ emili::Solution* emili::pfsp::NEH::generate()
             return tpt[i1] > tpt[i2];
         }
         });
+#else
+    igioc.stds=&tpt;
+    std::sort(order.begin(),order.end(),igioc);
+#endif
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
@@ -1349,7 +1391,12 @@ emili::Solution* emili::pfsp::NEHedd::generate()
         tpt[i] = pis.getDueDate(i);
         order.push_back(i);
     }
+#ifndef NOC11
     std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] < tpt[i2];});
+#else
+    igioc.stds=&tpt;
+    std::sort(order.begin(),order.end(),igioc);
+#endif
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
@@ -1375,6 +1422,7 @@ emili::Solution* emili::pfsp::NEHls::generate()
         tpt[i] = tpti;
         order.push_back(i);
     }
+#ifndef NOC11
     std::sort(order.begin(),order.end(),[tpt](int i1,int i2){
         if(tpt[i1] == tpt[i2])
         {
@@ -1385,6 +1433,10 @@ emili::Solution* emili::pfsp::NEHls::generate()
             return tpt[i1] > tpt[i2];
         }
         });
+#else
+    igioc.stds=&tpt;
+    std::sort(order.begin(),order.end(),igioc);
+#endif
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = nehls(order,njobs,pis,_ls);
@@ -1410,7 +1462,12 @@ emili::Solution* emili::pfsp::NEHffls::generate()
         tpt[i] = tpti;
         order.push_back(i);
     }
+#ifndef NOC11
     std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+#else
+    igioc.stds=&tpt;
+    std::sort(order.begin(),order.end(),igioc);
+#endif
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = nehffls(order,njobs,pis,_ls);
@@ -1436,7 +1493,12 @@ emili::Solution* emili::pfsp::NEHff::generate()
         tpt[i] = tpti;
         order.push_back(i);
     }
+#ifndef NOC11
     std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+#else
+    igioc.stds=&tpt;
+    std::sort(order.begin(),order.end(),igioc);
+#endif
     order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = nehff(order,njobs,pis);
@@ -1608,7 +1670,12 @@ emili::Solution* emili::pfsp::MNEH::generate()
 std::vector< int > inline lr_solution_sequence(int start,std::vector< int > u,std::vector< int > initial,emili::pfsp::PermutationFlowShop& pis)
 {
     std::vector< float > fndx = lr_index(initial,u,pis);
+#ifndef NOC11
     std::sort(u.begin(),u.end(),[fndx](int i1,int i2){return fndx[i1] < fndx[i2];});
+#else
+    stdc.stds = &fndx;
+    std::sort(u.begin(),u.end(),stdc);
+#endif
     initial.push_back(u[start]);
     u.erase(u.begin());
 
@@ -1617,7 +1684,12 @@ std::vector< int > inline lr_solution_sequence(int start,std::vector< int > u,st
     for(int i=0; i< usize;i++)
     {
         fndx = lr_index(initial,u,pis);
-        std::sort(u.begin(),u.end(),[fndx](int i1,int i2){return fndx[i1] < fndx[i2];});
+#ifndef NOC11
+    std::sort(u.begin(),u.end(),[fndx](int i1,int i2){return fndx[i1] < fndx[i2];});
+#else
+    stdc.stds = &fndx;
+    std::sort(u.begin(),u.end(),stdc);
+#endif
         initial.push_back(u[0]);
         u.erase(u.begin());
     }
@@ -1962,7 +2034,12 @@ emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
     }
 
     std::vector < int >& w = this->weights;
+#ifndef NOC11
     std::sort(removed.begin(),removed.end(),[w](int i1,int i2){ return w[i1] > w[i2];});
+#else
+    igioc.stds=&w;
+    std::sort(removed.begin(),removed.end(),igioc);
+#endif
 
     for(int l=0;l<removed.size();l++){
         sops++;
@@ -2009,7 +2086,12 @@ emili::Solution* emili::pfsp::RSIOPerturbation::perturb(Solution *solution)
     }
 
     std::vector < int >& w = this->weights;
+#ifndef NOC11
     std::sort(removed.begin(),removed.end(),[w](int i1,int i2){ return w[i1] > w[i2];});
+#else
+    igioc.stds=&w;
+    std::sort(removed.begin(),removed.end(),igioc);
+#endif
 
     for(int l=0;l<removed.size();l++){
         k=removed[l];
