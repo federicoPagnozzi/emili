@@ -8,7 +8,7 @@
 #include <emmintrin.h>
 
 //#define ENABLE_SSE
-
+//head and tail computation for taillard's acceleration
 inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < int > >& head,std::vector< std::vector < int > >& tail,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     /* Permutation flowshop Tail and Head matrices computation using SSE instructions
@@ -691,7 +691,7 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
     }
 
 }
-
+// this function calculates only the head
 inline void computeHEAD(std::vector<int> &sol,std::vector< std::vector < int > >& head,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     /* Permutation flowshop Head matrix computation using SSE instructions
@@ -1084,7 +1084,7 @@ inline void computeHEAD(std::vector<int> &sol,std::vector< std::vector < int > >
         */
     }
 }
-
+// this function calculates only the tail
 inline void computeTAIL(std::vector<int> &sol,std::vector< std::vector < int > >& tail,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     /* Permutation flowshop Tail matrix computation using SSE instructions
@@ -1477,7 +1477,7 @@ inline void computeTAIL(std::vector<int> &sol,std::vector< std::vector < int > >
         */
     }
 }
-
+// This function calculates completion times of all jobs
 inline void computePMakespans(std::vector<int>& sol,std::vector< long >& previousMachineEndTime,const std::vector<std::vector< long> >& pmat,int nJob, int nbMac,int starting_job,float* L)
 {
 

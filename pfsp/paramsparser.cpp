@@ -483,7 +483,7 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         ls = vparams(tm);
     }
     else if(tm.checkToken(TEST_INIT))
-    {
+    {       
         emili::InitialSolution* ini = init(tm);        
         ls = new emili::EmptyLocalSearch(*ini);
         /*clock_t time = clock();

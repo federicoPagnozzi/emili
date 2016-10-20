@@ -30,6 +30,7 @@ Neighborhood and Perturbation.
 #include <string>
 #include <iostream>
 #include <vector>
+
 #ifndef NOC11
 #include <random>
 #else
@@ -51,6 +52,22 @@ void iteration_decrement();
 /* Function to tell the system timer hook if it has to print solution info*/
 void set_print(bool p);
 bool get_print();
+
+/*
+   a consistent and centralized implementation of the random function that uses the marsenne twister.
+*/
+void initializeRandom(int seed);
+#ifdef NOC11
+std::tr1::mt19937& getRandomGenerator();
+#else
+std::mt19937& getRandomGenerator();
+#endif
+int generateRandomNumber();
+float generateRealRandomNumber();
+/*TIME RELATED STUFF */
+// this function returns the time from the beginning of the execution in seconds
+double getCurrentExecutionTime();
+
 class Solution;
 /*
  * The istance of the problem to solve.
@@ -537,6 +554,9 @@ public:
     TabuNeighborhood(int tt_size):tabutenure(tt_size) { }
 };
 */
+/*
+  Tabu search implementation that uses the best improvement pivot rule
+ */
 class BestTabuSearch: public emili::LocalSearch
 {
 protected:
@@ -547,7 +567,9 @@ public:
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
 };
-
+/*
+  Tabu search implementation that uses the first improvement pivot rule
+ */
 class FirstTabuSearch: public emili::BestTabuSearch
 {
 public:
@@ -595,7 +617,7 @@ public:
     }
 };
 
-
+/*DEPRECATED*/
 class GVNS: public emili::LocalSearch
 {
 protected:
@@ -610,7 +632,7 @@ public:
 
 
 
-
+/*DEPRECATED*/
 class PipeSearch: public emili::LocalSearch
 {
 protected:
@@ -619,26 +641,6 @@ public:
     PipeSearch(InitialSolution& is,std::vector< emili::LocalSearch*> lss):emili::LocalSearch(is,lss[0]->getTermination(),lss[0]->getNeighborhood()),lss(lss) { }
     virtual Solution* search(Solution* initial);
 };
-
-/*
-   a consistent and centralized implementation of the random function
-   that uses the marsenne twister.
- */
-
-
-void initializeRandom(int seed);
-#ifdef NOC11
-std::tr1::mt19937& getRandomGenerator();
-#else
-std::mt19937& getRandomGenerator();
-#endif
-int generateRandomNumber();
-float generateRealRandomNumber();
-
-/*TIME RELATED STUFF */
-// this function returns the time from the beginning of the execution in seconds
-double getCurrentExecutionTime();
-
 
 /*
  * Metropolis acceptance criterion implementation (fixed temperature)
@@ -674,7 +676,7 @@ public:
     virtual void reset();
 };
 
-/*
+/*  DEPRECATED
  *  This class models the pertubation algorithm that destruct the solution
  *  used in the iterated greedy algorithms
  */
@@ -685,7 +687,7 @@ public:
     virtual emili::Solution* perturb(Solution *solution) { return destruct(solution); }
 };
 
-/*
+/* DEPRECATED
  * this class models the algorithm that returns a solution
  * starting from a partial one.
  */
@@ -705,7 +707,7 @@ public:
  virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial);}
 };
 
-/*
+/* DEPRECATED
  * This class models an iterated greedy heuristics
  */
 class IteratedGreedy : public emili::IteratedLocalSearch
