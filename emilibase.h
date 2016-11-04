@@ -36,7 +36,23 @@ Neighborhood and Perturbation.
 #else
 //if the compiler does not support c++11 this compile path will be selected.
 #include <tr1/random>
-#define nullptr NULL
++//#define nullptr NULL
++const // It is a const object...
++class nullptr_t 
++{
++  public:
++    template<class T>
++    inline operator T*() const // convertible to any type of null non-member pointer...
++    { return 0; }
++
++    template<class C, class T>
++    inline operator T C::*() const   // or any type of null member pointer...
++    { return 0; }
++
++  private:
++    void operator&() const;  // Can't take address of nullptr
++
++} nullptr = {};
 #endif
 #include <functional>
 

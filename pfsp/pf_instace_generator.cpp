@@ -34,23 +34,24 @@ int main(int argc, char *argv[]) {
 			maxx_i = max_i[i]>maxx_i?max_i[i]:maxx_i;
 		}
 		int P=max_j>maxx_i?max_j:maxx_i;
-		std::cout << "Reldue" << std::endl;
-		float T = 0.2;
-		float R = 0.6;
 		if(argc > 5)
 		{
+  			std::cout << "Reldue" << std::endl;
+			float T = 0.2;
+			float R = 0.6;
+		
 			T = atof(argv[4]);
 			R = atof(argv[5]);
-		}
+				
+			int DDlw = (int)((float)P*(1.0f-T-R/2.0f));
+			int DDlh = (int)((float)P*(1.0f-T+R/2.0f));
 		
-		int DDlw = (int)((float)P*(1.0f-T-R/2.0f));
-		int DDlh = (int)((float)P*(1.0f-T+R/2.0f));
-		
-		std::uniform_int_distribution<int> dd(DDlw,DDlh);
-		std::uniform_int_distribution<int> weight(1,10);
-		for(int i=0;i<njobs;i++)
-		{
-			std::cout << "-1" << " " << dd(generator) << " -1 " << weight(generator) << std::endl;
+			std::uniform_int_distribution<int> dd(DDlw,DDlh);
+			std::uniform_int_distribution<int> weight(1,10);
+			for(int i=0;i<njobs;i++)
+			{
+				std::cout << "-1" << " " << dd(generator) << " -1 " << weight(generator) << std::endl;
+			}
 		}
 		std::cout << "LB " << P << std::endl;
 		

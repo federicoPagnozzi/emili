@@ -9,7 +9,7 @@
 <gr:grammar xmlns:gr="grammar">
     <gr:derivations xmlns:pfsp="pfsp_automatic_generation">
 		
-	 <pfsp:steps type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:steps type="int" min="1" max="20" stepIfEnumerated="1"/>
 	 <pfsp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
 	
         <pfsp:termination>
@@ -104,7 +104,7 @@
 	
 
         <pfsp:main_algorithm output="params">
-                <![CDATA[PFSP_MS stin nehls]]>
+                <![CDATA[PFSP_MS stin nehls ]]>
         	<pfsp:main/>     
         </pfsp:main_algorithm>
 
