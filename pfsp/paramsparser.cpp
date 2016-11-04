@@ -128,6 +128,7 @@
 #define NEIGHBORHOOD_TRANSPOSE "transpose"
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
+#define NEIGHBORHOOD_ADAPTIVE_INSERT "adpinsert"
 
 /* Weighted Tardiness*/
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
@@ -1248,6 +1249,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
         printTab( "Insert Neighborhood");
         neigh = new emili::pfsp::PfspInsertNeighborhood(*istance);
     }
+    else if(tm.checkToken(NEIGHBORHOOD_ADAPTIVE_INSERT))
+    {
+        printTab( "Insert Neighborhood");
+        neigh = new emili::pfsp::PfspInsertNeighborhood(*istance);
+    }
     else  if(tm.checkToken(NEIGHBORHOOD_FORW_INSERT))
     {
         printTab( "Forward insert Neighborhood");
@@ -1580,7 +1586,7 @@ std::string prs::ParamsParser::availableProblems() const
        << " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " "<<PROBLEM_NWPFS_WT<< " " <<PROBLEM_NWPFS_WE
        << " " <<PROBLEM_NWPFS_TCT<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_NWPFS_T<< " " <<PROBLEM_NWPFS_E
        << PROBLEM_NIPFS_MS <<" "<<PROBLEM_NIPFS_WT<< " " <<PROBLEM_NIPFS_WE<< " " <<PROBLEM_NIPFS_TCT<< " " <<PROBLEM_NIPFS_MS<< " "
-       << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E << PROBLEM_SDSTPFS_MS;
+       << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E << " " << PROBLEM_SDSTPFS_MS;
 
     return oss.str();
 }

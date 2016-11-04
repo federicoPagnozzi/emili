@@ -389,7 +389,7 @@ public:
     virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
     virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
-
+    virtual Solution* getBestSoFar() { return nullptr;}
 };
 
 /*
