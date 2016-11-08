@@ -41,6 +41,10 @@ Neighborhood and Perturbation.
 #include <functional>
 #include <ctime>
 
+#if defined( _WIN32) || defined( _WIN64)
+
+#define NOSIG 1
+#endif
 
 
 namespace emili{
@@ -52,6 +56,8 @@ void iteration_increment();
 void iteration_decrement();
 /* Function to tell the system timer hook if it has to print solution info*/
 void set_print(bool p);
+
+
 class Solution;
 /*
  * The istance of the problem to solve.
@@ -620,6 +626,8 @@ float generateRealRandomNumber();
 /*TIME RELATED STUFF */
 // this function returns the time from the beginning of the execution in seconds
 double getCurrentExecutionTime();
+/* Function to check if the time is up*/
+bool checkTimer();
 
 
 /*

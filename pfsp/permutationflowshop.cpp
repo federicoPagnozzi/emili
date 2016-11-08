@@ -5489,7 +5489,11 @@ bool emili::pfsp::SOAtermination::terminate(Solution *currentSolution, Solution 
 {
     if(currentStep < numberOfSteps){
         currentStep++;
+#ifdef NOSIG
+        return emili::checkTimer();
+#else
         return false;
+#endif
     }
     else
     {
@@ -5512,7 +5516,11 @@ bool emili::pfsp::PfspTerminationIterations::terminate(Solution* currentSolution
             iterations++;
         }
 
-            return false;
+#ifdef NOSIG
+        return emili::checkTimer();
+#else
+        return false;
+#endif
     }
     emili::iteration_increment();
     return true;

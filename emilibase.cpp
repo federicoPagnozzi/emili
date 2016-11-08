@@ -10,9 +10,8 @@
 #include <signal.h>
 #include <ctime>
 #include <sstream>
-#if defined( _WIN32) || defined( _WIN64)
 
-#define NOSIG 1
+#ifdef NOSIG
 #ifdef TIMER
 #include <Windows.h>
 #endif
@@ -94,6 +93,7 @@ std::string lastMessage;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
+int max_time = -1 ;
 emili::LocalSearch* localsearch;
 
 void emili::set_print(bool p)
@@ -150,6 +150,15 @@ static void finalise (int _)
     exit(EXIT_SUCCESS);
 }
 
+
+ bool emili::checkTimer()
+{
+    clock_t now = clock();
+    float time_elapsed = (now - beginTime) / (float)CLOCKS_PER_SEC;
+    return time_elapsed >= max_time;
+}
+
+
 #ifndef NOSIG
 struct itimerval timer;
 struct itimerval termination_timer;
@@ -192,7 +201,7 @@ void lastPrint()
     std::cout << lastMessage << std::endl;
 }
 
-int max_time = -1 ;
+
 
 static inline void setTimer(int maxTime)
 {
@@ -295,8 +304,11 @@ static inline void setTimer(int maxTime)
 #else
 static inline void setTimer(int maxTime)
 {
+    max_time = maxTime;
+    beginTime = clock();
 	keep_going = true;
 }
+
 #endif
 #endif
 
@@ -1018,7 +1030,11 @@ emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 
 bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
+#ifdef NOSIG
+    return false || checkTimer();
+#else
     return false;
+#endif
 }
 
 /*
@@ -1037,7 +1053,7 @@ bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *new
         finalise(2);
     }
 #endif
-    return !(time < secs);
+    return (time >= secs);
 }
 
 void emili::TimedTermination::reset()
@@ -1103,7 +1119,11 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
     }
     else
     {
-        return currentSolution->operator <=(*newSolution);
+#ifdef NOSIG
+        return (currentSolution->operator <=(*newSolution)) || checkTimer();
+#else
+        return (currentSolution->operator <=(*newSolution));
+#endif
     }
 }
 
@@ -1118,7 +1138,11 @@ bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *
     else
     {
         current_step++;
+#ifdef NOSIG
+        return checkTimer();
+#else
         return false;
+#endif
     }
 }
 
