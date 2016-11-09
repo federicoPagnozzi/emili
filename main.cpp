@@ -56,7 +56,6 @@ prs::emili_header();
     emili::LocalSearch* ls;
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE
-    std::cout << "searching..." << std::endl;
     prs::ParamsParser p;
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
@@ -76,6 +75,7 @@ prs::emili_header();
     time = clock();
 #endif
     emili::Solution* solution;
+    std::cout << "searching..." << std::endl;
     if(pls>0)
     {
        solution = ls->timedSearch(pls);

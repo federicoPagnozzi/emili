@@ -293,7 +293,8 @@ public:
      */
     virtual void reset()=0;
     /*
-     * A method that returns a random solution in the neighborhood has to be provided
+     * A method that returns a random solution in the neighborhood has to be provided.
+     * This method shoudl return a new solution.
      */
     virtual Solution* random(Solution* currentSolution) = 0;
     /*
