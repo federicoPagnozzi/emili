@@ -1344,7 +1344,7 @@ emili::Solution* emili::pfsp::NEH::generate()
     std::vector< int > tpt(njobs+1,0);
     std::vector< int > order;
     const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
-    order.push_back(0);
+  //  order.push_back(0);
     for (int i = 1; i <= njobs; ++i) {
         int tpti = 0;
         for (int k = 1; k <= nmac; ++k) {
@@ -1369,7 +1369,7 @@ emili::Solution* emili::pfsp::NEH::generate()
     igioc.stds=&tpt;
     std::sort(order.begin(),order.end(),igioc);
 #endif
-    order.erase(order.begin()+njobs);
+//    order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
@@ -1386,7 +1386,7 @@ emili::Solution* emili::pfsp::NEHedd::generate()
     int njobs = pis.getNjobs();
     std::vector< int > tpt(njobs+1,0);
     std::vector< int > order;
-    order.push_back(0);
+ //   order.push_back(0);
     for (int i = 1; i <= njobs; ++i) {
         tpt[i] = pis.getDueDate(i);
         order.push_back(i);
@@ -1397,7 +1397,7 @@ emili::Solution* emili::pfsp::NEHedd::generate()
     igioc.stds=&tpt;
     std::sort(order.begin(),order.end(),igioc);
 #endif
-    order.erase(order.begin()+njobs);
+//    order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = neh2(order,njobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
@@ -1413,7 +1413,7 @@ emili::Solution* emili::pfsp::NEHls::generate()
     std::vector< int > tpt(njobs+1,0);
     std::vector< int > order;
     const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
-    order.push_back(0);
+//    order.push_back(0);
     for (int i = 1; i <= njobs; ++i) {
         int tpti = 0;
         for (int k = 1; k <= nmac; ++k) {
@@ -1437,7 +1437,7 @@ emili::Solution* emili::pfsp::NEHls::generate()
     igioc.stds=&tpt;
     std::sort(order.begin(),order.end(),igioc);
 #endif
-    order.erase(order.begin()+njobs);
+//    order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = nehls(order,njobs,pis,_ls);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
@@ -1453,7 +1453,7 @@ emili::Solution* emili::pfsp::NEHffls::generate()
     std::vector< int > tpt(njobs+1,0);
     std::vector< int > order;
     const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
-    order.push_back(0);
+ //   order.push_back(0);
     for (int i = 1; i <= njobs; ++i) {
         int tpti = 0;
         for (int k = 1; k <= nmac; ++k) {
@@ -1468,7 +1468,7 @@ emili::Solution* emili::pfsp::NEHffls::generate()
     igioc.stds=&tpt;
     std::sort(order.begin(),order.end(),igioc);
 #endif
-    order.erase(order.begin()+njobs);
+  //  order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = nehffls(order,njobs,pis,_ls);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
@@ -1484,7 +1484,7 @@ emili::Solution* emili::pfsp::NEHff::generate()
     std::vector< int > tpt(njobs+1,0);
     std::vector< int > order;
     const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
-    order.push_back(0);
+//    order.push_back(0);
     for (int i = 1; i <= njobs; ++i) {
         int tpti = 0;
         for (int k = 1; k <= nmac; ++k) {
@@ -1499,7 +1499,7 @@ emili::Solution* emili::pfsp::NEHff::generate()
     igioc.stds=&tpt;
     std::sort(order.begin(),order.end(),igioc);
 #endif
-    order.erase(order.begin()+njobs);
+//    order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
     order = nehff(order,njobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);

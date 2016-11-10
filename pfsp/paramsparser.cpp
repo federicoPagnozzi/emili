@@ -486,15 +486,15 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
     else if(tm.checkToken(TEST_INIT))
     {       
         emili::InitialSolution* ini = init(tm);        
-        ls = new emili::EmptyLocalSearch(*ini);
-        /*clock_t time = clock();
+        /*ls = new emili::EmptyLocalSearch(*ini);*/
+        clock_t time = clock();
         emili::Solution* s = ini->generateSolution();
         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
         std::cout << "time : " << time_elapsed << std::endl;
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << s-> getSolutionValue() << std::endl;
         std::cerr << s-> getSolutionValue() << std::endl;
-        exit(123);*/
+        exit(123);
     }
     else if(tm.checkToken(EMPTY_LOCAL))
     {
