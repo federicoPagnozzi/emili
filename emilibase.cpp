@@ -134,7 +134,7 @@ static void finalise (int _)
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* bestSoFar = localsearch->getBestSoFar();
 
-    if(emili::LocalSearch::theInstance)
+    if(emili::LocalSearch::theInstance && bestSoFar)
         emili::LocalSearch::theInstance->finaliseSolution(bestSoFar); // will apply "final" weight
 
     if(bestSoFar != nullptr)
@@ -1112,6 +1112,7 @@ emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 
 bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
+    if(timeOver()) return true;
     return false;
 }
 
@@ -1121,6 +1122,8 @@ bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution*
 
 bool emili::TimedTermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
+    if(timeOver()) return true;
+
     clock_t test = clock();
     float time = (test-start)/ (float)CLOCKS_PER_SEC;
 #ifdef NOSIG
@@ -1187,21 +1190,25 @@ void emili::TimedTermination::reset()
  */
 bool emili::LocalMinimaTermination::terminate(Solution* currentSolution, Solution* newSolution)
 {
-    return newSolution == nullptr || currentSolution->operator <=(*newSolution);
+    return timeOver() && (newSolution == nullptr || currentSolution->operator <=(*newSolution));
 }
 
 /*
  * MaxSteps Termination
  */
+emili::MaxStepsTermination::MaxStepsTermination(int max_steps):max_steps_(max_steps), current_step(0) {
+
+}
+
 bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *newSolution)
 {
-    if(current_step > max_steps_) {
+    if(timeOver()) return true;
+
+    if(current_step > max_steps_)
         return true;
-    }
-    else {
-        current_step++;
-        return false;
-    }
+
+    current_step++;
+    return false;
 }
 
 void emili::MaxStepsTermination::reset()

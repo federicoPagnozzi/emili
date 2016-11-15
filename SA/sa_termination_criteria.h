@@ -18,14 +18,20 @@ class SATermination: public emili::Termination {
 protected:
      std::string type;
 
+     clock_t startTime;
+     float maxTimeSeconds = 60 * 60 * 24; // day
+
 public:
     SATermination(std::string type):
-        type(type) { }
+        type(type), startTime(clock()) { }
 
     virtual bool terminate(emili::Solution* currentSolution,
                            emili::Solution* newSolution)=0;
 
     virtual bool terminate(SAStatus& status)=0;
+
+    void setMaxTime(float seconds) { maxTimeSeconds = seconds; }
+    bool timeOver() { return (double)(clock() - startTime) / CLOCKS_PER_SEC > maxTimeSeconds; }
 
     virtual void reset()=0;
 
@@ -56,8 +62,8 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        if (status.counter >= maxBadIterations) return true;
-        return false;
+        return timeOver() &&
+            status.counter >= maxBadIterations;
     }
 
     virtual void reset() {
@@ -83,6 +89,7 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
+        if(timeOver()) return true;
         return status.total_counter >= maxIterations;
     }
 
@@ -118,6 +125,7 @@ struct SAMaxIterTerminationDebug : SAMaxIterTermination {
     }
 
     bool terminate(SAStatus& status) override {
+        if(timeOver()) return true;
 
         double ratio = (double) status.total_counter / maxIterations;
 
@@ -165,8 +173,7 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        if (status.total_counter >= maxIterations) return true;
-        return false;
+        return timeOver() && status.total_counter >= maxIterations;
     }
 
     // does nothing
@@ -189,7 +196,7 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        return false;
+        return timeOver();
     }
 
     // does nothing
@@ -217,10 +224,8 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        if ((1.0 * status.accepted / status.total_counter) < rate)
-            return true;
-        
-        return false;
+        return timeOver() &&
+            1.0 * status.accepted / status.total_counter < rate;
     }
 
     // does nothing
@@ -255,7 +260,7 @@ public:
 
     virtual bool terminate(emili::Solution* currentSolution,
                            emili::Solution* newSolution) {
-        return false;
+        return timeOver();
     }
 
     virtual bool terminate(SAStatus& status) {
@@ -292,7 +297,7 @@ public:
 
     virtual bool terminate(emili::Solution* currentSolution,
                            emili::Solution* newSolution) {
-        return false;
+        return timeOver();
     }
 
     virtual bool terminate(SAStatus& status) {
@@ -324,7 +329,7 @@ public:
 
     virtual bool terminate(emili::Solution* currentSolution,
                            emili::Solution* newSolution) {
-        return false;
+        return timeOver();
     }
 
     virtual bool terminate(SAStatus& status) {
@@ -360,10 +365,9 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        if (status.not_improved > tenure) {
-            return true;
-        }
-        return false;
+        if(timeOver()) return true;
+
+        return status.not_improved > tenure;
     }
 
     virtual void reset() {
@@ -392,10 +396,9 @@ public:
     }
 
     virtual bool terminate(SAStatus& status) {
-        if (status.step > maxsteps) {
-            return true;
-        }
-        return false;
+        if(timeOver()) return true;
+
+        return status.step > maxsteps;
     }
 
     virtual void reset() {

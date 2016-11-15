@@ -119,12 +119,17 @@ public:
 */
 class Termination
 {
+    clock_t startTime;
+    float maxTimeSeconds = 60 * 60 * 24;
 public:    
     /*
      * The name of the parameters are purely indicative
      * this method shall return true if the termination condition has been reached (otherwise false)
     */
     virtual bool terminate(Solution* currentSolution, Solution* newSolution)=0;
+
+    void setMaxTime(float seconds) { maxTimeSeconds = seconds; }
+    bool timeOver() { return (double)(clock() - startTime) / CLOCKS_PER_SEC > maxTimeSeconds; }
 
     /**
      * Given a new solution and a "delta". Return true if the delta is accepted or not.
@@ -155,7 +160,7 @@ public:
 class LocalMinimaTermination: public emili::Termination
 {
 public:
-    LocalMinimaTermination() {}
+    LocalMinimaTermination(int maxTime = -1) {}
     virtual bool terminate(Solution* currentSolution, Solution* newSolution);
     virtual void reset() { }
 };
@@ -195,7 +200,7 @@ protected:
     int max_steps_;
     int current_step;
 public:
-    MaxStepsTermination(int max_steps):max_steps_(max_steps), current_step(0){ }
+    MaxStepsTermination(int max_steps);
     bool terminate(Solution *currentSolution, Solution *newSolution) override;
     void reset() override;
 };
