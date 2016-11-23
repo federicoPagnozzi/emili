@@ -18,7 +18,7 @@ class ParamsParser: public AlgoBuilder
 protected:    
     emili::pfsp::PermutationFlowShop* istance;
     std::vector< emili::pfsp::PermutationFlowShop* > istances;
-    /* ALGOS */
+    /**  ALGOS */
     emili::LocalSearch* eparams(prs::TokenManager& tm);
     emili::LocalSearch* search(prs::TokenManager& tm);
     emili::LocalSearch* ils(prs::TokenManager& tm);
@@ -27,22 +27,22 @@ protected:
     emili::BestTabuSearch* tparams(prs::TokenManager& tm);
     emili::LocalSearch* vparams(prs::TokenManager& tm);
     void params(prs::TokenManager& tm);
-    /*INITIAL SOLUTION*/
+    /** INITIAL SOLUTION*/
     emili::InitialSolution* init(prs::TokenManager& tm);
-    /*TERMINATION*/
+    /** TERMINATION*/
     emili::Termination* term(prs::TokenManager& tm);
-    /*NEIGHBORHOOD*/
+    /** NEIGHBORHOOD*/
     emili::pfsp::PfspNeighborhood* neigh(prs::TokenManager& tm,bool checkExist);
-    /*PERTURBATION*/
+    /** PERTURBATION*/
     emili::Perturbation* per(prs::TokenManager& tm);
-    /*ACCEPTANCE*/
+    /** ACCEPTANCE*/
     emili::Acceptance* acc(prs::TokenManager& tm);
-    /*TABU TENURE */
+    /** TABU TENURE */
     emili::TabuMemory* tmemory(emili::pfsp::PfspNeighborhood* n,prs::TokenManager& tm);
-    /*NEIGHBORHOOD UTILS*/
+    /** NEIGHBORHOOD UTILS*/
     void neighs(prs::TokenManager& tm);
     void neighs1(prs::TokenManager& tm);
-    /*Problem load*/
+    /** Problem load*/
     void problem(prs::TokenManager& tm);
     virtual std::string availableProblems() const;
 public:

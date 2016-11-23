@@ -11,7 +11,12 @@
 #include <cstring>
 #include <algorithm>
 #include "generalParser.h"
+//#define MAIN_NEW
+#ifndef MAIN_NEW
 #include "pfsp/paramsparser.h"
+#else
+#include "pfsp/pfspBuilder.h"
+#endif
 #include "setup.h"
 
 
@@ -21,7 +26,7 @@ void g2c_info()
     exit(0);
 }
 
-
+#ifndef MAIN_NEW
 int main(int argc, char *argv[])
 {
 prs::emili_header();
@@ -107,3 +112,52 @@ prs::emili_header();
     delete ls;
     //delete solution;
 }
+#else
+int main(int argc, char *argv[])
+{
+    prs::emili_header();
+    srand ( time(0) );
+    clock_t time = clock();
+    if (argc < 3 )
+    {
+        prs::info();
+        return 1;
+    }
+    int pls = 0;
+    emili::LocalSearch* ls;
+
+    prs::GeneralParserE  ps(argv,argc);
+    prs::EmBaseBuilder emb(ps,ps.getTokenManager());
+    prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    ps.addBuilder(&emb);
+    ps.addBuilder(&pfspb);
+    ls = ps.parseParams();
+    if(ls!=nullptr)
+    {
+        pls = ls->getSearchTime();//ps.ils_time;
+        emili::Solution* solution;
+        std::cout << "searching..." << std::endl;
+        if(pls>0)
+        {
+            solution = ls->timedSearch(pls);
+        }
+        else
+        {
+            solution = ls->search();
+        }
+        if(!emili::get_print())
+        {
+            solution = ls->getBestSoFar();
+            double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+            std::cout << "time : " << time_elapsed << std::endl;
+            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+            std::cerr << solution->getSolutionValue() << std::endl;
+            std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+            std::cout << "Found solution: ";
+            std::cout << solution->getSolutionRepresentation() << std::endl;
+            std::cout << std::endl;
+        }
+        delete ls;
+    }
+}
+#endif

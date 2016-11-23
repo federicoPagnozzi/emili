@@ -23,7 +23,7 @@
 #include <iostream>
 #include <assert.h>
 #include "pfsp/permutationflowshop.h"
-/*
+/**
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
 
@@ -34,7 +34,7 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
     return *this;
 }
  */
-/*
+/**
  * RANDOM NUMBER GENERATOR
  */
 #ifndef NOC11
@@ -84,7 +84,7 @@ float emili::generateRealRandomNumber()
 }
 
 
-/*
+/**
  * TIMED SEARCH CODE
  */
 bool print;
@@ -242,11 +242,11 @@ static inline void setTimer(int maxTime)
 }
 #endif
 
-/*
+/**
  * Timer HOOK
  */
 
-/*
+/**
  * Iteration counter
  */
 static unsigned long iteration_counter_ ;
@@ -269,7 +269,7 @@ void emili::iteration_decrement(){
     iteration_counter_--;
 }
 
-/*
+/**
  * Print Solution info
  */
 
@@ -294,7 +294,7 @@ bool emili::get_print()
 }
 
 
-/*
+/**
  * Solution implementation
  */
 emili::Solution& emili::Solution::operator=(const emili::Solution& a)
@@ -341,7 +341,7 @@ void emili::Solution::setSolutionValue(double value)
     this->solution_value = value;
 }
 
-/*
+/**
  * Base implementation of Neighborhood class
  */
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator =(const emili::Neighborhood::NeighborhoodIterator& iter)
@@ -384,7 +384,7 @@ emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::end()
     return emili::Neighborhood::NeighborhoodIterator(this,nullptr);
 }
 
-/*
+/**
  * LocalSearch base class ( Old neighborhood concept)
  */
 
@@ -501,7 +501,7 @@ emili::InitialSolution& emili::LocalSearch::getInitialSolution()
     return *this->init;
 }
 
-/*
+/**
  * Empty local search
  */
 emili::Solution* emili::EmptyLocalSearch::search()
@@ -525,7 +525,7 @@ emili::Solution* emili::EmptyLocalSearch::timedSearch()
     return timedSearch(this->getSearchTime());
 }
 
-/*
+/**
  * Best improvement local search
  */
 emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
@@ -553,7 +553,7 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
 }
 
 
-/*
+/**
  * First improvement local search
  */
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
@@ -584,7 +584,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
         return bestSoFar->clone();
 }
 
-/*OLD
+/** OLD
 
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 {
@@ -616,7 +616,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 
 
 
-/*
+/**
  * TABU SEARCH
  */
 emili::Solution* emili::BestTabuSearch::search()
@@ -703,7 +703,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
     delete incumbent;
     return bestSoFar->clone();
 }
-/*
+/**
 emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
 {
     termcriterion->reset();
@@ -841,7 +841,7 @@ emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution
 }
 
 
-/*
+/**
  * Iterated Local Search
  */
 
@@ -894,7 +894,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         acc.reset();
         localsearch = this;
         setTimer(maxTime);
-        /*
+        /**
             search start
         */
         beginTime = clock();        
@@ -936,7 +936,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         acc.reset();
         setTimer(maxTime);
         localsearch = this;
-        /*
+        /**
             search start
         */
         beginTime = clock();                
@@ -983,7 +983,7 @@ emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
     return bestSoFar;
 }
 
-/*
+/**
  * Never stopping termination
  */
 
@@ -999,7 +999,7 @@ bool emili::WhileTrueTermination::terminate(Solution* currentSolution, Solution*
     }
 }
 
-/*
+/**
  * Timed termination
  */
 
@@ -1020,7 +1020,7 @@ void emili::TimedTermination::reset()
 {
 
     //setTerminationTimer(this->secs);
-   /* if(secs<0)
+   /**  if(secs<0)
     {
     if(max_time > 0)
         secs = (int)max_time*_ratio;
@@ -1034,7 +1034,7 @@ void emili::TimedTermination::reset()
 #endif
 }
 
-/*emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)
+/** emili::Solution* emili::VNDSearch::searchOneNeigh(Solution *initial, emili::Neighborhood* n)
 {
     termcriterion->reset();
     n->reset();
@@ -1066,7 +1066,7 @@ void emili::TimedTermination::reset()
     return bestSoFar;
 }*/
 
-/*
+/**
  * LocalMinima terminations
  */
 bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution* newSolution)
@@ -1082,7 +1082,7 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
     }
 }
 
-/*
+/**
  * MaxSteps Termination
  */
 bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *newSolution)
@@ -1101,7 +1101,7 @@ bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *
     }
 }
 
-/*
+/**
  * MaxSteps or Local minimum termination
  */
 
@@ -1126,7 +1126,7 @@ void emili::MaxStepsTermination::reset()
     current_step = 0;
 }
 
-/*
+/**
  * Piped Local Search
 */
 
@@ -1147,7 +1147,7 @@ emili::Solution* emili::PipeSearch::search(Solution *initial)
     return bestSoFar;
 }
 
-/*
+/**
  *  METROPOLIS ACCEPTANCE
  */
 
@@ -1204,7 +1204,7 @@ void emili::Metropolis::reset()
     counter = 0;
 }
 
-/* GVNS */
+/**  GVNS */
 
 emili::Solution* emili::GVNS::search(Solution* initial)
 {

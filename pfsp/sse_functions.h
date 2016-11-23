@@ -8,12 +8,12 @@
 #include <emmintrin.h>
 
 //#define ENABLE_SSE
-//head and tail computation for taillard's acceleration
+/** head and tail computation for taillard's acceleration*/
 inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < int > >& head,std::vector< std::vector < int > >& tail,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
-    /* Permutation flowshop Tail and Head matrices computation using SSE instructions
+    /** Permutation flowshop Tail and Head matrices computation using SSE instructions
      **/
-    // Each sse register can contain 4 float so the computation is divided in groups of 4 jobs
+    /** Each sse register can contain 4 float so the computation is divided in groups of 4 jobs*/
     int r4 = nbJob%4;
     int lambda_number =  nbJob/4; // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
 
@@ -57,7 +57,7 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
     __m128 tK = _mm_setzero_ps();
     for(int l = 0 ; l < lambda_number ; l++)
     {
-        /* At the beginning
+        /** At the beginning
          * J1   J2   J3   J4
         K  T1,1 T2,1 T3,1 T4,1
         L2 T1,2 T2,2 T3,2 T4,2
@@ -79,7 +79,7 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
                 processingTimesMatrix[j1][1]); // load the values in the registers
         mc = makespan; // copy the value in another register
 
-        /*First machine HEAD
+        /** First machine HEAD
          *
          * */
         // first add

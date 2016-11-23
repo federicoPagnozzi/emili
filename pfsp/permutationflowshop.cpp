@@ -350,7 +350,7 @@ std::vector< int > inline nehls(std::vector<int >& _fsp, int N, emili::pfsp::Per
                     _fsp[h]=solTMP[h];
                 //sol.setSolutionValue(min);
                 //will it work??
-        /*        for(int i =1; i<=k;i++)
+        /**         for(int i =1; i<=k;i++)
                 {
                     std::cout << " " << _fsp[i];
                 }
@@ -748,7 +748,7 @@ std::vector< float > inline lr_index(std::vector< int >& s, std::vector<int>& u,
         float p_comp = i_comp + (tpj[1]-ctimesMatrix[i_job][1])/(float)(u.size()-1);
         for(int j=2;j<=nmac;j++)
         {
-            /*ITK calculation*/
+            /** ITK calculation*/
             float wjk = nmac/(j+k*((nmac-j)/(float)(njobs-2)));
 
             float tcomp = std::max(i_comp-lastJobCompletionTimes[j],0.0f);
@@ -759,7 +759,7 @@ std::vector< float > inline lr_index(std::vector< int >& s, std::vector<int>& u,
             i_comp = tcomp>0?i_comp:lastJobCompletionTimes[j];
             i_comp += ctimesMatrix[i_job][j];
 
-            /* P job completion time calculation*/
+            /**  P job completion time calculation*/
             float tpcj = (tpj[j]-ctimesMatrix[i_job][j])/(float)(u.size()-1);
 
             if(p_comp + tpcj > i_comp)
@@ -915,7 +915,7 @@ const std::vector< std::vector < long int > > & emili::pfsp::PermutationFlowShop
 
 emili::pfsp::PermutationFlowShopSolution::~PermutationFlowShopSolution()
 {
- /*nothing to delete*/
+ /** nothing to delete*/
 }
 
 int emili::pfsp::PFSP_WT::computeObjectiveFunction(std::vector< int > & partial_solution)
@@ -1245,7 +1245,7 @@ emili::Solution* emili::pfsp::PfspRandomInitialSolution::generate()
     rnd = generateRndPos(1, i);
     nbFalse = 0;
 
-    /* find the rndth cell with value = false : */
+    /**  find the rndth cell with value = false : */
     for (j = 1; nbFalse < rnd; ++j)
       if ( ! alreadyTaken[j] )
         ++nbFalse;
@@ -1377,7 +1377,7 @@ emili::Solution* emili::pfsp::NEH::generate()
     return s;
 }
 
-/*
+/**
  * Orders the jobs by due date to produce the seed sequence for neh
  */
 emili::Solution* emili::pfsp::NEHedd::generate()
@@ -2285,7 +2285,7 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
             }
 
         }
-        /*TIE BREAKING FF*/
+        /** TIE BREAKING FF*/
         int tb = ptb.size();
 
             if(tb > 1 && l<sops)
@@ -2326,7 +2326,7 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
                 }
                 ind = bp;
             }
-        /*END TIE BREAKING*/
+        /** END TIE BREAKING*/
         solPartial.insert(solPartial.begin()+ind,k);        
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
@@ -2574,7 +2574,7 @@ emili::Solution* emili::pfsp::RSffLSPerturbation::perturb(Solution *solution)
             }
 
         }
-        /*TIE BREAKING FF*/
+        /** TIE BREAKING FF*/
         int tb = ptb.size();
 
             if(tb > 1 && l<sops)
@@ -2615,7 +2615,7 @@ emili::Solution* emili::pfsp::RSffLSPerturbation::perturb(Solution *solution)
                 }
                 ind = bp;
             }
-        /*END TIE BREAKING*/
+        /** END TIE BREAKING*/
         solPartial.insert(solPartial.begin()+ind,k);
         //std::cout << "end insert " << solPartial.size() << std::endl;
     }
@@ -2654,7 +2654,7 @@ emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
     return s;
 }
 
-/*
+/**
 Construct the solution inserting one job at a time, by always selecting
 the one that minimizes the weighted earlyness.
 
@@ -2706,7 +2706,7 @@ int emili::pfsp::PfspNeighborhood::size()
 
 void emili::pfsp::PfspNeighborhood::reset()
 {
-    /*No counters to reset*/
+    /** No counters to reset*/
 }
 
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::PfspInsertNeighborhood::begin(emili::Solution *base)
@@ -2850,7 +2850,7 @@ emili::Solution* emili::pfsp::PfspBackwardInsertNeighborhood::computeStep(emili:
         end_position = ((end_position)%njobs)+1;
         if(ep_iterations < njobs){
             ep_iterations++;
-           /* if(ep_iterations == sp_iterations){
+           /**  if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
                 std::cout << "BOOM!" << std::endl;
@@ -2900,7 +2900,7 @@ emili::Solution* emili::pfsp::PfspForwardInsertNeighborhood::computeStep(emili::
         end_position = ((end_position)%njobs)+1;
         if(ep_iterations < njobs){
             ep_iterations++;
-           /* if(ep_iterations == sp_iterations){
+           /**  if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
                 std::cout << "BOOM!" << std::endl;
@@ -3062,7 +3062,7 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3209,7 +3209,7 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3313,7 +3313,7 @@ emili::Solution* emili::pfsp::OptInsert::computeStep(emili::Solution *value)
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3446,7 +3446,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3488,7 +3488,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
         ins_pos[1] = c_cur;
 
         for (int i = 2; i <= nmac; ++i) {
-           /* int c_pm = head[i][end_position-1];
+           /**  int c_pm = head[i][end_position-1];
             if(c_pm < c_cur)
             {
                 c_cur = c_cur + pmatrix[sol_i][i];
@@ -3560,7 +3560,7 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
 
             value->setSolutionValue(pre_wt);
            //pis.evaluateSolution(*news);
-        /*   if(news->getSolutionValue() > value->getSolutionValue())
+        /**    if(news->getSolutionValue() > value->getSolutionValue())
            {
                emili::iteration_increment();
            }*/
@@ -3591,7 +3591,7 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3715,7 +3715,7 @@ emili::Solution* emili::pfsp::AtxNeighborhood::computeStep(emili::Solution *valu
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3815,7 +3815,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -3851,7 +3851,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
         }
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-/*#ifdef ENABLE_SSE
+/** #ifdef ENABLE_SSE
         float ins_pos[nmac+1];
 #else*/
         int ins_pos[nmac+1];
@@ -3891,7 +3891,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             {
                 thresh++;
             }
-            /*
+            /**
 #ifdef ENABLE_SSE
             std::vector< long int > pmet(njobs+1,0);
             computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
@@ -3966,7 +3966,7 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4092,7 +4092,7 @@ emili::Solution* emili::pfsp::ThatxNeighborhood::computeStep(emili::Solution *va
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4220,7 +4220,7 @@ emili::Solution* emili::pfsp::FatxNeighborhood::computeStep(emili::Solution *val
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4350,7 +4350,7 @@ emili::Solution* emili::pfsp::PatxNeighborhood::computeStep(emili::Solution *val
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4481,7 +4481,7 @@ emili::Solution* emili::pfsp::SatxNeighborhood::computeStep(emili::Solution *val
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4616,7 +4616,7 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4727,7 +4727,7 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
     }
 }
 
-/* Approximation based neighborhoods for other objectives ( no Weighted Tardiness)
+/**  Approximation based neighborhoods for other objectives ( no Weighted Tardiness)
  *
  * */
 
@@ -4745,7 +4745,7 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -4781,7 +4781,7 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
         }
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-/*#ifdef ENABLE_SSE
+/** #ifdef ENABLE_SSE
         float ins_pos[nmac+1];
 #else*/
         int ins_pos[nmac+1];
@@ -4821,7 +4821,7 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
             {
                 thresh++;
             }
-            /*
+            /**
 #ifdef ENABLE_SSE
             std::vector< long int > pmet(njobs+1,0);
             computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
@@ -4879,7 +4879,7 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
     }
 }
 
-/* Approximation based neighborhoods for other objectives ( no Weighted Tardiness)
+/**  Approximation based neighborhoods for other objectives ( no Weighted Tardiness)
  *
  * */
 
@@ -4991,7 +4991,7 @@ emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *v
         int sol_i;
         if(ep_iterations < njobs){
             ep_iterations++;
-            /*if(ep_iterations == sp_iterations){
+            /** if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
             }*/
@@ -5027,7 +5027,7 @@ emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *v
         }
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-/*#ifdef ENABLE_SSE
+/** #ifdef ENABLE_SSE
         float ins_pos[nmac+1];
 #else*/
         int ins_pos[nmac+1];
@@ -5067,7 +5067,7 @@ emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *v
             {
                 thresh++;
             }
-            /*
+            /**
 #ifdef ENABLE_SSE
             std::vector< long int > pmet(njobs+1,0);
             computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
@@ -5129,7 +5129,7 @@ emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *v
 }
 
 
-/*
+/**
  * No Indle accelerated neighborhood
  **/
 emili::Solution* emili::pfsp::NoIdleAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
@@ -5305,7 +5305,7 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::computeStep(emili::Solu
         end_position = ((end_position)%njobs)+1;
         if(ep_iterations < njobs){
             ep_iterations++;
-           /* if(ep_iterations == sp_iterations){
+           /**  if(ep_iterations == sp_iterations){
                 ep_iterations++;
                 end_position++;
                 std::cout << "BOOM!" << std::endl;
@@ -6328,7 +6328,7 @@ void emili::pfsp::PfspMovesMemory::forbid(Solution *solution)
 
 void emili::pfsp::PfspMovesMemory::registerMove(emili::Solution* base,emili::Solution* solution)
 {
-    lastMove = neigh.lastMove();
+    lastMove = neigh->lastMove();
 }
 
 void emili::pfsp::PfspMovesMemory::reset()
@@ -6600,7 +6600,7 @@ emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
         return new emili::pfsp::PermutationFlowShopSolution(best_res,bestCombination);
     }
 }
-/*
+/**
 int emili::pfsp::CompoundPerturbation::calc_distance(std::vector< int >& x, std::vector< int >& y)
 {
     int dis = 0;
