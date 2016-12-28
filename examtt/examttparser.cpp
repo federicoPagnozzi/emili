@@ -257,31 +257,34 @@ double ExamTTParser::getHardweightFromFeatures(bool USE_FORMULA_1) {
 
 emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveInit, std::string prefix)
 {
-    static const std::string SA_BSU = "sa-bsu";
-    static const std::string INTERACTIVE = "interactive";
-    static const std::string SHOW_PARAMS = "show-params";
-    static const std::string TEST_KEMPE = "test_kempe";
-    static const std::string TEST_KEMPE_RANDOM_VS_ITER = "test_kempe_random_vs_iter";
-    static const std::string TEST_DELTA = "test_delta";
-    static const std::string TEST_DELTA_REMOVE_ADD = "test_delta_remove_add";
-    static const std::string INFO = "info";
-    static const std::string INFO_INIT = "info-init";
-    static const std::string BRUTE = "brute";
-    static const std::string TEST_ITERATION_YIELD_VS_STATE = "test_iteration_yield_vs_state";
-    static const std::string TEST_KEMPE_LARGE_COUNT = "test_kempe_large_count";
-    static const std::string ITERATED_GREEDY = "iterated-greedy";
-    static const std::string MY_ITERATED_GREEDY = "my-iterated-greedy";
-    static const std::string INIT_AND_SEARCH = "init-search";
+    static const std::string
+        SA_BSU = "sa-bsu",
+        INTERACTIVE = "interactive",
+        SHOW_PARAMS = "show-params",
+        TEST_KEMPE = "test_kempe",
+        TEST_KEMPE_RANDOM_VS_ITER = "test_kempe_random_vs_iter",
+        TEST_DELTA = "test_delta",
+        TEST_DELTA_REMOVE_ADD = "test_delta_remove_add",
+        INFO = "info",
+        INFO_INIT = "info-init",
+        BRUTE = "brute",
+        TEST_ITERATION_YIELD_VS_STATE = "test_iteration_yield_vs_state",
+        TEST_KEMPE_LARGE_COUNT = "test_kempe_large_count",
+        ITERATED_GREEDY = "iterated-greedy",
+        MY_ITERATED_GREEDY = "my-iterated-greedy",
+        INIT_AND_SEARCH = "init-search",
+        NO_SEARCH = "no-search",
 
-    static const std::string IDENTITY = "identity";
+        IDENTITY = "identity",
+        MY_ILS = "my-ils",
 
-    static const std::string MY_ILS = "my-ils";
+        __DUMMY__;
 
     static const std::vector<std::string> available = {
         ILS, MY_ILS, TABU, FIRST, BEST, SA_BSU, VND, ITERATED_GREEDY, MY_ITERATED_GREEDY, INIT_AND_SEARCH, IDENTITY,
 
         // below "test" or "info" => NoSearch
-        BRUTE, INFO, INFO_INIT, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
+        NO_SEARCH, BRUTE, INFO, INFO_INIT, INTERACTIVE, TEST_INIT, TEST_KEMPE, TEST_DELTA, TEST_DELTA_REMOVE_ADD,
         TEST_KEMPE_RANDOM_VS_ITER, TEST_ITERATION_YIELD_VS_STATE, TEST_KEMPE_LARGE_COUNT
     };
 
@@ -329,6 +332,11 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     {
         printTab(TABU);
         return tabu(tm);
+    }
+    else if(tm.checkToken(NO_SEARCH))
+    {
+        search(tm, mustHaveInit, prefix);
+        throw NoSearch();
     }
     else if(mustHaveInit && checkTokenParams(tm, IDENTITY, {"init"}, prefix))
     {

@@ -117,17 +117,54 @@ public:
 };
 
 struct ErrorExpected : ParsingError {
-    ErrorExpected(prs::TokenManager& tm, std::string name, std::vector<std::string> const& tokens) {
+    ErrorExpected(prs::TokenManager& tm, std::string name, std::vector<std::string> const& tokensRaw) {
+        auto startsWith = [](std::string s, std::string g) {
+            return s.substr(0, g.size()) == g;
+        };
+
+        auto endsWith = [](std::string s, std::string g) {
+            return s.substr(s.size() - g.size(), g.size()) == g;
+        };
+
+        auto getSlice = [](std::string s, int i, int j) -> std::string {
+            if(i < 0) i = s.size() + i;
+            if(j < 0) j = s.size() + j;
+            return s.substr(i, j-i);
+        };
+
+        bool everyLine = endsWith(tm.peek(), "?");
+        std::string prefix = getSlice(tm.peek(), 0, -1);
+
         std::ostringstream oss;
         oss << "'" << tm.peek() << "' -> ERROR a " << name << " is expected : ";
-        if(tokens.size() == 0) {
-            oss << "<>";
+
+        std::vector<std::string> tokensFiltered;
+        std::vector<std::string> const * tokens = &tokensRaw;
+
+        if(everyLine) {
+            for(auto x : tokensRaw)
+                if(startsWith(x, prefix))
+                    tokensFiltered.push_back(x);
+            tokens = &tokensFiltered;
+        }
+
+        if(tokens->size() == 0) {
+            if(everyLine)
+                oss << "<" << '\n' << ">";
+            else
+                oss << "<>";
         } else {
-            auto it = tokens.begin();
-            oss << "<" << *it++;
-            while(it != tokens.end())
-                oss << " | " << *it++;
-            oss << ">";
+            auto it = tokens->begin();
+
+            if(! everyLine) {
+                oss << "<" << *it++;
+                while(it != tokens->end())
+                    oss << " | " << *it++;
+                oss << ">";
+            } else {
+                while(it != tokens->end())
+                    oss << "\n" << (*it++).substr(prefix.size());
+            }
         }
         msg = oss.str();
     }
