@@ -305,7 +305,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
 
         // what about the hard weight ?
         if(tm.peekIs("{")) {
-            ArgParser p;
+            ArgParser p(MY_ILS);
 
             p.addFuncRequired("search", [&a, this, mustHaveInit](TokenManager& tm){
                 a = search(tm, mustHaveInit); });
@@ -404,7 +404,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         printTab(prefix + ": " + SA_BSU);
         tm.next();
 
-        ArgParser p;
+        ArgParser p(SA_BSU);
         p.addInt("factor", 1);
         p.addInt("factor-exponent", 0);
         p.addInt("freq", 0);
@@ -539,7 +539,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         emili::Acceptance* ac = nullptr;
 
         if(tm.peekIs("{")) {
-            ArgParser p;
+            ArgParser p(MY_ITERATED_GREEDY);
 
             p.addFuncRequired("search", [this, &ls](TokenManager& tm) {
                  ls = search(tm, false); });
@@ -574,9 +574,10 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         bool isTestDelta = tm.peek() == TEST_DELTA;
         bool isTestDeltaRemoveAdd = tm.peek() == TEST_DELTA_REMOVE_ADD;
         printTab(tm.peek());
-        tm.next();
 
-        ArgParser p;
+        ArgParser p(tm.peek());
+
+        tm.next();
 
         p.addInt("N", 1000);
         p.addBool("each-move", true);
@@ -616,6 +617,9 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
     else if(tm.peek() == TEST_KEMPE || tm.peek() == TEST_KEMPE_RANDOM_VS_ITER) {
         bool isTestKempe = tm.peek() == TEST_KEMPE;
         bool isTestKempeRandomVsIter = tm.peek() == TEST_KEMPE_RANDOM_VS_ITER;
+
+        ArgParser p(tm.peek());
+
         tm.next();
 
         std::vector<int> x = {-1};
@@ -631,7 +635,6 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
             if(!(0 <= y && y < P))
                 throw ParsingError("int " + to_string(y) + " is not a valid period in [0," + to_string(P) + "[");
 
-        ArgParser p;
         p.addBool("use-fast-iter", false);
         p.addBool("use-iterate", false);
 
@@ -650,7 +653,7 @@ emili::LocalSearch* ExamTTParser::search(prs::TokenManager& tm, bool mustHaveIni
         throw NoSearch();
     }
     else if(tm.checkToken(TEST_ITERATION_YIELD_VS_STATE)) {
-        ArgParser p;
+        ArgParser p(TEST_ITERATION_YIELD_VS_STATE);
         p.addBool("use-fast-iter", false);
 
         p.parse(tm);
@@ -796,7 +799,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
         float n;
 
         if(! br.has && tm.checkToken("{")) {
-            ArgParser p;
+            ArgParser p(ACCEPTANCE_METRO);
             p.addFloatRequired("temperature");
             p.parse(tm);
             n = p.Float("temperature");
@@ -815,7 +818,7 @@ emili::Acceptance* ExamTTParser::acceptance(prs::TokenManager& tm, std::string p
         CheckBrac br(tm);
         float value, proba;
         if(! br.has && tm.checkToken("{")) {
-            ArgParser p;
+            ArgParser p("metropolis-proba");
             p.addFloatRequired("value");
             p.addFloat("proba", 0.5f);
             p.parse(tm);
@@ -1199,7 +1202,7 @@ emili::Termination* ExamTTParser::termination(prs::TokenManager& tm, std::string
         double percent = 10;
         std::string prefix;
         if(tm.peekIs("{")) {
-            ArgParser p;
+            ArgParser p(TERMINATION_MAXSTEPS_DEBUG);
             p.addIntRequired("steps");
             p.addInt("percent", 10);
             p.addString("prefix", "");
@@ -1294,7 +1297,7 @@ void ExamTTParser::problem(prs::TokenManager& tm)
 }
 
 void ExamTTParser::globalParams(TokenManager &tm) {
-    ArgParser p;
+    ArgParser p("ExamTT");
     p.addString("hard-weight", "sa-bsu-1");
     p.addString("output-hard-weight", "same");
 

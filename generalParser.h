@@ -154,16 +154,15 @@ struct ErrorExpected : ParsingError {
             else
                 oss << "<>";
         } else {
-            auto it = tokens->begin();
-
             if(! everyLine) {
+                auto it = tokens->begin();
                 oss << "<" << *it++;
                 while(it != tokens->end())
                     oss << " | " << *it++;
                 oss << ">";
             } else {
-                while(it != tokens->end())
-                    oss << "\n" << (*it++).substr(prefix.size());
+                for(auto x : *tokens)
+                    oss << "\n" << (prefix.empty() ? "" : "... ") << x.substr(prefix.size());
             }
         }
         msg = oss.str();
@@ -215,10 +214,19 @@ struct ArgParser {
     std::vector<std::string> order;
     std::set<std::string> given;
     std::vector<std::string> required;
+    std::string name;
 
     enum Tag {
         REQUIRED
     };
+
+    ArgParser() {
+        name = "param";
+    }
+
+    ArgParser(std::string parent) {
+        name = parent + " param";
+    }
 
     // add
 
@@ -365,15 +373,25 @@ struct ArgParser {
 
     void parse(prs::TokenManager& tm, bool callTestRequired = true) {
         /*
-         * Simple Algo : for(;;) if(tm.checkToken("A")) A = tm.getInteger() else if()... else if(stop) break else if(!peekIs("}"));
+         * Simple Algo :
+         * for(;;)
+         *     if(tm.checkToken("A"))
+         *         A = tm.getInteger()
+         *     else if()...
+         *     else if(stop) break
+         *     else if(!peekIs("}"));
          * More over, may start/end with {}
          */
-        // has a b not x
+        // Imagine data* attributes have "a" and "b" but no "x"
         // a 5 b 2 => OK
         // a 5 x 1 b 2 => OK but b is not read...
         // { a 5 b 2 } => OK
         // { a 5 b 2 x 1 } => NOT OK ("x" found expected "}")
         // { a 5 x 1 b 2 } => NOT OK ("x" found expected "}")
+
+        auto endsWith = [](std::string s, std::string g) {
+            return s.substr(s.size() - g.size(), g.size()) == g;
+        };
 
         bool hasBrace = tm.checkToken("{");
 
@@ -444,12 +462,14 @@ struct ArgParser {
             }
 
             if(! found) {
-                if(!hasBrace)
+                if(endsWith(tm.peek(), "?"))
+                    throw ErrorExpected(tm, name, order);
+                else if(!hasBrace)
                     break;
-                else if(! tm.peekIs("}"))
-                    throw ErrorExpected(tm, "param", order);
+                else if(tm.peekIs("}"))
+                    break;
                 else
-                    break;
+                    throw ErrorExpected(tm, name, order);
             }
         }
 

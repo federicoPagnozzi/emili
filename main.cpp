@@ -48,7 +48,7 @@ int main(int argc, const char *argv[])
 {
     // prs::emili_header();
 
-    signal(SIGSEGV, handler);
+    // signal(SIGSEGV, handler);
 
     srand(time(0)); // will probably be changed by the parser
 
