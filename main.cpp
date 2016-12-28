@@ -23,9 +23,32 @@
 
 #ifndef GRAMMAR2CODE
 
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void handler(int sig) {
+    void *array[10];
+    size_t size;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    // print out all the frames to stderr
+    if(sig == SIGSEGV)
+        std::cerr << "Error: SEGFAULT" << std::endl;
+    else
+        std::cerr << "Error: signal " << sig << std::endl;
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
+}
+
 int main(int argc, const char *argv[])
 {
     // prs::emili_header();
+
+    signal(SIGSEGV, handler);
 
     srand(time(0)); // will probably be changed by the parser
 

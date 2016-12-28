@@ -134,11 +134,11 @@ static void finalise (int _)
     std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
     emili::Solution* bestSoFar = localsearch->getBestSoFar();
 
-    if(emili::LocalSearch::theInstance && bestSoFar)
-        emili::LocalSearch::theInstance->finaliseSolution(bestSoFar); // will apply "final" weight
-
     if(bestSoFar != nullptr)
     {
+        if(emili::LocalSearch::theInstance)
+            emili::LocalSearch::theInstance->finaliseSolution(bestSoFar); // will apply "final" weight
+
         double sol_val = bestSoFar->getSolutionValue();
         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
         std::cout << sol_val << std::endl;
@@ -148,8 +148,8 @@ static void finalise (int _)
     }
     else
     {
-        std::cout << "No valid solution found!" << std::endl;
-        std::cerr << "timeout and no bestSoFar" << std::endl; // to inform hook-run
+        std::cout << "timeout and no bestSoFar (out)" << std::endl;
+        std::cerr << "timeout and no bestSoFar (err)" << std::endl; // to inform hook-run
     }
 #ifndef NOSIG
     _Exit(EXIT_SUCCESS);
