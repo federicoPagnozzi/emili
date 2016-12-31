@@ -282,6 +282,8 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
                 else
                     break;
             }
+            if(seed == 0)
+                seed = emili::getRandomSeedFromRandom();
             std::cout << "Run time secs : " << it << std::endl;
             std::cout << "Random seed : " << seed << std::endl;
             ls->setSearchTime(it);
