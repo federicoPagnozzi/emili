@@ -305,6 +305,61 @@ std::vector< int > inline neh2(std::vector<int >& _fsp, int N, emili::pfsp::Perm
          return _fsp;
 }
 
+std::vector< int > inline nehrs(std::vector<int >& _fsp, int N, emili::pfsp::PermutationFlowShop& pis)
+{
+            int min;
+            int tmp,ind;
+    std::vector< int >  solTMP(N+1,0);
+ /*          solTMP[1]=_fsp[2];
+               solTMP[2]=_fsp[1];
+            int mS=pis.computeObjectiveFunction(_fsp,2);//compute_total_wt(_fsp,2);
+            if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
+                _fsp[1]=solTMP[1];
+                _fsp[2]=solTMP[2];
+            }
+*/
+            int ind1 = emili::generateRandomNumber()%N +1;
+            int ind2 = emili::generateRandomNumber()%N +1;
+
+            int swp = _fsp[1];
+            _fsp[1] = _fsp[ind1];
+            _fsp[ind1] = swp;
+
+            swp = _fsp[2];
+            _fsp[2] = _fsp[ind2];
+            _fsp[ind2] = swp;
+
+            for(int k=3;k<=N;k++){
+                    min = std::numeric_limits<int>::max();//min=10000000;
+                for(int r=1; r<=k; r++){
+
+                    for(int h=1; h<r; h++)
+                        solTMP[h]=_fsp[h];
+                    solTMP[r]=_fsp[k];
+                    for(int h=r+1; h<=k; h++)
+                        solTMP[h]=_fsp[h-1];
+
+                    tmp=pis.computeObjectiveFunction(solTMP,k);//compute_total_wt(solTMP,k+1);
+                    if(tmp<min){
+                        min=tmp;
+                        ind=r;
+                    }
+
+                }
+
+                for(int h=0; h<ind; h++)
+                    solTMP[h]=_fsp[h];
+                solTMP[ind]=_fsp[k];
+                for(int h=ind+1; h<=k; h++)
+                    solTMP[h]=_fsp[h-1];
+
+                for(int h=0; h<=k; ++h)
+                    _fsp[h]=solTMP[h];
+            }
+
+         return _fsp;
+}
+
 std::vector< int > inline nehls(std::vector<int >& _fsp, int N, emili::pfsp::PermutationFlowShop& pis,emili::LocalSearch* ls)
 {
             emili::pfsp::PermutationFlowShopSolution sol(std::numeric_limits<int>::max());
@@ -783,6 +838,12 @@ std::vector< float > inline lr_index(std::vector< int >& s, std::vector<int>& u,
 int generateRndPos(int min, int max)
 {
   return (  emili::generateRandomNumber()%max + min );
+}
+
+double emili::pfsp::PermutationFlowShop::calcObjectiveFunctionValue(Solution &solution)
+{
+    emili::pfsp::PermutationFlowShopSolution& s = dynamic_cast<emili::pfsp::PermutationFlowShopSolution&> (solution);
+    return computeObjectiveFunction(s.getJobSchedule());
 }
 
 double emili::pfsp::PermutationFlowShop::evaluateSolution(emili::Solution& solution)
@@ -1374,6 +1435,62 @@ emili::Solution* emili::pfsp::NEH::generate()
     order = neh2(order,njobs,pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NEHRS::generate()
+{
+    // NEH initial solution
+    int njobs = pis.getNjobs();
+    int nmac = pis.getNmachines();
+    std::vector< int > tpt(njobs+1,0);
+    std::vector< int > order;
+    const std::vector< std::vector < long > >& ptm = pis.getProcessingTimesMatrix();
+  //  order.push_back(0);
+    for (int i = 1; i <= njobs; ++i) {
+        int tpti = 0;
+        for (int k = 1; k <= nmac; ++k) {
+            tpti += ptm[i][k];
+        }
+        tpt[i] = tpti;
+        order.push_back(i);
+    }
+   // std::sort(order.begin(),order.end(),[tpt](int i1,int i2){return tpt[i1] > tpt[i2];});
+#ifndef NOC11
+    std::sort(order.begin(),order.end(),[tpt](int i1,int i2){
+        if(tpt[i1] == tpt[i2])
+        {
+            return i1>i2;
+        }
+        else
+        {
+            return tpt[i1] > tpt[i2];
+        }
+        });
+#else
+    igioc.stds=&tpt;
+    std::sort(order.begin(),order.end(),igioc);
+#endif
+//    order.erase(order.begin()+njobs);
+    order.insert(order.begin(),0);
+    std::vector<int> original_order = order;
+    std::vector<int> best_permutation;
+    int value = std::numeric_limits<int>::max();
+    int index = this->iterations;
+    do
+    {
+        order = original_order;
+        std::vector<int> ord = nehrs(order,njobs,pis);
+        int v = pis.computeObjectiveFunction(order);
+        if(v < value)
+        {
+           best_permutation = ord;
+           value = v;
+        }
+        index--;
+    }while(index > 0);
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(best_permutation);
+    s->setSolutionValue(value);
     return s;
 }
 

@@ -87,6 +87,7 @@
 
 /* initial solution heuristics */
 #define INITIAL_NEH "neh"
+#define INITIAL_NEHRS "nehrs"
 #define INITIAL_NEHEDD "nehedd"
 #define INITIAL_NEHFF "nehff"
 #define INITIAL_NEHLS "nehls"
@@ -1112,6 +1113,13 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         printTab( "NEH initial solution");
         //return new testIS(istance);
         init = new emili::pfsp::NEH(*istance);
+    }
+    else if(tm.checkToken(INITIAL_NEHRS))
+    {
+        printTab( "NEH initial solution");
+        //return new testIS(istance);
+        int iterations = tm.getInteger();
+        init = new emili::pfsp::NEHRS(*istance,iterations);
     }
     else if(tm.checkToken(INITIAL_NEHEDD))
     {

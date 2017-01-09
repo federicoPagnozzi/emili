@@ -68,6 +68,7 @@
 
 /* initial solution heuristics */
 #define INITIAL_NEH "neh"
+#define INITIAL_NEHRS "nehrs"
 #define INITIAL_NEHEDD "nehedd"
 #define INITIAL_NEHFF "nehff"
 #define INITIAL_NEHLS "nehls"
@@ -85,6 +86,7 @@
 #define INITIAL_MNEH "mneh"
 #define INITIAL_WNSLACK "nwslack"
 #define INITIAL_FRB5 "frb5"
+#define INITIAL_FRB5_GENERAL "gfrb5"
 
 /* Termination criteria*/
 #define TERMINATION_ITERA "iteration"
@@ -592,6 +594,13 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         //return new testIS(istance);
         init = new emili::pfsp::NEH(*istance);
     }
+    else if(tm.checkToken(INITIAL_NEHRS))
+    {
+        printTab( "NEH initial solution");
+        //return new testIS(istance);
+        int iterations = tm.getInteger();
+        init = new emili::pfsp::NEHRS(*istance,iterations);
+    }
     else if(tm.checkToken(INITIAL_NEHEDD))
     {
         printTab( "NEHedd initial solution");
@@ -623,6 +632,17 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         emili::Termination* term = new emili::LocalMinimaTermination();
         emili::Neighborhood* nei = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse);
         emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);        
+        init = new emili::pfsp::NEHls(*istance,ll);
+    }
+    else if(tm.checkToken(INITIAL_FRB5_GENERAL))
+    {
+        printTab( "FRB5 initial solution");
+        PfspInstance pfs = istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
+        emili::Termination* term = new emili::LocalMinimaTermination();
+        emili::Neighborhood* nei = new emili::pfsp::PfspInsertNeighborhood(*pfse);
+        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
         init = new emili::pfsp::NEHls(*istance,ll);
     }
     else if(tm.checkToken(INITIAL_NEHFFLS))
@@ -831,6 +851,11 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     }
     prs::decrementTabLevel();
     return neigh;
+}
+emili::Problem* prs::PfspBuilder::buildProblem()
+{
+    emili::pfsp::PermutationFlowShop* istance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+    return loadProblem(tm.nextToken(),istance->getInstance());
 }
 
 emili::pfsp::PermutationFlowShop* loadProblem(char* t, PfspInstance i)
@@ -1153,3 +1178,9 @@ bool prs::PfspBuilder::canOpenInstance(char *problem_definition)
     return isParsable(s);
 }
 
+extern "C" {
+    prs::Builder* getBuilder(prs::GeneralParserE* ge)
+    {
+        return new prs::PfspBuilder(*ge,ge->getTokenManager());
+    }
+}

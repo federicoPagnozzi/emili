@@ -37,6 +37,10 @@ public:
             exit(-1);
         }
     }
+    /**
+     computes the objective function value of solution.
+     */
+    virtual double calcObjectiveFunctionValue(Solution &solution);
     //implementation of evaluate solution
     virtual double evaluateSolution(emili::Solution& solution);
     /**  This method returns the number of jobs*/
@@ -431,6 +435,15 @@ protected:
     virtual Solution* generate();
 public:
     NEH(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) {}
+};
+
+class NEHRS: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    int iterations;
+    virtual Solution* generate();
+public:
+    NEHRS(PermutationFlowShop& problem_instance,int number_of_iterations):emili::pfsp::PfspInitialSolution(problem_instance),iterations(number_of_iterations) {}
 };
 
 class NEHedd: public emili::pfsp::NEH
