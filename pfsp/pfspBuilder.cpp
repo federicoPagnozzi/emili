@@ -74,6 +74,7 @@
 #define INITIAL_NEHLS "nehls"
 #define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
+#define INITIAL_RANDOM_ITERATED "irandom"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
 #define INITIAL_RZ "rz"
@@ -512,51 +513,56 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
     prs::incrementTabLevel();
     std::ostringstream oss;
     emili::InitialSolution* init = nullptr;
-    emili::pfsp::PermutationFlowShop* istance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+    emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
     if(tm.checkToken(INITIAL_RANDOM))
     {
         printTab("Random initial solution");
-        init = new emili::pfsp::PfspRandomInitialSolution(*istance);
+        init = new emili::pfsp::PfspRandomInitialSolution(*instance);
+    }else if(tm.checkToken(INITIAL_RANDOM_ITERATED))
+    {
+        printTab("Random initial solution");
+        int n = tm.getInteger();
+        init = new emili::pfsp::RandomInitialSolution(*instance,n);
     }
     else if(tm.checkToken(INITIAL_SLACK))
     {
         printTab("SLACK initial solution");
-        init = new emili::pfsp::PfspSlackInitialSolution(*istance);
+        init = new emili::pfsp::PfspSlackInitialSolution(*instance);
     }else if(tm.checkToken(INITIAL_WNSLACK))
     {
         printTab( "NEH WSLACK initial solution");
         //init = new testIS(istance);
-        init = new emili::pfsp::PfspNEHwslackInitialSolution(*istance);
+        init = new emili::pfsp::PfspNEHwslackInitialSolution(*instance);
     }
     else if(tm.checkToken(INITIAL_LIT))
         {
             printTab( "Less idle times initial solution");
             //return new testIS(istance);
-            init = new emili::pfsp::LITSolution(*istance);
+            init = new emili::pfsp::LITSolution(*instance);
         }
     else if(tm.checkToken(INITIAL_RZ))
         {
             printTab( "rz initial solution");
             //return new testIS(istance);
-            init = new emili::pfsp::RZSolution(*istance);
+            init = new emili::pfsp::RZSolution(*instance);
         }
     else if(tm.checkToken(INITIAL_NRZ))
         {
             printTab( "neh rz initial solution");
             //return new testIS(istance);
-            init = new emili::pfsp::NeRZSolution(*istance);
+            init = new emili::pfsp::NeRZSolution(*instance);
         }
     else if(tm.checkToken(INITIAL_NRZ2))
         {
             printTab( "neh rz initial solution without improvement phase");
             //return new testIS(*istance);
-            init = new emili::pfsp::NeRZ2Solution(*istance);
+            init = new emili::pfsp::NeRZ2Solution(*instance);
         }
     else if(tm.checkToken(INITIAL_NRZ2FF))
         {
             printTab( "nehff rz initial solution without improvement phase");
             //return new testIS(*istance);
-            init = new emili::pfsp::NfRZ2Solution(*istance);
+            init = new emili::pfsp::NfRZ2Solution(*instance);
         }
     else if(tm.checkToken(INITIAL_LR))
         {
@@ -564,15 +570,15 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             oss.str(""); oss << "LR initial solution with "<<n<<" starting sequences";
             printTab(oss.str().c_str());
             // testIS(*istance);
-            init = new emili::pfsp::LRSolution(*istance,n);
+            init = new emili::pfsp::LRSolution(*instance,n);
         }
     else if(tm.checkToken(INITIAL_LR_NM))
         {            
-            int n = istance->getNjobs()/istance->getNmachines();
+            int n = instance->getNjobs()/instance->getNmachines();
             oss.str(""); oss << "LR initial solution with "<<n<<" starting sequences";
             printTab(oss.str().c_str());
             // testIS(*istance);
-            init = new emili::pfsp::LRSolution(*istance,n);
+            init = new emili::pfsp::LRSolution(*instance,n);
         }
     else if(tm.checkToken(INITIAL_NLR))
         {
@@ -580,80 +586,82 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         oss.str(""); oss << "NLR initial solution with "<<n<<" starting sequences";
         //return new testIS(*istance);printTab(oss.str().c_str());
         printTab(oss.str().c_str());
-        init = new emili::pfsp::NLRSolution(*istance,n);
+        init = new emili::pfsp::NLRSolution(*instance,n);
         }
     else if(tm.checkToken(INITIAL_MNEH))
         {
             printTab( "mneh initial solution");
             //return new testIS(istance);
-            init = new emili::pfsp::MNEH(*istance);
+            init = new emili::pfsp::MNEH(*instance);
         }
     else if(tm.checkToken(INITIAL_NEH))
     {
         printTab( "NEH initial solution");
         //return new testIS(istance);
-        init = new emili::pfsp::NEH(*istance);
+        init = new emili::pfsp::NEH(*instance);
     }
     else if(tm.checkToken(INITIAL_NEHRS))
     {
-        printTab( "NEH initial solution");
+        printTab( "NEHRS (random restarts) initial solution");
         //return new testIS(istance);
         int iterations = tm.getInteger();
-        init = new emili::pfsp::NEHRS(*istance,iterations);
+        oss.str("");oss<<"number of restarts: " << iterations;
+        printTab(oss.str().c_str());
+        init = new emili::pfsp::NEHRS(*instance,iterations);
     }
     else if(tm.checkToken(INITIAL_NEHEDD))
     {
         printTab( "NEHedd initial solution");
         //return new testIS(istance);
-        init = new emili::pfsp::NEHedd(*istance);
+        init = new emili::pfsp::NEHedd(*instance);
     }
     else if(tm.checkToken(INITIAL_NEHFF))
     {
         printTab( "NEHFF initial solution");
         //return new testIS(istance);
-        init = new emili::pfsp::NEHff(*istance);
+        init = new emili::pfsp::NEHff(*instance);
     }
     else if(tm.checkToken(INITIAL_NEHLS))
     {
         printTab( "NEHls initial solution");
-        PfspInstance pfs = istance->getInstance();
+        PfspInstance pfs = instance->getInstance();
         emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
         gp.setInstance(pfse);
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        gp.setInstance(istance);
-        init = new emili::pfsp::NEHls(*istance,ll);
+        gp.setInstance(instance);
+        init = new emili::pfsp::NEHls(*instance,ll);
     }
     else if(tm.checkToken(INITIAL_FRB5))
     {
         printTab( "FRB5 initial solution");
-        PfspInstance pfs = istance->getInstance();
+        PfspInstance pfs = instance->getInstance();
         emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
         emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
         emili::Termination* term = new emili::LocalMinimaTermination();
         emili::Neighborhood* nei = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse);
         emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);        
-        init = new emili::pfsp::NEHls(*istance,ll);
+        init = new emili::pfsp::NEHls(*instance,ll);
     }
     else if(tm.checkToken(INITIAL_FRB5_GENERAL))
     {
         printTab( "FRB5 initial solution");
-        PfspInstance pfs = istance->getInstance();
+        PfspInstance pfs = instance->getInstance();
         emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
         emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
         emili::Termination* term = new emili::LocalMinimaTermination();
         emili::Neighborhood* nei = new emili::pfsp::PfspInsertNeighborhood(*pfse);
         emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
-        init = new emili::pfsp::NEHls(*istance,ll);
+        init = new emili::pfsp::NEHls(*instance,ll);
     }
     else if(tm.checkToken(INITIAL_NEHFFLS))
     {
         printTab( "NEHffls initial solution");
-        PfspInstance pfs =istance->getInstance();
+        PfspInstance pfs =instance->getInstance();
         emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
         gp.setInstance(pfse);
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        gp.setInstance(istance);
-        init = new emili::pfsp::NEHffls(*istance,ll);
+        gp.setInstance(instance);
+        init = new emili::pfsp::NEHffls(*instance,ll);
     }
 
 

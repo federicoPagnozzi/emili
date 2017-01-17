@@ -413,6 +413,15 @@ public:
     PfspRandomInitialSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance){ }
 };
 
+class RandomInitialSolution: public emili::pfsp::PfspRandomInitialSolution
+{
+protected:
+    virtual Solution* generate();
+    int numOfSols;
+public:
+    RandomInitialSolution(PermutationFlowShop& problem_instance, int number_of_solutions):emili::pfsp::PfspRandomInitialSolution(problem_instance),numOfSols(number_of_solutions) { }
+};
+
 class PfspSlackInitialSolution: public emili::pfsp::PfspInitialSolution
 {
 protected:

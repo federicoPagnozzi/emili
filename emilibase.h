@@ -888,6 +888,20 @@ public:
     virtual Solution* search(emili::Solution* intial);
 };
 
+/** @brief The TieBraking FirstImprovementSearch class
+ this class models a best improvement local search with the iterator interface,
+ that uses the objective function value of another problem to break ties between
+ candidate solution with the same objective function value.
+ */
+class TieBrakingFirstImprovementSearch : public emili::FirstImprovementSearch
+{
+protected:
+    Problem& tiebraker;
+public:
+    TieBrakingFirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, Problem& problem):emili::FirstImprovementSearch(initialSolutionGenerator,terminationcriterion,neighborh),tiebraker(problem) {}
+    virtual Solution* search(emili::Solution* intial);
+};
+
 /** @brief The Perturbation class
 * The pertubation phase of the ils.
 */

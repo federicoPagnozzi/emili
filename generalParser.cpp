@@ -20,12 +20,13 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "02fc4ca65806aa2173c7015993ccd92b54705284"
+#define GIT_COMMIT_NUMBER "39798f1ebe0f46e6b6ccff1d3c749aa1d630a52b"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
 #define TABU "tabu"
 #define FIRST "first"
+#define TB_FIRST "tfirst"
 #define BEST "best"
 #define TB_BEST "tbest"
 #define VND "vnd"
@@ -593,6 +594,15 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         ls =  new emili::BestImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(TB_FIRST))
+    {
+        printTab("BEST IMPROVEMENT");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
+        emili::Problem* p = retrieveComponent(COMPONENT_PROBLEM).get<emili::Problem>();
+        ls =  new emili::TieBrakingFirstImprovementSearch(*in,*te,*ne,*p);
     }
     else if(tm.checkToken(TB_BEST))
     {

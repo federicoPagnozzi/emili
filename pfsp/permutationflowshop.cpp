@@ -1324,6 +1324,25 @@ emili::Solution* emili::pfsp::PfspRandomInitialSolution::generate()
   return s;
 }
 
+emili::Solution* emili::pfsp::RandomInitialSolution::generate()
+{
+    emili::Solution* base = emili::pfsp::PfspRandomInitialSolution::generate();
+    for (int i=1;i<numOfSols;i++)
+    {
+        emili::Solution* news = emili::pfsp::PfspRandomInitialSolution::generate();
+        if(base->getSolutionValue() > news->getSolutionValue())
+        {
+            delete base;
+            base = news;
+        }
+        else
+        {
+            delete news;
+        }
+    }
+    return base;
+}
+
 emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
 {
     int nbJobs = pis.getNjobs();

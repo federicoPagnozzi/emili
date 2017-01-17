@@ -616,7 +616,48 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
                     break;
-                }                                
+                }
+            }
+            delete ithSolution;
+        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        delete incumbent;
+        return bestSoFar->clone();
+}
+
+/**
+ * Tie Braking First improvement local search
+ */
+emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution* initial)
+{
+        termcriterion->reset();
+        neighbh->reset();
+        emili::Solution* incumbent = initial->clone();
+        emili::Solution* ithSolution;
+
+        //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
+        Neighborhood::NeighborhoodIterator end = neighbh->end();
+        do{
+
+            *bestSoFar = *incumbent;
+            Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
+            ithSolution = *iter;
+
+            for(;iter!=end;++iter)
+            {
+                if(incumbent->operator >(*ithSolution)){
+                    *incumbent=*ithSolution;
+                    break;
+                }else if(incumbent->operator ==( *ithSolution))// if the two solution have the same cost
+                {
+                    //Compare the two solution using the cost for another problem
+                   if(tiebraker.calcObjectiveFunctionValue(*incumbent) >
+                           tiebraker.calcObjectiveFunctionValue((*ithSolution)))
+                   {
+
+                       *incumbent = *ithSolution;
+                       break;
+                   }
+                }
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));

@@ -19,6 +19,8 @@
 #define TABU "tabu"
 #define FIRST "first"
 #define BEST "best"
+#define TB_FIRST "tfirst"
+#define TB_BEST "tbest"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
 #define CH6_LS "ch6"
@@ -93,6 +95,7 @@
 #define INITIAL_NEHLS "nehls"
 #define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
+#define INITIAL_RANDOM_ITERATED "irandom"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
 #define INITIAL_RZ "rz"
@@ -473,6 +476,20 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         printTab("BEST IMPROVEMENT");
         params(tm);
         ls =  new emili::BestImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(TB_FIRST))
+    {
+        printTab("FIRST IMPROVEMENT");
+        params(tm);
+        emili::Problem* p = (emili::Problem*)instantiateProblem(tm.nextToken(),istance->getInstance());
+        ls =  new emili::TieBrakingFirstImprovementSearch(*in,*te,*ne,*p);
+    }
+    else if(tm.checkToken(TB_BEST))
+    {
+        printTab("BEST IMPROVEMENT");
+        params(tm);
+        emili::Problem* p = (emili::Problem*)instantiateProblem(tm.nextToken(),istance->getInstance());
+        ls =  new emili::TieBrakingBestImprovementSearch(*in,*te,*ne,*p);
     }
     else if(tm.checkToken(CH6_LS))
     {
@@ -1037,6 +1054,11 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
     {
         printTab("Random initial solution");
         init = new emili::pfsp::PfspRandomInitialSolution(*istance);
+    }else if(tm.checkToken(INITIAL_RANDOM_ITERATED))
+    {
+        printTab("Random initial solution");
+        int n = tm.getInteger();
+        init = new emili::pfsp::RandomInitialSolution(*istance,n);
     }
     else if(tm.checkToken(INITIAL_SLACK))
     {
@@ -1116,9 +1138,11 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
     }
     else if(tm.checkToken(INITIAL_NEHRS))
     {
-        printTab( "NEH initial solution");
+        printTab( "NEHRS (random restarts) initial solution");
         //return new testIS(istance);
         int iterations = tm.getInteger();
+        oss.str("");oss<<"number of restarts: " << iterations;
+        printTab(oss.str().c_str());
         init = new emili::pfsp::NEHRS(*istance,iterations);
     }
     else if(tm.checkToken(INITIAL_NEHEDD))
