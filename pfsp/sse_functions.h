@@ -1,14 +1,19 @@
+//
+//  Created by Federico Pagnozzi on 28/11/14.
+//  Copyright (c) 2014 Federico Pagnozzi. All rights reserved.
+//  This file is distributed under the BSD 2-Clause License. See LICENSE.TXT
+//  for details.
 #include <iostream>
 #include <xmmintrin.h>
 #include <emmintrin.h>
 
 //#define ENABLE_SSE
-
+/** head and tail computation for taillard's acceleration*/
 inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < int > >& head,std::vector< std::vector < int > >& tail,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
-    /* Permutation flowshop Tail and Head matrices computation using SSE instructions
+    /** Permutation flowshop Tail and Head matrices computation using SSE instructions
      **/
-    // Each sse register can contain 4 float so the computation is divided in groups of 4 jobs
+    /** Each sse register can contain 4 float so the computation is divided in groups of 4 jobs*/
     int r4 = nbJob%4;
     int lambda_number =  nbJob/4; // if ( nbjob%4==0) lambda_number = nbjob/4 else lambda_number = nbjob/4+1;
 
@@ -52,7 +57,7 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
     __m128 tK = _mm_setzero_ps();
     for(int l = 0 ; l < lambda_number ; l++)
     {
-        /* At the beginning
+        /** At the beginning
          * J1   J2   J3   J4
         K  T1,1 T2,1 T3,1 T4,1
         L2 T1,2 T2,2 T3,2 T4,2
@@ -74,7 +79,7 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
                 processingTimesMatrix[j1][1]); // load the values in the registers
         mc = makespan; // copy the value in another register
 
-        /*First machine HEAD
+        /** First machine HEAD
          *
          * */
         // first add
@@ -488,9 +493,9 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
         // third row
         mcw = _mm_set_ps(0,0,0,L[4]);                           // setup vec for compares
         mc = makespan;
-        mc = _mm_and_ps(mc,mask1100);                           // mc -> [C1,3 , C2,2, 0, 0 ]
-        mc = _mm_shuffle_ps(mc,mc,0x93);                        // mc -> [ 0, C1,3, C2,2, 0 ]
-        mcw = _mm_add_ps(mcw,mc);                               // mcw -> [L4, C1,3, C2,2  , 0 ]
+        mc = _mm_and_ps(mc,mask1100);                           // mc -> [C1,3 , C2,2,    0, 0 ]
+        mc = _mm_shuffle_ps(mc,mc,0x93);                        // mc -> [   0 , C1,3, C2,2, 0 ]
+        mcw = _mm_add_ps(mcw,mc);                               // mcw ->[  L4 , C1,3, C2,2, 0 ]
 
         makespan = _mm_max_ps(mcw,makespan);                    // makespan -> [ max(L4,C1,2),max(C1,3 , C2,2) , max( C2,2, C3,1 ) , C4,1]
         mcw = _mm_set_ps(0,processingTimesMatrix[j3][m],
@@ -686,7 +691,7 @@ inline void computeHEADandTAIL(std::vector<int> &sol,std::vector< std::vector < 
     }
 
 }
-
+// this function calculates only the head
 inline void computeHEAD(std::vector<int> &sol,std::vector< std::vector < int > >& head,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     /* Permutation flowshop Head matrix computation using SSE instructions
@@ -1079,7 +1084,7 @@ inline void computeHEAD(std::vector<int> &sol,std::vector< std::vector < int > >
         */
     }
 }
-
+// this function calculates only the tail
 inline void computeTAIL(std::vector<int> &sol,std::vector< std::vector < int > >& tail,const std::vector<std::vector< long> >& processingTimesMatrix,int nbJob, int nbMac)
 {
     /* Permutation flowshop Tail matrix computation using SSE instructions
@@ -1472,7 +1477,7 @@ inline void computeTAIL(std::vector<int> &sol,std::vector< std::vector < int > >
         */
     }
 }
-
+// This function calculates completion times of all jobs
 inline void computePMakespans(std::vector<int>& sol,std::vector< long >& previousMachineEndTime,const std::vector<std::vector< long> >& pmat,int nJob, int nbMac,int starting_job,float* L)
 {
 

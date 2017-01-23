@@ -19,10 +19,15 @@
 #define TABU "tabu"
 #define FIRST "first"
 #define BEST "best"
+#define TB_FIRST "tfirst"
+#define TB_BEST "tbest"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
+#define CH6_LS "ch6"
 #define TEST_INIT "stin"
 #define EMPTY_LOCAL "nols"
+
+#define ALBERTOSA "SA"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -86,8 +91,13 @@
 
 /* initial solution heuristics */
 #define INITIAL_NEH "neh"
+#define INITIAL_NEHRS "nehrs"
+#define INITIAL_NEHEDD "nehedd"
 #define INITIAL_NEHFF "nehff"
+#define INITIAL_NEHLS "nehls"
+#define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
+#define INITIAL_RANDOM_ITERATED "irandom"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
 #define INITIAL_RZ "rz"
@@ -95,12 +105,16 @@
 #define INITIAL_NRZ2 "nrz2"
 #define INITIAL_NRZ2FF "nrz2ff"
 #define INITIAL_LR "lr"
+#define INITIAL_LR_NM "lrnm"
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
 #define INITIAL_WNSLACK "nwslack"
+#define INITIAL_FRB5 "frb5"
 
 /* Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
+#define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
+#define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
 #define TERMINATION_LOCMIN "locmin"
 #define TERMINATION_ITERA "iteration"
@@ -120,6 +134,7 @@
 #define NEIGHBORHOOD_TRANSPOSE "transpose"
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
+#define NEIGHBORHOOD_ADAPTIVE_INSERT "adpinsert"
 
 /* Weighted Tardiness*/
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
@@ -141,12 +156,15 @@
 
 /* Total Completion Time*/
 #define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
+#define NEIGHBORHOOD_RZ_TCT_INSERT "nrztctinsert"
 
 /* Total Tardiness*/
 #define NEIGHBORHOOD_NATA_TT_INSERT "nttinsert"
 
 /* Makespan */
 #define NEIGHBORHOOD_TA_INSERT "tainsert"
+#define NEIGHBORHOOD_FSTA_INSERT "fstainsert"
+#define NEIGHBORHOOD_CSTA_INSERT "cstainsert"
 
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
@@ -168,9 +186,12 @@
 #define PERTURBATION_TEST "testper"
 #define PERTURBATION_IGLS "igls"
 #define PERTURBATION_RSLS "rsls"
+#define PERTURBATION_RSffLS "rsffls"
 #define PERTURBATION_RS "rsper"
 #define PERTURBATION_RSFF "rsff"
 #define PERTURBATION_IGIO "igio"
+#define PERTURBATION_RSIO "rsio"
+#define PERTURBATION_CP3 "cp3"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -421,6 +442,35 @@ emili::LocalSearch* prs::ParamsParser::eparams(prs::TokenManager& tm)
         printTab("GVNS...");
         ls = gvns(tm);
     }
+    else if(tm.checkToken(ALBERTOSA))
+    {
+        /**
+spostare          */
+            emili::InitialSolution* initsol    = init(tm);
+    emili::Neighborhood*    nei        = neigh(tm, true);
+    SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
+    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
+    SACooling*       cooling    = COOL(tm, inittemp, nei);
+    SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
+    cooling->setTempRestart(temprestart);
+    SATermination*     term       = TERMINATION(tm, nei); // termin(tm);
+    SATempLength*    templ      = TEMPLENGTH(tm, nei, istance);
+    cooling->setTempLength(templ);
+    SAExploration* explo = EXPLORATION(tm, nei, acceptance, cooling, term);
+
+    return new SimulatedAnnealing(initsol,
+                                  inittemp,
+                                  acceptance,
+                                  cooling,
+                                  temprestart,
+                                  term,
+                                  templ,
+                                  explo,
+                                  nei);
+    /**
+     * 
+     */
+    }
     else
     {             
         ls = search(tm);
@@ -458,22 +508,46 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         params(tm);
         ls =  new emili::BestImprovementSearch(*in,*te,*ne);
     }
+    else if(tm.checkToken(TB_FIRST))
+    {
+        printTab("FIRST IMPROVEMENT");
+        params(tm);
+        emili::Problem* p = (emili::Problem*)instantiateProblem(tm.nextToken(),istance->getInstance());
+        ls =  new emili::TieBrakingFirstImprovementSearch(*in,*te,*ne,*p);
+    }
+    else if(tm.checkToken(TB_BEST))
+    {
+        printTab("BEST IMPROVEMENT");
+        params(tm);
+        emili::Problem* p = (emili::Problem*)instantiateProblem(tm.nextToken(),istance->getInstance());
+        ls =  new emili::TieBrakingBestImprovementSearch(*in,*te,*ne,*p);
+    }
+    else if(tm.checkToken(CH6_LS))
+    {
+        printTab("CH6");
+        ls = ch6_params(tm);
+    }
     else if(tm.checkToken(VND))
     {
         printTab("VND SEARCH");
         ls = vparams(tm);
     }
     else if(tm.checkToken(TEST_INIT))
-    {
-        emili::InitialSolution* ini = init(tm);
+    {       
+        emili::InitialSolution* ini = init(tm);        
+        /*ls = new emili::EmptyLocalSearch(*ini);*/
+        clock_t time = clock();
         emili::Solution* s = ini->generateSolution();
+        double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+        std::cout << "time : " << time_elapsed << std::endl;
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << s-> getSolutionValue() << std::endl;
         std::cerr << s-> getSolutionValue() << std::endl;
-        exit(-1);
+        exit(123);
     }
     else if(tm.checkToken(EMPTY_LOCAL))
     {
+        printTab("NO LOCAL SEARCH");
         emili::InitialSolution* ini = init(tm);
         ls = new emili::EmptyLocalSearch(*ini);
     }
@@ -492,7 +566,6 @@ emili::LocalSearch* prs::ParamsParser::ils(prs::TokenManager& tm)
 {
 
     emili::LocalSearch* ls = search(tm);
-
     //ils_time = ilstime();
     emili::Termination* pft = term(tm);
     //emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
@@ -552,6 +625,7 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
             this->istance = pfse;
             emili::LocalSearch* ll = search(tm);
             this->istance = is;
+            istances.push_back(pfse);
             per = new emili::pfsp::IgLsPerturbation(n,*istance,ll);
         } else {
              per = new emili::pfsp::IGPerturbation(1,*istance);
@@ -573,9 +647,32 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
             this->istance = pfse;
             emili::LocalSearch* ll = search(tm);
             this->istance = is;
+            istances.push_back(pfse);
             per = new emili::pfsp::RSLSPerturbation(n,*istance,ll);
         } else {
             per = new emili::pfsp::RSPerturbation(n,*istance);
+        }
+    }
+    else if(tm.checkToken(PERTURBATION_RSffLS))
+    {
+        int nj = istance->getNjobs()-2;
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+        oss.str(""); oss  << "IG perturbation with tbff tie breaking and local search applied on the partial solution. d = "<<n;
+        printTab(oss.str().c_str());
+        if(n > 0)
+        {
+            PfspInstance pfs = this->istance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+            emili::pfsp::PermutationFlowShop* is = this->istance;
+            this->istance = pfse;
+            emili::LocalSearch* ll = search(tm);
+            this->istance = is;
+            istances.push_back(pfse);
+            per = new emili::pfsp::RSffLSPerturbation(n,*istance,ll);
+        } else {
+            per = new emili::pfsp::RSffPerturbation(n,*istance);
         }
     }
     else if(tm.checkToken(PERTURBATION_TEST))
@@ -638,9 +735,28 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
 
-        oss.str(""); oss  << "IGIO PERTURBATION. Number of job erased " << n <<".\n\t";
+        oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGIOPerturbation(n,*istance);
+    }
+    else if(tm.checkToken(PERTURBATION_RSIO))
+    {
+        int nj = istance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+
+        oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::RSIOPerturbation(n,*istance);
+    }
+    else if(tm.checkToken(PERTURBATION_CP3))
+    {
+        int d = tm.getInteger();
+        int omega = tm.getInteger();
+        float pc = tm.getDecimal();
+        oss.str(""); oss  << "Compound perturbation :  d= " << d << ", omega= " << omega << ",pc= "<< pc;
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::CompoundPerturbation(*istance,omega,d,pc);
     }
     else
     {
@@ -686,16 +802,15 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         int nm = istance->getNmachines();
 
         float temp = 0;
-
         for(int i = 1; i<= nj; i++ )
         {
-            for(int j=1; i<=nm; i++)
+            for(int j=1; j<=nm; j++)
             {
                 temp += pm[i][j];
             }
         }
 
-        temp = n*temp/(nj*nm*10);
+        temp = n*(temp/(nj*nm))/10;
 
         oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
         printTab(oss.str().c_str());
@@ -861,7 +976,7 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n,p
         printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
-        tmem = new  emili::pfsp::PfspMovesMemory(ts , *n);
+        tmem = new  emili::pfsp::PfspMovesMemory(ts , n);
     }
     else if(tm.checkToken(TABU_MEMORY_HASHES))
     {
@@ -885,7 +1000,7 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n,p
         printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
-        tmem = new  emili::pfsp::TSABMemory(ts , *n);
+        tmem = new  emili::pfsp::TSABMemory(ts , n);
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB_TEST))
     {
@@ -893,7 +1008,7 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n,p
         printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
-        tmem = new  emili::pfsp::TSABtestMemory(ts , *n);
+        tmem = new  emili::pfsp::TSABtestMemory(ts , n);
     }
     else if(tm.checkToken(TABU_MEMORY_VALUE))
     {
@@ -918,6 +1033,16 @@ void prs::ParamsParser::params(prs::TokenManager& tm)
     in = init(tm);
     te = term(tm);
     ne = neigh(tm,true);
+}
+
+emili::LocalSearch* prs::ParamsParser::ch6_params(prs::TokenManager& tm)
+{
+    in = init(tm);
+    te = term(tm);
+    ne = neigh(tm,true);
+    emili::Neighborhood* ne2 = neigh(tm,true);
+    return new emili::pfsp::CH6(*in,*te,*ne,*ne2);
+
 }
 
 emili::LocalSearch* prs::ParamsParser::vparams(prs::TokenManager& tm)
@@ -960,6 +1085,11 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
     {
         printTab("Random initial solution");
         init = new emili::pfsp::PfspRandomInitialSolution(*istance);
+    }else if(tm.checkToken(INITIAL_RANDOM_ITERATED))
+    {
+        printTab("Random initial solution");
+        int n = tm.getInteger();
+        init = new emili::pfsp::RandomInitialSolution(*istance,n);
     }
     else if(tm.checkToken(INITIAL_SLACK))
     {
@@ -1009,6 +1139,14 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             // testIS(*istance);
             init = new emili::pfsp::LRSolution(*istance,n);
         }
+    else if(tm.checkToken(INITIAL_LR_NM))
+        {
+            int n = istance->getNjobs()/istance->getNmachines();
+            oss.str(""); oss << "LR initial solution with "<<n<<" starting sequences";
+            printTab(oss.str().c_str());
+            // testIS(*istance);
+            init = new emili::pfsp::LRSolution(*istance,n);
+        }
     else if(tm.checkToken(INITIAL_NLR))
         {
         int n = tm.getInteger();
@@ -1029,11 +1167,62 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         //return new testIS(istance);
         init = new emili::pfsp::NEH(*istance);
     }
+    else if(tm.checkToken(INITIAL_NEHRS))
+    {
+        printTab( "NEHRS (random restarts) initial solution");
+        //return new testIS(istance);
+        int iterations = tm.getInteger();
+        oss.str("");oss<<"number of restarts: " << iterations;
+        printTab(oss.str().c_str());
+        init = new emili::pfsp::NEHRS(*istance,iterations);
+    }
+    else if(tm.checkToken(INITIAL_NEHEDD))
+    {
+        printTab( "NEHedd initial solution");
+        //return new testIS(istance);
+        init = new emili::pfsp::NEHedd(*istance);
+    }
     else if(tm.checkToken(INITIAL_NEHFF))
     {
         printTab( "NEHFF initial solution");
         //return new testIS(istance);
         init = new emili::pfsp::NEHff(*istance);
+    }
+    else if(tm.checkToken(INITIAL_NEHLS))
+    {
+        printTab( "NEHls initial solution");
+        PfspInstance pfs = this->istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->istance;
+        this->istance = pfse;
+        emili::LocalSearch* ll = search(tm);
+        this->istance = is;
+        istances.push_back(pfse);
+        init = new emili::pfsp::NEHls(*istance,ll);
+    }
+    else if(tm.checkToken(INITIAL_FRB5))
+    {
+        printTab( "FRB5 initial solution");
+        PfspInstance pfs = this->istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
+        emili::Termination* term = new emili::LocalMinimaTermination();
+        emili::Neighborhood* nei = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse);
+        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
+        istances.push_back(pfse);
+        init = new emili::pfsp::NEHls(*istance,ll);
+    }
+    else if(tm.checkToken(INITIAL_NEHFFLS))
+    {
+        printTab( "NEHffls initial solution");
+        PfspInstance pfs = this->istance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->istance;
+        this->istance = pfse;
+        emili::LocalSearch* ll = search(tm);
+        this->istance = is;
+        istances.push_back(pfse);
+        init = new emili::pfsp::NEHffls(*istance,ll);
     }
     else
     {
@@ -1096,6 +1285,14 @@ emili::Termination* prs::ParamsParser::term(prs::TokenManager& tm)
         printTab(oss.str().c_str());
         term = new emili::MaxStepsTermination(steps);
     }
+    else if(tm.checkToken(TERMINATION_MAXSTEPS_OR_LOCMIN))
+    {
+        int steps = tm.getInteger();
+        std::ostringstream oss;
+        oss << "Max Steps termination or when reaching locmin. # steps: "<< steps;
+        printTab(oss.str().c_str());
+        term = new emili::MaxStepsOrLocmin(steps);
+    }
     else
     {
         std::cerr<< "'" << *tm << "' -> ERROR a termination criteria specification was expected! " << std::endl;
@@ -1111,6 +1308,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     prs::incrementTabLevel();
     emili::pfsp::PfspNeighborhood* neigh = nullptr;
     if(tm.checkToken(NEIGHBORHOOD_INSERT))
+    {
+        printTab( "Insert Neighborhood");
+        neigh = new emili::pfsp::PfspInsertNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_ADAPTIVE_INSERT))
     {
         printTab( "Insert Neighborhood");
         neigh = new emili::pfsp::PfspInsertNeighborhood(*istance);
@@ -1169,6 +1371,16 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     {
         printTab( "Insert with Taillard Acceleration");
         neigh = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_FSTA_INSERT))
+    {
+        printTab( "Insert with Taillard Acceleration that updates the base solution after each improvement");
+        neigh = new emili::pfsp::FSTaillardAcceleratedInsertNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_CSTA_INSERT))
+    {
+        printTab( "Insert with Taillard Acceleration that evaluates all the possible insertion points");
+        neigh = new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_TAx_INSERT))
     {
@@ -1240,6 +1452,11 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     {
         printTab( "Improved Approximated Insert for Total Completion Times with 1 level approximation and online tuned threshold");
         neigh = new emili::pfsp::NatxTCTNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_RZ_TCT_INSERT))
+    {
+        printTab( "iRZ neighborhood see PanRui2012");
+        neigh = new emili::pfsp::NrzTCTNeighborhood(*istance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA_TT_INSERT))
     {
@@ -1432,7 +1649,363 @@ std::string prs::ParamsParser::availableProblems() const
        << " " <<PROBLEM_PFS_WCT<< " " <<PROBLEM_PFS_T<< " " <<PROBLEM_PFS_E<< " "<<PROBLEM_NWPFS_WT<< " " <<PROBLEM_NWPFS_WE
        << " " <<PROBLEM_NWPFS_TCT<< " " <<PROBLEM_NWPFS_MS<< " " <<PROBLEM_NWPFS_T<< " " <<PROBLEM_NWPFS_E
        << PROBLEM_NIPFS_MS <<" "<<PROBLEM_NIPFS_WT<< " " <<PROBLEM_NIPFS_WE<< " " <<PROBLEM_NIPFS_TCT<< " " <<PROBLEM_NIPFS_MS<< " "
-       << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E << PROBLEM_SDSTPFS_MS;
+       << " " <<PROBLEM_NIPFS_T<< " " <<PROBLEM_NIPFS_E << " " << PROBLEM_SDSTPFS_MS;
 
     return oss.str();
+}
+
+SAInitTemp* prs::ParamsParser::INITTEMP(prs::TokenManager& tm,
+                                   emili::InitialSolution *initsol,
+                                   emili::Neighborhood *nei) {
+
+    if (tm.checkToken(FIXEDINITTEMP)) {
+        double             value     = tm.getDecimal();
+        SAInitTemp* init_temp = new FixedInitTemp();
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(INITFROMSOL)) {
+        double                  value    = tm.getDecimal();
+        emili::Solution* is = initsol->generateSolution();
+        SAInitTemp* init_temp     = new InitTempFromSolution(is);
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, nei, length);
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(RANDOMWALKAVGINITTEMP)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkAvgInitTemp(initsol, nei, length);
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(RANDOMWALKINITPROB)) {
+        float ip = tm.getDecimal();
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkInitProb(initsol, nei, ip, length);
+        init_temp->set(value);
+        return init_temp;
+    } else if (tm.checkToken(MISEVICIUSINITTEMP)) {
+        int length = tm.getInteger();
+        float l11 = tm.getDecimal();
+        float l12 = tm.getDecimal();
+        float l21 = tm.getDecimal();
+        float l22 = tm.getDecimal();
+        SAInitTemp* init_temp = new MiseviciusInitTemp(initsol, nei, length, l11, l12, l21, l22);
+        init_temp->set(1);
+        return init_temp;
+    } else if (tm.checkToken(SIMPLEMISEVICIUSINITTEMP)) {
+        int length = tm.getInteger();
+        float l1 = tm.getDecimal();
+        float l2 = tm.getDecimal();
+        SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
+        init_temp->set(1);
+        return init_temp;
+    } else {
+        std::cerr << "SAInitTemp expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
+
+SAAcceptance* prs::ParamsParser::ACCEPTANCE(prs::TokenManager& tm,
+                                      SAInitTemp *inittemp) {
+
+    if (tm.checkToken(METROPOLIS)) {
+        return new SAMetropolisAcceptance(inittemp->get());
+    } else if (tm.checkToken(METROPOLISWFORCED)) {
+        return new SAMetropolisWithForcedAcceptance(inittemp->get());
+    } else if (tm.checkToken(BASICACC)) {
+        return new SABasicAcceptance();
+    } else if (tm.checkToken(APPROXEXPACC)) {
+        return new SAApproxExpAcceptance(inittemp->get());
+    } else if (tm.checkToken(GEOMACC)) {
+        double rf = tm.getDecimal();
+        return new SAGeometricAcceptance(inittemp->get(), rf);
+    } else if (tm.checkToken(GENSAACC)) {
+        double g = tm.getDecimal();
+        return new GeneralizedSAAcceptance(inittemp->get(), g);
+    } else if (tm.checkToken(DETERMINISTICACC)) {
+        double de = tm.getDecimal();
+        return new SADeterministicAcceptance(de);
+    } else if (tm.checkToken(GDAACC)) {
+        return new GreatDelugeAcceptance();
+    } else if (tm.checkToken(RTRACC)) {
+        double de = tm.getDecimal();
+        return new RecordToRecordAcceptance(de);
+    } else if (tm.checkToken(LAHCACC)) {
+        double te = tm.getInteger();
+        return new LAHCAcceptance(te);
+    } else if (tm.checkToken(PRECOMPUTEDMETROPOLIS)) {
+        int te = tm.getInteger();
+        return new SAPrecomputedMetropolisAcceptance(inittemp->get(), te);
+    } else if (tm.checkToken(PRECOMPUTEDMETROPOLISWFORCED)) {
+        int te = tm.getInteger();
+        return new SAPrecomputedMetropolisWithForcedAcceptance(inittemp->get(), te);
+    } else {
+        std::cerr << "SAAcceptance expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
+
+SATermination* prs::ParamsParser::TERMINATION(prs::TokenManager& tm,
+                                        emili::Neighborhood *nei) {
+
+    if (tm.checkToken(MAXBADITERS)) {
+        int    mb = tm.getInteger();
+        return new SAMaxBadIterTermination(mb);
+    } else if (tm.checkToken(MAXITERS)) {
+        int    mi = tm.getInteger();
+        return new SAMaxIterTermination(mi);
+    } else if (tm.checkToken(NEVERTERM)) {
+        return new SAWhileTrueTermination();
+    } else if (tm.checkToken(ACCRATETERM)) {
+        float rate = tm.getDecimal();
+        return new SAAcceptanceRateTermination(rate);
+    } else if (tm.checkToken(LASTACCRATETERM)) {
+        int te = tm.getInteger();
+        float rate = tm.getDecimal();
+        return new SALastAcceptanceRateTermination(te, rate);
+    } else if (tm.checkToken(MAXTEMPRESTARTSTERM)) {
+        int tr = tm.getInteger();
+        return new SaMaxTempRestartsTermination(tr);
+    } else if (tm.checkToken(NEIGHSIZEITERTERM)) {
+        float co = tm.getDecimal();
+        return new SANeighSizeIterTermination(nei, co);
+    } else if (tm.checkToken(SQUAREDNSITERTERM)) {
+        float co = tm.getDecimal();
+        return new SASquaredNeighSizeIterTermination(nei, co);
+    } else if (tm.checkToken(LOCALMINTERM)) {
+        int te = tm.getInteger();
+        return new SALocalMinTermination(te);
+    } else if (tm.checkToken(NEIGHSIZELOCALMINTERM)) {
+        float co = tm.getDecimal();
+        return new SANeighSizeLocalMinTermination(nei, co);
+    } else if (tm.checkToken(MAXSTEPSTERM)) {
+        int ms = tm.getInteger();
+        return new SAMaxStepsTermination(ms);
+    } else {
+        std::cerr << "SATermination expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+
+}
+
+
+SACooling* prs::ParamsParser::COOL(prs::TokenManager& tm,
+                              SAInitTemp *it,
+                              emili::Neighborhood *nei) {
+
+    if (tm.checkToken(GEOM)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        return new GeomCooling(a,b, it);
+    } else if (tm.checkToken(MARKOV)) {
+        float b = tm.getDecimal();
+        return new MarkovCooling(b, it);
+    } else if (tm.checkToken(LOGCOOLING)) {
+        float b = tm.getDecimal();
+        return new LogCooling(b, it);
+    } else if (tm.checkToken(CONSTCOOLING)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        return new ConstantCooling(a,b, it);
+    } else if (tm.checkToken(LUNDYMEES)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        return new LundyMeesCooling(a,b, it);
+    } else if (tm.checkToken(LUNDYMEESCONNOLLY)) {
+        return new LundyMeesConnollyCooling(it);
+    } else if (tm.checkToken(Q87COOLING)) {
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        int   m = tm.getInteger();
+        return new Q87Cooling(a, b, m, it);
+    } else if (tm.checkToken(LINEARCOOLING)) {
+        float a = tm.getDecimal();
+        return new LinearCooling(a, it);
+    } else if (tm.checkToken(NOCOOLING)) {
+        return new NoCooling(it);
+    } else if (tm.checkToken(TEMPBANDCOOLING)) {
+        float a = tm.getDecimal();
+        return new SATemperatureBandCooling(a, it);
+    } else if (tm.checkToken(QUADRATICCOOLING)) {
+        return new SAQuadraticCooling(it);
+    } else {
+        std::cerr << "SACooling expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
+
+SATempLength* prs::ParamsParser::TEMPLENGTH(prs::TokenManager& tm,
+                                       emili::Neighborhood* neigh,
+                                       emili::Problem* instance) {
+
+    if (tm.checkToken(CONSTTEMPLEN)) {
+        int l = tm.getInteger();
+        return new ConstantTempLength(l);
+    } else if (tm.checkToken(NEIGHSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new NeighSizeTempLength(neigh, a);
+    } else if (tm.checkToken(PROBSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new ProblemSizeTempLength(instance, a);
+    } else if (tm.checkToken(SQUAREDPROBSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new SquaredProblemSizeTempLength(instance, a);
+    } else if (tm.checkToken(BRNEIGHSIZETEMPLEN)) {
+        float a = tm.getDecimal();
+        return new BurkardRendlNeighSizeTempLength(neigh, a);
+    } else if (tm.checkToken(MAXACCEPTEDTEMPLEN)) {
+        int a = tm.getInteger();
+        return new MaxAcceptedTempLength(a);
+    } else if (tm.checkToken(CAPPEDMAXACCEPTEDTEMPLEN)) {
+        int a = tm.getInteger();
+        int c = tm.getInteger();
+        return new CappedMaxAcceptedTempLength(a, c);
+    } else if (tm.checkToken(NEIGHCAPPEDMAXACCEPTEDTEMPLEN)) {
+        float a = tm.getDecimal();
+        int c = tm.getInteger();
+        return new NeighSizeCappedMaxAcceptedTempLength(neigh, a, c);
+    } else if (tm.checkToken(ARITMTEMPLEN)) {
+        int a = tm.getInteger();
+        int b = tm.getInteger();
+        return new ArithmeticTempLength(a, b);
+    } else if (tm.checkToken(GEOMTEMPLEN)) {
+        int a = tm.getInteger();
+        float b = tm.getDecimal();
+        return new GeomTempLength(a, b);
+    } else if (tm.checkToken(LOGTEMPLEN)) {
+        int a = tm.getInteger();
+        int b = tm.getInteger();
+        return new LogTempLength(a, b);
+    } else if (tm.checkToken(EXPTEMPLEN)) {
+        int a = tm.getInteger();
+        float b = tm.getDecimal();
+        return new ExpTempLength(a, b);
+    } else if (tm.checkToken(NOTEMPLEN)) {
+        return new NoTempLength();
+    } else if (tm.checkToken(BRGEOMTEMPLEN)) {
+        float b = tm.getDecimal();
+        return new BurkardRendlGeomTempLength(neigh, b);
+    } else {
+        std::cerr << "SATempLength expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+}
+
+SAExploration* prs::ParamsParser::EXPLORATION(prs::TokenManager& tm,
+                                        emili::Neighborhood* neigh,
+                                        SAAcceptance *acc,
+                                        SACooling *cool,
+                                        SATermination *term) {
+
+    if (tm.checkToken(SARANDOMEXPLORATION)) {
+        return new SARandomExploration(neigh, acc, cool, term);
+    } else if (tm.checkToken(SASEQUENTIALEXPLORATION)) {
+        return new SASequentialExploration(neigh, acc, cool, term);
+    } else {
+        std::cerr << "SAExploration expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
+
+}
+
+SATempRestart* prs::ParamsParser::TEMPRESTART(prs::TokenManager& tm,
+                                         SAInitTemp *it,
+                                         emili::Neighborhood* neigh) {
+
+    if (tm.checkToken(SANOTEMPRESTART)) {
+        return new SANoRestart();
+    } else if (tm.checkToken(SAMINTEMPRESTART)) {
+        float va = tm.getDecimal();
+        return new SAMinRestart(it, va);
+    } else if (tm.checkToken(SAPERCTEMPRESTART)) {
+        float va = tm.getDecimal();
+        return new SAPercRestart(it, va);
+    } else if (tm.checkToken(SALOWRATERESTART)) {
+        float va = tm.getDecimal();
+        return new SALowRateRestart(it, va);
+    } else if (tm.checkToken(SALASTRATERESTART)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SALastRateRestart(it, te, va);
+    } else if (tm.checkToken(SALOWRATEREHEAT)) {
+        float th = tm.getDecimal();
+        float va = tm.getDecimal();
+        return new SALowRateReheat(it, th, va);
+    } else if (tm.checkToken(SALASTRATEREHEAT)) {
+        int   te = tm.getInteger();
+        float th = tm.getDecimal();
+        float va = tm.getDecimal();
+        return new SALastRateReheat(it, te, th, va);
+    } else if (tm.checkToken(SALOCALMINREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SALocalMinReheat(it, te, va);
+    } else if (tm.checkToken(SALOWRATERESTARTBEST)) {
+        float va = tm.getDecimal();
+        return new SALowRateRestartToBest(it, va);
+    } else if (tm.checkToken(SALOCALMINRESTARTBEST)) {
+        int   te = tm.getInteger();
+        return new SALocalMinRestartToBest(it, te);
+    } else if (tm.checkToken(SALOCALMINTEMPRESTART)) {
+        int   te = tm.getInteger();
+        return new SALocalMinTempRestart(it, te);
+    } else if (tm.checkToken(SALOCALMINENHANCEDREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        float ep = tm.getDecimal();
+        return new SALocalMinEnhancedReheat(it, te, va, ep);
+    } else if (tm.checkToken(SAMAXITERSTEMPRESTART)) {
+        int   te = tm.getInteger();
+        return new SAMaxItersTempRestart(it, te);
+    } else if (tm.checkToken(SAMAXITERSREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SAMaxItersReheat(it, te, va);
+    } else if (tm.checkToken(SANEIGHSIZEMAXITERSTEMPRESTART)) {
+        float   te = tm.getDecimal();
+        return new SANeighSizeMaxItersTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SASQUAREDNEIGHSIZEMAXITERSTEMPRESTART)) {
+        float   te = tm.getDecimal();
+        return new SASquaredNeighSizeMaxItersTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SANEIGHSIZEMAXITERSREHEAT)) {
+        float   te = tm.getDecimal();
+        float va = tm.getDecimal();
+        return new SANeighSizeMaxItersReheat(it, neigh, te, va);
+    } else if (tm.checkToken(SAMAXSTEPSTEMPRESTART)) {
+        int   te = tm.getInteger();
+        return new SAMaxStepsTempRestart(it, te);
+    } else if (tm.checkToken(SAMAXSTEPSREHEAT)) {
+        int   te = tm.getInteger();
+        float va = tm.getDecimal();
+        return new SAMaxStepsReheat(it, te, va);
+    } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSTEMPRESTART)) {
+        float   te = tm.getDecimal();
+        return new SANeighSizeMaxStepsTempRestart(it, neigh, te);
+    } else if (tm.checkToken(SANEIGHSIZEMAXSTEPSREHEAT)) {
+        float   te = tm.getDecimal();
+        float va = tm.getDecimal();
+        return new SANeighSizeMaxStepsReheat(it, neigh, te, va);
+    } else {
+        std::cerr << "SATempRestart expected, not found : " << std::endl;
+        std::cerr << tm.peek() << std::endl;
+        exit(1);
+    }
 }

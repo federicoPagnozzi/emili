@@ -478,7 +478,7 @@ public:
         ti = (1 - l11 - l12) * mindelta + l11 * avgdelta + l12 * maxdelta;
         tf = (1 - l21 - l22) * mindelta + l12 * avgdelta + l22 * maxdelta;
 
-        std::cout << std::fixed << mindelta << " " << avgdelta << " " << maxdelta << std::endl;
+        //std::cout << std::fixed << "inittempgapstats " << mindelta << " " << avgdelta << " " << maxdelta << std::endl;
 
         return ti;
     }

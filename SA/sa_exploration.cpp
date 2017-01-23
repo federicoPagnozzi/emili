@@ -36,6 +36,8 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
     emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
     ithSolution = *iter;
 
+    bool noneaccepted = true;
+
     for(;
         iter!=neigh->end();
         ++iter) {
@@ -53,6 +55,7 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
             delete startingSolution;
             *accepted = *ithSolution;
             status.accepted_sol(accepted->getSolutionValue());
+            noneaccepted = false;
             break;
         }
         
@@ -60,6 +63,10 @@ emili::Solution* SASequentialExploration::nextSolution(emili::Solution *starting
     } 
 
     delete incumbent;
+    
+    if (noneaccepted) {
+        return startingSolution;
+    }
     
     return accepted;
 }
