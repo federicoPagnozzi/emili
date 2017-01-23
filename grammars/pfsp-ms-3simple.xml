@@ -77,10 +77,14 @@
 	   <![CDATA[binsert ]]>
 	<or/>
 	  <![CDATA[tinsert ]]>
+	<or/>
+	  <![CDATA[fstainsert ]]>
+	<or/>
+	  <![CDATA[cstainsert ]]>
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
-		<![CDATA[igio ]]><pfsp:sp_impact/><![CDATA[ ]]>
+		<![CDATA[rsio ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	  	<or/>
 		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<or/>
@@ -94,11 +98,13 @@
 		<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 		<or/>
+		<![CDATA[rsffls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<or/>
 		<![CDATA[rsff ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
-		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
+		<![CDATA[rsacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
 	<!--	<or/>

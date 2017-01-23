@@ -1,6 +1,10 @@
 #ifndef SA_CONSTANTS_H
 #define SA_CONSTANTS_H
 
+#ifndef ALBERTOSA
+#define ALBERTOSA "SA"
+#endif
+
 
 /**
  * initial temperature

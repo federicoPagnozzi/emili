@@ -32,6 +32,10 @@ public:
         return instance.getn();
     } 
 
+    /**
+     computes the objective function value of solution.
+     */
+    virtual double calcObjectiveFunctionValue(emili::Solution& solution);
     virtual double evaluateSolution(emili::Solution& solution);
     virtual double computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual double computeObjectiveFunction(std::vector< int > & partial_solution, int size);

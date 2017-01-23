@@ -25,6 +25,9 @@
        	 <pfsp:metro_alpha type="real" min="0.1" max="1" stepIfEnumeraterd="0.1"/>
 	 <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
 	 <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
+	 <pfsp:cp_d type="int" min="1" max="10" stepIfEnumerated="1" />
+	 <pfsp:cp_omega type="int" min="10" max="30" stepIfEnumerated="1" />
+	 <pfsp:cp_pc type="real" min="0.1" max="1" stepIfEnumerated="0.1" />
 
 <pfsp:always_acc_param>
 	<![CDATA[intensify ]]>
@@ -36,8 +39,10 @@
    <![CDATA[random ]]>
    <or/>
    <![CDATA[slack ]]>
+   <!--<or/>
+   <![CDATA[nwslack ]]>-->
    <or/>
-   <![CDATA[nwslack ]]>
+   <![CDATA[nehedd ]]>
    <or/>
    <![CDATA[nrz ]]>
   <or/>
@@ -66,7 +71,7 @@
 	<or/>
 	   <![CDATA[transpose ]]>
 	<or/>
-	   <![CDATA[insert ]]>
+	   <![CDATA[nttinsert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
@@ -95,6 +100,9 @@
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<or/>
+		<![CDATA[cp3 ]]><pfsp:cp_d/><![CDATA[ ]]><pfsp:cp_omega/><![CDATA[ ]]><pfsp:cp_pc/><![CDATA[ ]]>
+		
 	<!--	<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 		<or/>

@@ -11,8 +11,21 @@
 #include <cstring>
 #include <algorithm>
 #include "generalParser.h"
+//#define MAIN_NEW
+#ifndef MAIN_NEW
 #include "pfsp/paramsparser.h"
+#else
+#include "pfsp/pfspBuilder.h"
+#endif
 #include "setup.h"
+#include <sys/types.h>
+#ifdef EM_LIB
+#include <dirent.h>
+#include <dlfcn.h>
+#include <sstream>
+#define SO_LIB ".so"
+#define A_LIB ".a"
+#endif
 
 #include "SA/sa_pfsp_parser.h"
 #include "SA/sa_qap_parser.h"
@@ -27,7 +40,7 @@ void g2c_info()
     exit(0);
 }
 
-
+#ifndef MAIN_NEW
 int main(int argc, char *argv[])
 {
 prs::emili_header();
@@ -62,16 +75,22 @@ prs::emili_header();
     emili::LocalSearch* ls;
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE
-    std::cout << "searching..." << std::endl;
-    //SAPFSPParser p;
-    SAQAPParser p;
+//<<<<<<< HEAD
+//    std::cout << "searching..." << std::endl;
+ //   SAPFSPParser p;
+    //SAQAPParser p;
+// =======
+    prs::ParamsParser p;
+// >>>>>>> master
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
     ls = ps.parseParams();
    // testHeuritstic(ps.getInstance());
     if(ls==nullptr)
     {
-        return -1;
+       // std::cout << "EXITING" << std::endl;
+        exit(-1);
+     //   return -1;
     }
     pls = ls->getSearchTime();//ps.ils_time;
 #else
@@ -81,6 +100,7 @@ prs::emili_header();
     time = clock();
 #endif
     emili::Solution* solution;
+    std::cout << "searching..." << std::endl;
     if(pls>0)
     {
        solution = ls->timedSearch(pls);
@@ -96,6 +116,7 @@ prs::emili_header();
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
 #endif
+//<<<<<<< HEAD
     solution = ls->getBestSoFar();    
     double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
     std::cout << "time : " << time_elapsed << std::endl;
@@ -110,4 +131,126 @@ prs::emili_header();
     // std::cerr << std::fixed << solution->getSolutionValue() << endl;
     
     return 0;
+// =======
+//     if(!emili::get_print())
+//     {
+//         solution = ls->getBestSoFar();
+//         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+//         std::cout << "time : " << time_elapsed << std::endl;
+//         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+//         std::cerr << solution->getSolutionValue() << std::endl;
+//         //cerr << time_elapsed << " ";
+//         std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+//         std::cout << "Found solution: ";
+//         std::cout << solution->getSolutionRepresentation() << std::endl;
+//         std::cout << std::endl;
+//     }
+//     delete ls;
+//     //delete solution;
+// >>>>>>> master
 }
+#else
+#ifdef EM_LIB
+
+typedef prs::Builder* (*getBuilderFcn)(prs::GeneralParserE* ge);
+
+void loadBuilders(prs::GeneralParserE& ps)
+{
+   std::string so_ext(SO_LIB);
+   std::string a_ext(A_LIB);
+   const char* lib_dir = std::getenv("EMILI_LIBS");
+   if(!lib_dir)
+   {
+       lib_dir = "./";
+   }
+
+    DIR* dp = opendir(lib_dir);
+    dirent* den;
+    if (dp != NULL){
+       while (den = readdir(dp)){
+        std::string file(den->d_name);
+        bool load=false;
+        if(file.size() > so_ext.size())
+        {
+          if(std::equal(file.begin() + file.size() - so_ext.size(), file.end(), so_ext.begin()))
+          {
+              load = true;
+          }
+          else if(std::equal(file.begin() + file.size() - a_ext.size(), file.end(), a_ext.begin()))
+          {
+              load = true;
+          }
+          if(load)
+          {
+             std::ostringstream oss;
+             oss << lib_dir << "/" << file;
+             void* lib = dlopen(oss.str().c_str(),RTLD_LAZY);
+             getBuilderFcn *build = (getBuilderFcn*) dlsym(lib,"getBuilder");
+             prs::Builder* bld = (*build)(&ps);
+             ps.addBuilder(bld);
+          }
+
+        }
+       }
+    }
+
+   /*else
+   {
+      std::cerr << "the EMILI_LIBS environmental variable is not set!" << std::endl;
+      exit(-1);
+   }*/
+}
+#endif
+
+int main(int argc, char *argv[])
+{
+    prs::emili_header();
+    srand ( time(0) );
+    clock_t time = clock();
+    if (argc < 3 )
+    {
+        prs::info();
+        return 1;
+    }
+    int pls = 0;
+    emili::LocalSearch* ls;
+
+    prs::GeneralParserE  ps(argv,argc);
+    prs::EmBaseBuilder emb(ps,ps.getTokenManager());
+    prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    ps.addBuilder(&emb);
+#ifdef EM_LIB
+    loadBuilders(ps);
+#else
+    ps.addBuilder(&pfspb);
+#endif
+    ls = ps.parseParams();
+    if(ls!=nullptr)
+    {
+        pls = ls->getSearchTime();//ps.ils_time;
+        emili::Solution* solution;
+        std::cout << "searching..." << std::endl;
+        if(pls>0)
+        {
+            solution = ls->timedSearch(pls);
+        }
+        else
+        {
+            solution = ls->search();
+        }
+        if(!emili::get_print())
+        {
+            solution = ls->getBestSoFar();
+            double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+            std::cout << "time : " << time_elapsed << std::endl;
+            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+            std::cerr << solution->getSolutionValue() << std::endl;
+            std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+            std::cout << "Found solution: ";
+            std::cout << solution->getSolutionRepresentation() << std::endl;
+            std::cout << std::endl;
+        }
+        delete ls;
+    }
+}
+#endif

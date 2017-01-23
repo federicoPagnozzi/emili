@@ -30,3 +30,8 @@ double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution)
 double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution, int size) {
     return this->computeObjectiveFunction(partial_solution);
 }
+
+double qap::QAP::calcObjectiveFunctionValue(emili::Solution& solution) {
+    QAPSolution& s = dynamic_cast<QAPSolution&> (solution);
+    return this->getInstance()->computeObjectiveFunction(&s);
+}

@@ -1,4 +1,4 @@
-project(EMILI)
+project(emili)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./SA SA_SRC_LIST)
@@ -6,12 +6,13 @@ aux_source_directory(./QAP QAP_SRC_LIST)
 aux_source_directory(./pfsp PFSP_SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
+option(USE_NEW_MAIN "Use new loading paradigm" OFF)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
 
 
 #ADD COMMIT HASH TO SOURCE CODE
-# add_custom_target(GNUM ALL git rev-parse HEAD | xargs -I cnum sed -ie s/.*"define GIT_COMMIT_NUMBER".*/"\#define GIT_COMMIT_NUMBER \\"cnum\\""/g generalParser.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-# add_custom_target(CGNUM ALL rm -f generalParser.cppe WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_custom_target(GNUM ALL git rev-parse HEAD | xargs -I cnum sed -ie s/.*"define GIT_COMMIT_NUMBER".*/"\#define GIT_COMMIT_NUMBER \\"cnum\\""/g generalParser.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_custom_target(CGNUM ALL rm -f generalParser.cppe WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 #SSE
 if(USE_SSE)
@@ -25,6 +26,11 @@ if(WITH_STATS)
     message(STATUS "Solution stats enabled")
     add_definitions(-DWITH_STATS)
 endif(WITH_STATS)
+
+if(USE_NEW_MAIN)
+    message(STATUS "Component based algorithm loading enabled")
+    add_definitions(-DMAIN_NEW)
+endif(USE_NEW_MAIN)
 
 #C++ 11 detection
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
