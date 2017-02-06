@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "39798f1ebe0f46e6b6ccff1d3c749aa1d630a52b"
+#define GIT_COMMIT_NUMBER "dd46d37169e812ead5e270d25d2dc6e635a763ac"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -57,6 +57,8 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
+/*base neighborhoods*/
+#define NEIGHBORHOOD_RANDCONHE "rch"
 
 int tab_level = 0;
 
@@ -751,6 +753,20 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
 
     prs::decrementTabLevel();
     return per;
+}
+
+emili::Neighborhood* prs::EmBaseBuilder::buildNeighborhood()
+{
+    prs::incrementTabLevel();
+    emili::Neighborhood* neigh = nullptr;
+    if(tm.checkToken(NEIGHBORHOOD_RANDCONHE))
+    {
+        printTab("Random Constructive Heuristic Neighborhood ");
+        emili::InitialSolution* heuristic = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        neigh = new emili::RandomConstructiveHeuristicNeighborhood(*heuristic);
+    }
+    prs::decrementTabLevel();
+    return neigh;
 }
 
 emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()

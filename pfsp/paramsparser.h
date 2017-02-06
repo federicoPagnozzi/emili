@@ -32,7 +32,7 @@ protected:
     /** TERMINATION*/
     emili::Termination* term(prs::TokenManager& tm);
     /** NEIGHBORHOOD*/
-    emili::pfsp::PfspNeighborhood* neigh(prs::TokenManager& tm,bool checkExist);
+    emili::Neighborhood* neigh(prs::TokenManager& tm,bool checkExist);
     /** PERTURBATION*/
     emili::Perturbation* per(prs::TokenManager& tm);
     /** ACCEPTANCE*/

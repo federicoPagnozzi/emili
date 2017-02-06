@@ -389,6 +389,20 @@ emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::end()
     return emili::Neighborhood::NeighborhoodIterator(this,nullptr);
 }
 
+emili::Solution* emili::RandomConstructiveHeuristicNeighborhood::computeStep(Solution *step)
+{
+     if(state==0)
+     {
+         state=1;
+         return heuristic->generateSolution();
+     }
+     else
+     {
+         state=0;
+         return nullptr;
+     }
+}
+
 /**
  * LocalSearch base class ( Old neighborhood concept)
  */
@@ -549,6 +563,7 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
             {
                 if(incumbent->operator >( *ithSolution)){                    
                     *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                 }                
             }
             delete ithSolution;
@@ -576,6 +591,7 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
             {
                 if(incumbent->operator >( *ithSolution)){
                     *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                 }else if(incumbent->operator ==( *ithSolution))// if the two solution have the same cost
                 {
                     //Compare the two solution using the cost for another problem
@@ -584,6 +600,7 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
                    {
 
                        *incumbent = *ithSolution;
+                       printSolstats(incumbent);
                    }
                 }
             }
@@ -615,6 +632,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
             {               
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
+                    printSolstats(incumbent);
                     break;
                 }
             }
@@ -646,6 +664,7 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
             {
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
+                    printSolstats(incumbent);
                     break;
                 }else if(incumbent->operator ==( *ithSolution))// if the two solution have the same cost
                 {
@@ -655,6 +674,7 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
                    {
 
                        *incumbent = *ithSolution;
+                       printSolstats(incumbent);
                        break;
                    }
                 }
@@ -738,6 +758,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
             if(*incumbent > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar))
             {
                 *incumbent = *ithSolution;
+                printSolstats(incumbent);
             }
         }
 
@@ -774,6 +795,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
                 tabuMemory.registerMove(incumbent,ithSolution);
                 if(incumbent->operator >(*ithSolution)&& (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){                    
                     *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                     break;
                 }
             }

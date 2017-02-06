@@ -133,6 +133,7 @@
 #define NEIGHBORHOOD_XTRANSPOSE "xtranspose"
 #define NEIGHBORHOOD_EXCHANGE "exchange"
 #define NEIGHBORHOOD_ADAPTIVE_INSERT "adpinsert"
+#define NEIGHBORHOOD_RANDCONHE "rch"
 
 /* Weighted Tardiness*/
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
@@ -418,7 +419,7 @@ std::string prs::ParamsParser::info()
     return oss.str();
 }
 
-emili::pfsp::PfspNeighborhood* ne = nullptr;
+emili::Neighborhood* ne = nullptr;
 emili::InitialSolution* in= nullptr;
 emili::Termination* te= nullptr;
 emili::TabuMemory* tmem= nullptr;
@@ -909,16 +910,17 @@ emili::LocalSearch* prs::ParamsParser::gvns(prs::TokenManager& tm)
 
 emili::BestTabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
 {
+    emili::pfsp::PfspNeighborhood* nei = dynamic_cast<emili::pfsp::PfspNeighborhood*>(ne);
     if(tm.checkToken(BEST))
     {
         params(tm);
-        tmem = tmemory(ne,tm);
+        tmem = tmemory(nei,tm);
         return new emili::BestTabuSearch(*in,*te,*ne,*tmem);
     }
     else if(tm.checkToken(FIRST))
     {
         params(tm);
-        tmem = tmemory(ne,tm);
+        tmem = tmemory(nei,tm);
         return new emili::FirstTabuSearch(*in,*te,*ne,*tmem);
     }
     else
@@ -1272,10 +1274,10 @@ emili::Termination* prs::ParamsParser::term(prs::TokenManager& tm)
     return term;
 }
 
-emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bool checkExist)
+emili::Neighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bool checkExist)
 {
     prs::incrementTabLevel();
-    emili::pfsp::PfspNeighborhood* neigh = nullptr;
+    emili::Neighborhood* neigh = nullptr;
     if(tm.checkToken(NEIGHBORHOOD_INSERT))
     {
         printTab( "Insert Neighborhood");
@@ -1431,6 +1433,12 @@ emili::pfsp::PfspNeighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bo
     {
         printTab( "Improved Approximated Insert for Total Tardiness with 1 level approximation and online tuned threshold");
         neigh = new emili::pfsp::NatxTTNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_RANDCONHE))
+    {
+         printTab("Random Constructive Heuristic Neighborhood ");
+         emili::InitialSolution* in = init(tm);
+         neigh = new emili::RandomConstructiveHeuristicNeighborhood(*in);
     }
     else
     {

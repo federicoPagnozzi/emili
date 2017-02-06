@@ -725,6 +725,13 @@ public:
      * @return
      */
     virtual emili::Acceptance* buildAcceptance();
+    /**
+     * @brief buildNeighborhood
+     * This method will load the general neighborhood emili::RandomConstructiveHeuristicNeighborhood     *
+     * @return
+     * a neighborhood
+     */
+    virtual emili::Neighborhood* buildNeighborhood();
 };
 
 }
