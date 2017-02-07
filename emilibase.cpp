@@ -394,7 +394,10 @@ emili::Solution* emili::RandomConstructiveHeuristicNeighborhood::computeStep(Sol
      if(state==0)
      {
          state=1;
-         return heuristic->generateSolution();
+         emili::Solution* nsol = heuristic->generateSolution();
+         *step = *nsol;
+         delete nsol;
+         return step;
      }
      else
      {
