@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "dd46d37169e812ead5e270d25d2dc6e635a763ac"
+#define GIT_COMMIT_NUMBER "4d71baa0150b0a0d0194b76eaed50b501969dcff"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -478,7 +478,7 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
         this->instance = probBuilder->openInstance();
         emili::LocalSearch* ls = buildComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
-        if(tm.checkToken(PRINT_SOLUTION))
+        if(tm.seek(PRINT_SOLUTION))
         {
             emili::set_print(true);
             if(ls->getSearchTime() > 0){
