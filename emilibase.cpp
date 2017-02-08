@@ -272,12 +272,13 @@ void emili::iteration_decrement(){
 /**
  * Print Solution info
  */
-
+double cbest = std::numeric_limits<double>::max();
 inline void emili::printSolstats(emili::Solution* sol)
 {
 #ifdef WITH_STATS
-    if(print)
+    if(print && cbest > sol->getSolutionValue())
     {
+      cbest = sol->getSolutionValue();
       std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << "\n";
     }
 #endif
