@@ -1575,7 +1575,13 @@ emili::Solution* emili::pfsp::NEHls::generate()
 #endif
 //    order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
+#ifdef WITH_STATS
+    set_print(false);
+#endif
     order = nehls(order,njobs,pis,_ls);
+#ifdef WITH_STATS
+    set_print(true);
+#endif
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
     return s;
@@ -1606,7 +1612,13 @@ emili::Solution* emili::pfsp::NEHffls::generate()
 #endif
   //  order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
+#ifdef WITH_STATS
+    set_print(false);
+#endif
     order = nehffls(order,njobs,pis,_ls);
+#ifdef WITH_STATS
+    set_print(true);
+#endif
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
     return s;
