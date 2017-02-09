@@ -415,6 +415,7 @@ emili::Solution* emili::LocalSearch::search()
 {
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
+    printSolstats(current);
     emili::Solution* sol = search(current);
     if(current!=sol)
         delete current;
@@ -956,6 +957,7 @@ emili::Solution* emili::IteratedLocalSearch::search(){
     termcriterion->reset();
     acc.reset();
     Solution* current = init->generateSolution();
+    printSolstats(current);
     Solution* ret = search(current);
     delete current;
     return ret;
