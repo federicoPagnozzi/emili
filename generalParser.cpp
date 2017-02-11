@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "4d71baa0150b0a0d0194b76eaed50b501969dcff"
+#define GIT_COMMIT_NUMBER "8100dca8d6cfa454f7a6646f635b4bd8e00bade7"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -477,8 +477,8 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
         emili::initializeRandom(getSeed(tm));
         this->instance = probBuilder->openInstance();
         emili::LocalSearch* ls = buildComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
-        if(tm.seek(PRINT_SOLUTION))
+        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
+        if(tm.seek(PRINT_SOLUTION)>0)
         {
             emili::set_print(true);
             if(ls->getSearchTime() > 0){
@@ -487,6 +487,7 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
         }
         else
         {
+            std::cout << "The print option is not enabled" << std::endl;
             emili::set_print(false);
         }
         return ls;
