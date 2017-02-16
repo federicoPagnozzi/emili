@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "8100dca8d6cfa454f7a6646f635b4bd8e00bade7"
+#define GIT_COMMIT_NUMBER "0b83b804d2defd8df41509caaa617298b8eb32e3"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -38,6 +38,7 @@
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
+#define TERMINATION_TIMERO "timero"
 #define TERMINATION_LOCMIN "locmin"
 #define TERMINATION_ITERA "iteration"
 #define TERMINATION_WTRUE "true"
@@ -693,6 +694,27 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         oss << "Timed termination. ratio: " << time;
         printTab(oss.str().c_str());
         term =  new emili::TimedTermination(time);
+    }
+    else if(tm.checkToken(TERMINATION_TIMERO))
+    {
+
+        float time =tm.getDecimal();
+        if(time==0){
+            time = 1;
+        }
+        std::ostringstream oss;
+        int rtime = time * gp.getInstance()->problemSize();
+        oss << "Timed termination";
+        printTab(oss.str().c_str());
+        oss.str("");
+        prs::incrementTabLevel();
+        oss << "ro : " << time;
+        printTab(oss.str().c_str());
+        oss.str("");
+        oss << "running time : " << rtime;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
+        term =  new emili::TimedTermination(rtime);
     }
     else if(tm.checkToken(TERMINATION_MAXSTEPS))
     {
