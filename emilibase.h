@@ -40,10 +40,12 @@ Neighborhood and Perturbation.
 #endif
 #include <functional>
 #include <ctime>
-
+//#define NOSIG 1
+//#define NO_CALLBACK
 #if defined( _WIN32) || defined( _WIN64)
 
 #define NOSIG 1
+#define NO_CALLBACK
 #endif
 
 
@@ -176,7 +178,7 @@ public:
 class TimedTermination: public Termination
 {
 protected:
-    int secs;
+    float secs;
     float _ratio;
     clock_t start;
 public:
@@ -292,13 +294,13 @@ Termination* termcriterion;
 Neighborhood* neighbh;
 Solution* bestSoFar;
 
-int seconds;
+float seconds;
     LocalSearch() { }
 public:
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
     init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
 
-    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, int time):
+    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
     init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
     /*
      * search use the InitialSolutionGenerator instance
@@ -313,8 +315,8 @@ public:
      * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds, Solution* initial);
+    virtual Solution* timedSearch(float seconds);
+    virtual Solution* timedSearch(float seconds, Solution* initial);
     /*
      * In order to make easier the creation of batchs of LocalSearch objects the time of execution
      * can be inserted as an instance variable in the constructor of the object so these methos below
@@ -322,8 +324,8 @@ public:
      */
     virtual Solution* timedSearch();
     virtual Solution* timedSearch(Solution* initial);
-    virtual void setSearchTime(int time);
-    virtual int getSearchTime();
+    virtual void setSearchTime(float time);
+    virtual float getSearchTime();
     emili::Termination& getTermination();
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();

@@ -52,7 +52,7 @@ prs::emili_header();
    // testNewEvaluationFunction(instance);
     //emili::pfsp::NWPFSP_MS problem(instance);
     //testHeuritstic(problem);
-    int pls = 0;
+    float pls = 0;
     emili::LocalSearch* ls;
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE

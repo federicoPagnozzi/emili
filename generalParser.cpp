@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "82499728ac12721004029ae7665f6251537787c3"
+#define GIT_COMMIT_NUMBER "d9569a9ccc84fb8450c9920bd642c95cffc54bb4"
 
 int tab_level = 0;
 
@@ -195,11 +195,11 @@ bool prs::AlgoBuilder::operator ==(const AlgoBuilder& b)
 }
 
 
-int getTime(prs::TokenManager& tm,int problemSize)
+float getTime(prs::TokenManager& tm,int problemSize)
 {
         if(tm.checkToken(IT))
         {
-            int n = tm.getInteger();
+            float n = tm.getDecimal();
             std::ostringstream oss;
             oss << "Run time secs : " << n;
             //printTab(oss.str().c_str());
@@ -210,16 +210,15 @@ int getTime(prs::TokenManager& tm,int problemSize)
         {
             float d = tm.getDecimal();
             float time = d*problemSize;
-            int n = floorf(time);
-	    n = n==0?1:n; // if n == 0 then set n to 1 otherwise n = n
+            //int n = floorf(time);
+            //n = n==0?1:n; // if n == 0 then set n to 1 otherwise n = n
+            // time = n==1?n:time;
             std::ostringstream oss;
-            oss << "Rho = "<< d << " Run time secs : " << n;
+            oss << "Rho = "<< d << "\nRun time secs : " << time;
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
-            return n;
+            return time;
         }
-
-
     return DEFAULT_IT;
 }
 
