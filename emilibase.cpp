@@ -121,13 +121,17 @@ static void finalise (int _)
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
             messages << "objective function value : "<< sol_val << std::endl;
             messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+#ifdef NOSIG
+			std::cout << messages.str() << std::endl;
+#endif
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
              //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";            
         }
         else
         {
             std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+			std::cout << "iteration counter : " << emili::iteration_counter() << std::endl;
+			std::cout << "objective function value : " << sol_val << std::endl;
             std::cerr << sol_val << std::endl;
             std::cerr << std::flush;
         }
@@ -137,7 +141,7 @@ static void finalise (int _)
         if(print)
 	{
 		messages << "No valid solution found!" << std::endl;
-    	}
+	}
 	else
 	{
 		std::cout  << "No valid solution found!" << std::endl;
@@ -936,7 +940,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         /*
             search start
         */
-        beginTime = clock();        
+		beginTime = clock();
 
         emili::Solution*  s = ls.search();
         *bestSoFar = *s ;
@@ -979,7 +983,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         /*
             search start
         */
-        beginTime = clock();                
+		beginTime = clock();
 
         emili::Solution* s = ls.search(initial);
         *bestSoFar = *s;
@@ -1071,7 +1075,7 @@ void emili::TimedTermination::reset()
     start = clock();
 
 #if defined(NOSIG) && !defined(TIMER)
-    beginTime = start;
+	beginTime = start;
 #endif
 }
 

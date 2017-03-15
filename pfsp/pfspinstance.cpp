@@ -4312,7 +4312,8 @@ long int PfspInstance::computeHMS(std::vector<int> &sol, int size)
 
     }
 #ifdef _DEBUG
-    string x = printJaggedVector(machineFreeingTimes_S_M);
+	std::string x;
+    x = printJaggedVector(machineFreeingTimes_S_M);
 #endif
     // Makespan
     return maxValue(machineFreeingTimes_S_M[nbStages]);// Makespan
@@ -4377,7 +4378,7 @@ long int PfspInstance::computeHTCT(std::vector<int> &sol, int size)
         TCT += it->second;
 
 #ifdef _DEBUG
-    string x = printJaggedVector(machineFreeingTimes_S_M);
+    std::string x = printJaggedVector(machineFreeingTimes_S_M);
 #endif
     // Makespan
     return TCT;// Makespan
@@ -4417,7 +4418,7 @@ long int PfspInstance::computeHWT(std::vector<int> &sol, int size)
         std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         if (i == stages) lastStage = true;
 #ifdef _DEBUG
-        string tmp = printPairedVector(jobAndFT) + "\n";
+        std::string tmp = printPairedVector(jobAndFT) + "\n";
         tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
 #endif
         for (j = 1; j <= permSize; ++j)
@@ -4489,7 +4490,7 @@ long int PfspInstance::computeHWE(std::vector<int> &sol, int size)
         std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         if (i == stages) lastStage = true;
 #ifdef _DEBUG
-        string tmp = printPairedVector(jobAndFT) + "\n";
+        std::string tmp = printPairedVector(jobAndFT) + "\n";
         tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
 #endif
         for (j = 1; j <= permSize; ++j)
@@ -4561,7 +4562,7 @@ long int PfspInstance::computeHWET(std::vector<int> &sol, int size)
         std::fill(machineFreeingTimes_S_M[i].begin(),machineFreeingTimes_S_M[i].end(),0);
         if (i == stages) lastStage = true;
 #ifdef _DEBUG
-        string tmp = printPairedVector(jobAndFT) + "\n";
+        std::string tmp = printPairedVector(jobAndFT) + "\n";
         tmp += "S" + std::to_string(i) + " FT: " + printVector(machineFreeingTimes_S_M[i]) + "\n";
 #endif
         for (j = 1; j <= permSize; ++j)

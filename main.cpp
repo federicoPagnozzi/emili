@@ -95,7 +95,7 @@ prs::emili_header();
     std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
     std::cerr << solution->getSolutionValue() << std::endl;
     //cerr << time_elapsed << " ";    
-    std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;        
+    std::cout << "objective function value: " << solution->getSolutionValue() << std::endl;        
     std::cout << "Found solution: ";
     std::cout << solution->getSolutionRepresentation() << std::endl;
     std::cout << std::endl;

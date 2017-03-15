@@ -1409,9 +1409,9 @@ emili::Solution* emili::pfsp::RZSolution::generate()
 
 emili::Solution* emili::pfsp::NeRZSolution::generate()
 {
-    std::vector< int > initial = rz_seed_sequence(pis);
-    initial = rz_improvement_phase(initial,pis);
-    initial = neh2(initial,pis.getNjobs(),pis);
+	std::vector< int > initial = rz_seed_sequence(pis);
+	initial = rz_improvement_phase(initial, pis);
+	initial = neh2(initial, pis.getNjobs(), pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
     pis.evaluateSolution(*s);
     return s;
