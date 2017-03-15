@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "624b82be30bc30f37afa89482fd4fc3b18b9358d"
+#define GIT_COMMIT_NUMBER "563ee61221016e17bf1ea105528804409a8d8981"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -840,8 +840,16 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float start =tm.getDecimal();
         float end =tm.getDecimal();
         float ratio =tm.getDecimal();
-        oss.str(""); oss  << "metropolis acceptance. start ,end , ratio : "<< start << ", "<< end << "," << ratio;
+        oss.str(""); oss  << "metropolis acceptance.";
         printTab(oss.str().c_str());
+        prs::incrementTabLevel();
+        oss.str(""); oss << "start: "<< start;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "end: "<< end;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "ratio: "<< ratio;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
         acc = new  emili::Metropolis(start,end,ratio);
     }
     else  if(tm.checkToken(ACCEPTANCE_PMETRO))
@@ -850,8 +858,18 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float end =tm.getDecimal();
         float ratio =tm.getDecimal();
         int iterations = tm.getInteger();
-        oss.str(""); oss  << "metropolis acceptance. start ,end , ratio, frequence : "<< start << ", "<< end << "," << ratio <<","<< iterations;
+        oss.str(""); oss  << "metropolis acceptance.";
         printTab(oss.str().c_str());
+        prs::incrementTabLevel();
+        oss.str(""); oss << "start: "<< start;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "end: "<< end;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "ratio: "<< ratio;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "frequence: "<< iterations;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
         acc = new  emili::Metropolis(start,end,ratio,iterations);
     }
     else if(tm.checkToken(ACCEPTANCE_SA))
@@ -861,8 +879,20 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float ratio =tm.getDecimal();
         int iterations = tm.getInteger();
         float alpha =tm.getDecimal();
-        oss.str(""); oss  << "metropolis acceptance. start ,end , ratio, frequence, alpha : "<< start << ", "<< end << "," << ratio <<","<< iterations << "," << alpha;
+        oss.str(""); oss  << "metropolis acceptance.";
         printTab(oss.str().c_str());
+        prs::incrementTabLevel();
+        oss.str(""); oss << "start: "<< start;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "end: "<< end;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "ratio: "<< ratio;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "frequence: "<< iterations;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "alpha: "<< alpha;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
         acc = new  emili::Metropolis(start,end,ratio,iterations,alpha);
     }
     else if(tm.checkToken(ACCEPTANCE_IMPROVE_PLATEAU))
