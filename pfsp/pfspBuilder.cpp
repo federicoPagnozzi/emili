@@ -514,6 +514,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
     std::ostringstream oss;
     emili::InitialSolution* init = nullptr;
     emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+
     if(tm.checkToken(INITIAL_RANDOM))
     {
         printTab("Random initial solution");

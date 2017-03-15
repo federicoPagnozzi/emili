@@ -199,11 +199,13 @@ void lastPrint()
 }
 
 int max_time = -1 ;
-static inline void setTimer(int maxTime)
+static inline void setTimer(float maxTime)
 {
     keep_going = true;
-    timer.it_value.tv_sec = maxTime;
-    timer.it_value.tv_usec = 0;
+    int secs = floorf(maxTime);
+    float usecs = (maxTime-secs)*1000*1000;
+    timer.it_value.tv_sec = secs;
+    timer.it_value.tv_usec = usecs;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
     emili::iteration_counter_zero();
@@ -236,7 +238,7 @@ static inline void stopTimer()
     std::cout << "timer stopped" << std::endl;
 }
 
-static inline void setTimer(int maxTime)
+static inline void setTimer(float maxTime)
 {
     //std::cout << "timer set"
 }
@@ -423,7 +425,7 @@ emili::Solution* emili::LocalSearch::search()
     return sol;
 }
 
-emili::Solution* emili::LocalSearch::timedSearch(int time_seconds)
+emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
 {
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
@@ -462,7 +464,7 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *initial)
+emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *initial)
 {
 
     setTimer(time_seconds);
@@ -491,12 +493,12 @@ emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
     return sol;
 }
 
-int emili::LocalSearch::getSearchTime()
+float emili::LocalSearch::getSearchTime()
 {
     return this->seconds;
 }
 
-void emili::LocalSearch::setSearchTime(int time)
+void emili::LocalSearch::setSearchTime(float time)
 {
 #ifdef NOSIG
     if(time > 0)
