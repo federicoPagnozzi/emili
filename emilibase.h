@@ -178,7 +178,7 @@ public:
 class TimedTermination: public Termination
 {
 protected:
-    int secs;
+    float secs;
     float _ratio;
     clock_t start;
 public:
