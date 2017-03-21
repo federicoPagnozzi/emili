@@ -11,6 +11,8 @@
 #include "sa_common.h"
 
 #include "../emilibase.h"
+#include "../pfsp/pfspinstance.h"
+#include "../pfsp/permutationflowshop.h"
 
 
 /**
@@ -613,6 +615,20 @@ public:
 
 
 }; // BestRatioInitTemp
+
+
+/**
+ * osman-potts for PFSP
+ */
+ class OsmanPottsInitTemp: public SAInitTemp {
+protected:
+
+public:
+    OsmanPottsInitTemp(emili::pfsp::PermutationFlowShop& gp) {
+        
+    }
+
+ }; // OsmanPottsInitTemp
 
 
 #endif

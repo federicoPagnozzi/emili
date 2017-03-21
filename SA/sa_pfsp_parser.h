@@ -133,7 +133,8 @@ protected:
      */
     SAInitTemp*      INITTEMP(prs::TokenManager&      tm,
                               emili::InitialSolution* initsol,
-                              emili::Neighborhood *nei);
+                              emili::Neighborhood *nei,
+                              emili::pfsp::PermutationFlowShop *instance);
 
     /**
      * identify initial solution builder

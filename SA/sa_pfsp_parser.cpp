@@ -63,7 +63,8 @@ emili::pfsp::PermutationFlowShop* SAPFSPParser::instantiateSAPFSPProblem(char* t
 
 SAInitTemp* SAPFSPParser::INITTEMP(prs::TokenManager& tm,
                                    emili::InitialSolution *initsol,
-                                   emili::Neighborhood *nei) {
+                                   emili::Neighborhood *nei,
+                                   emili::pfsp::PermutationFlowShop *instance) {
 
     if (tm.checkToken(FIXEDINITTEMP)) {
         double             value     = tm.getDecimal();
@@ -105,6 +106,13 @@ SAInitTemp* SAPFSPParser::INITTEMP(prs::TokenManager& tm,
         init_temp->set(1);
         return init_temp;
     } else if (tm.checkToken(SIMPLEMISEVICIUSINITTEMP)) {
+        int length = tm.getInteger();
+        float l1 = tm.getDecimal();
+        float l2 = tm.getDecimal();
+        SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
+        init_temp->set(1);
+        return init_temp;
+    } else if (tm.checkToken(OSMANPOTTSINITTEMP)) {
         int length = tm.getInteger();
         float l1 = tm.getDecimal();
         float l2 = tm.getDecimal();
@@ -664,7 +672,7 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     problem(tm);
     emili::InitialSolution* initsol    = init(tm);
     emili::Neighborhood*    nei        = neigh(tm);
-    SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
+    SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei, instance);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
     SACooling*       cooling    = COOL(tm, inittemp, nei);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
