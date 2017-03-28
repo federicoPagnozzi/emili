@@ -16,7 +16,7 @@ void info();
 class ParamsParser: public AlgoBuilder
 {
 protected:    
-    emili::pfsp::PermutationFlowShop* istance;
+    emili::pfsp::PermutationFlowShop* instance;
     std::vector< emili::pfsp::PermutationFlowShop* > istances;
     /**  ALGOS */
     emili::LocalSearch* eparams(prs::TokenManager& tm);
@@ -50,7 +50,7 @@ public:
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);
     virtual std::string info();
     ParamsParser() { }
-    ~ParamsParser() { delete istance; for(int i=0;i<istances.size();i++)delete istances[i];}
+    ~ParamsParser() { delete instance; for(int i=0;i<istances.size();i++)delete istances[i];}
 };
 }
 #endif // PARAMSPARSER_H

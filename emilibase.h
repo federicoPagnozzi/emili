@@ -207,7 +207,7 @@ protected:
      *  so you can avoid the use of a pointer to void.
      * @param data
      */
-    virtual void setRawData(const void* data)=0;    
+    virtual void setRawData(const void* data)=0;
 public:
     /**
      * @brief Solution
@@ -288,6 +288,7 @@ public:
      * return a pointer to a clone of the Solution.
      */
     virtual Solution* clone()=0;
+
     /**
      * @brief ~Solution
      * Destructor of Solution.
@@ -449,7 +450,7 @@ protected:
      * @brief secs
      * Running time in seconds
      */
-    int secs;
+    float secs;
     /**
      * @brief _ratio
      * not used.
@@ -808,7 +809,7 @@ Solution* bestSoFar;
  * @brief seconds
  * Maximum amount of time, in seconds, for the local search
  */
-int seconds;
+float seconds;
 /**
      * @brief LocalSearch
      * the empty constructor is declared protected so that an extending class can not
@@ -838,7 +839,7 @@ public:
      * @param time
      * Maximum amount of time, in seconds, for the local search
      */
-    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, int time):
+    LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
     init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
@@ -853,12 +854,12 @@ public:
      * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
-    virtual Solution* timedSearch(int seconds);
+    virtual Solution* timedSearch(float seconds);
     /** @brief timedSearch
      * this method ends the execution of the algorithm when the termination criterion is true or
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
-    virtual Solution* timedSearch(int seconds, Solution* initial);
+    virtual Solution* timedSearch(float seconds, Solution* initial);
     /** @brief timedSearch
      * In order to make easier the creation of batchs of LocalSearch objects the time of execution
      * can be inserted as an instance variable in the constructor of the object so these methos below
@@ -870,8 +871,8 @@ public:
      * after the amount of seconds provided as argument (regardless of the value of the termination).
      */
     virtual Solution* timedSearch(Solution* initial);
-    virtual void setSearchTime(int time);
-    virtual int getSearchTime();
+    virtual void setSearchTime(float time);
+    virtual float getSearchTime();
     emili::Termination& getTermination();
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();
