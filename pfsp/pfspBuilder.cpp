@@ -1065,7 +1065,7 @@ emili::Problem* prs::PfspBuilder::openInstance()
         exit(-1);
 }
 
-bool isParsable(std::string &problem)
+bool isTheProbleParsable(std::string &problem)
 {
     if(strcmp(problem.c_str(),PROBLEM_PFS_WT)==0)
     {
@@ -1177,13 +1177,13 @@ bool isParsable(std::string &problem)
 bool prs::PfspBuilder::isCompatibleWith(char *problem_definition)
 {
     std::string s(problem_definition);
-    return isParsable(s);
+    return isTheProbleParsable(s);
 }
 
 bool prs::PfspBuilder::canOpenInstance(char *problem_definition)
 {
     std::string s(problem_definition);
-    return isParsable(s);
+    return isTheProbleParsable(s);
 }
 
 extern "C" {

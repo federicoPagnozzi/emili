@@ -11,14 +11,10 @@
 #include <cstring>
 #include <algorithm>
 #include "generalParser.h"
-//#define MAIN_NEW
-#ifndef MAIN_NEW
-#include "pfsp/paramsparser.h"
-#else
-#include "pfsp/pfspBuilder.h"
-#endif
+#include "vrp/vrpBuilder.h"
 #include "setup.h"
 #include <sys/types.h>
+#define MAIN_NEW
 #ifdef EM_LIB
 #include <dirent.h>
 #include <dlfcn.h>
@@ -188,12 +184,13 @@ int main(int argc, char *argv[])
 
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
-    prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    //prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    prs::VrpBuilder vrp(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
 #ifdef EM_LIB
     loadBuilders(ps);
 #else
-    ps.addBuilder(&pfspb);
+    ps.addBuilder(&vrp);
 #endif
     ls = ps.parseParams();
     if(ls!=nullptr)

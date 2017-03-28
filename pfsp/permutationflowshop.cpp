@@ -1277,6 +1277,8 @@ int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial
     return instance.computeSDSTWCT(partial_solution,size);
 }
 
+
+
 emili::Solution* emili::pfsp::PfspInitialSolution::generateEmptySolution()
 {
     std::vector< int > empty(pis.getNjobs()+1);
