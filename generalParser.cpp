@@ -20,14 +20,17 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "563ee61221016e17bf1ea105528804409a8d8981"
+#define GIT_COMMIT_NUMBER "5d88679782f6b293057e3c98f04b056de6c05b35"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
+#define FEASIBLE_ILS "fils"
 #define TABU "tabu"
 #define FIRST "first"
+#define FEASIBLE_FIRST "ffirst"
 #define TB_FIRST "tfirst"
 #define BEST "best"
+#define FEASIBLE_BEST "fbest"
 #define TB_BEST "tbest"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
@@ -556,6 +559,14 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();        
         emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
         ls = new emili::IteratedLocalSearch(*lls,*pft,*prsp,*tac);
+    }else if(tm.checkToken(FEASIBLE_ILS))
+    {
+        printTab("ILS that returns a feasible solution if it generates one");
+        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        emili::Termination* pft = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
+        ls = new emili::FeasibleIteratedLocalSearch(*lls,*pft,*prsp,*tac);
     }else if(tm.checkToken(TABU))
     {
         printTab("TABU SEARCH");
@@ -598,6 +609,22 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         ls =  new emili::BestImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(FEASIBLE_FIRST))
+    {
+        printTab("FIRST IMPROVEMENT that returns a feasible solution if it generates one");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
+        ls =  new emili::FeasibleFirstImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(FEASIBLE_BEST))
+    {
+        printTab("BEST IMPROVEMENT that returns a feasible solution if it generates one");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
+        ls =  new emili::FeasibleBestImprovementSearch(*in,*te,*ne);
     }
     else if(tm.checkToken(TB_FIRST))
     {
