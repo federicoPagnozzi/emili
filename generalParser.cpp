@@ -96,7 +96,6 @@ void prs::emili_header()
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
     std::cout << std::endl;
-    std::cout << "SI, SOY UNA PUTA " << std::endl;
 
     std::cout << "commit : " << GIT_COMMIT_NUMBER << std::endl;
 }

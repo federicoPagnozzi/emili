@@ -1763,9 +1763,9 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
     //delete Solaux;
     delete Solaux;
     
-    
-    
-    //std:: cout << "FIN" <<endl;
+    std::cout <<"INIT: " << InitialSol->getSolutionValue() << std::endl;
+    //std::cout << InitialSol->numAddRoutes << std::endl;
+
     return InitialSol;
 }
 

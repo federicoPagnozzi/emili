@@ -3156,6 +3156,7 @@ void Route::resize_from(int nl){
            maxcap3.insert(maxcap3.end()-2,y1,0);
            cap4.insert(cap4.end()-2,y1,0);
            maxcap4.insert(maxcap4.end()-2,y1,0);
+           length=locations.size();
 
        }else{
            if(length>nl){
@@ -3177,6 +3178,7 @@ void Route::resize_from(int nl){
                maxcap3.erase(maxcap3.end()-1-y,maxcap3.end()-1);
                cap4.erase(cap4.end()-1-y,cap4.end()-1);
                maxcap4.erase(maxcap4.end()-1-y,maxcap4.end()-1);
+               length=locations.size();
 
 
 

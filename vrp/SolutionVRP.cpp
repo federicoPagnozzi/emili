@@ -430,32 +430,44 @@ bool SolutionVRP::tw_feas(int i,int j,int k,int l, std::vector<RichiesteServizio
 void SolutionVRP::createnewroute(int i, int j, int k, int l, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &D, std::vector<Veicoli*> &veic){
     
   
-    int loc_aux[route[i]->length-(j+1)];
-    int rd_aux[route[i]->length-(j+1)];
-    int ty_aux[route[i]->length-(j+1)];
-
+    int loc_aux[route[i]->length-(j+2)];
+    int rd_aux[route[i]->length-(j+2)];
+    int ty_aux[route[i]->length-(j+2)];
+    int orlength=route[i]->length;
     int o, p;
-    
-    for(o=0;o<route[i]->length-(j+1); o++)
+
+    for(o=0;o<orlength-(j+2); o++)
     {
         loc_aux[o]=route[i]->locations[o+j+1];
         rd_aux[o]=route[i]->Ricid[o+j+1];
         ty_aux[o]=route[i]->type[o+j+1];
     }
+   // for(o=0;o<orlength-(j+2); o++)
+   // {
+   //     std::cout << loc_aux[o]  << " " ;
+   //     std::cout << rd_aux[o]  << " " ;
+   //     std::cout << ty_aux[o]  << " " ;
+   //     std::cout << std::endl;
+   // }
     int nl=(j+1)+(route[k]->length-(l+1));
+    //std::cout << nl << std::endl;
     route[i]->resize_from(nl);
+
     
-    
-    for(o=0; o<route[k]->length-(l+1); o++){
+    for(o=0; o<route[k]->length-(l+2); o++){
         route[i]->locations[o+j+1]=route[k]->locations[o+l+1];
         route[i]->Ricid[o+j+1]=route[k]->Ricid[o+l+1];
         route[i]->type[o+j+1]=route[k]->type[o+l+1];
     }
     
-    int nl1=(l+1)+(route[i]->length-(j+1));
-    route[j]->resize_from(nl1);
+    //route[i]->display_route();
 
-    for(o=0; o<route[i]->length-(j+1); o++){
+    int nl1=(l+1)+(orlength-(j+1));
+
+    //std::cout << nl1 << std::endl;
+    route[k]->resize_from(nl1);
+    //std::cout << nl << std::endl;
+    for(o=0; o<orlength-(j+2); o++){
         route[k]->locations[o+l+1]=loc_aux[o];
         route[k]->Ricid[o+l+1]=rd_aux[o];
         route[k]->type[o+l+1]=ty_aux[o];
@@ -471,9 +483,9 @@ void SolutionVRP::createnewroute(int i, int j, int k, int l, std::vector<Richies
 void SolutionVRP::changetworoutes(int i, int j, int k, int l, std::vector<RichiesteServizio*> & ric, std::vector<std::vector<double>> &D ,std::vector<Veicoli*> & veic){
     
     //createnewroute(i,j,k, l, ric, D, route[i], veic, MaxTimeRoute);
-    createnewroute(k,l,i, j, ric, D, veic);
-    route[i]->length=route[i]->locations.size();
-    route[k]->length=route[k]->locations.size();
+
+    createnewroute(i,j,k, l, ric, D, veic);
+
     
     route[i]->numRicRoute=(route[i]->length-2)/2;
     route[k]->numRicRoute=(route[k]->length-2)/2;
