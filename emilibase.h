@@ -288,6 +288,14 @@ public:
      * return a pointer to a clone of the Solution.
      */
     virtual Solution* clone()=0;
+    /**
+     *@brief isFeasible
+     * This method should be overwritten if the problem has
+     * unfeasible solutions.
+     * this method should return true if the Solution is feasible and
+     * false in the other case.
+     */
+    virtual bool isFeasible() {return true;}
 
     /**
      * @brief ~Solution
@@ -806,6 +814,15 @@ Neighborhood* neighbh;
  */
 Solution* bestSoFar;
 /**
+ * @brief feasibleBest
+ */
+Solution* feasibleBest;
+/**
+ * @brief setBest
+ * @param nBest
+ */
+inline void setBest(Solution* nBest);
+/**
  * @brief seconds
  * Maximum amount of time, in seconds, for the local search
  */
@@ -827,7 +844,7 @@ public:
      * The Neighborhood relation used by the Local Search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
     /**
      * @brief LocalSearch
      * @param initialSolutionGenerator
@@ -876,8 +893,8 @@ public:
     emili::Termination& getTermination();
     emili::Neighborhood& getNeighborhood();
     emili::InitialSolution& getInitialSolution();
-    virtual Solution* getBestSoFar() { return bestSoFar;}
-    virtual void setBestSoFar(Solution* newBest) {this->bestSoFar=newBest;}
+    virtual Solution* getBestSoFar(); //{ return bestSoFar;}
+    virtual void setBestSoFar(Solution* newBest);// {this->bestSoFar=newBest;}
     virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh; delete bestSoFar;}
 
 };
@@ -903,7 +920,25 @@ public:
     virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
     virtual Solution* getBestSoFar() { return nullptr;}
 };
-
+/*
+ * @brief The FeasibleLocalSearch class
+ * This local search takes into account infeasibility and
+ * keeps two best solution feasible and unfeasible.
+ * The feasible one is returned if it exisist at the end of its
+ * execution.
+ */
+/*
+class FeasibleLocalSearch: public emili::LocalSearch
+{
+protected:
+    Solution* feasibleBest;
+    inline void setBest(Solution* nBest);
+public:
+    FeasibleLocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh),feasibleBest(nullptr) { }
+    virtual Solution* getBestSoFar();
+    virtual void setBestSoFar(Solution* newBest);
+};
+*/
 /** @brief The BestImprovementSearch class
  this class models a best improvement local search using the dumb neighborhood
  with the iterator interface.
@@ -929,6 +964,16 @@ public:
     virtual Solution* search(emili::Solution* initial);
 };
 
+/** @brief The FeasibleBestImprovementSearch class
+ * this class models a best improvement local search with the iterator interface.
+ */
+class FeasibleBestImprovementSearch : public emili::LocalSearch
+{
+public:
+    FeasibleBestImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
+    virtual Solution* search(emili::Solution* initial);
+};
+
 /** @brief The FirstImprovementSearch class
  this class models a first improvement local search using the dumb neighborhood
  with the iterator interface.
@@ -951,6 +996,17 @@ protected:
     Problem& tiebraker;
 public:
     TieBrakingFirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, Problem& problem):emili::FirstImprovementSearch(initialSolutionGenerator,terminationcriterion,neighborh),tiebraker(problem) {}
+    virtual Solution* search(emili::Solution* intial);
+};
+
+/** @brief The FeasibleFirstImprovementSearch class
+ this class models a first improvement local search using the dumb neighborhood
+ with the iterator interface.
+ */
+class FeasibleFirstImprovementSearch : public emili::LocalSearch
+{
+public:
+    FeasibleFirstImprovementSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):emili::LocalSearch(initialSolutionGenerator,terminationcriterion,neighborh) {}
     virtual Solution* search(emili::Solution* intial);
 };
 
@@ -1096,6 +1152,22 @@ public:
     virtual Solution* timedSearch(int seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
     virtual ~IteratedLocalSearch() {delete &pert; delete &acc;}
+};
+
+/**
+ * IteratedLocalSearch it's a general implementation of iterated local search.
+*/
+class FeasibleIteratedLocalSearch: public emili::IteratedLocalSearch
+{
+public:
+    FeasibleIteratedLocalSearch(LocalSearch& localsearch,Termination& terminationcriterion,Perturbation& perturb,Acceptance& accept):emili::IteratedLocalSearch(localsearch,terminationcriterion,perturb,accept){}
+
+    virtual Solution* search();
+    virtual Solution* search(emili::Solution* initial);
+    virtual Solution* timedSearch(int seconds);
+    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* getBestSoFar();
+    virtual ~FeasibleIteratedLocalSearch() {}
 };
 
 /**

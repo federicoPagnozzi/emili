@@ -19,17 +19,23 @@ if(USE_SSE)
 	message(STATUS "Using sse compile path") 
 	add_definitions(-DENABLE_SSE)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
+else()
+        message(STATUS "sse compile path disabled")
 endif(USE_SSE)
 
 #Solution stats
 if(WITH_STATS)
     message(STATUS "Solution stats enabled")
     add_definitions(-DWITH_STATS)
+else()
+    message(STATUS "Solution stats disabled")
 endif(WITH_STATS)
 
 if(USE_NEW_MAIN)
     message(STATUS "Component based algorithm loading enabled")
     add_definitions(-DMAIN_NEW)
+else()
+    message(STATUS "Component based algorithm loading not enabled")
 endif(USE_NEW_MAIN)
 
 #C++ 11 detection
