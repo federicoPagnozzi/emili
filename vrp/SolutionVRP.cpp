@@ -13,7 +13,7 @@
 #include "Route.hpp"
 
 
-SolutionVRP::SolutionVRP():emili::Solution(0) {
+SolutionVRP::SolutionVRP():emili::Solution(std::numeric_limits<double>::max()) {
     
     numRoutes=0;
     numAddRoutes=0;
@@ -168,7 +168,6 @@ void SolutionVRP::updatecost(int numVeicoli){
         }
         
     }
-    
     solution_value=c;
 }
 

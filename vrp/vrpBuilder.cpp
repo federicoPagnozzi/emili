@@ -33,6 +33,10 @@
  *
  */
 #define NEIGHBORHOOD_RELOCATE "relocate"
+#define NEIGHBORHOOD_ELIMINATE "eliminate"
+#define NEIGHBORHOOD_TWO_OPT "topt"
+#define NEIGHBORHOOD_FOUR_OPT "fopt"
+
 
 /*
  * END Neighborhoods
@@ -79,11 +83,26 @@ emili::Neighborhood* prs::VrpBuilder::buildNeighborhood()
         printTab( "Relocate Neighborhood");
         neigh = new RelocateNeighborhood(*instance);
     }
+    else if(tm.checkToken(NEIGHBORHOOD_TWO_OPT))
+    {
+        printTab(" Two-Opt Neighborhood");
+        neigh= new TwoOptNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_FOUR_OPT))
+    {
+        printTab("Four-Opt Neighborhood");
+        neigh=new FourOptNeighborhood(*instance);
+    }else if(tm.checkToken(NEIGHBORHOOD_ELIMINATE))
+    {
+        printTab("Eliminate Neighborhood");
+        neigh=new EliminateNeighborhood(*instance);
+    }
     prs::decrementTabLevel();
     return neigh;
 }
 emili::Problem* prs::VrpBuilder::buildProblem()
 {
+
     return gp.getInstance();
 }
 
@@ -91,10 +110,11 @@ emili::Problem* prs::VrpBuilder::openInstance()
 {
     //a2-16hetIUY
     std::string instance_string = tm.tokenAt(1);
-    Instance* inst=NULL;
+    Instance* inst=nullptr;
     std::cout << instance_string << "\n";
     inst = new Instance();
     inst->read_instance(instance_string, 1);
+    tm.next();
     return inst;
 }
 

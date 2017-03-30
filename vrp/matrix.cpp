@@ -17,6 +17,7 @@
 #include <cstring>
 #include <ctime>
 #include"RichiesteServizio.hpp"
+#include"../emilibase.h"
 //#include <sys/time.h>
 //#include "openfiles.h"
 
@@ -74,7 +75,8 @@ int* random_order(std::vector<RichiesteServizio*> ric, int numRichieste, int*E)
     
     for(i=0; i<numRichieste; i++)
     {
-        int r=rand() % numRichieste;
+        //int r=rand() % numRichieste;
+        int r=emili::generateRandomNumber() % numRichieste;
         aux=E[i];
         E[i]=E[r];
         E[r]=aux;
@@ -93,7 +95,7 @@ int* random_order2(int m, int*E){
     
     for(i=0; i<m; i++)
     {
-        int r=rand() % m;
+        int r=emili::generateRandomNumber() % m;
         aux=E[i];
         E[i]=E[r];
         E[r]=aux;

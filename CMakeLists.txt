@@ -6,6 +6,7 @@ aux_source_directory(./vrp SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
 option(USE_NEW_MAIN "Use new loading paradigm" OFF)
+option(WITH_STATS "Prints run informations" OFF)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
 
 

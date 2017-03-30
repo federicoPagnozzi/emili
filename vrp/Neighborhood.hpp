@@ -29,6 +29,14 @@ SolutionVRP* Relocate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vecto
 SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vector<std::vector<int>> &MatCompVei, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> & MatTemp, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> & D, int numRichieste);
 
 void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,int& bestRequest, int& bestVei, int numVeicoli, std::vector<std::vector<int>> &MatCompVei, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> & MatTemp, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> & D, int numRichieste);
+void two_opt_2(SolutionVRP* Sol,int vei, int& bestpos1, int& bestv2, int& bestpos2,int numVeicoli, std::vector<std::vector<double>> & D, std::vector<Veicoli*> &veic, std::vector<RichiesteServizio*> &ric, int numRichieste);
+
+
+void Eliminate_NeighborhoodF_2(SolutionVRP* Sol,int vei, int numVeicoli, std::vector<std::vector<int>> &MatCompVei, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> & MatTemp, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> & D, int numRichieste);
+
+
+void r_4_opt_2(SolutionVRP* Sol, int vei, int& best_start, int& best_first, int& best_second, int& best_third, int numVeicoli, std::vector<std::vector<double>> & D, std::vector<RichiesteServizio*> &ric, std::vector<Veicoli*> &veic);
+
 
 class RelocateNeighborhood : public emili::Neighborhood
 {
@@ -45,6 +53,67 @@ protected:
     virtual void reverseLastMove(emili::Solution* step);
 public:
     RelocateNeighborhood(Instance& instance):inst(instance) {}
+    virtual NeighborhoodIterator begin(emili::Solution* base);
+    virtual void reset();
+    virtual emili::Solution* random(emili::Solution* currentSolution);
+    virtual int size() { return num_r;}
+};
+
+class TwoOptNeighborhood: public emili::Neighborhood
+{
+ protected:
+    int vei;//vehicle to modify route1
+    int num_r; //number of routes
+    // reverse last move variables
+    int bestpos1; //best position of the route1 of last change
+    int bestv2; //best route2 to exchange of last change
+    int bestpos2;//best position of the route2  of last change
+    Instance& inst;
+    virtual emili::Solution* computeStep(emili::Solution* step);
+    virtual void reverseLastMove(emili::Solution* step);
+
+
+ public:
+    TwoOptNeighborhood(Instance& instance):inst(instance) {}
+    virtual NeighborhoodIterator begin(emili::Solution* base);
+    virtual void reset();
+    virtual emili::Solution* random(emili::Solution* currentSolution);
+    virtual int size() { return num_r;}
+
+};
+
+class FourOptNeighborhood: public emili::Neighborhood
+{
+protected:
+    int vei; //vehicle to modify
+    int num_r; // number of routes
+    // reverse last move variables
+    int best_start; // where the change has started of last change
+    int best_first; // first node is in location best_first at last change
+    int best_second; // second node is in location best_second at last change
+    int best_third; //third node is in location best_third at last change
+    Instance& inst;
+    virtual emili::Solution* computeStep(emili::Solution* step);
+    virtual void reverseLastMove(emili::Solution* step);
+public:
+    FourOptNeighborhood(Instance& instance):inst(instance) {}
+    virtual NeighborhoodIterator begin(emili::Solution* base);
+    virtual void reset();
+    virtual emili::Solution* random(emili::Solution* currentSolution);
+    virtual int size() { return num_r;}
+};
+
+class EliminateNeighborhood : public emili::Neighborhood
+{
+protected:
+    int vei; //vehicle to modify
+    int num_r; // number of routes
+    SolutionVRP* base_solution;
+    Instance& inst;
+    virtual emili::Solution* computeStep(emili::Solution* step);
+    virtual void reverseLastMove(emili::Solution* step);
+public:
+    EliminateNeighborhood(Instance& instance):inst(instance),base_solution(new SolutionVRP()) {}
     virtual NeighborhoodIterator begin(emili::Solution* base);
     virtual void reset();
     virtual emili::Solution* random(emili::Solution* currentSolution);

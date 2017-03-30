@@ -54,6 +54,8 @@ public:
     void insert_delivery(int req, int g, RichiesteServizio* ric);
     void delete_delivery(int g);
     //void delete_pickup(int g, double** Time);
+
+    void insert_request_on(int req, int p, int d, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time);
     void insert_req_pos(int req, int l, int g, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time);
     //void insert_req(int req, int l, int g, RichiesteServizio* ric, double** Time);
     void calculate_times(RichiesteServizio* ric, double** Time);
@@ -87,6 +89,7 @@ public:
     int find_delivery(int m);
     void delete_req(int m,  std::vector<std::vector<double>> &Time);
     int count_req3(int i);
+    void reverse_order(int u, int i, int j, int z);
     void change_order(int u, int i , int j, int z);
     bool delivery_before_pickup(int u);
     bool check_feas1(int u, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> & Time, int i, int j, int z);
@@ -114,6 +117,8 @@ public:
     bool capacity_feasibility2(int p1,int req, std::vector<Veicoli*> &veic, std::vector<RichiesteServizio*>  &ric);
     bool tw_P_feasibility_2(std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>>&Time, int p1, int req);
     bool check_feas_D_tw1_2(double* earl, int req, std::vector<RichiesteServizio*> &ric, int g, int l, std::vector<std::vector<double>> &Time, std::vector<Veicoli*> &veic);
+
+
 };
 bool check_feas_D_tw2(double* earl, int* typ, int* rid, int l, int g,std::vector<RichiesteServizio*> &ric);
 double calcF(int* rid, double* wait, double* earl, double* dep, int a, std::vector<RichiesteServizio*> &ric, int* typ, int len);

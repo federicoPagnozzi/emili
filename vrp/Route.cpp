@@ -422,6 +422,56 @@ void Route::insert_req_pos(int req, int l, int g, std::vector<RichiesteServizio*
     
 }
 
+void Route::insert_request_on(int req, int p, int d, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time){
+
+
+
+
+    locations.insert(locations.begin()+p,ric[req]->locationP);
+    locations.insert(locations.begin()+(d),ric[req]->locationD);
+    Ricid.insert(Ricid.begin()+(p), req);
+    Ricid.insert(Ricid.begin()+(d), req);
+    type.insert(type.begin()+(p), 1);
+    type.insert(type.begin()+(d), -1);
+
+    arrival.insert(arrival.begin()+(p),0);
+    departure.insert(departure.begin()+(p), 0);
+    waiting.insert(waiting.begin()+(p), 0);
+    earliest.insert(earliest.begin()+(p),0);
+    latest.insert(latest.begin()+(p), 0);
+    cap1.insert(cap1.begin()+(p), 0);
+    maxcap1.insert(maxcap1.begin()+(p), 0);
+    cap2.insert(cap2.begin()+(p), 0);
+    maxcap2.insert(maxcap2.begin()+(p), 0);
+    cap3.insert(cap3.begin()+(p), 0);
+    maxcap3.insert(maxcap3.begin()+(p), 0);
+    cap4.insert(cap4.begin()+(p), 0);
+    maxcap4.insert(maxcap4.begin()+(p), 0);
+
+
+    arrival.insert(arrival.begin()+(d),0);
+    departure.insert(departure.begin()+(d), 0);
+    waiting.insert(waiting.begin()+(d), 0);
+    earliest.insert(earliest.begin()+(d),0);
+    latest.insert(latest.begin()+(d), 0);
+    cap1.insert(cap1.begin()+(d), 0);
+    maxcap1.insert(maxcap1.begin()+(d), 0);
+    cap2.insert(cap2.begin()+(d), 0);
+    maxcap2.insert(maxcap2.begin()+(d), 0);
+    cap3.insert(cap3.begin()+(d), 0);
+    maxcap3.insert(maxcap3.begin()+(d), 0);
+    cap4.insert(cap4.begin()+(d), 0);
+    maxcap4.insert(maxcap4.begin()+(d), 0);
+
+    length=locations.size();
+    numRicRoute=(length-2)/2;
+
+    totaldist=calculatedist(Time);
+
+}
+
+
+
 void Route::calculate_times(RichiesteServizio* ric, double** Time){
     
     int i;
@@ -1527,6 +1577,71 @@ int Route::count_req3(int i){
     
     return a;
 }
+void::Route::reverse_order(int u, int i, int j, int z){
+
+    //the one in pos i goes in 0, the one in pos j goes in 1, the one in pos z goes in 2
+
+    int a1=locations[u];
+    int a2=locations[u+1];
+    int a3=locations[u+2];
+
+    int b1=Ricid[u];
+    int b2=Ricid[u+1];
+    int b3=Ricid[u+2];
+
+    int c1=type[u];
+    int c2=type[u+1];
+    int c3=type[u+2];
+
+
+    if(i==0){
+
+    }else{
+        if(i==1){
+            locations[u]=a2;
+            Ricid[u]=b2;
+            type[u]=c2;
+
+        }else{
+            locations[u]=a3;
+            Ricid[u]=b3;
+            type[u]=c3;
+
+        }
+
+    }
+
+    if(j==0){
+        locations[u+1]=a1;
+        Ricid[u+1]=b1;
+        type[u+1]=c1;
+
+    }else{
+        if(j==1){
+
+        }else{
+            locations[u+1]=a3;
+            Ricid[u+1]=b3;
+            type[u+1]=c3;
+        }
+
+    }
+    if(z==0){
+        locations[u+2]=a1;
+        Ricid[u+2]=b1;
+        type[u+2]=c1;
+
+    }else{if(z==1){
+            locations[u+2]=a3;
+            Ricid[u+2]=b3;
+            type[u+2]=c3;
+
+        }else{}}
+
+
+}
+
+
 void Route::change_order(int u, int i , int j, int z){
 
 

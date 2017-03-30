@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "624b82be30bc30f37afa89482fd4fc3b18b9358d"
+#define GIT_COMMIT_NUMBER "bc4e2b0638d1aff3f3d27f2b9f3ddfbcb85313d0"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -92,7 +92,9 @@ void prs::emili_header()
     std::cout << "\t|  __| | |\\/| | | | | |      | |  " << std::endl;
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
-    std::cout << std::endl;    
+    std::cout << std::endl;
+    std::cout << "SI, SOY UNA PUTA " << std::endl;
+
     std::cout << "commit : " << GIT_COMMIT_NUMBER << std::endl;
 }
 
@@ -478,7 +480,7 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
         emili::initializeRandom(getSeed(tm));
         this->instance = probBuilder->openInstance();
         emili::LocalSearch* ls = buildComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
+        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
         if(tm.seek(PRINT_SOLUTION)>0)
         {
             emili::set_print(true);

@@ -6,6 +6,7 @@
 #ifndef GENERALPARSER_H
 #define GENERALPARSER_H
 #include "emilibase.h"
+#include "assert.h"
 /**
  * All the classes that are involved in the parsing of the command line belongs to this namespace
  */
