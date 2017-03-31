@@ -201,11 +201,13 @@ void lastPrint()
 }
 
 int max_time = -1 ;
-static inline void setTimer(int maxTime)
+static inline void setTimer(float maxTime)
 {
     keep_going = true;
-    timer.it_value.tv_sec = maxTime;
-    timer.it_value.tv_usec = 0;
+    int secs = floorf(maxTime);
+    float usecs = (maxTime-secs)*1000*1000;
+    timer.it_value.tv_sec = secs;
+    timer.it_value.tv_usec = usecs;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
     emili::iteration_counter_zero();
@@ -238,7 +240,7 @@ static inline void stopTimer()
     std::cout << "timer stopped" << std::endl;
 }
 
-static inline void setTimer(int maxTime)
+static inline void setTimer(float maxTime)
 {
     //std::cout << "timer set"
 }
@@ -274,12 +276,13 @@ void emili::iteration_decrement(){
 /**
  * Print Solution info
  */
-
+double cbest = std::numeric_limits<double>::max();
 inline void emili::printSolstats(emili::Solution* sol)
 {
 #ifdef WITH_STATS
-    if(print)
+    if(print && cbest > sol->getSolutionValue())
     {
+      cbest = sol->getSolutionValue();
       std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << "\n";
     }
 #endif
@@ -391,6 +394,23 @@ emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::end()
     return emili::Neighborhood::NeighborhoodIterator(this,nullptr);
 }
 
+emili::Solution* emili::RandomConstructiveHeuristicNeighborhood::computeStep(Solution *step)
+{
+     if(state==0)
+     {
+         state=1;
+         emili::Solution* nsol = heuristic->generateSolution();
+         *step = *nsol;
+         delete nsol;
+         return step;
+     }
+     else
+     {
+         state=0;
+         return nullptr;
+     }
+}
+
 /**
  * LocalSearch base class ( Old neighborhood concept)
  */
@@ -399,6 +419,7 @@ emili::Solution* emili::LocalSearch::search()
 {
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
+    printSolstats(current);
     emili::Solution* sol = search(current);
     if(current!=sol)
         delete current;
@@ -406,7 +427,7 @@ emili::Solution* emili::LocalSearch::search()
     return sol;
 }
 
-emili::Solution* emili::LocalSearch::timedSearch(int time_seconds)
+emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
 {
     neighbh->reset();
     emili::Solution* current = init->generateSolution();
@@ -445,7 +466,7 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::LocalSearch::timedSearch(int time_seconds, Solution *initial)
+emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *initial)
 {
 
     setTimer(time_seconds);
@@ -474,12 +495,12 @@ emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
     return sol;
 }
 
-int emili::LocalSearch::getSearchTime()
+float emili::LocalSearch::getSearchTime()
 {
     return this->seconds;
 }
 
-void emili::LocalSearch::setSearchTime(int time)
+void emili::LocalSearch::setSearchTime(float time)
 {
 #ifdef NOSIG
     if(time > 0)
@@ -533,6 +554,40 @@ emili::Solution* emili::EmptyLocalSearch::timedSearch()
 }
 
 /**
+ * Feasible Local Search stuff
+ */
+
+void emili::LocalSearch::setBest(Solution* nBest)
+{
+    *bestSoFar = *nBest;
+    if(nBest->isFeasible())
+    {
+        if(feasibleBest==nullptr)
+        {
+            feasibleBest = nBest->clone();
+        }
+        else
+        {
+            *feasibleBest = *nBest;
+        }
+    }
+}
+
+emili::Solution* emili::LocalSearch::getBestSoFar()
+{
+    if(feasibleBest != nullptr)
+    {
+        return feasibleBest;
+    }
+    return bestSoFar;
+}
+
+void emili::LocalSearch::setBestSoFar(Solution *newBest)
+{
+    setBest(newBest);
+}
+
+/**
  * Best improvement local search
  */
 emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
@@ -551,6 +606,7 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
             {
                 if(incumbent->operator >( *ithSolution)){                    
                     *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                 }                
             }
             delete ithSolution;
@@ -578,6 +634,7 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
             {
                 if(incumbent->operator >( *ithSolution)){
                     *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                 }else if(incumbent->operator ==( *ithSolution))// if the two solution have the same cost
                 {
                     //Compare the two solution using the cost for another problem
@@ -586,7 +643,37 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
                    {
 
                        *incumbent = *ithSolution;
+                       printSolstats(incumbent);
                    }
+                }
+            }
+            delete ithSolution;
+        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        delete incumbent;
+        return bestSoFar->clone();
+}
+
+/**
+ * Feasible Best improvement local search
+ */
+emili::Solution* emili::FeasibleBestImprovementSearch::search(emili::Solution* initial)
+{
+        termcriterion->reset();
+        neighbh->reset();
+        emili::Solution* incumbent = initial->clone();
+        emili::Solution* ithSolution;
+        Neighborhood::NeighborhoodIterator end = neighbh->end();
+        do
+        {
+            //*bestSoFar = *incumbent;
+            setBest(incumbent);
+            Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
+            ithSolution = *iter;
+            for(;iter!=end;++iter)
+            {
+                if(incumbent->operator >( *ithSolution)){
+                    *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                 }
             }
             delete ithSolution;
@@ -617,6 +704,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
             {               
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
+                    printSolstats(incumbent);
                     break;
                 }
             }
@@ -648,6 +736,7 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
             {
                 if(incumbent->operator >(*ithSolution)){
                     *incumbent=*ithSolution;
+                    printSolstats(incumbent);
                     break;
                 }else if(incumbent->operator ==( *ithSolution))// if the two solution have the same cost
                 {
@@ -657,8 +746,41 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
                    {
 
                        *incumbent = *ithSolution;
+                       printSolstats(incumbent);
                        break;
                    }
+                }
+            }
+            delete ithSolution;
+        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        delete incumbent;
+        return bestSoFar->clone();
+}
+
+/**
+ * Feasible First improvement local search
+ */
+emili::Solution* emili::FeasibleFirstImprovementSearch::search(emili::Solution* initial)
+{
+        termcriterion->reset();
+        neighbh->reset();
+        emili::Solution* incumbent = initial->clone();
+        emili::Solution* ithSolution;
+
+        //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
+        Neighborhood::NeighborhoodIterator end = neighbh->end();
+        do{
+
+            setBest(incumbent);
+            Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
+            ithSolution = *iter;
+
+            for(;iter!=end;++iter)
+            {
+                if(incumbent->operator >(*ithSolution)){
+                    *incumbent=*ithSolution;
+                    printSolstats(incumbent);
+                    break;
                 }
             }
             delete ithSolution;
@@ -740,6 +862,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
             if(*incumbent > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar))
             {
                 *incumbent = *ithSolution;
+                printSolstats(incumbent);
             }
         }
 
@@ -776,6 +899,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
                 tabuMemory.registerMove(incumbent,ithSolution);
                 if(incumbent->operator >(*ithSolution)&& (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){                    
                     *incumbent = *ithSolution;
+                    printSolstats(incumbent);
                     break;
                 }
             }
@@ -932,6 +1056,7 @@ emili::Solution* emili::IteratedLocalSearch::search(){
     termcriterion->reset();
     acc.reset();
     Solution* current = init->generateSolution();
+    printSolstats(current);
     Solution* ret = search(current);
     delete current;
     return ret;
@@ -1064,6 +1189,159 @@ emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
         return bestOfInnerLocal;
     }
     return bestSoFar;
+}
+
+/**
+ * Feasible Iterated Local Search
+ */
+
+emili::Solution* emili::FeasibleIteratedLocalSearch::search(){
+    termcriterion->reset();
+    acc.reset();
+    Solution* current = init->generateSolution();
+    printSolstats(current);
+    Solution* ret = search(current);
+    delete current;
+    return ret;
+}
+
+emili::Solution* emili::FeasibleIteratedLocalSearch::search(emili::Solution* initial){
+    termcriterion->reset();
+    acc.reset();
+    emili::Solution* s = ls.search(initial);
+    //*bestSoFar = *s;
+    setBest(s);
+    emili::Solution* s_s = nullptr;
+    emili::Solution* s_p = nullptr;
+    //initialization done
+    do{
+        if(s_p != s && s_p != nullptr)
+            delete s_p;
+        //Perturbation step
+        s_p = pert.perturb(s);
+        //local search on s_p
+        if(s!=s_s && s_s != nullptr)
+            delete s_s;
+        s_s = ls.search(s_p);
+        delete s_p;
+        //best solution
+        if(*s_s < *bestSoFar)
+        {
+            //*bestSoFar = *s_s;
+            setBest(s_s);
+         printSolstats(bestSoFar);
+            //s_time = clock();
+        }
+        //acceptance step
+        s_p = s;
+        s = acc.accept(s_p,s_s);
+    }while(!termcriterion->terminate(s_p,s));
+    delete s_p;
+    delete s_s;
+    return bestSoFar->clone();
+}
+
+emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
+{
+        termcriterion->reset();
+        acc.reset();
+        localsearch = this;
+        setTimer(maxTime);
+        /**
+            search start
+        */
+        beginTime = clock();
+        emili::Solution*  s = ls.search();
+        //*bestSoFar = *s;
+        setBest(s);
+        emili::Solution* s_s = nullptr;
+        emili::Solution* s_p = nullptr;
+        //initialization done
+        do{
+            if(s_p != s && s_p != nullptr)
+                delete s_p;
+            //Perturbation step
+            s_p = pert.perturb(s);
+            //local search on s_p
+            if(s!=s_s && s_s != nullptr)
+                delete s_s;
+            s_s = ls.search(s_p);
+            delete s_p;
+            //best solution
+            if(*s_s < *bestSoFar)
+            {
+                //*bestSoFar = *s_s;
+                setBest(s_s);
+                printSolstats(bestSoFar);
+                //s_time = clock();
+            }
+            //acceptance step
+            s_p = s;
+            s = acc.accept(s_p,s_s);
+        }while(!termcriterion->terminate(s_p,s) && keep_going);
+        delete s_p;
+        delete s_s;
+        stopTimer();
+        return bestSoFar->clone();
+}
+
+emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+{
+        termcriterion->reset();
+        acc.reset();
+        setTimer(maxTime);
+        localsearch = this;
+        /**
+            search start
+        */
+        beginTime = clock();
+        emili::Solution* s = ls.search(initial);
+        //*bestSoFar = *s;
+        setBest(s);
+        emili::Solution* s_s = nullptr;
+        emili::Solution* s_p = nullptr;
+        //initialization done
+        do{
+            if(s_p != s && s_p != nullptr)
+                delete s_p;
+            //Perturbation step
+            s_p = pert.perturb(s);
+            //local search on s_p
+            if(s!=s_s && s_s != nullptr)
+                delete s_s;
+            s_s = ls.search(s_p);
+            delete s_p;
+            //best solution
+            if(*s_s < *bestSoFar)
+            {
+                //*bestSoFar = *s_s;
+                setBest(s_s);
+                printSolstats(bestSoFar);
+                //s_time = clock();
+            }
+            //acceptance step
+            s_p = s;
+            s = acc.accept(s_p,s_s);
+        }while(!termcriterion->terminate(s_p,s) && keep_going);
+        delete s_p;
+        delete s_s;
+        stopTimer();
+        return bestSoFar->clone();
+}
+
+emili::Solution* emili::FeasibleIteratedLocalSearch::getBestSoFar()
+{
+    emili::Solution* bestOfInnerLocal = IteratedLocalSearch::getBestSoFar();
+    if(feasibleBest != nullptr )
+    {
+        if(bestOfInnerLocal->isFeasible() && bestOfInnerLocal->operator <(*feasibleBest))
+        {
+            return bestOfInnerLocal;
+        }
+        return feasibleBest;
+    }
+    return bestOfInnerLocal;
+
 }
 
 /**

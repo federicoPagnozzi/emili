@@ -1575,7 +1575,14 @@ emili::Solution* emili::pfsp::NEHls::generate()
 #endif
 //    order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
     order = nehls(order,njobs,pis,_ls);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
     return s;
@@ -1606,7 +1613,14 @@ emili::Solution* emili::pfsp::NEHffls::generate()
 #endif
   //  order.erase(order.begin()+njobs);
     order.insert(order.begin(),0);
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
     order = nehffls(order,njobs,pis,_ls);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(order);
     pis.evaluateSolution(*s);
     return s;
@@ -2499,7 +2513,15 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     //
     emili::pfsp::PermutationFlowShopSolution s(solPartial);
     s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
     emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
+
 
     solPartial = s_n->getJobSchedule();
     //delete s_n;
@@ -2569,7 +2591,14 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
     //
     emili::pfsp::PermutationFlowShopSolution s(solPartial);
     s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
     emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
     solPartial = s_n->getJobSchedule();
     int mac = instance.getNmachines();
     for(int l=0;l<removed.size();l++){
@@ -2655,7 +2684,14 @@ emili::Solution* emili::pfsp::RSffLSPerturbation::perturb(Solution *solution)
     //
     emili::pfsp::PermutationFlowShopSolution s(solPartial);
     s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
     emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
     solPartial = s_n->getJobSchedule();
 
     for(int l=0;l<removed.size();l++){
