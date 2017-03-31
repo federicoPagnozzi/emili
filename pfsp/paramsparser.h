@@ -28,7 +28,7 @@ void info();
 class ParamsParser: public AlgoBuilder
 {
 protected:    
-    emili::pfsp::PermutationFlowShop* istance;
+    emili::pfsp::PermutationFlowShop* instance;
     std::vector< emili::pfsp::PermutationFlowShop* > istances;
     /**  ALGOS */
     emili::LocalSearch* eparams(prs::TokenManager& tm);
@@ -44,7 +44,7 @@ protected:
     /** TERMINATION*/
     emili::Termination* term(prs::TokenManager& tm);
     /** NEIGHBORHOOD*/
-    emili::pfsp::PfspNeighborhood* neigh(prs::TokenManager& tm,bool checkExist);
+    emili::Neighborhood* neigh(prs::TokenManager& tm,bool checkExist);
     /** PERTURBATION*/
     emili::Perturbation* per(prs::TokenManager& tm);
     /** ACCEPTANCE*/
@@ -62,7 +62,7 @@ public:
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);
     virtual std::string info();
     ParamsParser() { }
-    ~ParamsParser() { delete istance; for(int i=0;i<istances.size();i++)delete istances[i];}
+    ~ParamsParser() { delete instance; for(int i=0;i<istances.size();i++)delete istances[i];}
 
         /**
      * identify cooling scheme
@@ -71,7 +71,8 @@ public:
      */
     SACooling*       COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
-                              emili::Neighborhood *nei);
+                              emili::Neighborhood *nei,
+                              emili::pfsp::PermutationFlowShop *instance);
 
     /**
      * identify acceptance criterion
@@ -104,7 +105,8 @@ public:
      */
     SAInitTemp*      INITTEMP(prs::TokenManager&      tm,
                               emili::InitialSolution* initsol,
-                              emili::Neighborhood *nei);
+                              emili::Neighborhood *nei,
+                              emili::pfsp::PermutationFlowShop *instance);
 
     /**
      * identify initial solution builder

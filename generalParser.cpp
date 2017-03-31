@@ -20,14 +20,17 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "cf86281e0cb6bd8b6341580f4bf42882d3d000f9"
+#define GIT_COMMIT_NUMBER "6235cac66cb48b0e5df7b1222a1780684d720732"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
+#define FEASIBLE_ILS "fils"
 #define TABU "tabu"
 #define FIRST "first"
+#define FEASIBLE_FIRST "ffirst"
 #define TB_FIRST "tfirst"
 #define BEST "best"
+#define FEASIBLE_BEST "fbest"
 #define TB_BEST "tbest"
 #define VND "vnd"
 #define GVNS_ILS "gvns"
@@ -38,6 +41,7 @@
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
+#define TERMINATION_TIMERO "timero"
 #define TERMINATION_LOCMIN "locmin"
 #define TERMINATION_ITERA "iteration"
 #define TERMINATION_WTRUE "true"
@@ -57,6 +61,8 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
+/*base neighborhoods*/
+#define NEIGHBORHOOD_RANDCONHE "rch"
 
 int tab_level = 0;
 
@@ -266,11 +272,11 @@ bool prs::AlgoBuilder::operator ==(const AlgoBuilder& b)
 }
 
 
-int getTime(prs::TokenManager& tm,int problemSize)
+float getTime(prs::TokenManager& tm,int problemSize)
 {
         if(tm.checkToken(IT))
         {
-            int n = tm.getInteger();
+            int n = tm.getDecimal();
             std::ostringstream oss;
             oss << "Run time secs : " << n;
             //printTab(oss.str().c_str());
@@ -281,12 +287,12 @@ int getTime(prs::TokenManager& tm,int problemSize)
         {
             float d = tm.getDecimal();
             float time = d*problemSize;
-            int n = floorf(time);
+            //int n = floorf(time);
             std::ostringstream oss;
-            oss << "Rho = "<< d << " Run time secs : " << n;
+            oss << "Rho = "<< d << " Run time secs : " << time;
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
-            return n;
+            return time;
         }
 
 
@@ -475,8 +481,8 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
         emili::initializeRandom(getSeed(tm));
         this->instance = probBuilder->openInstance();
         emili::LocalSearch* ls = buildComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
-        if(tm.checkToken(PRINT_SOLUTION))
+        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
+        if(tm.seek(PRINT_SOLUTION)>0)
         {
             emili::set_print(true);
             if(ls->getSearchTime() > 0){
@@ -485,6 +491,7 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
         }
         else
         {
+            std::cout << "The print option is not enabled" << std::endl;
             emili::set_print(false);
         }
         return ls;
@@ -552,6 +559,14 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();        
         emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
         ls = new emili::IteratedLocalSearch(*lls,*pft,*prsp,*tac);
+    }else if(tm.checkToken(FEASIBLE_ILS))
+    {
+        printTab("ILS that returns a feasible solution if it generates one");
+        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        emili::Termination* pft = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
+        ls = new emili::FeasibleIteratedLocalSearch(*lls,*pft,*prsp,*tac);
     }else if(tm.checkToken(TABU))
     {
         printTab("TABU SEARCH");
@@ -594,6 +609,22 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         ls =  new emili::BestImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(FEASIBLE_FIRST))
+    {
+        printTab("FIRST IMPROVEMENT that returns a feasible solution if it generates one");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
+        ls =  new emili::FeasibleFirstImprovementSearch(*in,*te,*ne);
+    }
+    else if(tm.checkToken(FEASIBLE_BEST))
+    {
+        printTab("BEST IMPROVEMENT that returns a feasible solution if it generates one");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
+        ls =  new emili::FeasibleBestImprovementSearch(*in,*te,*ne);
     }
     else if(tm.checkToken(TB_FIRST))
     {
@@ -691,6 +722,27 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         printTab(oss.str().c_str());
         term =  new emili::TimedTermination(time);
     }
+    else if(tm.checkToken(TERMINATION_TIMERO))
+    {
+
+        float time =tm.getDecimal();
+        if(time==0){
+            time = 1;
+        }
+        std::ostringstream oss;
+        int rtime = time * gp.getInstance()->problemSize();
+        oss << "Timed termination";
+        printTab(oss.str().c_str());
+        oss.str("");
+        prs::incrementTabLevel();
+        oss << "ro : " << time;
+        printTab(oss.str().c_str());
+        oss.str("");
+        oss << "running time : " << rtime;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
+        term =  new emili::TimedTermination(rtime);
+    }
     else if(tm.checkToken(TERMINATION_MAXSTEPS))
     {
         int steps = tm.getInteger();
@@ -753,6 +805,20 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
     return per;
 }
 
+emili::Neighborhood* prs::EmBaseBuilder::buildNeighborhood()
+{
+    prs::incrementTabLevel();
+    emili::Neighborhood* neigh = nullptr;
+    if(tm.checkToken(NEIGHBORHOOD_RANDCONHE))
+    {
+        printTab("Random Constructive Heuristic Neighborhood ");
+        emili::InitialSolution* heuristic = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        neigh = new emili::RandomConstructiveHeuristicNeighborhood(*heuristic);
+    }
+    prs::decrementTabLevel();
+    return neigh;
+}
+
 emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
 {
     prs::incrementTabLevel();   
@@ -801,8 +867,16 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float start =tm.getDecimal();
         float end =tm.getDecimal();
         float ratio =tm.getDecimal();
-        oss.str(""); oss  << "metropolis acceptance. start ,end , ratio : "<< start << ", "<< end << "," << ratio;
+        oss.str(""); oss  << "metropolis acceptance.";
         printTab(oss.str().c_str());
+        prs::incrementTabLevel();
+        oss.str(""); oss << "start: "<< start;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "end: "<< end;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "ratio: "<< ratio;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
         acc = new  emili::Metropolis(start,end,ratio);
     }
     else  if(tm.checkToken(ACCEPTANCE_PMETRO))
@@ -811,8 +885,18 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float end =tm.getDecimal();
         float ratio =tm.getDecimal();
         int iterations = tm.getInteger();
-        oss.str(""); oss  << "metropolis acceptance. start ,end , ratio, frequence : "<< start << ", "<< end << "," << ratio <<","<< iterations;
+        oss.str(""); oss  << "metropolis acceptance.";
         printTab(oss.str().c_str());
+        prs::incrementTabLevel();
+        oss.str(""); oss << "start: "<< start;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "end: "<< end;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "ratio: "<< ratio;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "frequence: "<< iterations;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
         acc = new  emili::Metropolis(start,end,ratio,iterations);
     }
     else if(tm.checkToken(ACCEPTANCE_SA))
@@ -822,8 +906,20 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float ratio =tm.getDecimal();
         int iterations = tm.getInteger();
         float alpha =tm.getDecimal();
-        oss.str(""); oss  << "metropolis acceptance. start ,end , ratio, frequence, alpha : "<< start << ", "<< end << "," << ratio <<","<< iterations << "," << alpha;
+        oss.str(""); oss  << "metropolis acceptance.";
         printTab(oss.str().c_str());
+        prs::incrementTabLevel();
+        oss.str(""); oss << "start: "<< start;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "end: "<< end;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "ratio: "<< ratio;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "frequence: "<< iterations;
+        printTab(oss.str().c_str());
+        oss.str(""); oss << "alpha: "<< alpha;
+        printTab(oss.str().c_str());
+        prs::decrementTabLevel();
         acc = new  emili::Metropolis(start,end,ratio,iterations,alpha);
     }
     else if(tm.checkToken(ACCEPTANCE_IMPROVE_PLATEAU))
