@@ -100,7 +100,8 @@ protected:
      */
     SACooling*       COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
-                              emili::Neighborhood *nei);
+                              emili::Neighborhood *nei,
+                              emili::pfsp::PermutationFlowShop *instance);
 
     /**
      * identify acceptance criterion

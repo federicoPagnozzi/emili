@@ -113,11 +113,11 @@ SAInitTemp* SAPFSPParser::INITTEMP(prs::TokenManager& tm,
         init_temp->set(1);
         return init_temp;
     } else if (tm.checkToken(OSMANPOTTSINITTEMP)) {
-        int length = tm.getInteger();
-        float l1 = tm.getDecimal();
-        float l2 = tm.getDecimal();
-        SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
-        init_temp->set(1);
+        float dc = tm.getDecimal();
+        float tf = tm.getDecimal();
+        float coeff = tm.getDecimal();
+        SAInitTemp* init_temp = new OsmanPottsInitTemp(initsol, nei, instance, dc, tf);
+        init_temp->set(coeff);
         return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
@@ -219,7 +219,8 @@ SATermination* SAPFSPParser::TERMINATION(prs::TokenManager& tm,
 
 SACooling* SAPFSPParser::COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
-                              emili::Neighborhood *nei) {
+                              emili::Neighborhood *nei,
+                              emili::pfsp::PermutationFlowShop *instance) {
 
     if (tm.checkToken(GEOM)) {
         float a = tm.getDecimal();
@@ -674,7 +675,7 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei, instance);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
-    SACooling*       cooling    = COOL(tm, inittemp, nei);
+    SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
     SATermination*     term       = TERMINATION(tm, nei); // termin(tm);

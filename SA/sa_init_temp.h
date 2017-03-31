@@ -622,10 +622,43 @@ public:
  */
  class OsmanPottsInitTemp: public SAInitTemp {
 protected:
+emili::pfsp::PermutationFlowShop *instance;
+float dc;
+float tf;
 
 public:
-    OsmanPottsInitTemp(emili::pfsp::PermutationFlowShop& gp) {
+    OsmanPottsInitTemp(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
+                       emili::pfsp::PermutationFlowShop *_instance,
+                       float _dc,
+                       float _tf):
+        instance(_instance),
+        dc(_dc),
+        tf(_tf) { }
         
+    virtual double set(double value) {
+        int i, j;
+        double it = 0;
+        long n = instance->getNjobs();
+        long m = instance->getNmachines();
+
+        std::vector< std::vector <long int> > ptmat = instance->getProcessingTimesMatrix();
+
+        for (i = 0 ; i < n ; i++){
+            for (j = 0 ; j < m ; j++) {
+                it += ptmat[i][j];
+            }
+        }
+
+        it = it / (5 * n * m);
+
+        init_temp = value * it;        
+        move_time = 0.001; // conventional...
+        return init_temp;
+    }
+
+    virtual double getMinTemp(void) {
+        return tf;
     }
 
  }; // OsmanPottsInitTemp

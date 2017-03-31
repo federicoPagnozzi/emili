@@ -8,6 +8,8 @@
 #include "sa_templength.h"
 #include "sa_temperature_restart.h"
 
+#include "../pfsp/pfspinstance.h"
+
 
 /**
  * Generic cooling scheme for SA.
@@ -492,6 +494,45 @@ public:
     }
 
 }; // ConnollyQ87Cooling
+
+
+// osman potts
+class OsmanPottsPFSPCooling: public SACooling {
+protected:
+emili::pfsp::PermutationFlowShop *instance;
+double K;
+
+public:
+    OsmanPottsPFSPCooling(SAInitTemp *_it,
+                          emili::pfsp::PermutationFlowShop *_instance):
+                        instance(_instance),
+                        SACooling(1, 0, _it) {
+                            K = std::max(3300 * std::log(_instance->getNjobs()) + 7500 * std::log(_instance->getNmachines()), 2000.0);
+                        }
+
+    void set_status(SAStatus* _status) {
+        status = _status;
+
+        b = (status->init_temp - status->final_temp) /
+                ((K-1) * status->init_temp * status->final_temp);
+    }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+            float tmp = (temp / (a + b*temp));
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // OsmanPottsPFSPCooling
 
 
 #endif
