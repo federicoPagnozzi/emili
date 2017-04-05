@@ -544,6 +544,14 @@ public:
     NeRZ2Solution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
 };
 
+class SRZSolution: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    SRZSolution(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
+};
+
 class NfRZ2Solution: public emili::pfsp::PfspInitialSolution
 {
 protected:

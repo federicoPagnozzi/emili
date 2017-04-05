@@ -80,6 +80,55 @@ std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& p
 
 }
 
+std::vector< int > inline rz_seed_sequence_simplified(emili::pfsp::PermutationFlowShop& prob)
+{
+    std::vector< int > best;
+    int wbest = 0;
+    int machines = prob.getNmachines();
+    int jobs = prob.getNjobs();
+    const std::vector < std::vector < long int > >& priorities = prob.getProcessingTimesMatrix();
+        std::vector< int > temp;
+        std::vector< float > tas(jobs+1,0);
+        temp.push_back(0);
+        for(int i=1;i<=jobs;i++ )
+        {
+            float tai= 0;
+
+            for (int j=1;j<=machines;j++)
+            {
+                tai += ( machines - j + 1 ) * priorities[i][j];
+            }
+
+            int pri = prob.getPriority(i);
+            if(pri>0)
+                tai = tai/pri;
+
+            tas[i] = tai;
+            temp.push_back(i);
+        }
+
+#ifndef NOC11
+        std::sort(temp.begin(),temp.end(),[tas](int i1,int i2){
+                                                                if(tas[i1]==tas[i2] && i2!=0)
+                                                                    return i1>i2;
+                                                                else
+                                                                   return tas[i1] < tas[i2];
+        });
+#else
+    rzco.tas = &tas;
+    std::sort(temp.begin(),temp.end(),rzco);
+#endif
+
+
+        prob.computeObjectiveFunction(temp);
+
+
+
+
+
+    return temp;
+}
+
 std::vector< int > inline rz_seed_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
     std::vector< int > best;
@@ -1801,6 +1850,15 @@ emili::Solution* emili::pfsp::NfRZ2Solution::generate()
     //initial = rz_improvement_phase(initial,pis);
     initial = nehff(initial,pis.getNjobs(),pis);
 
+    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
+    pis.evaluateSolution(*s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::SRZSolution::generate()
+{
+    std::vector< int > initial = rz_seed_sequence_simplified(pis);
+    initial = neh(initial,pis.getNjobs(),pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
     pis.evaluateSolution(*s);
     return s;
