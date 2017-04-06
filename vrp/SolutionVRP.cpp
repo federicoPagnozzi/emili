@@ -833,3 +833,18 @@ void SolutionVRP::setRawData(const void* data)
     SolutionVRP* sol = (SolutionVRP*) data;
     this->CopySolution(sol);
 }
+
+bool SolutionVRP::isFeasible(){
+
+    int feasible;
+
+    if(numAddRoutes>0){
+        feasible=false;
+    }
+    else{
+        feasible=true;
+
+    }
+
+
+}

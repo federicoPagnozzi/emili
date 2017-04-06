@@ -67,7 +67,7 @@ public:
     bool Eightstepevaluationscheme_newr(std::vector<std::vector<double>> & Time, std::vector<RichiesteServizio*> & ric, int a, int b, int c, int d, int numRichieste, std::vector<Veicoli*> & veic);
     double calculate_effect_2(int i, int j, int k, int l, std::vector<std::vector<double>> & D);
     double calculate_dist( std::vector<std::vector<double>> & D);
-
+    bool isFeasible();
     virtual Solution* clone();
 
 };

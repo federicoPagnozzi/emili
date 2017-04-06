@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "a0a3bc07caf1269a6eb95fa059f4caa01c025341"
+#define GIT_COMMIT_NUMBER "02abdcd7387a5f2207d9624a42b0aac001e3c754"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -89,15 +89,74 @@ void prs::decrementTabLevel()
 
 void prs::emili_header()
 {
-    std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
+    /*std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
     std::cout << "\t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
     std::cout << "\t| |__  | \\  / | | | | |      | |  " << std::endl;
     std::cout << "\t|  __| | |\\/| | | | | |      | |  " << std::endl;
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
     std::cout << std::endl;
+    */
+
+    /*std::cout << "          .-.        " << std::endl;
+    std::cout << "          | |        " <<  std::endl;
+    std::cout << "          | |        " <<  std::endl;
+    std::cout << "          | |        " <<  std::endl;
+    std::cout << "         _| |_        __                                        " << std::endl;
+    std::cout << "        | | | |-.    (_ .     _ _         _  _    _    |_ _   | " << std::endl;
+    std::cout << "       /|     ` |    __)|,   _)(_)\\/  |_|| )(_|  |_)|_||_(_|  . " << std::endl;
+    std::cout << "      | |       |                 /              |              " << std::endl;
+    std::cout << "      |         |    " <<std::endl;
+    std::cout << "      \         /    " <<std::endl;
+    std::cout << "       |       |     " <<std::endl;
+    std::cout << "       |       |     " <<std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "          .-.        " << std::endl;
+    std::cout << "          | |        " <<  std::endl;
+    std::cout << "          | |        " <<  std::endl;
+    std::cout << "          | |        " <<  std::endl;
+    std::cout << "         _| |_                                    __             " << std::endl;
+    std::cout << "        | | | |-.    |\\/| _   _ _  _  _    _ _   |_ |\\/|||  |  | " << std::endl;
+    std::cout << "       /|     ` |    |  |(-  (_(_|(_)(_)  (-| )  |__|  |||__|  . " << std::endl;
+    std::cout << "      | |       |                 _/                             " << std::endl;
+    std::cout << "      |         |    " <<std::endl;
+    std::cout << "      \         /    " <<std::endl;
+    std::cout << "       |       |     " <<std::endl;
+    std::cout << "       |       |     " <<std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;*/
+
+   /* std::cout << std:: endl;
+    std::cout << std:: endl;
+    std::cout << "\t           *  *       *  * "<< std::endl;
+    std::cout << "\t         *      *   *      *" << std::endl;
+    std::cout << "\t _____   *       * *       *  ______ __  __ _____ _      _____ " << std::endl;
+    std::cout << "\t|_   _|   *       *       *  |  ____|  \\/  |_   _| |    |_   _|" << std::endl;
+    std::cout << "\t  | |       *           *    | |__  | \\  / | | | | |      | |  " << std::endl;
+    std::cout << "\t  | |         *       *      |  __| | |\\/| | | | | |      | |  " << std::endl;
+    std::cout << "\t _| |_          *   *        | |____| |  | |_| |_| |____ _| |_ " << std::endl;
+    std::cout << "\t|_____|          * *         |______|_|  |_|_____|______|_____|" << std::endl;
+    std::cout << "\t                  * "<< std::endl;
+    std::cout << std::endl;*/
+
+    std::cout << "\t \t \t \t \t ______ __  __ _____ _      _____ " << std::endl;
+    std::cout << "\t \t \t \t \t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
+    std::cout << "\t \t \t \t \t| |__  | \\  / | | | | |      | |  " << std::endl;
+    std::cout << "\t \t \t \t \t|  __| | |\\/| | | | | |      | |  " << std::endl;
+    std::cout << "\t \t \t \t \t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
+    std::cout << "\t \t \t \t \t|______|_|  |_|_____|______|_____|" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "      _____ ___ _ ___  __   __ _  _ _____   __ __ _   __  _  _ __  _ __  ___ ___   __ _____ __  __  _ __    __        " << std::endl;
+    std::cout << "     |_   _| _ \\ | __/' _/ |  \\ || |_   _| |  V  | |/' _/| || |  \\| | _\\| __| _ \\/' _/_   _/  \\|  \\| | _\\ /' _/       " << std::endl;
+    std::cout << "____   | | | V / | _|`._`. | -< \\/ | | |   | \\_/ | |`._`.| \\/ | | ' | V | _|| V /`._`. | || /\\ | | ' | V |`._`. ____  " << std::endl;
+    std::cout << "\\||/   |_| |_|_\\_|___|___/ |__/\\__/  |_|   |_| |_|_||___/ \\__/|_|\\__|__/|___|_|_\\|___/ |_||_||_|_|\\__|__/ |___/ \\||/  " << std::endl;
+
+
 
     std::cout << "commit : " << GIT_COMMIT_NUMBER << std::endl;
+
 }
 
 void prs::info()

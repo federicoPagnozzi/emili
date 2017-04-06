@@ -809,14 +809,15 @@ void Route::calculate_capacity(std::vector<RichiesteServizio*> &ric, std::vector
 void Route::calculate_earliest_latest(std::vector<RichiesteServizio*> &ric,  std::vector<std::vector<double>> &Time, std::vector<Veicoli*> &veic){
     
     earliest[0]=0;
-    
-    for(int i=1; i<length-1;i++){
+    earliest[1]=Time[locations[0]][locations[1]];
+    if(earliest[1]<ric[Ricid[1]]->timewinPmin){
+        earliest[1]=ric[Ricid[1]]->timewinPmin;
+    }
+
+    for(int i=2; i<length-1;i++){
         RichiesteServizio& rich =*ric[Ricid[i]];
         
-        if(type[i-1]==0){
-            earliest[i]=earliest[i-1]+Time[locations[i-1]][locations[i]];
-            
-        }else{earliest[i]=earliest[i-1]+ric[Ricid[i-1]]->st+Time[locations[i-1]][locations[i]];}
+        earliest[i]=earliest[i-1]+ric[Ricid[i-1]]->st+Time[locations[i-1]][locations[i]];
         if(type[i]==1){
             
             if(earliest[i]<rich.timewinPmin){
