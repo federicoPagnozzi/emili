@@ -1858,7 +1858,7 @@ emili::Solution* emili::pfsp::NfRZ2Solution::generate()
 emili::Solution* emili::pfsp::SRZSolution::generate()
 {
     std::vector< int > initial = rz_seed_sequence_simplified(pis);
-    initial = neh(initial,pis.getNjobs(),pis);
+    initial = neh2(initial,pis.getNjobs(),pis);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(initial);
     pis.evaluateSolution(*s);
     return s;
