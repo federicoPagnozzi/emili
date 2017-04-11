@@ -1440,6 +1440,7 @@ void Route::CopyRoute(Route* route){
     length=route->length;
     numRicRoute=route->numRicRoute;
     totaldist=route->totaldist;
+
     locations=route->locations;
     Ricid=route->Ricid;
     type=route->type;
@@ -1919,7 +1920,7 @@ bool Route::check_cap(int u, std::vector<Veicoli*> &veic, int i, int j, int z, s
     int ii_0=u-1;
     int ii_c;
     int c1, c2, c3, c4;
-    for(ii=u;ii<u+3;ii++){
+    for(ii=0;ii<3;ii++){
         if(f==true){
             if(ii==i){
                 ii_c=u;
@@ -2460,7 +2461,7 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
             
         if(c3>ve.stretcher){
             if(c2>ve.seated){
-                if(c3>ve.staff){
+                if(c1>ve.staff){
                     feas=false;
                     i=g-l+1;
                 }
@@ -2531,7 +2532,7 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         c4=c40-ric[req]->wheelchair;
         if(c3>ve.stretcher){
             if(c2>ve.seated){
-                if(c3>ve.staff){
+                if(c1>ve.staff){
                     feas=false;
                     i=g-l+1;
                 }
@@ -3514,6 +3515,1658 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
     delete[] dep;
     delete[] wait;
     
+    return feas;
+}
+
+
+
+bool Route::check_feas_FirstRequest(int p2, int d2, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, int req){
+    //Checks wheather all vertices between p2 and d2 can be reached in time (earliest(d2)<=TWdeliveryreq && earliest(p2+1)<=latest(p2+1)
+    bool f;
+    double earl=earliest[p2-1];
+    double earl0, lat, lat0;
+    int loc0=locations[p2-1];
+    int rr0;
+
+
+    //P2 earliest calculation
+    if(p2-1==0){
+        earl=earl+Time[loc0][ric[req]->locationP];
+
+
+    }else{
+        earl=earl+ric[req]->st+Time[loc0][ric[req]->locationP];
+
+    }
+    if(earl<ric[req]->timewinPmin){
+        earl=ric[req]->timewinPmin;
+    }
+
+    loc0=ric[req]->locationP;
+    rr0=req;
+
+
+    for(int i=p2+1; i<d2; i++){
+        RichiesteServizio& rich =*ric[Ricid[i]];
+
+        earl=earl+ric[rr0]->st+Time[loc0][locations[i]];
+
+        if(type[i]==1){
+            if(earl<rich.timewinPmin){
+                earl=rich.timewinPmin;
+            }
+        }else{
+            if(type[i]==-1){
+                if(earl<rich.timewinDmin){
+                    earl=rich.timewinDmin;
+                }
+
+            }
+
+        }
+        if(i==p2+1){earl0=earl;}
+        rr0=Ricid[i];
+        loc0=locations[i];
+
+    }
+
+    earl=earl+ric[rr0]->st+Time[loc0][ric[req]->locationD];
+
+    if(earl<ric[req]->timewinDmin){
+        earl=ric[req]->timewinDmin;
+    }
+
+
+    loc0=ric[req]->locationD;
+    rr0=req;
+
+    if(d2==p2+1){
+        earl0=earl;
+    }
+
+
+    lat0=latest[d2+1];
+
+    lat=lat0-Time[locations[d2+1]][ric[req]->locationD]-ric[req]->st;
+
+    if(lat>ric[req]->timewinDmax){
+        lat=ric[req]->timewinDmax;
+    }
+
+    lat0=lat;
+    loc0=ric[req]->locationD;
+    rr0=req;
+
+    for(int i=d2-1; i<p2;i++){
+
+        lat=lat0-Time[loc0][locations[i]]-ric[Ricid[i]]->st;
+        if(type[i]==1){
+            if(lat>ric[req]->timewinPmax){
+                lat=ric[req]->timewinPmax;
+            }
+
+        }else{
+            if(type[i]==-1){
+                if(lat>ric[req]->timewinDmax){
+                    lat=ric[req]->timewinDmax;
+                }
+            }
+
+        }
+
+        lat0=lat;
+        loc0=locations[i];
+        rr0=Ricid[i];
+
+    }
+
+
+    if(earl<ric[req]->timewinDmax && earl0<lat0){
+        f=true;
+    }else{
+
+        f=false;
+    }
+
+
+
+
+    return f;
+}
+
+
+bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*>&ric, std::vector<Veicoli*>&veic){
+
+    int i;
+    bool feas=true;
+    int len=length;
+    double* arr, *dep, * wait;
+    arr=new double[len];
+    dep=new double[len];
+    wait=new double[len];
+    int* loc, *rid, *typ;
+    loc=new int[len];
+    rid=new int[len];
+    typ=new int[len];
+    int req;
+    for(i=0;i<len;i++){
+        loc[i]=locations[i];
+        rid[i]=Ricid[i];
+        typ[i]=type[i];
+    }
+    loc[p2]=ric[r]->locationP;
+    loc[d2]=ric[r]->locationD;
+    typ[p2]=1;
+    typ[d2]=-1;
+    rid[p2]=r;
+    rid[d2]=r;
+
+    double F, v1=0, v2=0, v3=0;
+
+
+    for(i=0; i<len; i++){
+        arr[i]=0;
+        dep[i]=0;
+        wait[i]=0;
+    }
+    for(i=1; i<len-1; i++){
+
+        arr[i]=dep[i-1]+Time[loc[i-1]][loc[i]];
+
+        if(typ[i]==1){
+            if(arr[i]-ric[rid[i]]->timewinPmin>=0 && arr[i]-ric[rid[i]]->timewinPmax<=0){
+                dep[i]=arr[i]+ric[rid[i]]->st;
+                wait[i]=0;
+
+            }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
+
+                dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
+                wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+            }else{
+                dep[i]=arr[i]+ric[rid[i]]->st;
+
+                v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
+            }
+            }
+        }else{//if it is a delivery node
+            if(arr[i]-ric[rid[i]]->timewinDmin>=0 && arr[i]-ric[rid[i]]->timewinDmax<=0){
+                dep[i]=arr[i]+ric[rid[i]]->st;
+                wait[i]=0;
+            }else{ if(arr[i]-ric[rid[i]]->timewinDmin<0){
+                dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
+                wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+            }else{
+                dep[i]=arr[i]+ric[rid[i]]->st;
+
+                v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
+            }}
+        }
+
+    }
+    arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
+    dep[len-1]=0;
+    wait[len-1]=0;
+
+    //for(i=0;i<length;i++){
+    //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
+    //}
+
+
+    if(v1>0){
+        //go to step 8
+        //std:: cout << "false \n";
+    }else{
+        //std:: cout << "true \n";
+        //calculate the forward slack
+        //F=calculateF(1, ric, MaxRideTime);
+        F=calcF(rid, wait,  arr,  dep, 1, ric, typ,  len);
+        double G;
+        G=0;
+
+        for(i=1; i<len; i++){
+            G+=wait[i];
+        }
+        if(F<=G){
+            G=F;
+        }
+        //std:: cout << "G is" << G << "\n" ;
+        arr[1]=(dep[1]-ric[rid[1]]->st)+G;
+        dep[0]=arr[1]-Time[loc[0]][loc[1]];
+        v1=0;
+        for(i=1; i<len-1; i++){//hasta menos uno porque not iene niungun sentido que se calcule lo del deposito
+            arr[i]=dep[i-1]+Time[loc[i]][loc[i-1]];
+            if(typ[i]==1){ //if it is a pickup node
+                if(arr[i]-ric[rid[i]]->timewinPmin>=0 && arr[i]-ric[rid[i]]->timewinPmax<=0){
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+                    wait[i]=0;
+                }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
+
+                    dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
+                    wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+                }else{
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+
+                    v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                    //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
+                }}
+            }else{//if it is a delivery node
+                if(arr[i]-ric[rid[i]]->timewinDmin>=0 && arr[i]-ric[rid[i]]->timewinDmax<=0){
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+                    wait[i]=0;
+                }else{ if(arr[i]-ric[rid[i]]->timewinDmin<0){
+                    dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
+                    wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+                }else{
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+
+                    v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                    //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
+                }}
+            }
+        }
+        arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
+        dep[len-1]=0;
+        wait[len-1]=0;
+
+        //for(i=0;i<length;i++){
+        //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
+        //}
+
+
+
+        v3=0;
+        for(int ii=0; ii<len; ii++){
+
+            if(typ[ii]==1){
+
+                req=rid[ii];
+                for(int jj=ii+1;jj<len;jj++){
+
+                    if(typ[jj]==-1){ //es nodo de delivery
+                        if(rid[jj]==req){
+
+                            if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
+                                v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+
+                            }else{
+
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        }
+        if(v3==0)
+        {}else{
+            v1=0;
+            //Viol=0;
+            for(i=1; i<len-1; i++){
+                if(typ[i]==1){
+                    // F=calculateF(i, ric, MaxRideTime);
+                    F=calcF(rid, wait,  arr,  dep, i, ric, typ,  len);
+                    //set waits
+                    G=0;
+                    for(int p=i+1; p<len; p++){
+                        G+=wait[p];
+                    }
+                    if(F<G){
+                        G=F;
+                    }else{
+
+                    }
+                    //calculate the others
+                    dep[i]=dep[i]+G;
+                    wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+
+
+                    for(int kk=i+1;kk<len-1;kk++){
+                        arr[kk]=dep[kk-1]+Time[loc[kk-1]][loc[kk]];
+                        if(typ[kk]==1){ //if it is a pickup node
+                            if(arr[kk]-ric[rid[kk]]->timewinPmin>=0 && arr[kk]-ric[rid[kk]]->timewinPmax<=0){
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                wait[kk]=0;
+                            }else{ if(arr[kk]-ric[rid[kk]]->timewinPmin<0){
+
+                                dep[kk]=ric[rid[kk]]->timewinPmin+ric[rid[kk]]->st;
+                                wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
+                            }else{
+
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][4];
+                            }}
+                        }else{ //if it is a delivery node
+                            //delivery home
+
+                            //if it is a delivery node
+                            if(arr[kk]-ric[rid[kk]]->timewinDmin>=-0 && arr[kk]-ric[rid[kk]]->timewinDmax<=0  ){
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                wait[kk]=0;
+                            }else{ if(arr[kk]-ric[rid[kk]]->timewinDmin<-0){
+                                dep[kk]=ric[rid[kk]]->timewinDmin+ric[rid[kk]]->st;
+                                wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
+                            }else{
+
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+                                //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][6];
+                            }}
+
+
+                        }
+
+
+                    }
+
+                    arr[len-1]=dep[len-2]+Time[loc[len-2]][loc[len-1]];
+
+                }else{
+
+                }
+
+
+
+
+
+            }
+
+
+            arr[1]=dep[1]-ric[rid[1]]->st;
+            dep[0]=arr[1]-Time[loc[0]][loc[1]];
+
+
+
+
+        }
+
+
+    }
+
+    v3=0;
+    for(int ii=0; ii<len; ii++){
+
+        if(typ[ii]==1){
+
+            req=rid[ii];
+            for(int jj=ii+1;jj<len;jj++){
+
+                if(typ[jj]==-1){ //es nodo de delivery
+                    if(rid[jj]==req){
+                        if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
+
+
+                            v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+                        }else{
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
+
+
+    if(arr[len-1]-dep[0]-veic[veh]->MaxRoute>0){
+
+        //V[i][1]=arr[length-1]-dep[0]-MaxTimeRoute;
+        v2=arr[len-1]-dep[0]-veic[veh]->MaxRoute;
+
+
+    }else{v2=0;}
+
+
+    if(v1>0 || v2>0 || v3>0){
+        feas=false;
+    }
+
+    delete[] loc;
+    delete[] rid;
+    delete[] typ;
+    delete[] arr;
+    delete[] dep;
+    delete[] wait;
+
+    return feas;
+
+}
+
+bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &veic, std::vector<RichiesteServizio*>  &ric, int p2, int d2, int req2){
+
+
+    bool feas=true;
+    int c1=0, c2=0, c3=0, c4=0;
+
+    if(p2>=l && d2<l){
+
+    c1=cap1[l-1]+ric[req]->staff;
+    c2=cap1[l-1]+ric[req]->seated;
+    c3=cap1[l-1]+ric[req]->stretcher;
+    c4=cap1[l-1]+ric[req]->wheelchair;
+    }else{
+        if(cap1[l-1]>0){
+            c1=cap1[l-1]-ric[req2]->staff+ric[req]->staff;
+        }else{
+            c1=cap1[l-1]+ric[req]->staff;
+        }
+        if(cap2[l-1]>0){
+            c2=cap2[l-1]-ric[req2]->seated+ric[req]->seated;
+        }else{
+            c2=cap2[l-1]+ric[req]->seated;
+        }
+        if(cap3[l-1]>0){
+            c3=cap3[l-1]-ric[req2]->stretcher+ric[req]->stretcher;
+        }else{
+            c3=cap3[l-1]+ric[req]->stretcher;
+        }
+        if(cap4[l-1]>0){
+            c4=cap4[l-1]-ric[req2]->wheelchair+ric[req]->wheelchair;
+        }else{
+            c4=cap4[l-1]+ric[req]->wheelchair;
+        }
+
+    }
+
+
+    if(c3>veic[veh]->stretcher){
+        if(c2>veic[veh]->seated){
+            if(c1>veic[veh]->staff){
+                feas=false;
+
+            }else{
+
+            }
+        }else{
+            if(c2+c1>veic[veh]->staff+veic[veh]->seated){
+                feas=false;
+            }else{
+
+
+            }
+
+        }
+    }else{
+        if(c2>veic[veh]->seated){
+            if(c3+c1>veic[veh]->staff+veic[veh]->stretcher){
+
+                feas=false;
+            }else{}
+        }else{
+            if(c2+c3+c1>veic[veh]->staff+veic[veh]->stretcher+veic[veh]->seated){
+                feas=false;
+
+            }else{
+
+            }
+
+
+
+        }
+
+    }
+
+
+
+    if(c3>veic[veh]->stretcher){
+        if(c2>veic[veh]->seated){
+            feas=false;
+        }else{
+
+        }
+    }else{
+        if(c2+c3>veic[veh]->stretcher+veic[veh]->seated){
+            feas=false;
+        }else{
+
+        }
+
+    }
+
+
+
+
+    if(c4>veic[veh]->wheelchair){
+
+        feas=false;
+
+    }else{}
+
+    if(c3>veic[veh]->stretcher){
+        feas=false;
+    }else{
+
+    }
+
+    return feas;
+}
+
+
+bool Route::tw_P_feasibility_3(std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>>&Time, int l, int req, int p2, int d2, int* loc, int*typ, int*rq){
+    int j=0;
+    int i=0;
+    while(i<length){
+        if(i==p2 || i==d2){
+            i++;
+        }else{
+            if(j==l){
+                j++;
+            }else{
+                loc[j]=locations[i];
+                rq[j]=Ricid[i];
+                typ[j]=type[i];
+                j++;
+                i++;
+            }
+        }
+    }
+    rq[l]=req;
+    loc[l]=ric[req]->locationP;
+    typ[l]=1;
+   // std::cout << "ST" << std::endl;
+    //for(i=0; i<length; i++){
+   //     std::cout<< rq[i] << " " << typ[i] << " " << loc[j] << std::endl;
+
+
+   // }
+
+    bool feas;
+
+    RichiesteServizio& rich=*ric[req];
+    double  earl;
+
+    earl=Time[locations[0]][loc[1]];
+    if(earl<ric[rq[1]]->timewinPmin){
+        earl=ric[rq[1]]->timewinPmin;
+
+    }
+
+    for(int i=2; i<l+1; i++){
+        earl=earl+ric[rq[i-1]]->st+Time[locations[i-1]][locations[i]];
+        if(typ[i]==1){
+            if(earl<ric[rq[1]]->timewinPmin){
+                earl=ric[rq[1]]->timewinPmin;
+
+            }
+
+        }else{
+            if(typ[i]==-1){
+                if(earl<ric[rq[1]]->timewinDmin){
+                    earl=ric[rq[1]]->timewinDmin;
+
+                }
+
+            }
+
+        }
+
+
+
+    }
+
+
+
+
+
+    if(earl<=rich.timewinPmax){
+        feas=true;
+    }else{
+        feas=false;
+    }
+
+    return feas;
+}
+
+//  earl=Sol->route[vei]->calc_earl3(F[k], ric, p1, d1, l , g);
+void Route::calc_rid3(int req, int p, int d, int l, int g, int* rid ){
+
+    int j=0;
+    int i=0;
+    while(i<length){
+        if(i==p || i==d){
+            i++;
+        }else{
+            if(j==l ||  j==g){
+                j++;
+            }else{
+                rid[j]=Ricid[i];
+                j++;
+                i++;
+            }
+        }
+    }
+    rid[l]=req;
+    rid[g]=req;
+
+
+
+}
+void Route::calc_typ3(int req, int p, int d, int l, int g, int* typ ){
+
+    int j=0;
+    int i=0;
+    while(i<length){
+        if(i==p || i==d){
+            i++;
+        }else{
+            if(j==l ||  j==g){
+                j++;
+            }else{
+                typ[j]=type[i];
+                j++;
+                i++;
+            }
+        }
+    }
+    typ[l]=1;
+    typ[g]=-1;
+
+
+
+
+}
+
+void Route::calc_earl3(std::vector<RichiesteServizio*> &ric, int*typ, int*loc, int*rid, double*earl,std::vector<std::vector<double>> &Time ){
+
+    earl[1]=Time[loc[0]][loc[1]];
+    if(earl[1]<ric[rid[1]]->timewinPmin){
+        earl[1]=ric[rid[1]]->timewinPmin;
+    }
+
+
+    for(int i=2; i<length; i++){
+        earl[i]=earl[i-1]+ric[rid[i-1]]->st+Time[loc[i-1]][loc[i]];
+        if(typ[i]==1){
+            if(earl[i]<ric[rid[i]]->timewinDmin){
+                earl[i]=ric[rid[i]]->timewinDmin;
+            }
+        }else{
+            if(typ[i]==-1){
+                if(earl[i]<ric[rid[i]]->timewinDmin){
+                    earl[i]=ric[rid[i]]->timewinDmin;
+                }
+            }
+
+        }
+
+
+    }
+
+
+
+}
+void Route::calc_loc3(int req, std::vector<RichiesteServizio*> &ric, int p, int d, int l, int g, int* loc ){
+
+    int j=0;
+    int i=0;
+    while(i<length){
+        if(i==p || i==d){
+            i++;
+        }else{
+            if(j==l ||  j==g){
+                j++;
+            }else{
+                loc[j]=locations[i];
+                j++;
+                i++;
+            }
+        }
+    }
+    loc[l]=ric[req]->locationP;
+    loc[g]=ric[req]->locationD;
+
+
+}
+double Route::effect_of_inserting_req_on_pos_3(int req, int l, int g, std::vector<std::vector<double>> &Dist, std::vector<RichiesteServizio*> &ric, int p2, int d2, int* loc){
+
+    double ef=0, ef1=0;
+
+
+
+
+
+    for(int i=1; i<length; i++){
+
+        ef+=Dist[loc[i-1]][loc[i]];
+
+    }
+    ef1=ef-totaldist;
+
+    return ef1;
+}
+
+bool Route::check_feas_D_tw1_3(int req,std::vector<RichiesteServizio*> &ric,int l,int g,std::vector<std::vector<double>> &Time,std::vector<Veicoli*> &veic, int* loc, int* rid, int* typ){
+    //Checks wheather all vertices between l and g can be reached in time (earliest(g)<=TWdeliveryreq && earliest(l+1)<=latest(l+1)
+    bool f;
+
+    double earl=0;
+    double earl0=0;
+    double lat;
+    earl=Time[loc[0]][loc[1]];
+    if(earl<ric[rid[1]]->timewinPmin){
+        earl=ric[rid[1]]->timewinPmin;
+    }
+
+    for(int i=2; i<g+1; i++){
+        earl=earl+ric[rid[i-1]]->st+Time[loc[i-1]][loc[i]];
+        if(typ[i]==1){
+            if(earl<ric[rid[i]]->timewinDmin){
+                earl=ric[rid[i]]->timewinDmin;
+            }
+        }else{
+            if(typ[i]==-1){
+                if(earl<ric[rid[i]]->timewinDmin){
+                    earl=ric[rid[i]]->timewinDmin;
+                }
+            }
+
+        }
+        if(i==l+1){
+            earl0=earl;
+        }
+
+    }
+
+    lat=veic[veh]->MaxRoute;
+
+
+
+    for(int i=length-2; i>l; i--){
+        RichiesteServizio& rich =*ric[Ricid[i]];
+
+        lat=lat-Time[loc[i]][loc[i+1]]-rich.st;
+
+        if(typ[i]==1){
+            if(lat>rich.timewinPmax){
+                lat=rich.timewinPmax;
+            }
+
+
+        }else{
+            if(lat>rich.timewinDmax){
+                lat=rich.timewinDmax;
+            }
+
+        }
+    }
+
+    if(earl<ric[rid[g]]->timewinDmax && earl0<lat){
+        f=true;
+    }else{
+        f=false;
+    }
+
+
+
+    return f;
+
+
+}
+bool Route::check_feas_D_tw22(double* earl, int* typ, int *rid, int l, int g, std::vector<RichiesteServizio*> &ric){
+    int i=l+1;
+    bool feas=true;
+    int a=g;
+    while(i<a){
+
+        if(typ[i]==1){
+            if(earl[i]<=ric[rid[i]]->timewinPmax){
+                feas=true;
+
+            }else{
+                feas=false;
+                i=a;
+            }
+
+
+        }else{
+            if(earl[i]<=ric[rid[i]]->timewinDmax){
+                feas=true;
+
+            }else{
+                feas=false;
+                i=a;
+            }
+
+
+
+
+        }
+        i=i+1;
+    }
+
+    if(earl[l+1]>ric[rid[l+1]]->timewinDmax){
+        feas=false;
+    }
+
+
+    return feas;
+
+
+
+
+}
+
+
+bool Route::check_feas_D_tw221(double* earl, int l, int g, std::vector<RichiesteServizio*> &ric){
+    int i=l+1;
+    bool feas=true;
+    int a=g;
+    while(i<a){
+
+        if(type[i]==1){
+            if(earl[i]<=ric[Ricid[i]]->timewinPmax){
+                feas=true;
+
+            }else{
+                feas=false;
+                i=a;
+            }
+
+
+        }else{
+            if(earl[i]<=ric[Ricid[i]]->timewinDmax){
+                feas=true;
+
+            }else{
+                feas=false;
+                i=a;
+            }
+
+
+
+
+        }
+        i=i+1;
+    }
+
+    if(earl[l+1]>ric[Ricid[l+1]]->timewinDmax){
+        feas=false;
+    }
+
+
+    return feas;
+
+
+
+
+}
+
+
+bool Route::ridetime_feas_D22(int g, std::vector<RichiesteServizio*> &ric, int req, std::vector<std::vector<double>> &Time, double* earl){
+
+
+    bool feas;
+    //puedo calcular desde earl l
+    feas=true;
+    if(earl[g]-ric[req]->timewinPmax-ric[req]->st>ric[req]->RideTime){
+        feas=false;
+    }
+
+    // std::cout<<" earl  " ;
+    //  for(int i=0;i<g-l+2; i++){
+    //     std::cout<<earl[i]<<" ";
+
+    //  }std::cout<<std::endl;
+
+    return feas;
+}
+
+void Route::calc_earl1(int p2, int d2, int req, double * earl, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric){
+
+    int loc0, rq0;
+    if(p2==1){
+
+        earl[1]=Time[locations[0]][ric[req]->locationP];
+        if(earl[1]<ric[req]->timewinPmin){
+
+            earl[1]=ric[req]->timewinPmin;
+        }
+
+
+        loc0=ric[req]->locationP;
+        rq0=req;
+    }else{
+        earl[1]=Time[locations[0]][locations[1]];
+        if(earl[1]<ric[Ricid[1]]->timewinPmin){
+
+            earl[1]=ric[Ricid[1]]->timewinPmin;
+        }
+
+        loc0=locations[1];
+        rq0=Ricid[1];
+    }
+
+   // std::cout<< p2 << " " << d2 <<  " " << length << std::endl;
+
+    for(int i=2; i<p2; i++){
+        //std::cout << i << std::endl;
+        earl[i]=ric[rq0]->st+Time[loc0][locations[i]];
+        if(type[i]==1){
+            if(earl[i]<ric[Ricid[i]]->timewinPmin){
+
+                earl[i]=ric[Ricid[i]]->timewinPmin;
+            }
+
+
+        }else{
+            if(earl[i]<ric[Ricid[i]]->timewinDmin){
+
+                earl[i]=ric[Ricid[i]]->timewinDmin;
+            }
+
+
+
+        }
+
+
+        loc0=locations[i];
+        rq0=Ricid[i];
+    }
+    if(p2>1){
+    earl[p2]=ric[req]->st+Time[loc0][ric[req]->locationP];
+
+    if(earl[p2]<ric[req]->timewinPmin){
+
+        earl[p2]=ric[req]->timewinPmin;
+    }
+
+        loc0=ric[req]->locationP;
+        rq0=req;
+    }
+
+
+    for(int i=p2+1; i<d2; i++){
+        earl[i]=ric[rq0]->st+Time[loc0][locations[i]];
+        if(type[i]==1){
+            if(earl[i]<ric[Ricid[i]]->timewinPmin){
+
+                earl[i]=ric[Ricid[i]]->timewinPmin;
+            }
+
+
+        }else{
+            if(earl[i]<ric[Ricid[i]]->timewinDmin){
+
+                earl[i]=ric[Ricid[i]]->timewinDmin;
+            }
+
+
+
+        }
+        loc0=locations[i];
+        rq0=Ricid[i];
+
+    }
+    earl[d2]=ric[rq0]->st+Time[loc0][ric[req]->locationD];
+
+
+
+}
+void Route::delete_req_2(int m,  std::vector<std::vector<double>>  &Time, int a, int b){
+
+
+    // std::cout << " cheking " << std::endl;
+    //std::cout << a << " " << b << std::endl;
+    remove_pos(b);
+    remove_pos(a);
+    length=locations.size();
+    numRicRoute=(length-2)/2;
+    totaldist=calculatedist(Time);
+}
+
+
+
+
+bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, std::vector<RichiesteServizio*> &ric){
+    bool feas=true;
+
+    int i;
+
+    Veicoli& ve=*veic[veh];
+
+
+    int c10, c20, c30, c40;
+    int c1, c2, c3, c4;
+    c10=cap1[l]+ric[req]->staff;
+    c20=cap2[l]+ric[req]->seated;
+    c30=cap3[l]+ric[req]->stretcher;
+    c40=cap4[l]+ric[req]->wheelchair;
+    i=l+1;
+    //std::cout<< g << l << std::endl;
+
+    while(i<g){
+        if(feas==true){
+            int r=Ricid[i];
+            //std::cout << r << std::endl;
+
+            if(type[i]==1){
+                //std::cout <<type[i+l]<< std::endl;
+                c1=c10+ric[r]->staff;
+                c2=c20+ric[r]->seated;
+                c3=c30+ric[r]->stretcher;
+                c4=c40+ric[r]->wheelchair;
+            }else{
+                c1=c10-ric[r]->staff;
+                c2=c20-ric[r]->seated;
+                c3=c30-ric[r]->stretcher;
+                c4=c40-ric[r]->wheelchair;
+
+            }
+
+            if(c3>ve.stretcher){
+                if(c2>ve.seated){
+                    if(c1>ve.staff){
+                        feas=false;
+                        i=g;
+                    }
+                }else{
+                    if(c2+c1>ve.staff+ve.seated){
+                        feas=false;
+                        i=g;
+                    }
+                }
+            }else{
+                if(c2>ve.seated){
+                    if(c3+c1>ve.staff+ve.stretcher){
+
+                        feas=false;
+                        i=g;
+                    }
+                }else{
+                    if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                        feas=false;
+                        i=g;
+
+                    }
+                }
+
+            }
+            if(c3>ve.stretcher){
+                if(c2>ve.seated){
+                    feas=false;
+                    i=g;
+                }
+            }else{
+                if(c2+c3>ve.stretcher+ve.seated){
+                    feas=false;
+                    i=g;
+                }
+            }
+            if(c4>ve.wheelchair){
+
+                feas=false;
+                i=g;
+
+            }
+
+            if(c3>ve.stretcher){
+                feas=false;
+                i=g;
+            }
+
+
+
+            i=i+1;
+            c10=c1;
+            c20=c2;
+            c30=c3;
+            c40=c4;
+
+
+        }else{
+            i=g;
+        }
+
+    }
+
+    if(feas==true){
+        c1=c10-ric[req]->staff;
+        c2=c20-ric[req]->seated;
+        c3=c30-ric[req]->stretcher;
+        c4=c40-ric[req]->wheelchair;
+        if(c3>ve.stretcher){
+            if(c2>ve.seated){
+                if(c1>ve.staff){
+                    feas=false;
+
+                }
+            }else{
+                if(c2+c1>ve.staff+ve.seated){
+                    feas=false;
+
+                }
+            }
+        }else{
+            if(c2>ve.seated){
+                if(c3+c1>ve.staff+ve.stretcher){
+
+                    feas=false;
+
+                }
+            }else{
+                if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                    feas=false;
+
+
+                }
+            }
+
+        }
+        if(c3>ve.stretcher){
+            if(c2>ve.seated){
+                feas=false;
+
+            }
+        }else{
+            if(c2+c3>ve.stretcher+ve.seated){
+                feas=false;
+
+            }
+        }
+        if(c4>ve.wheelchair){
+
+            feas=false;
+
+
+        }
+
+        if(c3>ve.stretcher){
+            feas=false;
+
+        }
+
+    }
+
+
+
+    return feas;
+
+}
+
+bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req, std::vector<RichiesteServizio*> &ric, int* rid, int*typ ){
+
+    int i;
+
+    Veicoli& ve=*veic[veh];
+
+    bool feas=true;
+    int c10, c20, c30, c40;
+    int c1, c2, c3, c4;
+    c10=cap1[l-1]+ric[req]->staff;
+    c20=cap2[l-1]+ric[req]->seated;
+    c30=cap3[l-1]+ric[req]->stretcher;
+    c40=cap4[l-1]+ric[req]->wheelchair;
+
+    i=l+1;
+    //std::cout<< g << l << std::endl;
+
+    while(i<g){
+        if(feas==true){
+            int r=rid[i];
+            //std::cout << r << std::endl;
+
+            if(typ[i]==1){
+                //std::cout <<type[i+l]<< std::endl;
+                c1=c10+ric[r]->staff;
+                c2=c20+ric[r]->seated;
+                c3=c30+ric[r]->stretcher;
+                c4=c40+ric[r]->wheelchair;
+            }else{
+                c1=c10-ric[r]->staff;
+                c2=c20-ric[r]->seated;
+                c3=c30-ric[r]->stretcher;
+                c4=c40-ric[r]->wheelchair;
+
+            }
+
+            if(c3>ve.stretcher){
+                if(c2>ve.seated){
+                    if(c1>ve.staff){
+                        feas=false;
+                        i=g;
+                    }
+                }else{
+                    if(c2+c1>ve.staff+ve.seated){
+                        feas=false;
+                        i=g;
+                    }
+                }
+            }else{
+                if(c2>ve.seated){
+                    if(c3+c1>ve.staff+ve.stretcher){
+
+                        feas=false;
+                        i=g;
+                    }
+                }else{
+                    if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                        feas=false;
+                        i=g;
+
+                    }
+                }
+
+            }
+            if(c3>ve.stretcher){
+                if(c2>ve.seated){
+                    feas=false;
+                    i=g;
+                }
+            }else{
+                if(c2+c3>ve.stretcher+ve.seated){
+                    feas=false;
+                    i=g;
+                }
+            }
+            if(c4>ve.wheelchair){
+
+                feas=false;
+                i=g;
+
+            }
+
+            if(c3>ve.stretcher){
+                feas=false;
+                i=g;
+            }
+
+
+
+            i=i+1;
+            c10=c1;
+            c20=c2;
+            c30=c3;
+            c40=c4;
+
+
+        }else{
+            i=g;
+        }
+
+    }
+
+    if(feas==true){
+        c1=c10-ric[req]->staff;
+        c2=c20-ric[req]->seated;
+        c3=c30-ric[req]->stretcher;
+        c4=c40-ric[req]->wheelchair;
+        if(c3>ve.stretcher){
+            if(c2>ve.seated){
+                if(c1>ve.staff){
+                    feas=false;
+
+                }
+            }else{
+                if(c2+c1>ve.staff+ve.seated){
+                    feas=false;
+
+                }
+            }
+        }else{
+            if(c2>ve.seated){
+                if(c3+c1>ve.staff+ve.stretcher){
+
+                    feas=false;
+                }
+            }else{
+                if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                    feas=false;
+
+
+                }
+            }
+
+        }
+        if(c3>ve.stretcher){
+            if(c2>ve.seated){
+                feas=false;
+
+            }
+        }else{
+            if(c2+c3>ve.stretcher+ve.seated){
+                feas=false;
+
+            }
+        }
+        if(c4>ve.wheelchair){
+
+            feas=false;
+
+
+        }
+
+        if(c3>ve.stretcher){
+            feas=false;
+
+        }
+
+    }
+
+
+    return feas;
+}
+bool Route::calc_feas_rtime(int l,int g, std::vector<RichiesteServizio*> &ric,int req ,std::vector<std::vector<double>> &Time, double* earl){
+    bool f;
+
+    f=true;
+    if(earl[g]-ric[req]->timewinPmax-ric[req]->st>ric[req]->RideTime){
+        f=false;
+    }
+
+    return f;
+
+}
+
+bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*>&ric, std::vector<Veicoli*>&veic, int*loc, int*rid, int*typ){
+
+    int i;
+    bool feas=true;
+    int len;
+    len=length;
+
+
+    double *arr, *dep, * wait;
+
+
+    arr=new double[length];
+
+    dep=new double[length];
+    wait=new double[length];
+
+    int req;
+
+
+    double F, v1=0, v2=0, v3=0;
+
+
+    for(i=0; i<len; i++){
+        arr[i]=0;
+        dep[i]=0;
+        wait[i]=0;
+    }
+
+
+    for(i=1; i<len-1; i++){
+
+        arr[i]=dep[i-1]+Time[loc[i-1]][loc[i]];
+
+        if(typ[i]==1){
+            if(arr[i]-ric[rid[i]]->timewinPmin>=0 && arr[i]-ric[rid[i]]->timewinPmax<=0){
+                dep[i]=arr[i]+ric[rid[i]]->st;
+                wait[i]=0;
+
+            }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
+
+                dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
+                wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+            }else{
+                dep[i]=arr[i]+ric[rid[i]]->st;
+
+                v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
+            }
+            }
+        }else{//if it is a delivery node
+            if(arr[i]-ric[rid[i]]->timewinDmin>=0 && arr[i]-ric[rid[i]]->timewinDmax<=0){
+                dep[i]=arr[i]+ric[rid[i]]->st;
+                wait[i]=0;
+            }else{ if(arr[i]-ric[rid[i]]->timewinDmin<0){
+                dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
+                wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+            }else{
+                dep[i]=arr[i]+ric[rid[i]]->st;
+
+                v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
+            }}
+        }
+
+    }
+    arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
+    dep[len-1]=0;
+    wait[len-1]=0;
+
+    //for(i=0;i<length;i++){
+    //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
+    //}
+
+
+    if(v1>0){
+        //go to step 8
+        //std:: cout << "false \n";
+    }else{
+        //std:: cout << "true \n";
+        //calculate the forward slack
+        //F=calculateF(1, ric, MaxRideTime);
+        F=calcF(rid, wait,  arr,  dep, 1, ric, typ,  len);
+        double G;
+        G=0;
+
+        for(i=1; i<len; i++){
+            G+=wait[i];
+        }
+        if(F<=G){
+            G=F;
+        }
+        //std:: cout << "G is" << G << "\n" ;
+        arr[1]=(dep[1]-ric[rid[1]]->st)+G;
+        dep[0]=arr[1]-Time[loc[0]][loc[1]];
+        v1=0;
+        for(i=1; i<len-1; i++){//hasta menos uno porque not iene niungun sentido que se calcule lo del deposito
+            arr[i]=dep[i-1]+Time[loc[i]][loc[i-1]];
+            if(typ[i]==1){ //if it is a pickup node
+                if(arr[i]-ric[rid[i]]->timewinPmin>=0 && arr[i]-ric[rid[i]]->timewinPmax<=0){
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+                    wait[i]=0;
+                }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
+
+                    dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
+                    wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+                }else{
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+
+                    v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                    //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
+                }}
+            }else{//if it is a delivery node
+                if(arr[i]-ric[rid[i]]->timewinDmin>=0 && arr[i]-ric[rid[i]]->timewinDmax<=0){
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+                    wait[i]=0;
+                }else{ if(arr[i]-ric[rid[i]]->timewinDmin<0){
+                    dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
+                    wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+                }else{
+                    dep[i]=arr[i]+ric[rid[i]]->st;
+
+                    v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                    //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
+                }}
+            }
+        }
+        arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
+        dep[len-1]=0;
+        wait[len-1]=0;
+
+        //for(i=0;i<length;i++){
+        //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
+        //}
+
+
+
+        v3=0;
+        for(int ii=0; ii<len; ii++){
+
+            if(typ[ii]==1){
+
+                req=rid[ii];
+                for(int jj=ii+1;jj<len;jj++){
+
+                    if(typ[jj]==-1){ //es nodo de delivery
+                        if(rid[jj]==req){
+
+                            if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
+                                v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+
+                            }else{
+
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        }
+        if(v3==0)
+        {}else{
+            v1=0;
+            //Viol=0;
+            for(i=1; i<len-1; i++){
+                if(typ[i]==1){
+                    // F=calculateF(i, ric, MaxRideTime);
+                    F=calcF(rid, wait,  arr,  dep, i, ric, typ,  len);
+                    //set waits
+                    G=0;
+                    for(int p=i+1; p<len; p++){
+                        G+=wait[p];
+                    }
+                    if(F<G){
+                        G=F;
+                    }else{
+
+                    }
+                    //calculate the others
+                    dep[i]=dep[i]+G;
+                    wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
+
+
+                    for(int kk=i+1;kk<len-1;kk++){
+                        arr[kk]=dep[kk-1]+Time[loc[kk-1]][loc[kk]];
+                        if(typ[kk]==1){ //if it is a pickup node
+                            if(arr[kk]-ric[rid[kk]]->timewinPmin>=0 && arr[kk]-ric[rid[kk]]->timewinPmax<=0){
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                wait[kk]=0;
+                            }else{ if(arr[kk]-ric[rid[kk]]->timewinPmin<0){
+
+                                dep[kk]=ric[rid[kk]]->timewinPmin+ric[rid[kk]]->st;
+                                wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
+                            }else{
+
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][4];
+                            }}
+                        }else{ //if it is a delivery node
+                            //delivery home
+
+                            //if it is a delivery node
+                            if(arr[kk]-ric[rid[kk]]->timewinDmin>=-0 && arr[kk]-ric[rid[kk]]->timewinDmax<=0  ){
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                wait[kk]=0;
+                            }else{ if(arr[kk]-ric[rid[kk]]->timewinDmin<-0){
+                                dep[kk]=ric[rid[kk]]->timewinDmin+ric[rid[kk]]->st;
+                                wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
+                            }else{
+
+                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+                                //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][6];
+                            }}
+
+
+                        }
+
+
+                    }
+
+                    arr[len-1]=dep[len-2]+Time[loc[len-2]][loc[len-1]];
+
+                }else{
+
+                }
+
+
+
+
+
+            }
+
+
+            arr[1]=dep[1]-ric[rid[1]]->st;
+            dep[0]=arr[1]-Time[loc[0]][loc[1]];
+
+
+
+
+        }
+
+
+    }
+
+    v3=0;
+    for(int ii=0; ii<len; ii++){
+
+        if(typ[ii]==1){
+
+            req=rid[ii];
+            for(int jj=ii+1;jj<len;jj++){
+
+                if(typ[jj]==-1){ //es nodo de delivery
+                    if(rid[jj]==req){
+                        if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
+
+
+                            v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+                        }else{
+                        }
+                    }
+                }
+
+            }
+        }
+
+    }
+
+
+    if(arr[len-1]-dep[0]-veic[veh]->MaxRoute>0){
+
+        //V[i][1]=arr[length-1]-dep[0]-MaxTimeRoute;
+        v2=arr[len-1]-dep[0]-veic[veh]->MaxRoute;
+
+
+    }else{v2=0;}
+
+
+    if(v1>0 || v2>0 || v3>0){
+        feas=false;
+    }
+
+
+    delete[] arr;
+    delete[] dep;
+    delete[] wait;
+
+    return feas;
+
+}
+
+bool feasible_with_vehicle(int m, int* E, int vei, std::vector<std::vector<int>> &MatCompVei){
+
+    bool feas=true;
+    int i=0;
+    while(i<m){
+        if(MatCompVei[E[i]][vei]<1){
+            feas=false;
+            i=m;
+        }
+        i++;
+    }
+
+
+
     return feas;
 }
 

@@ -28,7 +28,7 @@
  * Adding data structures to a solution subclass could broken this method
 
 emili::Solution& emili::Solution::operator=(const emili::Solution& a)
-{
+{read_Time
     this->instance = a.instance;
     this->setRawData(a.getRawData());
     return *this;

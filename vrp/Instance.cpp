@@ -27,7 +27,7 @@ Instance::~Instance() {
 
 void Instance::read_Distance(std::string a){
 
-    std::string c="/Users/garazi/Documents/Garazi/Data/new_instances/"+a+"/MatriceDistanze.txt";
+    std::string c=a+"/MatriceDistanze.txt";
     std::ifstream ar1(c.c_str());
     int i,j;
     std::vector <double> d(numLocation0+1);
@@ -45,7 +45,7 @@ void Instance::read_Distance(std::string a){
 
 void Instance::read_Time(std::string a){
     
-    std::string c="/Users/garazi/Documents/Garazi/Data/new_instances/"+a+"/MatriceTempi.txt";
+    std::string c=a+"/MatriceTempi.txt";
     std::ifstream ar1(c.c_str());
     int i,j;
     std::vector <double> d(numLocation0+1);
@@ -63,7 +63,7 @@ void Instance::read_Time(std::string a){
 
 void Instance::read_MatCompVei(std::string a){
     
-    std::string c="/Users/garazi/Documents/Garazi/Data/new_instances/"+a+"/MatriceCompVeicoli.txt";
+    std::string c=a+"/MatriceCompVeicoli.txt";
     std::ifstream ar1(c.c_str());
     int i,j;
     std::vector <int> d(numVeicoli0);
@@ -81,7 +81,7 @@ void Instance::read_MatCompVei(std::string a){
 }
 
 void Instance::read_ric(std::string a){
-    std::string c="/Users/garazi/Documents/Garazi/Data/new_instances/"+a+"/RichiesteServizio.txt";
+    std::string c=a+"/RichiesteServizio.txt";
     std::ifstream ar1(c.c_str());
     int i;
     //int T;
@@ -116,7 +116,7 @@ void Instance::read_ric(std::string a){
     ar1.close();
 }
 void Instance::read_veic(std::string a){
-    std::string c="/Users/garazi/Documents/Garazi/Data/new_instances/"+a+"/Veicoli.txt";
+    std::string c=a+"/Veicoli.txt";
     std::ifstream ar1(c.c_str());
     int i;
 
@@ -144,7 +144,7 @@ void Instance::read_veic(std::string a){
 }
 
 void Instance::read_num(std::string a){
-    std::string c="/Users/garazi/Documents/Garazi/Data/new_instances/"+a+"/DimensioniIstanza.txt";
+    std::string c=a+"/DimensioniIstanza.txt";
     std::ifstream ar1(c.c_str());
     
     ar1 >> numRichieste0;

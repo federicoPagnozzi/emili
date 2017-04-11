@@ -7,7 +7,9 @@ aux_source_directory(./vrp SRC_LIST)
 option(USE_SSE "Use SSE compile path if available" OFF)
 option(USE_NEW_MAIN "Use new loading paradigm" OFF)
 option(WITH_STATS "Prints run informations" OFF)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
+option(PERFORMANCE "Compile with -O3" ON)
+option(ENABLE_DEBUG "Compile with -g" OFF)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 
 
 #ADD COMMIT HASH TO SOURCE CODE
@@ -37,6 +39,20 @@ if(USE_NEW_MAIN)
 else()
     message(STATUS "Component based algorithm loading not enabled")
 endif(USE_NEW_MAIN)
+
+if(PERFORMANCE)
+    message(STATUS "Compile with -O3")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+else()
+    message(STATUS "Perfomance flag not enabled")
+endif(PERFORMANCE)
+
+if(ENABLE_DEBUG)
+    message(STATUS "Compiling with debug informations")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+else()
+    message(STATUS "No debug info in the executable")
+endif(ENABLE_DEBUG)
 
 #C++ 11 detection
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")

@@ -1665,7 +1665,7 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
     if(changed==true){
         Solaux->delete_route(vei,numVeicoli);
         
-        Sol->copyexistingsol(Solaux);
+        Sol->copyexistingsol(Solaux, vei);
     }
                                                     
     
@@ -1777,6 +1777,12 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
             if(j!=vei){
 
                 if(MatCompVei[req][j]>0){
+                    if(Sol->route[j] == nullptr || Sol->route.size() < j )
+                    {
+                        std::cout << "J : " << j << "\n";
+                        std::cout << numVeicoli << " NumADDR: " << Sol->numAddRoutes << " NumR: " << Sol->numRoutes << " Size: " << Sol->route.size() << "\n";
+
+                    }
                                       int originallength=Sol->route[j]->length;
                     for(l=0; l<originallength-1; l++){
 
@@ -1955,12 +1961,12 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
         Sol->route[bestv]->calculate_capacity(ric,veic);
         // Sol->route[bestv]->display_route();
         Sol->route[vei]->delete_req(bestreq, MatTemp);
-
         Sol->route[bestv]->calculate_earliest_latest(ric, MatTemp, veic);
         Sol->route[bestv]->Eightstepevaluationscheme(MatTemp,ric,veic);
+        if(Sol->route[vei]->numRicRoute>0){
         Sol->route[vei]->calculate_capacity(ric,veic);
         Sol->route[vei]->calculate_earliest_latest(ric, MatTemp, veic);
-        Sol->route[vei]->Eightstepevaluationscheme(MatTemp,ric,veic);
+        Sol->route[vei]->Eightstepevaluationscheme(MatTemp,ric,veic);}
         Sol->route[bestv]->totaldist=Sol->route[bestv]->calculatedist(MatTemp);
        // std::cout<<"BEFORE " << Sol->route[vei]->totaldist << std::endl;
         Sol->route[vei]->totaldist=Sol->route[vei]->calculatedist(MatTemp);
@@ -2087,6 +2093,12 @@ emili::Solution* RelocateNeighborhood::random(emili::Solution* currentSolution)
         random_vei=emili::generateRandomNumber()%(sol->numRoutes+sol->numAddRoutes);
         //take out from this route all the requests and insert them
     }
+    //if(random_vei==1){
+      //  sol->route[random_vei]->display_route();
+
+   // }
+    //std::cout << "random vei " << random_vei << "\n";
+
     //int random_vei = emili::generateRandomNumber()%(sol->numRoutes+sol->numAddRoutes);
     Relocate_Neighborhood_2(nsol,random_vei,pickup,delivery,bestRequest,bestVei,inst.numVeicoli0,inst.MCV,inst.rc,inst.T,inst.vec,inst.Dist,inst.numRichieste0);
     return nsol;
@@ -2179,6 +2191,9 @@ emili::Solution* TwoOptNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         bestv2 = -1;
+        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+            vei++;
+
         two_opt_2(sol, vei, bestpos1,  bestv2, bestpos2,inst.numVeicoli0, inst.Dist, inst.vec, inst.rc, inst.numRichieste0);
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"TOPT " << sol->getSolutionValue() << std::endl;
@@ -2408,9 +2423,12 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
 
     }
     if(changed==true){
-        Solaux->delete_route(vei,numVeicoli);
 
-        Sol->copyexistingsol(Solaux);
+            Solaux->delete_route(vei,numVeicoli);
+
+
+
+        Sol->copyexistingsol(Solaux, vei);
     }
 
 
@@ -2608,7 +2626,8 @@ emili::Solution* FourOptNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         best_start = -1;
-
+        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+            vei++;
         r_4_opt_2(sol,  vei,  best_start, best_first, best_second, best_third, inst.numVeicoli0, inst.Dist, inst.rc, inst.vec);
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"FOPT " << sol->getSolutionValue() << std::endl;
@@ -2668,3 +2687,673 @@ emili::Solution* FourOptNeighborhood::random(emili::Solution* currentSolution)
 
     return nsol;
 }
+
+
+//EXCHANGE FOR EMILI
+
+void Exchange_Neighborhood(SolutionVRP* Sol, int vei, int &best_v, int &best_r1, int& best_r2, int &or_pickup_pos_1, int &or_pickup_pos_2, int &or_delivery_pos_1, int &or_delivery_pos_2, int numVeicoli, std::vector<RichiesteServizio*> & ric, std::vector<std::vector<double>> & MatTemp,std::vector<Veicoli*> &veic, int numRichieste, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> & D){
+
+
+
+    int* rid;
+    rid=new int[2*numRichieste+2];
+    int* typ;
+    typ=new int[2*numRichieste+2];
+    int* loc;
+    loc=new int[2*numRichieste+2];
+    double* earl;
+    earl=new double[2*numRichieste+2];
+    bool inserted=false;
+    int p1best, d1best, p2best, d2best, bestr1, bestr2, besv, gbest, lbest, bestv;
+    int* E;
+    int g;
+    int numofreq=0;
+    numofreq=Sol->route[vei]->numRicRoute;
+    E=new int[numofreq];
+
+
+    int* F=new int[numRichieste];
+    E=Sol->route[vei]->count_request(E);
+    int rr1, rr2;
+
+    bool feas2, feas1, feas6, gg;
+    bool feas22, feas11, feas66, gg1, feasride2, feasride1, feas41, feas51;
+    //First Swap
+    double bestdist=DBL_MAX;
+    for(int i=0;i<numofreq;i++){
+        E=Sol->route[vei]->count_request(E);
+        rr1=E[i];
+        //std::cout << " I " << i << std::endl;
+        int p2,d2, p1, d1;
+        p1=Sol->route[vei]->find_pickup(rr1);
+        d1=Sol->route[vei]->find_delivery(rr1);
+
+        for(int j=0; j<numVeicoli; j++){
+           // std::cout << "Veh " << j << std::endl;
+            if(j!=vei){
+                //std::cout << i << std::endl;
+                //std::cout << E[i] << " " << rr1 << std::endl;
+                //std::cout << " E" << std::endl;
+                //for(int iii=0; iii<numofreq; iii++){
+                  //  std::cout << E[iii] << " " ;
+                //}std::cout << std::endl;
+                if(MatCompVei[rr1][j]>0){
+                    int numofreq2=0;
+                    numofreq2=Sol->route[j]->numRicRoute;
+
+                    F=Sol->route[j]->count_request(F);
+
+
+
+                    for(int k=0; k<numofreq2; k++){
+                        F=Sol->route[j]->count_request(F);
+                        rr2=F[k];
+                  //      std::cout << " F" << std::endl;
+                       // std::cout << rr2 << std::endl;
+                    //    for(int kk=0; kk<numofreq2; kk++){
+                      //      std::cout << F[kk] << " " ;
+                        //}std::cout << std::endl;
+                        //std::cout << k << std::endl;
+
+                        //std::cout << F[k] << " " << vei << std::endl;
+                        if(MatCompVei[rr2][vei]>0){
+                            p2=Sol->route[j]->find_pickup(rr2);
+                            d2=Sol->route[j]->find_delivery(rr2);
+                            //check the feasibility of E[i] in position d2 and p2
+                            //if it is feasible, check where you can insert in the best position.
+                            feas2=Sol->route[j]->capacity_feasibility2(p2, rr1, veic, ric);
+
+                            feas1=Sol->route[j]->tw_P_feasibility_2(ric, MatTemp,  p2, rr1);
+
+                            if(feas1>0 && feas2>0){
+
+                                if(p2+1==d2){
+                                    feas6=Sol->route[j]->check_feas_FirstRequest(p2, d2, MatTemp, ric, rr1);
+                                    if(feas6>0){
+                                        gg=Sol->route[j]->EightStep_2(p2,d2, rr1, MatTemp, ric ,veic);
+
+                                        if(gg>0){//it is feasible to insert the first request on the position of the second one.
+                                            //Now I am going to try and insert the second request in all the possible positions in the first one.
+                                            for(int l=1; l<Sol->route[vei]->length-2; l++){
+
+                                                feas22=Sol->route[vei]->capacity_P_feasibility_3(l, rr2,  veic, ric, p1, d1, rr1);
+
+                                                feas11=Sol->route[vei]->tw_P_feasibility_3(ric, MatTemp,  l, rr2, p1, d1, loc, typ, rid);
+                                                if(feas11>0 && feas22>0){
+
+                                                    g=l+1;
+                                                    while(g<Sol->route[vei]->length-1){
+                                                        double disteffect=0;
+
+
+                                                        Sol->route[vei]->calc_loc3(rr2, ric, p1, d1, l , g, loc);
+                                                        //std::cout << "first vei: " << vei << " " << p1 << " " << d1 << " " << E[i] << "second vei: " << j << " " << p2 << " " << d2 << " " << F[k] << " IN " << l << " " << g << std::endl;
+                                                       // for(int iii=0; iii<Sol->route[vei]->length; iii++){
+                                                       //     std::cout << loc[iii] << std::endl;
+
+                                                       // }
+
+                                                        if(g==l+1){
+
+                                                            disteffect=0;
+                                                            disteffect=Sol->route[vei]->effect_of_inserting_req_on_pos_3(rr2, l, g, D, ric, p1, d1, loc);
+                                                            if(disteffect<bestdist){
+                                                                Sol->route[vei]->calc_typ3(rr2, p1, d1, l , g, typ);
+
+                                                                 Sol->route[vei]->calc_rid3(rr2,  p1, d1, l , g, rid);
+                                                              //  std::cout << "RID" << std::endl;
+                                                              //  for(int iii=0; iii<Sol->route[vei]->length; iii++){
+                                                              //      std::cout << rid[iii] << std::endl;
+
+                                                              //  }
+
+                                                             //   return 0;
+                                                              //  earl=Sol->route[vei]->calc_earl3(F[k], ric, p1, d1, l , g);
+
+                                                                feas66=Sol->route[vei]->check_feas_D_tw1_3(rr2,ric,l,g,MatTemp,veic, loc, rid, typ);
+                                                                if(feas66>0){
+                                                                    gg1=Sol->route[vei]->EightStep_3(MatTemp, ric, veic, loc, rid, typ);
+
+                                                                    if(gg1>0){
+                                                                        bestdist=disteffect;
+                                                                        bestr1=rr1;
+                                                                        bestr2=rr2;
+                                                                        p1best=p1;
+                                                                        d1best=d1;
+                                                                        p2best=p2;
+                                                                        d2best=d2;
+                                                                        gbest=g;
+                                                                        lbest=l;
+                                                                        bestv=j;
+
+                                                                        inserted=true;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }else{
+                                                            Sol->route[vei]->calc_typ3(rr2,  p1, d1, l , g, typ);
+                                                            Sol->route[vei]->calc_rid3(rr2, p1, d1, l , g, rid);
+
+                                                            Sol->route[vei]->calc_earl3( ric, typ, loc, rid, earl, MatTemp);
+
+                                                            feasride2=Sol->route[vei]->calc_feas_rtime(l,g,ric,rr2,MatTemp, earl);
+                                                            if(feasride2>0){
+                                                                disteffect=0;
+                                                                bool feas44, feas55;
+                                                                feas44=Sol->route[vei]->check_feas_D_tw22(earl, typ, rid, l, g, ric);
+
+                                                                feas55=Sol->route[vei]->check_cap_from22(l, g, veic, rr2, ric, rid, typ);
+
+                                                                if(feas44>0 && feas55>0){
+                                                                    disteffect=Sol->route[vei]->effect_of_inserting_req_on_pos_3(rr2, l, g, D, ric, p1, d1, loc);
+
+                                                                    if(disteffect<bestdist){
+
+                                                                        feas66=Sol->route[vei]->check_feas_D_tw1_3(rr2,ric,l,g,MatTemp,veic, loc, rid, typ);
+                                                                        if(feas66>0){
+                                                                            gg1=Sol->route[vei]->EightStep_3(MatTemp, ric, veic, loc, rid, typ);
+
+                                                                            if(gg1>0){
+                                                                                bestdist=disteffect;
+                                                                                bestr1=rr1;
+                                                                                bestr2=rr2;
+                                                                                p1best=p1;
+                                                                                d1best=d1;
+                                                                                p2best=p2;
+                                                                                d2best=d2;
+                                                                                gbest=g;
+                                                                                lbest=l;
+                                                                                bestv=j;
+                                                                                inserted=true;
+
+
+                                                                            }
+
+
+                                                                        }
+
+                                                                    }
+
+                                                                }else{g=Sol->route[vei]->length-1;}
+                                                            }else{g=Sol->route[vei]->length-1;}
+
+                                                        }
+
+                                                        g++;
+                                                    }
+                                                }
+
+                                            }
+
+
+
+                                        }
+                                    }//
+
+
+                                }else{//esto es de la primera parte! De lo de pickup
+                                    Sol->route[j]->calc_earl1(p2, d2, rr1, earl, MatTemp, ric);
+                                    feasride1=Sol->route[j]->ridetime_feas_D22(d2, ric, rr1, MatTemp, earl);
+                                    if(feasride1>0){
+                                        feas41=Sol->route[j]->check_feas_D_tw221(earl, p2, d2, ric);
+                                        feas51=Sol->route[j]->check_cap_from23(p2,d2,veic,  rr1, ric);
+                                        if(feas41>0 && feas51>0){
+
+                                            feas6=Sol->route[j]->check_feas_FirstRequest(p2, d2, MatTemp, ric, rr1);
+                                            if(feas6>0){
+                                                gg=Sol->route[j]->EightStep_2(p2,d2, rr1, MatTemp, ric ,veic);
+
+                                                if(gg>0){//it is feasible to insert the first request on the position of the second one.
+                                                    //Now I am going to try and insert the second request in all the possible positions in the first one.
+                                                    for(int l=1; l<Sol->route[vei]->length-2; l++){
+
+                                                        feas22=Sol->route[vei]->capacity_P_feasibility_3(l, rr2,  veic, ric, p1, d1, rr1);
+
+                                                        feas11=Sol->route[vei]->tw_P_feasibility_3(ric, MatTemp,  l, rr2, p1, d1, loc, typ, rid);
+                                                        if(feas11>0 && feas22>0){
+
+                                                            g=l+1;
+                                                            while(g<Sol->route[vei]->length-1){
+                                                                double disteffect=0;
+
+
+                                                                Sol->route[vei]->calc_loc3(rr2, ric, p1, d1, l , g, loc);
+
+
+
+                                                                if(g==l+1){
+
+                                                                    disteffect=0;
+                                                                    disteffect=Sol->route[vei]->effect_of_inserting_req_on_pos_3(rr2, l, g, D, ric, p1, d1, loc);
+                                                                    if(disteffect<bestdist){
+                                                                        Sol->route[vei]->calc_typ3(rr2, p1, d1, l , g, typ);
+                                                                        Sol->route[vei]->calc_rid3(rr2, p1, d1, l , g, rid);
+                                                                        //  earl=Sol->route[vei]->calc_earl3(F[k], ric, p1, d1, l , g);
+
+                                                                        feas66=Sol->route[vei]->check_feas_D_tw1_3(rr2,ric,l,g,MatTemp,veic, loc, rid, typ);
+                                                                        if(feas66>0){
+                                                                            gg1=Sol->route[vei]->EightStep_3(MatTemp, ric, veic, loc, rid, typ);
+
+                                                                            if(gg1>0){
+                                                                                bestdist=disteffect;
+                                                                                bestr1=rr1;
+                                                                                bestr2=rr2;
+                                                                                p1best=p1;
+                                                                                d1best=d1;
+                                                                                p2best=p2;
+                                                                                d2best=d2;
+                                                                                gbest=g;
+                                                                                lbest=l;
+                                                                                bestv=j;
+                                                                                inserted=true;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }else{
+                                                                    Sol->route[vei]->calc_typ3(rr2, p1, d1, l , g, typ);
+                                                                    Sol->route[vei]->calc_rid3(rr2, p1, d1, l , g, rid);
+                                                                    Sol->route[vei]->calc_earl3( ric, typ, loc, rid, earl, MatTemp);
+
+                                                                    feasride2=Sol->route[vei]->calc_feas_rtime(l,g,ric,F[k],MatTemp, earl);
+                                                                    if(feasride2>0){
+                                                                        bool feas44, feas55;
+                                                                        disteffect=0;
+                                                                        feas44=Sol->route[vei]->check_feas_D_tw22(earl, typ, rid, l, g, ric);
+
+                                                                        feas55=Sol->route[vei]->check_cap_from22(l, g, veic, rr2, ric, rid, typ);
+
+                                                                        if(feas44>0 && feas55>0){
+                                                                            disteffect=Sol->route[vei]->effect_of_inserting_req_on_pos_3(rr2, l, g, D, ric, p1, d1, loc);
+
+                                                                            if(disteffect<bestdist){
+
+                                                                                feas66=Sol->route[vei]->check_feas_D_tw1_3(rr2,ric,l,g,MatTemp,veic, loc, rid, typ);
+                                                                                if(feas66>0){
+                                                                                    gg1=Sol->route[vei]->EightStep_3(MatTemp, ric, veic, loc, rid, typ);
+
+                                                                                    if(gg1>0){
+                                                                                        bestdist=disteffect;
+                                                                                        bestr1=rr1;
+                                                                                        bestr2=rr2;
+                                                                                        p1best=p1;
+                                                                                        d1best=d1;
+                                                                                        p2best=p2;
+                                                                                        d2best=d2;
+                                                                                        gbest=g;
+                                                                                        lbest=l;
+                                                                                        bestv=j;
+                                                                                        inserted=true;
+
+
+                                                                                    }
+
+
+                                                                                }
+
+                                                                            }
+
+                                                                        }else{g=Sol->route[vei]->length-1;}
+                                                                    }else{g=Sol->route[vei]->length-1;}
+
+                                                                }
+
+                                                                g++;
+                                                            }
+                                                        }
+
+                                                    }
+
+
+
+                                                }
+
+
+
+                                            }
+
+                                        }
+
+                                    }
+
+
+
+
+
+
+
+
+                                }
+
+
+
+
+
+
+                            }
+
+
+
+
+                        }
+                       // std::cout << " LAST F " << std::endl;
+                        //for(int kk=0; kk<numofreq2; kk++){
+                         //   std::cout << F[kk] << " " ;
+                        //}std::cout << std::endl;
+                    }
+
+
+
+
+                }
+            }
+
+        }
+        //std::cout << " LAST E" << std::endl;
+        //for(int iii=0; iii<numofreq; iii++){
+         //   std::cout << E[iii] << " " ;
+        //}std::cout << std::endl;
+    }
+
+
+    if(inserted>0){
+        best_v=bestv;
+       // std::cout << "1" << std::endl;
+
+      //  std::cout << bestr1 << " " << p1best << " " << d1best << std::endl;
+        //primero takeout request
+       // std::cout << "antes" << std::endl;
+        //Sol->route[vei]->display_route();
+        best_r1=bestr1;
+        best_r2=bestr2;
+        or_pickup_pos_1=p1best;
+        or_delivery_pos_1=d1best;
+        Sol->route[vei]->delete_req_2(bestr1,  MatTemp, p1best, d1best);
+        or_pickup_pos_2=p2best;
+        or_delivery_pos_2=d2best;
+        //std::cout << "despues" << std::endl;
+        //Sol->route[vei]->display_route();
+        //std::cout << "antes" << std::endl;
+        //Sol->route[bestv]->display_route();
+        //std::cout << bestr2 << " " << p2best << " " << d2best << std::endl;
+        Sol->route[bestv]->delete_req_2(bestr2,  MatTemp, p2best, d2best);
+        //std::cout << "despues" << std::endl;
+        //Sol->route[bestv]->display_route();
+        //then insert request
+        //std::cout << bestr2 << " " << lbest << " " << gbest << std::endl;
+        //std::cout << "antes" << std::endl;
+        //Sol->route[vei]->display_route();
+
+        Sol->route[vei]->insert_request_on(bestr2, lbest, gbest, ric, MatTemp);
+        //std::cout << "despues" << std::endl;
+        //Sol->route[vei]->display_route();
+        //std::cout << bestr1 << " " << p2best << " " << d2best << std::endl;
+        //std::cout << "antes" << std::endl;
+        //Sol->route[bestv]->display_route();
+        Sol->route[bestv]->insert_request_on(bestr1, p2best, d2best, ric, MatTemp);
+        //std::cout << "despues" << std::endl;
+       // Sol->route[bestv]->display_route();
+    //insert whatever in whatever
+
+
+        Sol->route[bestv]->calculate_capacity(ric,veic);
+
+        Sol->route[bestv]->calculate_earliest_latest(ric, MatTemp, veic);
+        Sol->route[bestv]->Eightstepevaluationscheme(MatTemp,ric,veic);
+        Sol->route[vei]->calculate_capacity(ric,veic);
+        Sol->route[vei]->calculate_earliest_latest(ric, MatTemp, veic);
+        Sol->route[vei]->Eightstepevaluationscheme(MatTemp,ric,veic);
+        Sol->route[bestv]->totaldist=Sol->route[bestv]->calculatedist(MatTemp);
+        Sol->route[vei]->totaldist=Sol->route[vei]->calculatedist(MatTemp);
+
+
+
+        Sol->updatecost(numVeicoli);
+        Sol->updateusedvehicles(numVeicoli);
+       // std::cout<< "adf: " << std::endl;
+       // Sol->DisplaySolution();
+
+
+
+    }
+
+
+    //
+    delete[] F;
+    delete[] E;
+
+    delete[] loc;
+    delete[] typ;
+    delete[] rid;
+    delete[] earl;
+
+
+
+
+}
+
+emili::Solution* ExchangeNeighborhood::computeStep(emili::Solution* step)
+{
+    if(vei>=(num_r-1))
+    {
+        return nullptr;
+    }
+    else
+    {
+        SolutionVRP* sol = (SolutionVRP*) step;
+        best_v = -1;
+        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+            vei++;
+        Exchange_Neighborhood(sol, vei, best_v, best_r1, best_r2, or_pickup_pos_1, or_pickup_pos_2, or_delivery_pos_1, or_delivery_pos_2, inst.numVeicoli0, inst.rc, inst.T,inst.vec, inst.numRichieste0, inst.MCV, inst.Dist);
+
+        //std::cout << sol->numAddRoutes << std::endl;
+        //std::cout <<"FOPT " << sol->getSolutionValue() << std::endl;
+        vei++;
+    }
+    return step;
+}
+
+
+void ExchangeNeighborhood::reverseLastMove(emili::Solution* step)
+{
+    if(best_v>-1)
+    {
+        //reverse move
+        SolutionVRP* Sol = (SolutionVRP*) step;
+
+        Sol->route[vei-1]->delete_req(best_r2, inst.T);
+        Sol->route[vei-1]->insert_request_on(best_r1, or_pickup_pos_1, or_delivery_pos_1, inst.rc, inst.T);
+        Sol->route[best_v]->delete_req(best_r1, inst.T);
+        Sol->route[best_v]->insert_request_on(best_r2, or_pickup_pos_2, or_delivery_pos_2, inst.rc, inst.T);
+        Sol->route[vei-1]->calculate_capacity(inst.rc,inst.vec);
+        Sol->route[best_v]->calculate_capacity(inst.rc,inst.vec);
+        Sol->route[vei-1]->calculate_earliest_latest(inst.rc, inst.T, inst.vec);
+        Sol->route[vei-1]->Eightstepevaluationscheme(inst.T,inst.rc,inst.vec);
+        Sol->route[best_v]->calculate_earliest_latest(inst.rc, inst.T, inst.vec);
+        Sol->route[best_v]->Eightstepevaluationscheme(inst.T,inst.rc,inst.vec);
+        Sol->route[vei-1]->totaldist=Sol->route[vei-1]->calculatedist(inst.Dist);
+        Sol->route[best_v]->totaldist=Sol->route[best_v]->calculatedist(inst.Dist);
+        //Solaux->copyrouteinsol(rout);
+        //	std::cout << "request" << E[i] << "inserted in vehicle, " << bestv<< "\n";
+        //Solaux->route[bestv]->display_route();
+        Sol->updatecost(inst.numVeicoli0);
+        Sol->updateusedvehicles(inst.numVeicoli0);
+
+    }
+
+}
+
+ExchangeNeighborhood::NeighborhoodIterator ExchangeNeighborhood::begin(emili::Solution* base)
+{
+    SolutionVRP* sol = (SolutionVRP*) base;
+    vei = 0;
+    num_r = sol->numRoutes+sol->numAddRoutes;
+    best_v = -1;
+    best_r1 = -1;
+    best_r2 = -1;
+    or_pickup_pos_1 = -1;
+    or_pickup_pos_2 = -1;
+    or_delivery_pos_1 = -1;
+    or_delivery_pos_2 = -1;
+    return NeighborhoodIterator(this,base);
+}
+
+void ExchangeNeighborhood::reset()
+{
+
+}
+
+emili::Solution* ExchangeNeighborhood::random(emili::Solution* currentSolution)
+{
+    SolutionVRP* sol = (SolutionVRP*) currentSolution;
+    SolutionVRP* nsol = new SolutionVRP();
+    nsol->CopySolution(sol);
+    int random_vei = emili::generateRandomNumber()%(sol->numRoutes+sol->numAddRoutes);
+    Exchange_Neighborhood(sol, random_vei, best_v, best_r1, best_r2, or_pickup_pos_1, or_pickup_pos_2, or_delivery_pos_1, or_delivery_pos_2, inst.numVeicoli0, inst.rc, inst.T,inst.vec, inst.numRichieste0, inst.MCV, inst.Dist);
+
+    return nsol;
+}
+
+
+//Exchange vehicle for EMILI
+
+
+void Exchange_Vehicles(SolutionVRP* Sol, int vei, int& vei1, int numVeicoli, int numRichieste, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> &Dist, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, std::vector<Veicoli*> &veic){
+
+    int numreq1=Sol->route[vei]->numRicRoute;
+    int numreq2;
+    double dist, bestdist=FLT_MAX;
+
+    int best_v;
+    int* E=new int[numreq1];
+    bool feas, feas1, inserted=false;
+    E=Sol->route[vei]->count_request(E);
+    int* F=new int[numRichieste];
+    for(int i=0; i<numVeicoli+Sol->numAddRoutes; i++){
+
+        if(i!=vei){
+            //Are all the requests from vei compatible with i, and are all requests from i compatible with vei
+            feas=feasible_with_vehicle(numreq1, E, i, MatCompVei);
+
+
+            if(feas>0){
+
+
+                if(Sol->route[i]->numRicRoute>0){
+                    numreq2=Sol->route[i]->numRicRoute;
+                    F=Sol->route[i]->count_request(F);
+
+                    feas1=feasible_with_vehicle(numreq2, F, vei, MatCompVei);
+
+                    if(feas1>0){
+
+                            //calculate the effect of the distance choose the best and then
+                        dist=Sol->calculate_distance_effect(i, vei, Dist);
+                        if(bestdist<dist){
+
+                            best_v=i;
+
+                            inserted=true;
+                        }
+                    }
+
+                }else{
+
+                    //calculate the effect of the distance choose the best and then
+                    dist=Sol->calculate_distance_effect(i, vei, Dist);
+                    if(bestdist<dist){
+
+                        best_v=i;
+
+                        inserted=true;
+                    }
+
+
+
+                }
+
+
+
+                }
+        }
+
+    }
+
+
+    if(inserted>0){
+
+        Sol->ExchangeRoutes(vei, best_v, veic, Time, ric, Dist);
+    //change both routes
+        vei1=best_v;
+
+    }
+
+
+}
+
+
+
+
+emili::Solution* ExchangeVehicleNeighborhood::computeStep(emili::Solution* step)
+{
+    if(vei>=(num_r-1))
+    {
+        return nullptr;
+    }
+    else
+    {
+        SolutionVRP* sol = (SolutionVRP*) step;
+        vei1 = -1;
+        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+            vei++;
+
+        Exchange_Vehicles(sol, vei,vei1, inst.numVeicoli0, inst.numRichieste0, inst.MCV, inst.Dist, inst.T, inst.rc, inst.vec);
+
+        //std::cout << sol->numAddRoutes << std::endl;
+        //std::cout <<"FOPT " << sol->getSolutionValue() << std::endl;
+        vei++;
+    }
+    return step;
+}
+
+
+void ExchangeVehicleNeighborhood::reverseLastMove(emili::Solution* step)
+{
+    if(vei1>-1)
+    {
+        //reverse move
+        SolutionVRP* Sol = (SolutionVRP*) step;
+
+        Sol->ExchangeRoutes(vei, vei1, inst.vec, inst.T, inst.rc, inst.Dist);
+
+
+    }
+
+}
+
+ExchangeVehicleNeighborhood::NeighborhoodIterator ExchangeVehicleNeighborhood::begin(emili::Solution* base)
+{
+    SolutionVRP* sol = (SolutionVRP*) base;
+    vei = 0;
+    num_r = sol->numRoutes+sol->numAddRoutes;
+    vei1 = -1;
+
+    return NeighborhoodIterator(this,base);
+}
+
+void ExchangeVehicleNeighborhood::reset()
+{
+
+}
+
+emili::Solution* ExchangeVehicleNeighborhood::random(emili::Solution* currentSolution)
+{
+    SolutionVRP* sol = (SolutionVRP*) currentSolution;
+    SolutionVRP* nsol = new SolutionVRP();
+    nsol->CopySolution(sol);
+    int random_vei = emili::generateRandomNumber()%(sol->numRoutes+sol->numAddRoutes);
+    Exchange_Vehicles(sol, random_vei, vei1, inst.numVeicoli0, inst.numRichieste0, inst.MCV, inst.Dist, inst.T, inst.rc, inst.vec);
+
+    return nsol;
+}
+
+

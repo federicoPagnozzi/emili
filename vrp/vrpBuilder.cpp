@@ -36,6 +36,9 @@
 #define NEIGHBORHOOD_ELIMINATE "eliminate"
 #define NEIGHBORHOOD_TWO_OPT "topt"
 #define NEIGHBORHOOD_FOUR_OPT "fopt"
+#define NEIGHBORHOOD_EXCHANGE "exchange"
+#define NEIGHBORHOOD_EXCHANGE_VEHICLE "vehicle_exchange"
+
 
 
 /*
@@ -96,6 +99,14 @@ emili::Neighborhood* prs::VrpBuilder::buildNeighborhood()
     {
         printTab("Eliminate Neighborhood");
         neigh=new EliminateNeighborhood(*instance);
+    }else if(tm.checkToken(NEIGHBORHOOD_EXCHANGE))
+    {
+        printTab("Eliminate Neighborhood");
+        neigh=new ExchangeNeighborhood(*instance);
+    }else if(tm.checkToken(NEIGHBORHOOD_EXCHANGE_VEHICLE))
+    {
+        printTab("Eliminate Neighborhood");
+        neigh=new ExchangeVehicleNeighborhood(*instance);
     }
     prs::decrementTabLevel();
     return neigh;

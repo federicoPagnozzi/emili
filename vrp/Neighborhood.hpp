@@ -34,10 +34,9 @@ void two_opt_2(SolutionVRP* Sol,int vei, int& bestpos1, int& bestv2, int& bestpo
 
 void Eliminate_NeighborhoodF_2(SolutionVRP* Sol,int vei, int numVeicoli, std::vector<std::vector<int>> &MatCompVei, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> & MatTemp, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> & D, int numRichieste);
 
-
 void r_4_opt_2(SolutionVRP* Sol, int vei, int& best_start, int& best_first, int& best_second, int& best_third, int numVeicoli, std::vector<std::vector<double>> & D, std::vector<RichiesteServizio*> &ric, std::vector<Veicoli*> &veic);
-
-
+void Exchange_Neighborhood(SolutionVRP* Sol, int vei, int &best_v, int &best_r1, int& best_r2, int &or_pickup_pos_1, int &or_pickup_pos_2, int &or_delivery_pos_1, int &or_delivery_pos_2, int numVeicoli, std::vector<RichiesteServizio*> & ric, std::vector<std::vector<double>> & MatTemp,std::vector<Veicoli*> &veic, int numRichieste, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> & D);
+void Exchange_Vehicles(SolutionVRP* Sol, int vei, int& vei1, int numVeicoli, int numRichieste, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> &Dist, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, std::vector<Veicoli*> &veic);
 class RelocateNeighborhood : public emili::Neighborhood
 {
 protected:
@@ -114,6 +113,50 @@ protected:
     virtual void reverseLastMove(emili::Solution* step);
 public:
     EliminateNeighborhood(Instance& instance):inst(instance),base_solution(new SolutionVRP()) {}
+    virtual NeighborhoodIterator begin(emili::Solution* base);
+    virtual void reset();
+    virtual emili::Solution* random(emili::Solution* currentSolution);
+    virtual int size() { return num_r;}
+};
+
+class ExchangeNeighborhood : public emili::Neighborhood
+{
+protected:
+    int vei; //vehicle to modify
+    int num_r; // number of routes
+
+    int best_v; //best vehicle in where the request to exchange is
+    int best_r1; //request to exchange from first vehicle (vei)
+    int best_r2; //request to exchange from second vehicle (best_v)
+    int or_pickup_pos_1;//where in first vehicle is the second request inserted pickup
+    int or_pickup_pos_2;//where in first vehicle is the second request inserted delivery
+    int or_delivery_pos_1;//where in first vehicle is the second request inserted pickup
+    int or_delivery_pos_2;//where in first vehicle is the second request inserted delivery
+    SolutionVRP* base_solution;
+    Instance& inst;
+    virtual emili::Solution* computeStep(emili::Solution* step);
+    virtual void reverseLastMove(emili::Solution* step);
+public:
+    ExchangeNeighborhood(Instance& instance):inst(instance),base_solution(new SolutionVRP()) {}
+    virtual NeighborhoodIterator begin(emili::Solution* base);
+    virtual void reset();
+    virtual emili::Solution* random(emili::Solution* currentSolution);
+    virtual int size() { return num_r;}
+};
+
+class ExchangeVehicleNeighborhood : public emili::Neighborhood
+{
+protected:
+    int vei; //vehicle to modify
+    int num_r; // number of routes
+
+    int vei1;
+    SolutionVRP* base_solution;
+    Instance& inst;
+    virtual emili::Solution* computeStep(emili::Solution* step);
+    virtual void reverseLastMove(emili::Solution* step);
+public:
+    ExchangeVehicleNeighborhood(Instance& instance):inst(instance),base_solution(new SolutionVRP()) {}
     virtual NeighborhoodIterator begin(emili::Solution* base);
     virtual void reset();
     virtual emili::Solution* random(emili::Solution* currentSolution);

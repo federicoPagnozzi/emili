@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "02abdcd7387a5f2207d9624a42b0aac001e3c754"
+#define GIT_COMMIT_NUMBER "0cff080e2b0c5c854ad4ca9a00fd0b00fe6650a7"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -51,15 +51,28 @@
 #define PERTURBATION_VNRANDOM_MOVE "vnrmv"
 #define PERTURBATION_NOPER "noper"
 /*base acceptance criteria*/
+// accepts with a given probability
 #define ACCEPTANCE_PROB "prob"
-#define ACCEPTANCE_METRO "metropolis"
-#define ACCEPTANCE_PMETRO "pmetro"
+//if the solutuion improves or is the same
 #define ACCEPTANCE_IMPROVE_PLATEAU "implat"
+//always accepts one of the two solutions ->always has to be followed by (2)
 #define ACCEPTANCE_ALWAYS "always"
+//takes the current solution
 #define ACCEPTANCE_INTENSIFY "intensify"
+//takes the changed solution
 #define ACCEPTANCE_DIVERSIFY "diversify"
+//if the incumbent solution improves
 #define ACCEPTANCE_IMPROVE "improve"
+// different kinds of metropolis condition
+//check generalParser line 900
+#define ACCEPTANCE_METRO "metropolis"
+//check generalParser line 953
+#define ACCEPTANCE_PMETRO "pmetro"
+//check generalParser line 936
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
+// specify in this order: start temp, end temp,
+//  amount of decrease, number of iterations between temp updates,
+// alpha value
 #define ACCEPTANCE_SA "saacc"
 /*base neighborhoods*/
 #define NEIGHBORHOOD_RANDCONHE "rch"
@@ -89,69 +102,13 @@ void prs::decrementTabLevel()
 
 void prs::emili_header()
 {
-    /*std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
+    std::cout << "\t ______ __  __ _____ _      _____ " << std::endl;
     std::cout << "\t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
     std::cout << "\t| |__  | \\  / | | | | |      | |  " << std::endl;
     std::cout << "\t|  __| | |\\/| | | | | |      | |  " << std::endl;
     std::cout << "\t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
     std::cout << "\t|______|_|  |_|_____|______|_____|" << std::endl;
     std::cout << std::endl;
-    */
-
-    /*std::cout << "          .-.        " << std::endl;
-    std::cout << "          | |        " <<  std::endl;
-    std::cout << "          | |        " <<  std::endl;
-    std::cout << "          | |        " <<  std::endl;
-    std::cout << "         _| |_        __                                        " << std::endl;
-    std::cout << "        | | | |-.    (_ .     _ _         _  _    _    |_ _   | " << std::endl;
-    std::cout << "       /|     ` |    __)|,   _)(_)\\/  |_|| )(_|  |_)|_||_(_|  . " << std::endl;
-    std::cout << "      | |       |                 /              |              " << std::endl;
-    std::cout << "      |         |    " <<std::endl;
-    std::cout << "      \         /    " <<std::endl;
-    std::cout << "       |       |     " <<std::endl;
-    std::cout << "       |       |     " <<std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << "          .-.        " << std::endl;
-    std::cout << "          | |        " <<  std::endl;
-    std::cout << "          | |        " <<  std::endl;
-    std::cout << "          | |        " <<  std::endl;
-    std::cout << "         _| |_                                    __             " << std::endl;
-    std::cout << "        | | | |-.    |\\/| _   _ _  _  _    _ _   |_ |\\/|||  |  | " << std::endl;
-    std::cout << "       /|     ` |    |  |(-  (_(_|(_)(_)  (-| )  |__|  |||__|  . " << std::endl;
-    std::cout << "      | |       |                 _/                             " << std::endl;
-    std::cout << "      |         |    " <<std::endl;
-    std::cout << "      \         /    " <<std::endl;
-    std::cout << "       |       |     " <<std::endl;
-    std::cout << "       |       |     " <<std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;*/
-
-   /* std::cout << std:: endl;
-    std::cout << std:: endl;
-    std::cout << "\t           *  *       *  * "<< std::endl;
-    std::cout << "\t         *      *   *      *" << std::endl;
-    std::cout << "\t _____   *       * *       *  ______ __  __ _____ _      _____ " << std::endl;
-    std::cout << "\t|_   _|   *       *       *  |  ____|  \\/  |_   _| |    |_   _|" << std::endl;
-    std::cout << "\t  | |       *           *    | |__  | \\  / | | | | |      | |  " << std::endl;
-    std::cout << "\t  | |         *       *      |  __| | |\\/| | | | | |      | |  " << std::endl;
-    std::cout << "\t _| |_          *   *        | |____| |  | |_| |_| |____ _| |_ " << std::endl;
-    std::cout << "\t|_____|          * *         |______|_|  |_|_____|______|_____|" << std::endl;
-    std::cout << "\t                  * "<< std::endl;
-    std::cout << std::endl;*/
-
-    std::cout << "\t \t \t \t \t ______ __  __ _____ _      _____ " << std::endl;
-    std::cout << "\t \t \t \t \t|  ____|  \\/  |_   _| |    |_   _|" << std::endl;
-    std::cout << "\t \t \t \t \t| |__  | \\  / | | | | |      | |  " << std::endl;
-    std::cout << "\t \t \t \t \t|  __| | |\\/| | | | | |      | |  " << std::endl;
-    std::cout << "\t \t \t \t \t| |____| |  | |_| |_| |____ _| |_ " << std::endl;
-    std::cout << "\t \t \t \t \t|______|_|  |_|_____|______|_____|" << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "      _____ ___ _ ___  __   __ _  _ _____   __ __ _   __  _  _ __  _ __  ___ ___   __ _____ __  __  _ __    __        " << std::endl;
-    std::cout << "     |_   _| _ \\ | __/' _/ |  \\ || |_   _| |  V  | |/' _/| || |  \\| | _\\| __| _ \\/' _/_   _/  \\|  \\| | _\\ /' _/       " << std::endl;
-    std::cout << "____   | | | V / | _|`._`. | -< \\/ | | |   | \\_/ | |`._`.| \\/ | | ' | V | _|| V /`._`. | || /\\ | | ' | V |`._`. ____  " << std::endl;
-    std::cout << "\\||/   |_| |_|_\\_|___|___/ |__/\\__/  |_|   |_| |_|_||___/ \\__/|_|\\__|__/|___|_|_\\|___/ |_||_||_|_|\\__|__/ |___/ \\||/  " << std::endl;
 
 
 

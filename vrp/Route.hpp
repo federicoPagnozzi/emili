@@ -119,9 +119,36 @@ public:
     bool check_feas_D_tw1_2(double* earl, int req, std::vector<RichiesteServizio*> &ric, int g, int l, std::vector<std::vector<double>> &Time, std::vector<Veicoli*> &veic);
 
 
+    bool check_feas_FirstRequest(int p2, int d2, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, int req);
+    bool EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*>&ric, std::vector<Veicoli*>&veic);
+    bool capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &veic, std::vector<RichiesteServizio*>  &ric, int p2, int d2, int req2);
+    bool tw_P_feasibility_3(std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>>&Time, int l, int req, int p2, int d2, int* loc, int*typ, int*rq);
+    void calc_loc3(int req, std::vector<RichiesteServizio*> &ric, int p, int d, int l, int g, int* loc );
+    void calc_typ3(int req,  int p, int d, int l, int g, int* rid );
+    void calc_rid3(int req,  int p, int d, int l, int g, int* rid );
+    void calc_earl3(std::vector<RichiesteServizio*> &ric, int*typ, int*loc, int*rid, double*earl,std::vector<std::vector<double>> &Time );
+    double effect_of_inserting_req_on_pos_3(int req, int l, int g, std::vector<std::vector<double>> &Dist, std::vector<RichiesteServizio*> &ric, int p2, int d2, int* loc);
+    bool check_feas_D_tw1_3(int req,std::vector<RichiesteServizio*> &ric,int l,int g,std::vector<std::vector<double>> &Time,std::vector<Veicoli*> &veic, int* loc, int* rid, int* typ);
+    bool EightStep_3(std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*>&ric, std::vector<Veicoli*>&veic, int*loc, int*rid, int*typ);
+    bool calc_feas_rtime(int l,int g, std::vector<RichiesteServizio*> &ric,int req ,std::vector<std::vector<double>> &Time, double* earl);
+
+    bool check_feas_D_tw22(double* earl, int* typ, int *rid, int l, int g, std::vector<RichiesteServizio*> &ric);
+
+    bool check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req, std::vector<RichiesteServizio*> &ric, int* rid, int*typ );
+
+    void calc_earl1(int p2, int d2, int req, double * earl, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric);
+    bool ridetime_feas_D22(int g, std::vector<RichiesteServizio*> &ric, int req, std::vector<std::vector<double>> &Time, double* earl);
+
+    bool check_feas_D_tw221(double* earl, int l, int g, std::vector<RichiesteServizio*> &ric);
+
+    bool check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, std::vector<RichiesteServizio*> &ric);
+    void delete_req_2(int m,  std::vector<std::vector<double>>  &Time, int a, int b);
 };
 bool check_feas_D_tw2(double* earl, int* typ, int* rid, int l, int g,std::vector<RichiesteServizio*> &ric);
 double calcF(int* rid, double* wait, double* earl, double* dep, int a, std::vector<RichiesteServizio*> &ric, int* typ, int len);
+
+bool feasible_with_vehicle(int m, int* E, int vei, std::vector<std::vector<int>> &MatCompVei);
+
 
 
 #endif /* Route_hpp */

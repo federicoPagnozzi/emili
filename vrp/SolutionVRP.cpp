@@ -17,6 +17,7 @@ SolutionVRP::SolutionVRP():emili::Solution(std::numeric_limits<double>::max()) {
     
     numRoutes=0;
     numAddRoutes=0;
+    numUsedRoutes=0;
     
 }
 
@@ -60,6 +61,7 @@ void SolutionVRP::ClearSol(){
     
     numRoutes=0;
     numAddRoutes=0;
+    numUsedRoutes=0;
     solution_value=0;
     
     
@@ -156,7 +158,7 @@ void SolutionVRP::updateusedvehicles(int numVeicoli){
             cont+=1;
         }
     }
-    numRoutes=cont;
+    numUsedRoutes=cont;
 }
 void SolutionVRP::updatecost(int numVeicoli){
     double c=0;
@@ -193,15 +195,31 @@ double SolutionVRP::calculate_dist(std::vector<std::vector<double>> & D)
     return normale;
 }
 
-void SolutionVRP::copyexistingsol(SolutionVRP* Sol){
+void SolutionVRP::copyexistingsol(SolutionVRP* Sol, int v){
     
     numRoutes=Sol->numRoutes;
     numAddRoutes=Sol->numAddRoutes;
     solution_value=Sol->solution_value;
+    numUsedRoutes=Sol->numUsedRoutes;
+    if(v<numRoutes){
+    }else{
+        int size_route =route[v]->length;
+        for (int i =size_route-1; i > -1; i--) {
+            route[v]->remove_pos(i);
+        }
+
+        delete route[v];
+
+        route.erase(route.begin() + v);
+
+    }
+
     for(int i=0;i<numRoutes+numAddRoutes;i++){
         
         route[i]->CopyRoute(Sol->route[i]);
     }
+
+
     
 }
 
@@ -216,7 +234,7 @@ void SolutionVRP::CopySolution(SolutionVRP* Sol){
     numRoutes=Sol->numRoutes;
     numAddRoutes=Sol->numAddRoutes;
     solution_value=Sol->solution_value;
-    
+    numUsedRoutes=Sol->numUsedRoutes;
     
     add_num_empty_route(Sol->numRoutes+Sol->numAddRoutes);
     for(int i=0;i<numRoutes+numAddRoutes;i++){
@@ -815,6 +833,96 @@ bool SolutionVRP::Eightstepevaluationscheme_newr(std::vector<std::vector<double>
 }
 
 
+double SolutionVRP::calculate_distance_effect(int i, int vei, std::vector<std::vector<double>> &Dist){
+
+
+    double d1,d,d2;
+    Route& r1=*route[i];
+    Route& r2=*route[vei];
+
+
+    d1=r1.totaldist-Dist[r1.locations[0]][r1.locations[1]]-Dist[r1.locations[r1.length-2]][r1.locations[r1.length-1]];
+    d2=r2.totaldist-Dist[r2.locations[0]][r2.locations[1]]-Dist[r2.locations[r2.length-2]][r2.locations[r2.length-1]];
+    d=d1+Dist[r1.locations[0]][r2.locations[1]]+Dist[r2.locations[r2.length-2]][r1.locations[r1.length-1]]+d2+Dist[r2.locations[0]][r1.locations[1]]+Dist[r1.locations[r1.length-2]][r2.locations[r2.length-1]];
+
+    return d;
+}
+/*
+void SolutionVRP::empty_route(int v){
+
+
+    route[v]->numRicRoute=0;
+    route[v]->totaldist-0;
+
+    for(int i=length-2; i>0; i--){
+        route[v]->remove_pos(i);
+    }
+
+    route[v]->length=2;
+}
+*/
+
+void SolutionVRP::ExchangeRoutes(int v1, int v2, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Dist){
+
+
+    int aux;
+
+    //veh
+    aux=route[v2]->veh;
+    route[v2]->veh=route[v1]->veh;
+    route[v1]->veh=aux;
+
+    //locations
+    route[v1]->locations[0]=veic[v2]->location;
+
+    route[v1]->locations[route[v1]->length-1]=veic[v2]->location;
+    route[v2]->locations[0]=veic[v1]->location;
+
+    route[v2]->locations[route[v2]->length-1]=veic[v1]->location;
+
+
+
+    //arrival
+
+    route[v1]->arrival[route[v1]->length-1]=route[v1]->departure[route[v1]->length-2]+Time[route[v1]->locations[route[v1]->length-2]][route[v1]->locations[route[v1]->length-1]];
+
+    route[v2]->arrival[route[v2]->length-1]=route[v2]->departure[route[v2]->length-2]+Time[route[v2]->locations[route[v2]->length-2]][route[v2]->locations[route[v2]->length-1]];
+
+    //departure
+
+    route[v1]->departure[0]=route[v1]->arrival[1]-Time[route[v1]->locations[0]][route[v1]->locations[1]];
+
+    route[v2]->departure[0]=route[v2]->arrival[1]-Time[route[v2]->locations[0]][route[v2]->locations[1]];
+
+
+    //earliest
+
+    route[v1]->earliest[route[v1]->length-1]=route[v1]->earliest[route[v1]->length-2]+ric[route[v1]->Ricid[route[v1]->length-2]]->st+Time[route[v1]->locations[route[v1]->length-2]][route[v1]->locations[route[v1]->length-1]];
+
+   route[v2]->earliest[route[v2]->length-1]=route[v2]->earliest[route[v2]->length-2]+ric[route[v2]->Ricid[route[v2]->length-2]]->st+Time[route[v2]->locations[route[v2]->length-2]][route[v2]->locations[route[v2]->length-1]];
+
+    //latest
+
+    route[v1]->latest[0]=route[v1]->latest[1]-Time[route[v1]->locations[0]][route[v1]->locations[1]];
+    route[v2]->latest[0]=route[v2]->latest[1]-Time[route[v2]->locations[0]][route[v2]->locations[1]];
+
+    //maxcaps
+
+    route[v1]->maxcap1[0]=route[v2]->maxcap1[1];
+    route[v2]->maxcap1[0]=route[v1]->maxcap1[1];
+    route[v1]->maxcap2[0]=route[v2]->maxcap2[1];
+    route[v2]->maxcap2[0]=route[v1]->maxcap2[1];
+    route[v1]->maxcap3[0]=route[v2]->maxcap3[1];
+    route[v2]->maxcap3[0]=route[v1]->maxcap3[1];
+    route[v1]->maxcap4[0]=route[v2]->maxcap4[1];
+    route[v2]->maxcap4[0]=route[v1]->maxcap4[1];
+    //totaldist
+    route[v1]->totaldist=route[v1]->calculatedist(Dist);
+    route[v2]->totaldist=route[v2]->calculatedist(Dist);
+
+
+}
+
 emili::Solution* SolutionVRP::clone()
 {
     SolutionVRP* sol = new SolutionVRP();
@@ -848,3 +956,4 @@ bool SolutionVRP::isFeasible(){
 
 
 }
+

@@ -29,6 +29,7 @@ public:
     
     int numRoutes;
     int numAddRoutes;
+    int numUsedRoutes;
     std::vector<Route*> route;
     
     SolutionVRP();
@@ -52,7 +53,7 @@ public:
     void CopySolution(SolutionVRP* Sol);
     void DisplaySolution();
     void delete_route(int a, int numVeicoli);
-    void copyexistingsol(SolutionVRP* Sol);
+    void copyexistingsol(SolutionVRP* Sol, int v);
     
     bool accepted(int T, SolutionVRP* Sol_Curr, int numVeicoli);
     bool bestaccepted(SolutionVRP* Sol_Curr, int numVeicoli);
@@ -69,7 +70,9 @@ public:
     double calculate_dist( std::vector<std::vector<double>> & D);
     bool isFeasible();
     virtual Solution* clone();
+    double calculate_distance_effect(int i, int vei, std::vector<std::vector<double>> &Dist);
 
+    void ExchangeRoutes(int v1, int v2, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Dist);
 };
 
 
