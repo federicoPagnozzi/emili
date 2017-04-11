@@ -82,8 +82,6 @@ std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& p
 
 std::vector< int > inline rz_seed_sequence_simplified(emili::pfsp::PermutationFlowShop& prob)
 {
-    std::vector< int > best;
-    int wbest = 0;
     int machines = prob.getNmachines();
     int jobs = prob.getNjobs();
     const std::vector < std::vector < long int > >& priorities = prob.getProcessingTimesMatrix();
