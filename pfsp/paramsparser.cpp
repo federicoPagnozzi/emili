@@ -97,6 +97,7 @@
 #define INITIAL_RANDOM "random"
 #define INITIAL_RANDOM_ITERATED "irandom"
 #define INITIAL_SLACK "slack"
+#define INITIAL_SRZ "srz"
 #define INITIAL_LIT "lit"
 #define INITIAL_RZ "rz"
 #define INITIAL_NRZ "nrz"
@@ -1095,6 +1096,12 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             printTab( "neh rz initial solution without improvement phase");
             //return new testIS(*istance);
             init = new emili::pfsp::NeRZ2Solution(*instance);
+        }
+    else if(tm.checkToken(INITIAL_SRZ))
+        {
+            printTab( "srz intial solution generator");
+            //return new testIS(*istance);
+            init = new emili::pfsp::SRZSolution(*instance);
         }
     else if(tm.checkToken(INITIAL_NRZ2FF))
         {

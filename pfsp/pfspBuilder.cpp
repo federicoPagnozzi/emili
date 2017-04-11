@@ -568,7 +568,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         }
     else if(tm.checkToken(INITIAL_SRZ))
         {
-            printTab( "nehff rz initial solution without improvement phase");
+            printTab( "srz initial solution generator");
             //return new testIS(*istance);
             init = new emili::pfsp::SRZSolution(*instance);
         }
