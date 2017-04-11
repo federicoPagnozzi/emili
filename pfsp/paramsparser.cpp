@@ -511,8 +511,11 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         emili::Solution* s = ini->generateSolution();
         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
         std::cout << "time : " << time_elapsed << std::endl;
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        std::cout << "Objective function value: " << s->getSolutionValue() << std::endl;
+        std::cout << "Found solution: ";
         std::cout << s->getSolutionRepresentation() << std::endl;
-        std::cout << s-> getSolutionValue() << std::endl;
+        std::cout << std::endl;
         std::cerr << s-> getSolutionValue() << std::endl;
         exit(123);
     }

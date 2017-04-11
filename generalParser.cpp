@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "5d88679782f6b293057e3c98f04b056de6c05b35"
+#define GIT_COMMIT_NUMBER "368102b87452514aebba0d6364c24b227338c521"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -680,8 +680,11 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Solution* s = ini->generateSolution();
         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
         std::cout << "time : " << time_elapsed << std::endl;
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        std::cout << "Objective function value: " << s->getSolutionValue() << std::endl;
+        std::cout << "Found solution: ";
         std::cout << s->getSolutionRepresentation() << std::endl;
-        std::cout << s-> getSolutionValue() << std::endl;
+        std::cout << std::endl;
         std::cerr << s-> getSolutionValue() << std::endl;
         exit(123);
     }
