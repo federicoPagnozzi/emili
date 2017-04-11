@@ -2006,7 +2006,7 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
 
 emili::Solution* RelocateNeighborhood::computeStep(emili::Solution* step)
 {
-    if(vei>=(num_r-1))
+    if(vei>(num_r-1))
     {
         return nullptr;
     }
@@ -2014,14 +2014,16 @@ emili::Solution* RelocateNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         pickup = -1;
-        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+        while(vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"REL BEFORE " << sol->getSolutionValue() << std::endl;
         //sol->DisplaySolution();
-
+        if(vei<num_r){
         Relocate_Neighborhood_2(sol,vei,pickup,delivery,bestRequest,bestVei,inst.numVeicoli0,inst.MCV,inst.rc,inst.T,inst.vec,inst.Dist,inst.numRichieste0);
-
+        }else{
+        return nullptr;
+        }
         //std::cout << vei << " " << pickup << " " << delivery << " " << bestRequest << " " << bestVei << std::endl;
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout << sol->route[0]->calculatedist(inst.Dist) << std::endl;
@@ -2051,10 +2053,17 @@ void RelocateNeighborhood::reverseLastMove(emili::Solution* step)
 
         Sol->route[vei-1]->calculate_earliest_latest(inst.rc, inst.T, inst.vec);
         Sol->route[vei-1]->Eightstepevaluationscheme(inst.T,inst.rc,inst.vec);
-        Sol->route[bestVei]->calculate_capacity(inst.rc,inst.vec);
-        Sol->route[bestVei]->calculate_earliest_latest(inst.rc, inst.T, inst.vec);
-        Sol->route[bestVei]->Eightstepevaluationscheme(inst.T,inst.rc,inst.vec);
+
         Sol->route[vei-1]->totaldist=Sol->route[vei-1]->calculatedist(inst.Dist);
+
+
+        if(Sol->route[bestVei]->numRicRoute>0){
+            Sol->route[bestVei]->calculate_capacity(inst.rc,inst.vec);
+            Sol->route[bestVei]->calculate_earliest_latest(inst.rc, inst.T, inst.vec);
+            Sol->route[bestVei]->Eightstepevaluationscheme(inst.T,inst.rc,inst.vec);
+
+
+        }
         Sol->route[bestVei]->totaldist=Sol->route[bestVei]->calculatedist(inst.Dist);
         //Solaux->copyrouteinsol(rout);
         //	std::cout << "request" << E[i] << "inserted in vehicle, " << bestv<< "\n";
@@ -2183,7 +2192,7 @@ void two_opt_2(SolutionVRP* Sol, int vei, int& bestpos1, int& bestv2, int& bestp
 
 emili::Solution* TwoOptNeighborhood::computeStep(emili::Solution* step)
 {
-    if(vei==(num_r-1))
+    if(vei>(num_r-1))
     {
         return nullptr;
     }
@@ -2191,10 +2200,18 @@ emili::Solution* TwoOptNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         bestv2 = -1;
-        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+
+        while(vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
 
+       if(vei<num_r)
+       {
         two_opt_2(sol, vei, bestpos1,  bestv2, bestpos2,inst.numVeicoli0, inst.Dist, inst.vec, inst.rc, inst.numRichieste0);
+       }
+       else
+       {
+           return nullptr;
+       }
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"TOPT " << sol->getSolutionValue() << std::endl;
         vei++;
@@ -2453,18 +2470,22 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
 
 emili::Solution* EliminateNeighborhood::computeStep(emili::Solution* step)
 {
-    if(vei>=(num_r-1))
+
+    if(vei>(num_r-1))
     {
         return nullptr;
     }
     else
     {
         SolutionVRP* sol = (SolutionVRP*) step;
-        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+        while( vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
 
-
-        Eliminate_NeighborhoodF_2(sol, vei, inst.numVeicoli0,inst.MCV, inst.rc, inst.T, inst.vec, inst.Dist, inst.numRichieste0);
+        if(vei<num_r){
+            Eliminate_NeighborhoodF_2(sol, vei, inst.numVeicoli0,inst.MCV, inst.rc, inst.T, inst.vec, inst.Dist, inst.numRichieste0);
+        }else{
+            return nullptr;
+        }
 
         //r_4_opt_2(sol,  vei,  best_start, best_first, best_second, best_third, inst.numVeicoli0, inst.Dist, inst.rc, inst.vec);
 
@@ -2624,7 +2645,7 @@ void r_4_opt_2(SolutionVRP* Sol, int vei, int& best_start, int& best_first, int&
 
 emili::Solution* FourOptNeighborhood::computeStep(emili::Solution* step)
 {
-    if(vei>=(num_r-1))
+    if(vei>(num_r-1))
     {
         return nullptr;
     }
@@ -2632,13 +2653,19 @@ emili::Solution* FourOptNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         best_start = -1;
-        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+        while( vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
-        r_4_opt_2(sol,  vei,  best_start, best_first, best_second, best_third, inst.numVeicoli0, inst.Dist, inst.rc, inst.vec);
+        if(vei<num_r){
+            r_4_opt_2(sol,  vei,  best_start, best_first, best_second, best_third, inst.numVeicoli0, inst.Dist, inst.rc, inst.vec);
+        }else{
+            return nullptr;
+
+        }
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"FOPT " << sol->getSolutionValue() << std::endl;
         vei++;
-    }
+    }    
+
     return step;
 }
 
@@ -2649,8 +2676,10 @@ void FourOptNeighborhood::reverseLastMove(emili::Solution* step)
     {
         //reverse move
         SolutionVRP* Sol = (SolutionVRP*) step;
+        //Sol->route[vei-1]->display_route();
+        //std::cout << "best_start:  " << best_start << " best_first:  " << best_first << " best_second :  " << best_second << " best_third :  " << best_third << std::endl;
         Sol->route[vei-1]->reverse_order(best_start, best_first, best_second, best_third);
-
+        //Sol->route[vei-1]->display_route();
         Sol->route[vei-1]->calculate_earliest_latest(inst.rc, inst.Dist, inst.vec);
         Sol->route[vei-1]->calculate_capacity(inst.rc, inst.vec);
 
@@ -3143,7 +3172,7 @@ double earl [2*numRichieste+2];
 
 emili::Solution* ExchangeNeighborhood::computeStep(emili::Solution* step)
 {
-    if(vei>=(num_r-1))
+    if(vei>(num_r-1))
     {
         return nullptr;
     }
@@ -3151,10 +3180,13 @@ emili::Solution* ExchangeNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         best_v = -1;
-        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+        while(vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
+        if(vei<num_r){
         Exchange_Neighborhood(sol, vei, best_v, best_r1, best_r2, or_pickup_pos_1, or_pickup_pos_2, or_delivery_pos_1, or_delivery_pos_2, inst.numVeicoli0, inst.rc, inst.T,inst.vec, inst.numRichieste0, inst.MCV, inst.Dist);
-
+        }else{
+        return nullptr;
+        }
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"FOPT " << sol->getSolutionValue() << std::endl;
         vei++;
@@ -3305,7 +3337,7 @@ void Exchange_Vehicles(SolutionVRP* Sol, int vei, int& vei1, int numVeicoli, int
 
 emili::Solution* ExchangeVehicleNeighborhood::computeStep(emili::Solution* step)
 {
-    if(vei>=(num_r-1))
+    if(vei>(num_r-1))
     {
         return nullptr;
     }
@@ -3313,11 +3345,13 @@ emili::Solution* ExchangeVehicleNeighborhood::computeStep(emili::Solution* step)
     {
         SolutionVRP* sol = (SolutionVRP*) step;
         vei1 = -1;
-        while(sol->route[vei]->numRicRoute==0 && vei<num_r)
+        while(vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
-
-        Exchange_Vehicles(sol, vei,vei1, inst.numVeicoli0, inst.numRichieste0, inst.MCV, inst.Dist, inst.T, inst.rc, inst.vec);
-
+        if(vei<num_r){
+            Exchange_Vehicles(sol, vei,vei1, inst.numVeicoli0, inst.numRichieste0, inst.MCV, inst.Dist, inst.T, inst.rc, inst.vec);
+        }else{
+            return nullptr;
+        }
         //std::cout << sol->numAddRoutes << std::endl;
         //std::cout <<"FOPT " << sol->getSolutionValue() << std::endl;
         vei++;

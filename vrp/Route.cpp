@@ -1634,9 +1634,9 @@ void::Route::reverse_order(int u, int i, int j, int z){
         type[u+2]=c1;
 
     }else{if(z==1){
-            locations[u+2]=a3;
-            Ricid[u+2]=b3;
-            type[u+2]=c3;
+            locations[u+2]=a2;
+            Ricid[u+2]=b2;
+            type[u+2]=c2;
 
         }else{}}
 
