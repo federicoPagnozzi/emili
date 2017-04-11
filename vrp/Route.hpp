@@ -99,10 +99,10 @@ public:
     bool capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, std::vector<RichiesteServizio*>  &ric);
     bool tw_P_feasibility(std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time, int l, int req);
     
-    int* calcrid(int* rid,int l, int g, int req );
-    int* calctyp(int* typ,int l, int g);
-    int* calcloc(int * loc, int req, std::vector<RichiesteServizio*> &ric, int l, int g);
-    double* calcearl(double* earl, int req, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time, int l, int g, int* loc, int* rid, int* typ );
+    void calcrid(int* rid,int l, int g, int req );
+    void calctyp(int* typ,int l, int g);
+    void calcloc(int * loc, int req, std::vector<RichiesteServizio*> &ric, int l, int g);
+    void calcearl(double* earl, int req, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time, int l, int g, int* loc, int* rid, int* typ );
     bool ridetime_feas_D(int g, int l,std::vector<RichiesteServizio*> &ric, int req, std::vector<std::vector<double>> &Time, double* earl);
     
     bool check_cap_from(int l, int g, std::vector<Veicoli*> &veic, int req,std::vector<RichiesteServizio*> &ric);

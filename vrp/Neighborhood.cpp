@@ -1307,10 +1307,10 @@ SolutionVRP* Relocate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vecto
                                     disteffect=Sol->route[j]->effect_of_inserting_req_on_pos(E[i], l, g, D, ric)+dif;
                                     if(disteffect<bestdist){
                                         
-                                        rid=Sol->route[j]->calcrid(rid, l, g, E[i]);
-                                        typ=Sol->route[j]->calctyp(typ, l, g);
-                                        loc=Sol->route[j]->calcloc(loc, E[i],ric, l, g);
-                                        earl=Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                        Sol->route[j]->calcrid(rid, l, g, E[i]);
+                                        Sol->route[j]->calctyp(typ, l, g);
+                                        Sol->route[j]->calcloc(loc, E[i],ric, l, g);
+                                        Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                         
                                         
                                         feas6=Sol->route[j]->check_feas_D_tw1(earl, E[i], ric, g, l, MatTemp, veic);
@@ -1345,10 +1345,10 @@ SolutionVRP* Relocate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vecto
                                 }else{
                                     
                                     
-                                    rid=Sol->route[j]->calcrid(rid, l, g, E[i]);
-                                    typ=Sol->route[j]->calctyp(typ, l, g);
-                                    loc=Sol->route[j]->calcloc(loc, E[i],ric, l, g);
-                                    earl=Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                    Sol->route[j]->calcrid(rid, l, g, E[i]);
+                                    Sol->route[j]->calctyp(typ, l, g);
+                                    Sol->route[j]->calcloc(loc, E[i],ric, l, g);
+                                    Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                     //Solaux->route[j]->insert_delivery(E[i], g, ric);
                                     //Solaux->route[j]->calculate_earliest_latest(ric, MatTemp, MaxTimeRoute);
                                     //feasride=Solaux->route[j]->ridetime_check( g,  ric,  MaxRideTime);
@@ -1572,10 +1572,10 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
                                     disteffect=Solaux->route[j]->effect_of_inserting_req_on_pos(E[i], l, g, D, ric);
                                     
                                     if(disteffect<bestdist){
-                                        rid=Solaux->route[j]->calcrid(rid, l, g, E[i]);
-                                        typ=Solaux->route[j]->calctyp(typ, l, g);
-                                        loc=Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
-                                        earl=Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                        Solaux->route[j]->calcrid(rid, l, g, E[i]);
+                                        Solaux->route[j]->calctyp(typ, l, g);
+                                        Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
+                                        Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                         
                                         
                                         feas6=Solaux->route[j]->check_feas_D_tw1(earl, E[i], ric, g, l, MatTemp, veic);
@@ -1592,10 +1592,10 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
                                         }
                                     }
                                 }else{
-                                    rid=Solaux->route[j]->calcrid(rid, l, g, E[i]);
-                                    typ=Solaux->route[j]->calctyp(typ, l, g);
-                                    loc=Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
-                                    earl=Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                    Solaux->route[j]->calcrid(rid, l, g, E[i]);
+                                    Solaux->route[j]->calctyp(typ, l, g);
+                                    Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
+                                    Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
 
                                     feasride=Solaux->route[j]->ridetime_feas_D( g,  l, ric, E[i],MatTemp, earl);
                                     if(feasride>0){
@@ -1805,10 +1805,10 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
                                     disteffect=Sol->route[j]->effect_of_inserting_req_on_pos(E[i], l, g, D, ric)+dif;
                                     if(disteffect<bestdist){
 
-                                        rid=Sol->route[j]->calcrid(rid, l, g, E[i]);
-                                        typ=Sol->route[j]->calctyp(typ, l, g);
-                                        loc=Sol->route[j]->calcloc(loc, E[i],ric, l, g);
-                                        earl=Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                        Sol->route[j]->calcrid(rid, l, g, E[i]);
+                                        Sol->route[j]->calctyp(typ, l, g);
+                                        Sol->route[j]->calcloc(loc, E[i],ric, l, g);
+                                        Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
 
 
                                         feas6=Sol->route[j]->check_feas_D_tw1(earl, E[i], ric, g, l, MatTemp, veic);
@@ -1843,10 +1843,10 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
                                 }else{
 
 
-                                    rid=Sol->route[j]->calcrid(rid, l, g, E[i]);
-                                    typ=Sol->route[j]->calctyp(typ, l, g);
-                                    loc=Sol->route[j]->calcloc(loc, E[i],ric, l, g);
-                                    earl=Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                    Sol->route[j]->calcrid(rid, l, g, E[i]);
+                                    Sol->route[j]->calctyp(typ, l, g);
+                                    Sol->route[j]->calcloc(loc, E[i],ric, l, g);
+                                    Sol->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                     //Solaux->route[j]->insert_delivery(E[i], g, ric);
                                     //Solaux->route[j]->calculate_earliest_latest(ric, MatTemp, MaxTimeRoute);
                                     //feasride=Solaux->route[j]->ridetime_check( g,  ric,  MaxRideTime);
@@ -2253,14 +2253,18 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
     int i,j, l, g;
     //randomly chose a route...
 
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
+    //int* rid;
+    //rid=new int[2*numRichieste+2];
+    //int* typ;
+    //typ=new int[2*numRichieste+2];
+    //int* loc;
+    //loc=new int[2*numRichieste+2];
+    //double* earl;
+    //earl=new double[2*numRichieste+2];
+    int loc[2*numRichieste+2];
+    double earl[2*numRichieste+2];
+    int typ[2*numRichieste+2];
+    int rid[2*numRichieste+2];
     SolutionVRP* Solaux=NULL;
 
     Solaux=new SolutionVRP();
@@ -2332,10 +2336,10 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
                                     disteffect=Solaux->route[j]->effect_of_inserting_req_on_pos(E[i], l, g, D, ric);
 
                                     if(disteffect<bestdist){
-                                        rid=Solaux->route[j]->calcrid(rid, l, g, E[i]);
-                                        typ=Solaux->route[j]->calctyp(typ, l, g);
-                                        loc=Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
-                                        earl=Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                        Solaux->route[j]->calcrid(rid, l, g, E[i]);
+                                        Solaux->route[j]->calctyp(typ, l, g);
+                                        Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
+                                        Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
 
 
                                         feas6=Solaux->route[j]->check_feas_D_tw1(earl, E[i], ric, g, l, MatTemp, veic);
@@ -2352,10 +2356,10 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
                                         }
                                     }
                                 }else{
-                                    rid=Solaux->route[j]->calcrid(rid, l, g, E[i]);
-                                    typ=Solaux->route[j]->calctyp(typ, l, g);
-                                    loc=Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
-                                    earl=Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                    Solaux->route[j]->calcrid(rid, l, g, E[i]);
+                                    Solaux->route[j]->calctyp(typ, l, g);
+                                    Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
+                                    Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
 
                                     feasride=Solaux->route[j]->ridetime_feas_D( g,  l, ric, E[i],MatTemp, earl);
                                     if(feasride>0){
@@ -2432,10 +2436,12 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
     }
 
 
-    delete[] rid;
-    delete[] typ;
-    delete[] loc;
-    delete[] earl;
+   // delete[] rid;
+    //delete[] typ;
+    //delete[] loc;
+    //delete[] earl;
+
+
     delete Solaux;
     delete[] E;
 
@@ -2650,7 +2656,7 @@ void FourOptNeighborhood::reverseLastMove(emili::Solution* step)
 
         Sol->route[vei-1]->Eightstepevaluationscheme(inst.Dist, inst.rc, inst.vec);
 
-        Sol->route[vei-1]->totaldist=Sol->route[vei]->calculatedist(inst.Dist);
+        Sol->route[vei-1]->totaldist=Sol->route[vei-1]->calculatedist(inst.Dist);
 
         Sol->updatecost(inst.numVeicoli0);
 
@@ -2694,15 +2700,19 @@ emili::Solution* FourOptNeighborhood::random(emili::Solution* currentSolution)
 void Exchange_Neighborhood(SolutionVRP* Sol, int vei, int &best_v, int &best_r1, int& best_r2, int &or_pickup_pos_1, int &or_pickup_pos_2, int &or_delivery_pos_1, int &or_delivery_pos_2, int numVeicoli, std::vector<RichiesteServizio*> & ric, std::vector<std::vector<double>> & MatTemp,std::vector<Veicoli*> &veic, int numRichieste, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> & D){
 
 
+int rid [2*numRichieste+2];
+int typ [2*numRichieste+2];
+int loc [2*numRichieste+2];
+double earl [2*numRichieste+2];
 
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
+   // int* rid;
+   // rid=new int[2*numRichieste+2];
+   // int* typ;
+   // typ=new int[2*numRichieste+2];
+  //  int* loc;
+  //  loc=new int[2*numRichieste+2];
+   // double* earl;
+   // earl=new double[2*numRichieste+2];
     bool inserted=false;
     int p1best, d1best, p2best, d2best, bestr1, bestr2, besv, gbest, lbest, bestv;
     int* E;
@@ -3121,10 +3131,10 @@ void Exchange_Neighborhood(SolutionVRP* Sol, int vei, int &best_v, int &best_r1,
     delete[] F;
     delete[] E;
 
-    delete[] loc;
-    delete[] typ;
-    delete[] rid;
-    delete[] earl;
+    //delete[] loc;
+   // delete[] typ;
+   // delete[] rid;
+    //delete[] earl;
 
 
 

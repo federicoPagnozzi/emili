@@ -2265,7 +2265,7 @@ bool Route::tw_P_feasibility(std::vector<RichiesteServizio*> &ric, std::vector<s
     
     return feas;
 }
-int* Route::calcrid(int* rid,int l, int g, int req ){
+void Route::calcrid(int* rid,int l, int g, int req ){
 
     rid[0]=req;
     for(int i=0; i<g-l; i++){
@@ -2277,10 +2277,10 @@ int* Route::calcrid(int* rid,int l, int g, int req ){
    //     std::cout<<rid[i]<<" ";
         
    // }std::cout<<std::endl;
-    return rid;
+    //return rid;
 }
 
-int* Route::calctyp(int* typ,int l, int g){
+void  Route::calctyp(int* typ,int l, int g){
     typ[0]=1;
     for(int i=0; i<g-l; i++){
         typ[i+1]=type[l+i+1];
@@ -2291,10 +2291,10 @@ int* Route::calctyp(int* typ,int l, int g){
      //   std::cout<<typ[i]<<" ";
         
    // }std::cout<<std::endl;
-    return typ;
+    //return typ;
 }
 
-int* Route::calcloc(int * loc, int req, std::vector<RichiesteServizio*> &ric, int l, int g){
+void  Route::calcloc(int * loc, int req, std::vector<RichiesteServizio*> &ric, int l, int g){
     loc[0]=ric[req]->locationP;
     for(int i=0; i<g-l; i++){
         loc[i+1]=locations[l+i+1];
@@ -2305,16 +2305,12 @@ int* Route::calcloc(int * loc, int req, std::vector<RichiesteServizio*> &ric, in
    //     std::cout<<loc[i]<<" ";
         
    // }std::cout<<std::endl;
-    return loc;
+    // return loc;
 }
 
-double* Route::calcearl(double* earl, int req, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time, int l, int g, int* loc, int* rid, int* typ ){
+void  Route::calcearl(double* earl, int req, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Time, int l, int g, int* loc, int* rid, int* typ ){
     
-    if(3>2){
-        int a=3;
-    }
-    
-    
+
     double earl0;
     RichiesteServizio& rich=*ric[req];
     if(l==0){
@@ -2359,7 +2355,7 @@ double* Route::calcearl(double* earl, int req, std::vector<RichiesteServizio*> &
 
     
     
-    return earl;
+   // return earl;
 }
 
 bool Route::ridetime_feas_D(int g, int l, std::vector<RichiesteServizio*> &ric, int req, std::vector<std::vector<double>> &Time, double* earl){
@@ -2754,15 +2750,25 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
     int i;
     bool feas=true;
     int len=length+2;
-    double* arr, *dep, * wait;
+
+    /*double* arr, *dep, * wait;
     arr=new double[len];
     dep=new double[len];
     wait=new double[len];
+
+
     int* loc, *rid, *typ;
     loc=new int[len];
     rid=new int[len];
-    typ=new int[len];
-    
+    typ=new int[len];*/
+
+    double arr[len];
+    double dep[len];
+    double wait[len];
+    int loc[len];
+    int rid[len];
+    int typ[len];
+
     for(i=0;i<l+1;i++){
         loc[i]=locations[i];
         rid[i]=Ricid[i];
@@ -3048,14 +3054,14 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
     if(v1>0 || v2>0 || v3>0){
         feas=false;
     }
-    
+    /*
     delete[] loc;
     delete[] rid;
     delete[] typ;
     delete[] arr;
     delete[] dep;
     delete[] wait;
-
+*/
     return feas;
 }
 

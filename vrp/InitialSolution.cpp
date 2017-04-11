@@ -1287,14 +1287,20 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
     int* E;
     E=new int[numRichieste];
     Solaux=new SolutionVRP();
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
+    //int* rid;
+    //rid=new int[2*numRichieste+2];
+    //int* typ;
+    //typ=new int[2*numRichieste+2];
+    //int* loc;
+    //loc=new int[2*numRichieste+2];
+    //double* earl;
+    //earl=new double[2*numRichieste+2];
+    int rid[2*numRichieste+2];
+    int typ[2*numRichieste+2];
+    int loc[2*numRichieste+2];
+    double earl[2*numRichieste+2];
+
+
     //The initial solution is calculated 1000 times and the best solution is chosen
     for(uu=0;uu<1000; uu++){
         //std::cout << uu << std::endl;
@@ -1365,10 +1371,10 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                                     
                                         
                                         
-                                        rid=Solaux->route[j]->calcrid(rid, l, g, E[i]);
-                                        typ=Solaux->route[j]->calctyp(typ, l, g);
-                                        loc=Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
-                                        earl=Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                        Solaux->route[j]->calcrid(rid, l, g, E[i]);
+                                        Solaux->route[j]->calctyp(typ, l, g);
+                                        Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
+                                        Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                         
                                         
                                         feas6=Solaux->route[j]->check_feas_D_tw1(earl, E[i], ric, g, l, MatTemp, veic);
@@ -1400,10 +1406,10 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                                 
                                 //std::cout << l << " " << g << std::endl;
                                     
-                                rid=Solaux->route[j]->calcrid(rid, l, g, E[i]);
-                                typ=Solaux->route[j]->calctyp(typ, l, g);
-                                loc=Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
-                                earl=Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                Solaux->route[j]->calcrid(rid, l, g, E[i]);
+                                Solaux->route[j]->calctyp(typ, l, g);
+                                Solaux->route[j]->calcloc(loc, E[i],ric, l, g);
+                                Solaux->route[j]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                 //Solaux->route[j]->insert_delivery(E[i], g, ric);
                                 //Solaux->route[j]->calculate_earliest_latest(ric, MatTemp, MaxTimeRoute);
                                 //feasride=Solaux->route[j]->ridetime_check( g,  ric,  MaxRideTime);
@@ -1566,10 +1572,10 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
 
                                             
                                             
-                                            rid=Solaux->route[t+Solaux->numRoutes]->calcrid(rid, l, g, E[i]);
-                                            typ=Solaux->route[t+Solaux->numRoutes]->calctyp(typ, l, g);
-                                            loc=Solaux->route[t+Solaux->numRoutes]->calcloc(loc, E[i],ric, l, g);
-                                            earl=Solaux->route[t+Solaux->numRoutes]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                            Solaux->route[t+Solaux->numRoutes]->calcrid(rid, l, g, E[i]);
+                                            Solaux->route[t+Solaux->numRoutes]->calctyp(typ, l, g);
+                                            Solaux->route[t+Solaux->numRoutes]->calcloc(loc, E[i],ric, l, g);
+                                            Solaux->route[t+Solaux->numRoutes]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                             
                                             
                                             feas6=Solaux->route[t+Solaux->numRoutes]->check_feas_D_tw1(earl, E[i], ric, g, l, MatTemp,veic);
@@ -1599,12 +1605,12 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                                     
                                     }else{
                                 
-                                    rid=Solaux->route[t+Solaux->numRoutes]->calcrid(rid, l, g, E[i]);
+                                    Solaux->route[t+Solaux->numRoutes]->calcrid(rid, l, g, E[i]);
             
                                     
-                                    typ=Solaux->route[t+Solaux->numRoutes]->calctyp(typ, l, g);
-                                    loc=Solaux->route[t+Solaux->numRoutes]->calcloc(loc, E[i],ric, l, g);
-                                    earl=Solaux->route[t+Solaux->numRoutes]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
+                                    Solaux->route[t+Solaux->numRoutes]->calctyp(typ, l, g);
+                                    Solaux->route[t+Solaux->numRoutes]->calcloc(loc, E[i],ric, l, g);
+                                    Solaux->route[t+Solaux->numRoutes]->calcearl(earl, E[i], ric, MatTemp, l, g, loc, rid, typ);
                                     //Solaux->route[j]->insert_delivery(E[i], g, ric);
                                     //Solaux->route[j]->calculate_earliest_latest(ric, MatTemp, MaxTimeRoute);
                                     //feasride=Solaux->route[j]->ridetime_check( g,  ric,  MaxRideTime);
@@ -1755,10 +1761,10 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
     //delete routad;
     
     //  delete rout;
-    delete[] rid;
-    delete[] typ;
-    delete[] loc;
-    delete[] earl;
+    //delete[] rid;
+    //delete[] typ;
+    //delete[] loc;
+    //delete[] earl;
     delete[] E;
     //delete Solaux;
     delete Solaux;
