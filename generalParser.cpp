@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "6235cac66cb48b0e5df7b1222a1780684d720732"
+#define GIT_COMMIT_NUMBER "0b1333c1bc051b02233d60f5e696c924a257b8bf"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
