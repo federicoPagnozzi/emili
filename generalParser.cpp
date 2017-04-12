@@ -664,30 +664,38 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
     else if(tm.checkToken(VND))
     {
         //printTab("VND SEARCH");
-        bool best = -1;
+        bool type = -1;
         if(tm.checkToken(BEST))
         {
             printTab("BEST IMPROVEMENT VND");
-            best = 1;
-        }else if(tm.checkToken(FIRST))            
+            type = 1;
+        }else if(tm.checkToken(FEASIBLE_BEST))
+        {
+           printTab("FEASIBLE BEST IMPROVEMENT VND");
+           type = 2;
+        }else if(tm.checkToken(FIRST))
         {
            printTab("FIRST IMPROVEMENT VND");
-           best = 0;
-        }
-        if(best >= 0)
+           type = 3;
+        }else if(tm.checkToken(FEASIBLE_FIRST))
         {
+           printTab("FEASIBLE FIRST IMPROVEMENT VND");
+           type = 4;
+        }
+
+
             emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
             emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
             std::vector<emili::Neighborhood*> nes = buildNeighborhoodVector();
-            if(best)
+            switch(type)
             {
-                ls =  new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
+            case 1:ls =  new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);break;
+            case 2:ls =  new emili::VNDSearch<emili::FeasibleBestImprovementSearch>(*in,*te,nes);break;
+            case 3:ls =  new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);break;
+            case 4:ls =  new emili::VNDSearch<emili::FeasibleFirstImprovementSearch>(*in,*te,nes);break;
+            default: check(nullptr,"No vnd type specified");
             }
-            else
-            {
-                 ls =  new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
-            }
-        }
+
     }
     else if(tm.checkToken(TEST_INIT))
     {
