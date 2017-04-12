@@ -507,7 +507,7 @@ public:
                           emili::pfsp::PermutationFlowShop *_instance):
                         instance(_instance),
                         SACooling(1, 0, _it) {
-                            K = std::max(3300 * std::log(_instance->getNjobs()) + 7500 * std::log(_instance->getNmachines()), 2000.0);
+                            K = std::max(3300 * std::log(_instance->getNjobs()) + 7500 * std::log(_instance->getNmachines()) - 18250, 2000.0);
                         }
 
     void set_status(SAStatus* _status) {
