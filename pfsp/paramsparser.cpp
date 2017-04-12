@@ -1763,6 +1763,9 @@ SAAcceptance* prs::ParamsParser::ACCEPTANCE(prs::TokenManager& tm,
     } else if (tm.checkToken(PRECOMPUTEDMETROPOLISWFORCED)) {
         int te = tm.getInteger();
         return new SAPrecomputedMetropolisWithForcedAcceptance(inittemp->get(), te);
+    } else if (tm.checkToken(BOUNDEDMETROPOLIS)) {
+        double rd = tm.getDecimal();
+        return new SABoundedMetropolisAcceptance(inittemp->get(), rd);
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
