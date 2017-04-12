@@ -571,6 +571,14 @@ void emili::LocalSearch::setBest(Solution* nBest)
     }
 }
 
+void emili::LocalSearch::setBestFeasible(Solution *nBest)
+{
+    if(nBest->isFeasible() && *nBest<*feasibleBest)
+    {
+        *feasibleBest = *nBest;
+    }
+}
+
 emili::Solution* emili::LocalSearch::getBestSoFar()
 {
     if(feasibleBest != nullptr)
@@ -670,6 +678,7 @@ emili::Solution* emili::FeasibleBestImprovementSearch::search(emili::Solution* i
             for(;iter!=end;++iter)
             {
                 if(incumbent->operator >( *ithSolution)){
+                    setBestFeasible(*ithSolution);
                     *incumbent = *ithSolution;
                     printSolstats(incumbent);
                 }
@@ -772,10 +781,10 @@ emili::Solution* emili::FeasibleFirstImprovementSearch::search(emili::Solution* 
             setBest(incumbent);
             Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
             ithSolution = *iter;
-
             for(;iter!=end;++iter)
             {
                 if(incumbent->operator >(*ithSolution)){
+                    setBestFeasible(*ithSolution);
                     *incumbent=*ithSolution;
                     printSolstats(incumbent);
                     break;
@@ -1223,10 +1232,11 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::search(emili::Solution* ini
         s_s = ls.search(s_p);
         delete s_p;
         //best solution
+        setBestFeasible(*s_s);
         if(*s_s < *bestSoFar)
         {
-            //*bestSoFar = *s_s;
-            setBest(s_s);
+            *bestSoFar = *s_s;
+            //setBest(s_s);
          printSolstats(bestSoFar);
             //s_time = clock();
         }
@@ -1266,10 +1276,11 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
             s_s = ls.search(s_p);
             delete s_p;
             //best solution
+            setBestFeasible(*s_s);
             if(*s_s < *bestSoFar)
             {
-                //*bestSoFar = *s_s;
-                setBest(s_s);
+                *bestSoFar = *s_s;
+                //setBest(s_s);
                 printSolstats(bestSoFar);
                 //s_time = clock();
             }
@@ -1310,10 +1321,11 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime,emi
             s_s = ls.search(s_p);
             delete s_p;
             //best solution
+            setBestFeasible(*s_s);
             if(*s_s < *bestSoFar)
             {
-                //*bestSoFar = *s_s;
-                setBest(s_s);
+                *bestSoFar = *s_s;
+                //setBest(s_s);
                 printSolstats(bestSoFar);
                 //s_time = clock();
             }

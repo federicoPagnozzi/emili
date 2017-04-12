@@ -823,6 +823,11 @@ Solution* feasibleBest;
  */
 inline void setBest(Solution* nBest);
 /**
+ * @brief setBestFeasible
+ * @param nBest
+ */
+inline void setBestFeasible(Solution* nBest);
+/**
  * @brief seconds
  * Maximum amount of time, in seconds, for the local search
  */
