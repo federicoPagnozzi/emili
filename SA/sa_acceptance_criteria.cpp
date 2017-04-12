@@ -288,3 +288,28 @@ emili::Solution* LAHCAcceptance::accept(emili::Solution *current_solution,
     return new_solution;
 
 }
+
+
+emili::Solution* SABoundedMetropolisAcceptance::accept(emili::Solution *current_solution,
+                                                       emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+
+    if (ns > cs) {
+        double prob = std::exp((cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
+        double rd = (ns - cs) / cs - 1;
+
+        if (prob < 1.0 && emili::generateRealRandomNumber() > prob && rd < reldelta) {
+            return current_solution;
+        }
+
+
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns, temperature);
+    }
+
+    return new_solution;
+
+}
+

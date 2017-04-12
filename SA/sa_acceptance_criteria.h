@@ -358,4 +358,33 @@ public:
 
 };  // LAHCAcceptance
 
+
+// chen hsies - an exchange local search heuristic based scheme for PFSP
+class SABoundedMetropolisAcceptance: public SAAcceptance {
+protected:
+    short* acc_tracker;
+    int acc_pointer;
+    int acc_tsize;
+    double reldelta;
+public:
+    SABoundedMetropolisAcceptance(float initial_temperature,
+                                  float _reldelta):
+                reldelta(_reldelta),
+                SAAcceptance(BOUNDEDMETROPOLIS,
+                             initial_temperature) {
+        acc_tsize = 5000;
+        acc_tracker = (short *)malloc(acc_tsize * sizeof(short));
+        acc_pointer = 0;
+        for (int i = 0 ; i < acc_tsize ; i++) acc_tracker[i] = 1;
+    }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+    ~SABoundedMetropolisAcceptance(void) {
+        free(acc_tracker);
+    }
+
+}; // SABoundedMetropolisAcceptance
+
 #endif
