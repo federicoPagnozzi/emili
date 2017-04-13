@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "3a480199a25b72661d6a01bb47a50563587a6dc1"
+#define GIT_COMMIT_NUMBER "1d62c61e422504a8a8eb1ad8ab38f45b74de28ce"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -392,6 +392,7 @@ prs::Component& prs::Component::operator=(const Component& a)
     this->type = a.type;
     this->rawComponent = a.rawComponent;
     this->token = a.token;
+    return *this;
 }
 
 

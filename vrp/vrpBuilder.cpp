@@ -125,6 +125,8 @@ emili::Problem* prs::VrpBuilder::openInstance()
     std::cout << instance_string << "\n";
     inst = new Instance();
     inst->read_instance(instance_string, 1);
+    inst->TimeWindowTightening();
+
     tm.next();
     return inst;
 }
@@ -135,6 +137,7 @@ bool prs::VrpBuilder::isParsable(std::string &problem)
     {
         return true;
     }
+    return false;
 }
 
 bool prs::VrpBuilder::isCompatibleWith(char *problem_definition)
