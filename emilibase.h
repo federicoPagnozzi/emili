@@ -1153,8 +1153,8 @@ public:
 
     virtual Solution* search();
     virtual Solution* search(emili::Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* timedSearch(float seconds);
+    virtual Solution* timedSearch(float seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
     virtual ~IteratedLocalSearch() {delete &pert; delete &acc;}
 };
@@ -1169,8 +1169,8 @@ public:
 
     virtual Solution* search();
     virtual Solution* search(emili::Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* timedSearch(float seconds);
+    virtual Solution* timedSearch(float seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
     virtual ~FeasibleIteratedLocalSearch() {}
 };

@@ -24,15 +24,15 @@
 
 using namespace std;
 
-int* timewinminP_order(std::vector<RichiesteServizio*> ric, int n, int*E)
+void timewinminP_order(std::vector<RichiesteServizio*> ric, int n, int*E)
 {
     int i, j;
     
     int aux=0;
     //int* E;
-    int *G;
+    int G[n];
     //E=new int[n];
-    G=new int[n];
+
     
     for(i=0; i<n; i++)
     {G[i]=ric[i]->timewinPmin;
@@ -55,13 +55,13 @@ int* timewinminP_order(std::vector<RichiesteServizio*> ric, int n, int*E)
         }
     }
     
-    delete [] G;
+
     
-    return E;
+
 }
 
 
-int* random_order(std::vector<RichiesteServizio*> ric, int numRichieste, int*E)
+void random_order(std::vector<RichiesteServizio*> ric, int numRichieste, int*E)
 {
     int i;
     
@@ -84,9 +84,9 @@ int* random_order(std::vector<RichiesteServizio*> ric, int numRichieste, int*E)
     
     
     
-    return E;
+
 }
-int* random_order2(int m, int*E){
+void random_order2(int m, int*E){
     int i;
     
     int aux=0;
@@ -103,5 +103,5 @@ int* random_order2(int m, int*E){
     
     
     
-    return E;
+
 }

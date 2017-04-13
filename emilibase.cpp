@@ -121,6 +121,7 @@ static void finalise (int _)
             messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
             messages << "objective function value : "<< sol_val << std::endl;
+            messages << "feasible : " << s_cap->isFeasible() << std::endl;
             messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
@@ -129,6 +130,7 @@ static void finalise (int _)
         {
             std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+            std::cout << "feasible : " << s_cap->isFeasible() << std::endl;
             std::cerr << sol_val << std::endl;
             std::cerr << std::flush;
         }
@@ -281,7 +283,7 @@ inline void emili::printSolstats(emili::Solution* sol)
     if(print && cbest > sol->getSolutionValue())
     {
       cbest = sol->getSolutionValue();
-      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << "\n";
+      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << " , " << sol->isFeasible() <<"\n";
     }
 #endif
 }
@@ -678,7 +680,7 @@ emili::Solution* emili::FeasibleBestImprovementSearch::search(emili::Solution* i
             for(;iter!=end;++iter)
             {
                 if(incumbent->operator >( *ithSolution)){
-                    setBestFeasible(*ithSolution);
+                    setBestFeasible(ithSolution);
                     *incumbent = *ithSolution;
                     printSolstats(incumbent);
                 }
@@ -784,7 +786,7 @@ emili::Solution* emili::FeasibleFirstImprovementSearch::search(emili::Solution* 
             for(;iter!=end;++iter)
             {
                 if(incumbent->operator >(*ithSolution)){
-                    setBestFeasible(*ithSolution);
+                    setBestFeasible(ithSolution);
                     *incumbent=*ithSolution;
                     printSolstats(incumbent);
                     break;
@@ -1103,7 +1105,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     return bestSoFar->clone();
 }
 
-emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
+emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime)
 {
         termcriterion->reset();
         acc.reset();
@@ -1145,7 +1147,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime,emili::Solution* initial)
 {
         termcriterion->reset();
         acc.reset();
@@ -1232,7 +1234,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::search(emili::Solution* ini
         s_s = ls.search(s_p);
         delete s_p;
         //best solution
-        setBestFeasible(*s_s);
+        setBestFeasible(s_s);
         if(*s_s < *bestSoFar)
         {
             *bestSoFar = *s_s;
@@ -1249,7 +1251,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::search(emili::Solution* ini
     return bestSoFar->clone();
 }
 
-emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
+emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime)
 {
         termcriterion->reset();
         acc.reset();
@@ -1276,7 +1278,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
             s_s = ls.search(s_p);
             delete s_p;
             //best solution
-            setBestFeasible(*s_s);
+            setBestFeasible(s_s);
             if(*s_s < *bestSoFar)
             {
                 *bestSoFar = *s_s;
@@ -1294,7 +1296,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime,emili::Solution* initial)
 {
         termcriterion->reset();
         acc.reset();
@@ -1321,7 +1323,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime,emi
             s_s = ls.search(s_p);
             delete s_p;
             //best solution
-            setBestFeasible(*s_s);
+            setBestFeasible(s_s);
             if(*s_s < *bestSoFar)
             {
                 *bestSoFar = *s_s;

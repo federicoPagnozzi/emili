@@ -13,7 +13,7 @@
 
 #include"RichiesteServizio.hpp"
 #include <vector>
-int* timewinminP_order(std::vector<RichiesteServizio*> ric, int n, int*E);
-int* random_order(std::vector<RichiesteServizio*> ric, int numRichieste, int*E);
-int* random_order2(int m, int*E);
+void timewinminP_order(std::vector<RichiesteServizio*> ric, int n, int*E);
+void random_order(std::vector<RichiesteServizio*> ric, int numRichieste, int*E);
+void random_order2(int m, int*E);
 #endif /* matrix_hpp */

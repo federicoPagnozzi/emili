@@ -1525,7 +1525,7 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
     E=Solaux->route[vei]->count_request(E);
     
     
-    E=random_order2(numofreq, E);
+    random_order2(numofreq, E);
     
     
     
@@ -2303,7 +2303,7 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
     E=Solaux->route[vei]->count_request(E);
 
 
-    E=random_order2(numofreq, E);
+    random_order2(numofreq, E);
 
 
 

@@ -245,7 +245,7 @@ int vrp() {
                     //acceptance criteria is met
                     //update imp
                 }
-                OR=random_order2(numofoperator,OR);
+                random_order2(numofoperator,OR);
                 if(i%10000==0)
                 {
                    // for(int j=0; j<numofoperator;j++){

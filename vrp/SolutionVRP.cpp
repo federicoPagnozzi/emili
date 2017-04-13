@@ -8,7 +8,7 @@
 
 #include "SolutionVRP.hpp"
 #include<iostream>
-
+#include <sstream>
 #include "Veicoli.hpp"
 #include "Route.hpp"
 
@@ -88,7 +88,7 @@ void SolutionVRP::Initialize(std::vector<Veicoli*> &veic, int numVeicoli, std::v
         
     }
     
-    
+    numUsedRoutes=0;
     solution_value=0;
     numRoutes=numVeicoli;
     numAddRoutes=0;
@@ -255,6 +255,28 @@ void SolutionVRP::DisplaySolution(){
     
     
     
+}
+
+
+std::string SolutionVRP::getSolutionRepresentation(){
+
+    std::ostringstream messages;
+    messages <<"cost: " << solution_value << std::endl;
+    messages << "NumRoutes: " << numRoutes << " NumAddRoutes: " << numAddRoutes << " Used Routes:" << numUsedRoutes << std::endl;
+    for(int j=0;j<numRoutes+numAddRoutes;j++){
+        messages <<"route " << j << " length: " << route[j]->length << std::endl;
+        messages << "loc \t Ric \t type \t ar \t de \t wa  \n";
+        for(int i=0; i<route[j]->length; i++){
+
+            messages << route[j]->locations[i] << "\t" << route[j]->Ricid[i] << "\t" << route[j]->type[i]  << "\t" << route[j]->arrival[i] << "\t" <<  route[j]->departure[i] << "\t" <<  route[j]->waiting[i] << std::endl;
+
+        }
+
+
+
+    }
+    return messages.str();
+
 }
 
 void SolutionVRP::deleteallroutes(int n){
@@ -944,7 +966,7 @@ void SolutionVRP::setRawData(const void* data)
 
 bool SolutionVRP::isFeasible(){
 
-    int feasible;
+    bool feasible;
 
     if(numAddRoutes>0){
         feasible=false;
@@ -954,6 +976,7 @@ bool SolutionVRP::isFeasible(){
 
     }
 
+    return feasible;
 
 }
 

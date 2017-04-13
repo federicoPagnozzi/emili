@@ -71,7 +71,7 @@ public:
     bool isFeasible();
     virtual Solution* clone();
     double calculate_distance_effect(int i, int vei, std::vector<std::vector<double>> &Dist);
-
+    virtual std::string getSolutionRepresentation();
     void ExchangeRoutes(int v1, int v2, std::vector<Veicoli*> &veic, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*> &ric, std::vector<std::vector<double>> &Dist);
 };
 
