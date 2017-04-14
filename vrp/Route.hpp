@@ -84,7 +84,7 @@ public:
     void remove_pos(int p);
     void rewriteid(int a);
     
-    int* count_request(int* E);
+    void count_request(int* E);
     int find_pickup(int m);
     int find_delivery(int m);
     void delete_req(int m,  std::vector<std::vector<double>> &Time);

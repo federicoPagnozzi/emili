@@ -1496,7 +1496,7 @@ void Route::rewriteid(int a){
 }
 
 
-int* Route::count_request(int* E){
+void Route::count_request(int* E){
     
     int req;
     int k=0;
@@ -1519,7 +1519,7 @@ int* Route::count_request(int* E){
     
     
     
-    return E;
+
 }
 
 

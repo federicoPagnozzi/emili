@@ -450,23 +450,22 @@ SolutionVRP* Exchange_F(SolutionVRP* Sol, int numVeicoli, std::vector<RichiesteS
         //take out from this route all the requests and insert them
     }while(Sol->route[vei]->numRicRoute==0);
     
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
+
+    int rid[2*numRichieste+2];
+
+    int typ[2*numRichieste+2];
+
+    int loc[2*numRichieste+2];
+    double earl[2*numRichieste+2];
     
     
-    int* E;
+
     
     int numofreq=0;
     numofreq=Sol->route[vei]->numRicRoute;
-    E=new int[numofreq];
-    int* F=new int[numRichieste];
-    E=Sol->route[vei]->count_request(E);
+    int E[numofreq];
+    int F[numRichieste];
+    Sol->route[vei]->count_request(E);
     bool feas2, feas1, feas6;
     //First Swap
     
@@ -482,7 +481,7 @@ SolutionVRP* Exchange_F(SolutionVRP* Sol, int numVeicoli, std::vector<RichiesteS
                     int numofreq2=0;
                     numofreq2=Sol->route[j]->numRicRoute;
                 
-                    F=Sol->route[j]->count_request(F);
+                    Sol->route[j]->count_request(F);
                 
                     for(int k=0; k<numofreq2; k++){
                     
@@ -537,8 +536,7 @@ SolutionVRP* Exchange_F(SolutionVRP* Sol, int numVeicoli, std::vector<RichiesteS
     }
     
     //
-    delete[] F;
-    delete[] E;
+
 
     
     
@@ -1194,14 +1192,14 @@ SolutionVRP* Relocate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vecto
     int vei;
     int i, j, l, g;
     
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
+
+    int rid[2*numRichieste+2];
+
+    int typ[2*numRichieste+2];
+
+    int loc[2*numRichieste+2];
+
+    double earl[2*numRichieste+2];
     
     do{
         vei=rand()%(numVeicoli+Sol->numAddRoutes);
@@ -1211,13 +1209,13 @@ SolutionVRP* Relocate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vecto
     //  std::cout << Sol->route[vei]->length << std::endl;
     //Sol->route[vei]->numRicRoute=((Sol->route[vei]->length)-2)/2;
     //take out all the requests from the route
-    int* E;
+
     
     int numofreq=0;
     numofreq=Sol->route[vei]->numRicRoute;
-    E=new int[numofreq];
+    int E[numofreq];
     
-    E=Sol->route[vei]->count_request(E);
+   Sol->route[vei]->count_request(E);
     //std::cout<< numofreq << std:: endl;
     //for(i=0; i<numofreq; i++){
     //    std::cout<< E[i] << " ";
@@ -1480,12 +1478,7 @@ SolutionVRP* Relocate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vecto
     
     //delete rout1;
     //
-    
-    delete[] rid;
-    delete[] typ;
-    delete[] loc;
-    delete[] earl;
-    delete[] E;
+
     return Sol;
 }
 
@@ -1495,15 +1488,11 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
     int vei;
     int i,j, l, g;
     //randomly chose a route...
-    
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
+    int rid[2*numRichieste+2];
+    int typ[2*numRichieste+2];
+    int loc[2*numRichieste+2];
+    double earl[2*numRichieste+2];
+
     SolutionVRP* Solaux=NULL;
     
     Solaux=new SolutionVRP();
@@ -1516,13 +1505,13 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
     }while(Solaux->route[vei]->numRicRoute==0);
     
     //take out all the requests from the route
-    int* E;
+
     
-    E=new int[Solaux->route[vei]->numRicRoute];
+   int E[Solaux->route[vei]->numRicRoute];
     
     int numofreq=0;
     numofreq=Solaux->route[vei]->numRicRoute;
-    E=Solaux->route[vei]->count_request(E);
+    Solaux->route[vei]->count_request(E);
     
     
     random_order2(numofreq, E);
@@ -1669,12 +1658,9 @@ SolutionVRP* Eliminate_NeighborhoodF(SolutionVRP* Sol, int numVeicoli, std::vect
     }
                                                     
     
-    delete[] rid;
-    delete[] typ;
-    delete[] loc;
-    delete[] earl;
+
     delete Solaux;
-    delete[] E;
+
     
 
     return Sol;
@@ -1686,15 +1672,11 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
     //int vei;
     int i, j, l, g;
 
-    int* rid;
-    rid=new int[2*numRichieste+2];
-    int* typ;
-    typ=new int[2*numRichieste+2];
-    int* loc;
-    loc=new int[2*numRichieste+2];
-    double* earl;
-    earl=new double[2*numRichieste+2];
 
+    int rid[2*numRichieste+2];
+    int typ[2*numRichieste+2];
+    int loc[2*numRichieste+2];
+    double earl[2*numRichieste+2];
     //do{
       //  vei=rand()%(numVeicoli+Sol->numAddRoutes);
         //take out from this route all the requests and insert them
@@ -1703,13 +1685,13 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
     //  std::cout << Sol->route[vei]->length << std::endl;
     //Sol->route[vei]->numRicRoute=((Sol->route[vei]->length)-2)/2;
     //take out all the requests from the route
-    int* E;
+
 
     int numofreq=0;
     numofreq=Sol->route[vei]->numRicRoute;
-    E=new int[numofreq];
+    int E[numofreq];
    // std::cout << "VEI ::  "<< vei << std::endl;
-    E=Sol->route[vei]->count_request(E);
+    Sol->route[vei]->count_request(E);
     //std::cout<< numofreq << std:: endl;
     //for(i=0; i<numofreq; i++){
     //    std::cout<< E[i] << " ";
@@ -1996,11 +1978,7 @@ void Relocate_Neighborhood_2(SolutionVRP* Sol,int vei,int& pickup,int& delivery,
     //delete rout1;
     //
 
-    delete[] rid;
-    delete[] typ;
-    delete[] loc;
-    delete[] earl;
-    delete[] E;
+
    // return Sol;
 }
 
@@ -2294,13 +2272,13 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
     //}while(Solaux->route[vei]->numRicRoute==0);
 
     //take out all the requests from the route
-    int* E;
 
-    E=new int[Solaux->route[vei]->numRicRoute];
+
+    int E[Solaux->route[vei]->numRicRoute];
 
     int numofreq=0;
     numofreq=Solaux->route[vei]->numRicRoute;
-    E=Solaux->route[vei]->count_request(E);
+    Solaux->route[vei]->count_request(E);
 
 
     random_order2(numofreq, E);
@@ -2460,7 +2438,6 @@ void Eliminate_NeighborhoodF_2(SolutionVRP* Sol, int vei, int numVeicoli, std::v
 
 
     delete Solaux;
-    delete[] E;
 
 
     //return Sol;
@@ -2744,15 +2721,15 @@ double earl [2*numRichieste+2];
    // earl=new double[2*numRichieste+2];
     bool inserted=false;
     int p1best, d1best, p2best, d2best, bestr1, bestr2, besv, gbest, lbest, bestv;
-    int* E;
+
     int g;
     int numofreq=0;
     numofreq=Sol->route[vei]->numRicRoute;
-    E=new int[numofreq];
+    int E[numofreq];
 
+    int F[numRichieste];
 
-    int* F=new int[numRichieste];
-    E=Sol->route[vei]->count_request(E);
+    Sol->route[vei]->count_request(E);
     int rr1, rr2;
 
     bool feas2, feas1, feas6, gg;
@@ -2760,7 +2737,7 @@ double earl [2*numRichieste+2];
     //First Swap
     double bestdist=DBL_MAX;
     for(int i=0;i<numofreq;i++){
-        E=Sol->route[vei]->count_request(E);
+        Sol->route[vei]->count_request(E);
         rr1=E[i];
         //std::cout << " I " << i << std::endl;
         int p2,d2, p1, d1;
@@ -2780,12 +2757,12 @@ double earl [2*numRichieste+2];
                     int numofreq2=0;
                     numofreq2=Sol->route[j]->numRicRoute;
 
-                    F=Sol->route[j]->count_request(F);
+                    Sol->route[j]->count_request(F);
 
 
 
                     for(int k=0; k<numofreq2; k++){
-                        F=Sol->route[j]->count_request(F);
+                        //Sol->route[j]->count_request(F);
                         rr2=F[k];
                   //      std::cout << " F" << std::endl;
                        // std::cout << rr2 << std::endl;
@@ -3157,8 +3134,6 @@ double earl [2*numRichieste+2];
 
 
     //
-    delete[] F;
-    delete[] E;
 
     //delete[] loc;
    // delete[] typ;
@@ -3266,10 +3241,10 @@ void Exchange_Vehicles(SolutionVRP* Sol, int vei, int& vei1, int numVeicoli, int
     double dist, bestdist=FLT_MAX;
 
     int best_v;
-    int* E=new int[numreq1];
+    int E[numreq1];
     bool feas, feas1, inserted=false;
-    E=Sol->route[vei]->count_request(E);
-    int* F=new int[numRichieste];
+    Sol->route[vei]->count_request(E);
+    int F[numRichieste];
     for(int i=0; i<numVeicoli+Sol->numAddRoutes; i++){
 
         if(i!=vei){
@@ -3282,7 +3257,7 @@ void Exchange_Vehicles(SolutionVRP* Sol, int vei, int& vei1, int numVeicoli, int
 
                 if(Sol->route[i]->numRicRoute>0){
                     numreq2=Sol->route[i]->numRicRoute;
-                    F=Sol->route[i]->count_request(F);
+                    Sol->route[i]->count_request(F);
 
                     feas1=feasible_with_vehicle(numreq2, F, vei, MatCompVei);
 
