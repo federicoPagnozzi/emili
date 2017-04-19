@@ -264,7 +264,7 @@ std::string SolutionVRP::getSolutionRepresentation(){
     messages <<"cost: " << solution_value << std::endl;
     messages << "NumRoutes: " << numRoutes << " NumAddRoutes: " << numAddRoutes << " Used Routes:" << numUsedRoutes << std::endl;
     for(int j=0;j<numRoutes+numAddRoutes;j++){
-        messages <<"route " << j << " length: " << route[j]->length << std::endl;
+        messages <<"route " << j << " length: " << route[j]->length << "  vehicle: " << route[j]->veh <<  std::endl;
         messages << "loc \t Ric \t type \t ar \t de \t wa  \n";
         for(int i=0; i<route[j]->length; i++){
 

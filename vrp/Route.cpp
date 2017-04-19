@@ -1897,29 +1897,18 @@ bool Route::check_feas1(int u, std::vector<RichiesteServizio*> &ric, std::vector
 
 bool Route::check_cap(int u, std::vector<Veicoli*> &veic, int i, int j, int z, std::vector<RichiesteServizio*> &ric){
     
-   /* for(int i=1; i<length-1; i++){
-        if(type[i]==1){
-            
-            cap1[i]=cap1[i-1]+ric[Ricid[i]]->staff;
-            cap2[i]=cap2[i-1]+ric[Ricid[i]]->seated;
-            cap3[i]=cap3[i-1]+ric[Ricid[i]]->stretcher;
-            cap4[i]=cap4[i-1]+ric[Ricid[i]]->wheelchair;
-        }else{
-            cap1[i]=cap1[i-1]-ric[Ricid[i]]->staff;
-            cap2[i]=cap2[i-1]-ric[Ricid[i]]->seated;
-            cap3[i]=cap3[i-1]-ric[Ricid[i]]->stretcher;
-            cap4[i]=cap4[i-1]-ric[Ricid[i]]->wheelchair;
-        }
-    }
-    cap1[length-1]=0;
-    cap2[length-1]=0;
-    cap3[length-1]=0;
-    cap4[length-1]=0;*/
+
     bool f=true;
+
     int ii;
-    int ii_0=u-1;
+
     int ii_c;
     int c1, c2, c3, c4;
+    int c10, c20, c30, c40;
+    c10=cap1[u-1];
+    c20=cap2[u-1];
+    c30=cap3[u-1];
+    c40=cap4[u-1];
     for(ii=0;ii<3;ii++){
         if(f==true){
             if(ii==i){
@@ -1935,17 +1924,22 @@ bool Route::check_cap(int u, std::vector<Veicoli*> &veic, int i, int j, int z, s
                 }
             }
             if(type[ii_c]==1){
-                c1=cap1[ii_0]+ric[Ricid[ii_c]]->staff;
-                c2=cap2[ii_0]+ric[Ricid[ii_c]]->seated;
-                c3=cap3[ii_0]+ric[Ricid[ii_c]]->stretcher;
-                c4=cap4[ii_0]+ric[Ricid[ii_c]]->wheelchair;
+                c1=c10+ric[Ricid[ii_c]]->staff;
+                c2=c20+ric[Ricid[ii_c]]->seated;
+                c3=c30+ric[Ricid[ii_c]]->stretcher;
+                c4=c40+ric[Ricid[ii_c]]->wheelchair;
                 }else{
-                    c1=cap1[ii_0]-ric[Ricid[ii_c]]->staff;
-                    c2=cap2[ii_0]-ric[Ricid[ii_c]]->seated;
-                    c3=cap3[ii_0]-ric[Ricid[ii_c]]->stretcher;
-                    c4=cap4[ii_0]-ric[Ricid[ii_c]]->wheelchair;
+                    c1=c10-ric[Ricid[ii_c]]->staff;
+                    c2=c20-ric[Ricid[ii_c]]->seated;
+                    c3=c30-ric[Ricid[ii_c]]->stretcher;
+                    c4=c40-ric[Ricid[ii_c]]->wheelchair;
                 }
-            ii_0=ii_c;
+
+            c10=c1;
+            c20=c2;
+            c30=c3;
+            c40=c4;
+
         if(c3>veic[veh]->stretcher){
             if(c2>veic[veh]->seated){
                 if(c1>veic[veh]->staff){
@@ -2186,14 +2180,10 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
             feas=false;
-        }else{
-            
         }
     }else{
         if(c2+c3>veic[veh]->stretcher+veic[veh]->seated){
             feas=false;
-        }else{
-            
         }
         
     }
@@ -2205,12 +2195,10 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
         
         feas=false;
         
-    }else{}
+    }
     
     if(c3>veic[veh]->stretcher){
         feas=false;
-    }else{
-        
     }
 
     
@@ -2497,7 +2485,7 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         if(c4>ve.wheelchair){
             
             feas=false;
-            i=g-l+2;
+            i=g-l+1;
             
         }
         
@@ -2576,6 +2564,8 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
             feas=false;
             i=g-l+1;
         }
+
+
     
     }
     
@@ -3947,36 +3937,46 @@ bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &vei
     bool feas=true;
     int c1=0, c2=0, c3=0, c4=0;
 
-    if(p2>=l && d2<l){
+    if(p2>=l){
 
-    c1=cap1[l-1]+ric[req]->staff;
-    c2=cap1[l-1]+ric[req]->seated;
-    c3=cap1[l-1]+ric[req]->stretcher;
-    c4=cap1[l-1]+ric[req]->wheelchair;
+        c1=cap1[l-1]+ric[req]->staff;
+        c2=cap1[l-1]+ric[req]->seated;
+        c3=cap1[l-1]+ric[req]->stretcher;
+        c4=cap1[l-1]+ric[req]->wheelchair;
+
+
     }else{
-        if(cap1[l-1]>0){
-            c1=cap1[l-1]-ric[req2]->staff+ric[req]->staff;
+        if(d2>l){
+            c1=cap1[l+1]+ric[req]->staff;
+            c2=cap1[l+1]+ric[req]->seated;
+            c3=cap1[l+1]+ric[req]->stretcher;
+            c4=cap1[l+1]+ric[req]->wheelchair;
+
+
         }else{
-            c1=cap1[l-1]+ric[req]->staff;
+        if(cap1[l]>0){
+            c1=cap1[l]-ric[req2]->staff+ric[req]->staff;
+        }else{
+            c1=cap1[l]+ric[req]->staff;
         }
-        if(cap2[l-1]>0){
-            c2=cap2[l-1]-ric[req2]->seated+ric[req]->seated;
+        if(cap2[l]>0){
+            c2=cap2[l]-ric[req2]->seated+ric[req]->seated;
         }else{
-            c2=cap2[l-1]+ric[req]->seated;
+            c2=cap2[l]+ric[req]->seated;
         }
-        if(cap3[l-1]>0){
-            c3=cap3[l-1]-ric[req2]->stretcher+ric[req]->stretcher;
+        if(cap3[l]>0){
+            c3=cap3[l]-ric[req2]->stretcher+ric[req]->stretcher;
         }else{
-            c3=cap3[l-1]+ric[req]->stretcher;
+            c3=cap3[l]+ric[req]->stretcher;
         }
-        if(cap4[l-1]>0){
-            c4=cap4[l-1]-ric[req2]->wheelchair+ric[req]->wheelchair;
+        if(cap4[l]>0){
+            c4=cap4[l]-ric[req2]->wheelchair+ric[req]->wheelchair;
         }else{
-            c4=cap4[l-1]+ric[req]->wheelchair;
+            c4=cap4[l]+ric[req]->wheelchair;
         }
 
     }
-
+    }
 
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
@@ -4536,10 +4536,10 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
 
     int c10, c20, c30, c40;
     int c1, c2, c3, c4;
-    c10=cap1[l]+ric[req]->staff;
-    c20=cap2[l]+ric[req]->seated;
-    c30=cap3[l]+ric[req]->stretcher;
-    c40=cap4[l]+ric[req]->wheelchair;
+    c10=cap1[l-1]+ric[req]->staff;
+    c20=cap2[l-1]+ric[req]->seated;
+    c30=cap3[l-1]+ric[req]->stretcher;
+    c40=cap4[l-1]+ric[req]->wheelchair;
     i=l+1;
     //std::cout<< g << l << std::endl;
 

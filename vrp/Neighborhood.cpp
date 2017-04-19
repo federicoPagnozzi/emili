@@ -1998,7 +1998,12 @@ emili::Solution* RelocateNeighborhood::computeStep(emili::Solution* step)
         //std::cout <<"REL BEFORE " << sol->getSolutionValue() << std::endl;
         //sol->DisplaySolution();
         if(vei<num_r){
+
         Relocate_Neighborhood_2(sol,vei,pickup,delivery,bestRequest,bestVei,inst.numVeicoli0,inst.MCV,inst.rc,inst.T,inst.vec,inst.Dist,inst.numRichieste0);
+        //std::cout << "relocate" << std::endl;
+        //std::cout << step->getSolutionRepresentation() << std::endl;
+        //std::cout << "**********" << std::endl;
+
         }else{
         return nullptr;
         }
@@ -2184,6 +2189,7 @@ emili::Solution* TwoOptNeighborhood::computeStep(emili::Solution* step)
 
        if(vei<num_r)
        {
+
         two_opt_2(sol, vei, bestpos1,  bestv2, bestpos2,inst.numVeicoli0, inst.Dist, inst.vec, inst.rc, inst.numRichieste0);
        }
        else
@@ -2460,6 +2466,9 @@ emili::Solution* EliminateNeighborhood::computeStep(emili::Solution* step)
 
         if(vei<num_r){
             Eliminate_NeighborhoodF_2(sol, vei, inst.numVeicoli0,inst.MCV, inst.rc, inst.T, inst.vec, inst.Dist, inst.numRichieste0);
+           // std::cout << "eliminate" << std::endl;
+           // std::cout << step->getSolutionRepresentation() << std::endl;
+            // std::cout << "**********" << std::endl;
         }else{
             return nullptr;
         }
@@ -2557,8 +2566,17 @@ void r_4_opt_2(SolutionVRP* Sol, int vei, int& best_start, int& best_first, int&
 
                                     if(f1==true){
                                         //Rout->calculate_capacity(ric, veic);
-                                        bool f2=Sol->route[vei]->check_cap(u, veic, i, j, z, ric);
 
+                                        bool f2=Sol->route[vei]->check_cap(u, veic, i, j, z, ric);
+//                                        if(u==8 && i==1 && j==2 && z==0 && vei==2 && f2){
+
+//                                            std::cout << "dgsgdg" << std::endl;
+
+//                                            std::cout << "FEAS " << f2 << std::endl;
+//                                            std::cout << "dgsgdg" << std::endl;
+//                                            std::cout << Sol->getSolutionRepresentation() << std::endl;
+
+//                                        }
 
                                         if(f2==true){
                                             bool f3=Sol->route[vei]->EightStepEvaluation_2(D, ric, u, i, j , z, veic);
@@ -2622,18 +2640,24 @@ void r_4_opt_2(SolutionVRP* Sol, int vei, int& best_start, int& best_first, int&
 
 emili::Solution* FourOptNeighborhood::computeStep(emili::Solution* step)
 {
+
     if(vei>(num_r-1))
     {
         return nullptr;
     }
     else
     {
+
         SolutionVRP* sol = (SolutionVRP*) step;
         best_start = -1;
         while( vei<num_r && sol->route[vei]->numRicRoute==0)
             vei++;
         if(vei<num_r){
-            r_4_opt_2(sol,  vei,  best_start, best_first, best_second, best_third, inst.numVeicoli0, inst.Dist, inst.rc, inst.vec);
+            r_4_opt_2(sol,  vei,  best_start, best_first, best_second, best_third, inst.numVeicoli0, inst.Dist, inst.rc, inst.vec);            
+            //std::cout << "4opt" << std::endl;
+            //std::cout << step->getSolutionRepresentation() << std::endl;
+            //std::cout << "**********" << std::endl;
+            //std::cout<< "4opt" << std::endl;
         }else{
             return nullptr;
 
@@ -2793,7 +2817,7 @@ double earl [2*numRichieste+2];
                                             for(int l=1; l<Sol->route[vei]->length-2; l++){
 
                                                 feas22=Sol->route[vei]->capacity_P_feasibility_3(l, rr2,  veic, ric, p1, d1, rr1);
-
+                                                if(vei==2 && l==9 && rr2==15 && rr1==10 && p1==6 && d1==9)
                                                 feas11=Sol->route[vei]->tw_P_feasibility_3(ric, MatTemp,  l, rr2, p1, d1, loc, typ, rid);
                                                 if(feas11>0 && feas22>0){
 
@@ -3147,6 +3171,7 @@ double earl [2*numRichieste+2];
 
 emili::Solution* ExchangeNeighborhood::computeStep(emili::Solution* step)
 {
+
     if(vei>(num_r-1))
     {
         return nullptr;
@@ -3159,6 +3184,10 @@ emili::Solution* ExchangeNeighborhood::computeStep(emili::Solution* step)
             vei++;
         if(vei<num_r){
         Exchange_Neighborhood(sol, vei, best_v, best_r1, best_r2, or_pickup_pos_1, or_pickup_pos_2, or_delivery_pos_1, or_delivery_pos_2, inst.numVeicoli0, inst.rc, inst.T,inst.vec, inst.numRichieste0, inst.MCV, inst.Dist);
+        //std::cout << "Exchange" << std::endl;
+        //std::cout << step->getSolutionRepresentation() << std::endl;
+        //std::cout << vei << " " << best_v << " " << best_r1 << " " << best_r2 << std::endl;
+        //std::cout << "**********" << std::endl;
         }else{
         return nullptr;
         }

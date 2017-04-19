@@ -101,11 +101,11 @@ emili::Neighborhood* prs::VrpBuilder::buildNeighborhood()
         neigh=new EliminateNeighborhood(*instance);
     }else if(tm.checkToken(NEIGHBORHOOD_EXCHANGE))
     {
-        printTab("Eliminate Neighborhood");
+        printTab("Exchange Neighborhood");
         neigh=new ExchangeNeighborhood(*instance);
     }else if(tm.checkToken(NEIGHBORHOOD_EXCHANGE_VEHICLE))
     {
-        printTab("Eliminate Neighborhood");
+        printTab("Exchange Vehicle Neighborhood");
         neigh=new ExchangeVehicleNeighborhood(*instance);
     }
     prs::decrementTabLevel();
