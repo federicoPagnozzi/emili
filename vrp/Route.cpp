@@ -4701,12 +4701,12 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
     bool feas=true;
     int c10, c20, c30, c40;
     int c1, c2, c3, c4;
-    c10=cap1[l-1]+ric[req]->staff;
-    c20=cap2[l-1]+ric[req]->seated;
-    c30=cap3[l-1]+ric[req]->stretcher;
-    c40=cap4[l-1]+ric[req]->wheelchair;
+    c10=0;
+    c20=0;
+    c30=0;
+    c40=0;
 
-    i=l+1;
+    i=1;
     //std::cout<< g << l << std::endl;
 
     while(i<g){
