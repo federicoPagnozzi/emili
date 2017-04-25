@@ -363,6 +363,12 @@ SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
         return new SARandomExploration(neigh, acc, cool, term);
     } else if (tm.checkToken(SASEQUENTIALEXPLORATION)) {
         return new SASequentialExploration(neigh, acc, cool, term);
+    } else if (tm.checkToken(SABESTOFKEXPLORATION)) {
+        long k = tm.getInteger();
+        return new SABestOfKExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SAFIRSTBESTOFKEXPLORATION)) {
+        long k = tm.getInteger();
+        return new SAFirstBestOfKExploration(neigh, acc, cool, term, k);
     } else {
         std::cerr << "SAExploration expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

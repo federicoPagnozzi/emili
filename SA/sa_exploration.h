@@ -85,6 +85,59 @@ public:
 }; // SASequentialExploration
 
 
+/**
+ * Modified simulated annealing algorithms for the flow shop sequencing problem
+ * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
+ */
+class SABestOfKExploration: public SAExploration {
+
+long k;
+
+public:
+    SABestOfKExploration(emili::Neighborhood* _neigh,
+                         SAAcceptance* _acceptance,
+                         SACooling* _cooling,
+                         SATermination* _term,
+                         long _k):
+        k(_k),
+        SAExploration(_neigh,
+                      _acceptance,
+                      _cooling,
+                      _term,
+                      SABESTOFKEXPLORATION) { }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                          SAStatus& status);
+
+}; // SABestOfKExploration
+
+/**
+ * Modified simulated annealing algorithms for the flow shop sequencing problem
+ * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
+ */
+class SAFirstBestOfKExploration: public SAExploration {
+
+long k;
+
+public:
+    SAFirstBestOfKExploration(emili::Neighborhood* _neigh,
+                              SAAcceptance* _acceptance,
+                              SACooling* _cooling,
+                              SATermination* _term,
+                              long _k):
+        k(_k),
+        SAExploration(_neigh,
+                      _acceptance,
+                      _cooling,
+                      _term,
+                      SAFIRSTBESTOFKEXPLORATION) { }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                          SAStatus& status);
+
+}; // SAFirstBestOfKExploration
+
+
 class SAFirstImprovementExploration: public SAExploration {
 
 public:
