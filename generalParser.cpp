@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "368102b87452514aebba0d6364c24b227338c521"
+#define GIT_COMMIT_NUMBER "f6fab02971ab9c9a7252265117e077b4f65fe12d"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -48,7 +48,7 @@
 #define TERMINATION_SOA "soater"
 /*base permutation flowshop solution perturbations */
 #define PERTURBATION_RANDOM_MOVE "rndmv"
-#define PERTURBATION_VNRANDOM_MOVE "vnrmv"
+#define PERTURBATION_VNRANDOM_MOVE "vrndmv"
 #define PERTURBATION_NOPER "noper"
 /*base acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -68,11 +68,23 @@ int tab_level = 0;
 
 void prs::printTab(const char* string)
 {
+
     for(int i=0;i<tab_level; i++)
     {
         std::cout << "  ";
     }
+    //std::cout << " -";
 
+    std::cout << string << std::endl;
+}
+
+void prs::printTabPlusOne(const char* string)
+{
+    for(int i=0;i<=tab_level; i++)
+    {
+        std::cout << "  ";
+    }
+    //std::cout << " -";
     std::cout << string << std::endl;
 }
 
@@ -462,7 +474,7 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
     if(p != nullptr)
     {
     std::string prob(p);
-    Builder* probBuilder = nullptr;
+    Builder* probBuilder = nullptr;    
     for(std::vector< Builder*> ::iterator iter= allbuilders.begin(); iter!=allbuilders.end(); ++iter)
     {
         Builder* bld = *iter;
@@ -791,13 +803,13 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
     }
     else if(tm.checkToken(PERTURBATION_VNRANDOM_MOVE))
     {
-        printTab("Random move perturbation." );
+        printTab("Multiple neighborhood Random move perturbation." );
         prs::incrementTabLevel();
         int num = tm.getInteger();
-        oss.str(""); oss  << "number of moves per perturbation step " << num << ".\n\t";
+        oss.str(""); oss  << "number of moves per perturbation step " << num;
         printTab(oss.str().c_str());
         int iter = tm.getInteger();
-        oss.str(""); oss  << "number of iteration before changing the neighborhood " << iter << ".\n\t";
+        oss.str(""); oss  << "number of iteration before changing the neighborhood " << iter;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
         std::vector<emili::Neighborhood*> nes = this->buildNeighborhoodVector();

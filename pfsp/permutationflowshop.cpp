@@ -1373,10 +1373,10 @@ emili::Solution* emili::pfsp::PfspRandomInitialSolution::generate()
 
 emili::Solution* emili::pfsp::RandomInitialSolution::generate()
 {
-    emili::Solution* base = emili::pfsp::PfspRandomInitialSolution::generate();
+    emili::Solution* base = emili::pfsp::RandomInitialSolution::generate();
     for (int i=1;i<numOfSols;i++)
     {
-        emili::Solution* news = emili::pfsp::PfspRandomInitialSolution::generate();
+        emili::Solution* news = emili::pfsp::RandomInitialSolution::generate();
         if(base->getSolutionValue() > news->getSolutionValue())
         {
             delete base;

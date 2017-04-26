@@ -522,8 +522,10 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         init = new emili::pfsp::PfspRandomInitialSolution(*instance);
     }else if(tm.checkToken(INITIAL_RANDOM_ITERATED))
     {
-        printTab("Random initial solution");
+        printTab("Iterated random initial solution");
         int n = tm.getInteger();
+        oss.str("");oss << "number of random solutions generate"<< n;
+        printTabPlusOne(oss.str().c_str());
         init = new emili::pfsp::RandomInitialSolution(*instance,n);
     }
     else if(tm.checkToken(INITIAL_SLACK))
@@ -575,25 +577,27 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
     else if(tm.checkToken(INITIAL_LR))
         {
             int n = tm.getInteger();
-            oss.str(""); oss << "LR initial solution with "<<n<<" starting sequences";
-            printTab(oss.str().c_str());
+            printTab("LR initial solution");
+            oss.str(""); oss << "starting sequences "<<n;
+            printTabPlusOne(oss.str().c_str());
             // testIS(*istance);
             init = new emili::pfsp::LRSolution(*instance,n);
         }
     else if(tm.checkToken(INITIAL_LR_NM))
         {            
             int n = instance->getNjobs()/instance->getNmachines();
-            oss.str(""); oss << "LR initial solution with "<<n<<" starting sequences";
-            printTab(oss.str().c_str());
+            printTab("LR initial solution");
+            oss.str(""); oss << "starting sequences "<<n;
+            printTabPlusOne(oss.str().c_str());
             // testIS(*istance);
             init = new emili::pfsp::LRSolution(*instance,n);
         }
     else if(tm.checkToken(INITIAL_NLR))
         {
         int n = tm.getInteger();
-        oss.str(""); oss << "NLR initial solution with "<<n<<" starting sequences";
-        //return new testIS(*istance);printTab(oss.str().c_str());
-        printTab(oss.str().c_str());
+        printTab("NLR initial solution");
+        oss.str(""); oss << "starting sequences "<<n;
+        printTabPlusOne(oss.str().c_str());
         init = new emili::pfsp::NLRSolution(*instance,n);
         }
     else if(tm.checkToken(INITIAL_MNEH))
@@ -614,7 +618,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         //return new testIS(istance);
         int iterations = tm.getInteger();
         oss.str("");oss<<"number of restarts: " << iterations;
-        printTab(oss.str().c_str());
+        printTabPlusOne(oss.str().c_str());
         init = new emili::pfsp::NEHRS(*instance,iterations);
     }
     else if(tm.checkToken(INITIAL_NEHEDD))
@@ -686,10 +690,11 @@ emili::Termination* prs::PfspBuilder::buildTermination()
     if(tm.checkToken(TERMINATION_ITERA))
     {
 
-        int ti = tm.getInteger();
+        int ti = tm.getInteger();        
+        printTab("Relaxed local minima termination");
         std::ostringstream oss;
-        oss << "Relaxed local minima termination. number of max iterations "<< ti;
-        printTab(oss.str().c_str());
+        oss << "number of max iterations "<< ti;
+        printTabPlusOne(oss.str().c_str());
         term =  new emili::pfsp::PfspTerminationIterations(ti);
     }
     else if(tm.checkToken(TERMINATION_SOA))
@@ -697,6 +702,9 @@ emili::Termination* prs::PfspBuilder::buildTermination()
         printTab("Max iteration number termination");
         int ti = istance->getNjobs();
          ti = 2*(ti-1);
+         std::ostringstream oss;
+         oss << "number of max iterations "<< ti;
+         printTabPlusOne(oss.str().c_str());
         term =  new emili::pfsp::SOAtermination(ti);
     }
 

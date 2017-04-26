@@ -43,6 +43,15 @@ void check(char* t,const char* message);
  */
 void printTab(const char* string);
 /**
+ * @brief printTab
+ * printTabPlusOne is used to print messages one tabLevel more than printTab
+ * when incrementTabLevel is called an additional \ t is added ad the beginning
+ * of the line before string. decrementTabLevel reduces the number of \ t
+ * displayed.
+ * @param string
+ */
+void printTabPlusOne(const char* string);
+/**
  * @brief incrementTabLevel
  *          Increments the number of tabs added at the beginning of a line by printTab
  */
