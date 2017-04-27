@@ -30,7 +30,7 @@
 SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, int numRichieste, std::vector<RichiesteServizio*> &ric , std::vector<Veicoli*> &veic, std::vector<std::vector<double>> &D, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> &MatTemp){
     
     InitialSol->numAddRoutes=INT_MAX;
-    InitialSol->solution_value=__DBL_MAX__;
+    InitialSol->setSolutionValue(__DBL_MAX__);
     int i, j, l , g, uu;
     
     double bestdist;
@@ -283,9 +283,11 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                     //Add a new one an insert it
                     //std::cout<< "false" << std::endl;
                     Solaux->addAdditionalRoute(numVeicoli, MatTemp, veic);
+
                     //std::cout<< numVeicoli+Solaux->numAddRoutes << std::endl;
                     Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->insert_req_pos(E[i],0,0,ric, MatTemp);
-                    	//std::cout << "request" <<  E[i] << "inserted in additional vehicle , " << (numVeicoli+Solaux->numAddRoutes)-1 << "  in pos : 0 0 \n";
+                    Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->calculate_capacity(ric,veic);
+                    //std::cout << "request" <<  E[i] << "inserted in additional vehicle , " << (numVeicoli+Solaux->numAddRoutes)-1 << "  in pos : 0 0 \n";
                     //std::cout << "Add route added" << std::endl;
                       Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->calculate_earliest_latest(ric, MatTemp, veic);
                      Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->Eightstepevaluationscheme(MatTemp,ric,veic);
@@ -298,13 +300,14 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                     
                     double bestadddist=DBL_MAX;
                     bool addinsertion;
+                    addinsertion=false;
                     //Try to insert it in the ones that there are....
                     for(int t=0;t<Solaux->numAddRoutes; t++){
                         //try on each additional vehicle that exists
                         //routad->clear_route();
                         // Solaux->copyvehicleinroute(routad, t+Solaux->numRoutes);
                         //std::cout << t << std::endl;
-                        addinsertion=false;
+
                         int originallength=Solaux->route[t+Solaux->numRoutes]->length;
                         for(l=0; l<originallength-1; l++)
                         {
@@ -354,7 +357,7 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                                                 
                                                 
                                                 if(gg>0){
-                                                    bestdist=distaddeffect;
+                                                    bestadddist=distaddeffect;
                                                     bestaddpl=l;
                                                     bestadddl=g;
                                                     bestaddv=t+Solaux->numRoutes;
@@ -408,7 +411,7 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                                                     //gg=Solaux->route[t+Solaux->numRoutes]->Eightstepevaluationscheme(MatTemp, ric,  MaxRideTime,  MaxTimeRoute);
                                                     //	rout->display_route();
                                                     if(gg>0){
-                                                        bestdist=distaddeffect;
+                                                        bestadddist=distaddeffect;
                                                         bestaddpl=l;
                                                         bestadddl=g;
                                                         bestaddv=t+Solaux->numRoutes;
@@ -467,6 +470,7 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                     }else{
                         Solaux->addAdditionalRoute(numVeicoli, MatTemp, veic);
                         Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->insert_req_pos(E[i],0,0,ric, MatTemp);
+                        Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->calculate_capacity(ric,veic);
                         //std::cout << "request" <<  E[i] << "inserted in additional vehicle , " << (numVeicoli+Solaux->numAddRoutes)-1 << "\n";
                          Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->calculate_earliest_latest(ric, MatTemp, veic);
                          Solaux->route[(numVeicoli+Solaux->numAddRoutes)-1]->Eightstepevaluationscheme(MatTemp,ric,veic);

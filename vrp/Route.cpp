@@ -871,6 +871,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
         if(cap3[i+2]>ve.stretcher){
             if(cap2[i+2]>ve.seated){
                 if(cap1[i+2]>ve.staff){
+                    return false;
                     feas=false;
                     i=suc;
                     
@@ -879,6 +880,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
                 }
             }else{
                 if(cap2[i+2]+cap1[i+2]>ve.staff+ve.seated){
+                    return false;
                     feas=false;
                     i=suc;
                 }else{
@@ -890,12 +892,13 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
         }else{
             if(cap2[i+2]>ve.seated){
                 if(cap3[i+2]+cap1[i+2]>ve.staff+ve.stretcher){
-                    
+                    return false;
                     feas=false;
                     i=suc;
                 }else{}
             }else{
                 if(cap2[i+2]+cap3[i+2]+cap1[i+2]>ve.staff+ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
                     i=suc;
                     
@@ -913,6 +916,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
         
         if(cap3[i+2]>ve.stretcher){
             if(cap2[i+2]>ve.seated){
+                return false;
                 feas=false;
                 i=suc;
             }else{
@@ -920,6 +924,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
             }
         }else{
             if(cap2[i+2]+cap3[i+2]>ve.stretcher+ve.seated){
+                return false;
                 feas=false;
                 i=suc;
             }else{
@@ -932,13 +937,14 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
         
         
         if(cap4[i+2]>ve.wheelchair){
-            
+            return false;
             feas=false;
             i=suc;
             
         }else{}
         
         if(cap3[i+2]>ve.stretcher){
+            return false;
             feas=false;
             i=suc;
         }else{
@@ -950,6 +956,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
     if(cap3[suc+2]>ve.stretcher){
         if(cap2[suc+2]>ve.seated){
             if(cap1[suc+2]>ve.staff){
+                return false;
                 feas=false;
                 
                 
@@ -958,6 +965,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
             }
         }else{
             if(cap2[suc+2]+cap1[suc+2]>ve.staff+ve.seated){
+                return false;
                 feas=false;
                 
             }else{
@@ -969,12 +977,13 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
     }else{
         if(cap2[suc+2]>ve.seated){
             if(cap3[suc+2]+cap1[suc+2]>ve.staff+ve.stretcher){
-                
+                return false;
                 feas=false;
                 
             }else{}
         }else{
             if(cap2[suc+2]+cap3[suc+2]+cap1[suc+2]>ve.staff+ve.stretcher+ve.seated){
+                return false;
                 feas=false;
                 
                 
@@ -992,6 +1001,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
     
     if(cap3[suc+2]>ve.stretcher){
         if(cap2[suc+2]>ve.seated){
+            return false;
             feas=false;
             
         }else{
@@ -999,6 +1009,7 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
         }
     }else{
         if(cap2[suc+2]+cap3[suc+2]>ve.stretcher+ve.seated){
+            return false;
             feas=false;
             
         }else{
@@ -1011,13 +1022,14 @@ bool Route::check_feasibility_capacity(int pre,int suc, Veicoli* veic){
     
     
     if(cap4[suc+2]>ve.wheelchair){
-        
+        return false;
         feas=false;
         
         
     }else{}
     
 				if(cap3[suc+2]>ve.stretcher){
+                    return false;
                     feas=false;
                     
                 }else{
@@ -2105,22 +2117,25 @@ bool Route::capacity_feasibility2(int p1,int req, std::vector<Veicoli*> &veic, s
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
             if(c1>veic[veh]->staff){
+                return false;
                 feas=false;
                 
             }
         }else{
             if(c2+c1>veic[veh]->staff+veic[veh]->seated){
+                return false;
                 feas=false;
             }
         }
     }else{
         if(c2>veic[veh]->seated){
             if(c3+c1>veic[veh]->staff+veic[veh]->stretcher){
-                
+                return false;
                 feas=false;
             }
         }else{
             if(c2+c3+c1>veic[veh]->staff+veic[veh]->stretcher+veic[veh]->seated){
+                return false;
                 feas=false;
                 
             }
@@ -2135,10 +2150,12 @@ bool Route::capacity_feasibility2(int p1,int req, std::vector<Veicoli*> &veic, s
     
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
+            return false;
             feas=false;
         }
     }else{
         if(c2+c3>veic[veh]->stretcher+veic[veh]->seated){
+            return false;
             feas=false;
         }
         
@@ -2148,12 +2165,13 @@ bool Route::capacity_feasibility2(int p1,int req, std::vector<Veicoli*> &veic, s
     
     
     if(c4>veic[veh]->wheelchair){
-        
+        return false;
         feas=false;
         
     }
     
     if(c3>veic[veh]->stretcher){
+        return false;
         feas=false;
     }
     
@@ -2175,6 +2193,7 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
             if(c1>veic[veh]->staff){
+                return false;
                 feas=false;
                 
             }else{
@@ -2182,6 +2201,7 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
             }
         }else{
             if(c2+c1>veic[veh]->staff+veic[veh]->seated){
+                return false;
                 feas=false;
             }else{
                 
@@ -2192,11 +2212,13 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
     }else{
         if(c2>veic[veh]->seated){
             if(c3+c1>veic[veh]->staff+veic[veh]->stretcher){
+                return false;
                 
                 feas=false;
             }else{}
         }else{
             if(c2+c3+c1>veic[veh]->staff+veic[veh]->stretcher+veic[veh]->seated){
+                return false;
                 feas=false;
                 
             }else{
@@ -2213,10 +2235,12 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
     
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
+            return false;
             feas=false;
         }
     }else{
         if(c2+c3>veic[veh]->stretcher+veic[veh]->seated){
+            return false;
             feas=false;
         }
         
@@ -2226,12 +2250,13 @@ bool Route::capacity_P_feasibility(int l, int req, std::vector<Veicoli*> &veic, 
     
     
     if(c4>veic[veh]->wheelchair){
-        
+        return false;
         feas=false;
         
     }
     
     if(c3>veic[veh]->stretcher){
+        return false;
         feas=false;
     }
 
@@ -4081,6 +4106,7 @@ bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &vei
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
             if(c1>veic[veh]->staff){
+                return false;
                 feas=false;
 
             }else{
@@ -4088,6 +4114,7 @@ bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &vei
             }
         }else{
             if(c2+c1>veic[veh]->staff+veic[veh]->seated){
+                return false;
                 feas=false;
             }else{
 
@@ -4098,11 +4125,13 @@ bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &vei
     }else{
         if(c2>veic[veh]->seated){
             if(c3+c1>veic[veh]->staff+veic[veh]->stretcher){
+                return false;
 
                 feas=false;
             }else{}
         }else{
             if(c2+c3+c1>veic[veh]->staff+veic[veh]->stretcher+veic[veh]->seated){
+                return false;
                 feas=false;
 
             }else{
@@ -4119,12 +4148,14 @@ bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &vei
 
     if(c3>veic[veh]->stretcher){
         if(c2>veic[veh]->seated){
+            return false;
             feas=false;
         }else{
 
         }
     }else{
         if(c2+c3>veic[veh]->stretcher+veic[veh]->seated){
+            return false;
             feas=false;
         }else{
 
@@ -4136,12 +4167,13 @@ bool Route::capacity_P_feasibility_3( int l, int req, std::vector<Veicoli*> &vei
 
 
     if(c4>veic[veh]->wheelchair){
-
+        return false;
         feas=false;
 
     }else{}
 
     if(c3>veic[veh]->stretcher){
+        return false;
         feas=false;
     }else{
 
@@ -4665,11 +4697,13 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
             if(c3>ve.stretcher){
                 if(c2>ve.seated){
                     if(c1>ve.staff){
+                        return false;
                         feas=false;
                         i=g;
                     }
                 }else{
                     if(c2+c1>ve.staff+ve.seated){
+                        return false;
                         feas=false;
                         i=g;
                     }
@@ -4677,12 +4711,13 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
             }else{
                 if(c2>ve.seated){
                     if(c3+c1>ve.staff+ve.stretcher){
-
+                        return false;
                         feas=false;
                         i=g;
                     }
                 }else{
                     if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                        return false;
                         feas=false;
                         i=g;
 
@@ -4692,23 +4727,27 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
             }
             if(c3>ve.stretcher){
                 if(c2>ve.seated){
+
+                    return false;
                     feas=false;
                     i=g;
                 }
             }else{
                 if(c2+c3>ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
                     i=g;
                 }
             }
             if(c4>ve.wheelchair){
-
+                return false;
                 feas=false;
                 i=g;
 
             }
 
             if(c3>ve.stretcher){
+                return false;
                 feas=false;
                 i=g;
             }
@@ -4736,11 +4775,14 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
         if(c3>ve.stretcher){
             if(c2>ve.seated){
                 if(c1>ve.staff){
+                    return false;
                     feas=false;
 
                 }
             }else{
                 if(c2+c1>ve.staff+ve.seated){
+
+                    return false;
                     feas=false;
 
                 }
@@ -4748,12 +4790,13 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
         }else{
             if(c2>ve.seated){
                 if(c3+c1>ve.staff+ve.stretcher){
-
+                    return false;
                     feas=false;
 
                 }
             }else{
                 if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
 
 
@@ -4763,23 +4806,26 @@ bool Route::check_cap_from23(int l, int g,std::vector<Veicoli*> &veic, int req, 
         }
         if(c3>ve.stretcher){
             if(c2>ve.seated){
+                return false;
                 feas=false;
 
             }
         }else{
             if(c2+c3>ve.stretcher+ve.seated){
+                return false;
                 feas=false;
 
             }
         }
         if(c4>ve.wheelchair){
-
+            return false;
             feas=false;
 
 
         }
 
         if(c3>ve.stretcher){
+            return false;
             feas=false;
 
         }
@@ -4831,11 +4877,13 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
             if(c3>ve.stretcher){
                 if(c2>ve.seated){
                     if(c1>ve.staff){
+                        return false;
                         feas=false;
                         i=g;
                     }
                 }else{
                     if(c2+c1>ve.staff+ve.seated){
+                        return false;
                         feas=false;
                         i=g;
                     }
@@ -4843,12 +4891,13 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
             }else{
                 if(c2>ve.seated){
                     if(c3+c1>ve.staff+ve.stretcher){
-
+                        return false;
                         feas=false;
                         i=g;
                     }
                 }else{
                     if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                        return false;
                         feas=false;
                         i=g;
 
@@ -4858,23 +4907,26 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
             }
             if(c3>ve.stretcher){
                 if(c2>ve.seated){
+                    return false;
                     feas=false;
                     i=g;
                 }
             }else{
                 if(c2+c3>ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
                     i=g;
                 }
             }
             if(c4>ve.wheelchair){
-
+                return false;
                 feas=false;
                 i=g;
 
             }
 
             if(c3>ve.stretcher){
+                return false;
                 feas=false;
                 i=g;
             }
@@ -4902,11 +4954,13 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
         if(c3>ve.stretcher){
             if(c2>ve.seated){
                 if(c1>ve.staff){
+                    return false;
                     feas=false;
 
                 }
             }else{
                 if(c2+c1>ve.staff+ve.seated){
+                    return false;
                     feas=false;
 
                 }
@@ -4914,11 +4968,12 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
         }else{
             if(c2>ve.seated){
                 if(c3+c1>ve.staff+ve.stretcher){
-
+                    return false;
                     feas=false;
                 }
             }else{
                 if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
 
 
@@ -4928,23 +4983,26 @@ bool Route::check_cap_from22(int l, int g, std::vector<Veicoli*> &veic, int req,
         }
         if(c3>ve.stretcher){
             if(c2>ve.seated){
+                return false;
                 feas=false;
 
             }
         }else{
             if(c2+c3>ve.stretcher+ve.seated){
+                return false;
                 feas=false;
 
             }
         }
         if(c4>ve.wheelchair){
-
+            return false;
             feas=false;
 
 
         }
 
         if(c3>ve.stretcher){
+            return false;
             feas=false;
 
         }
