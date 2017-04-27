@@ -2817,7 +2817,7 @@ double earl [2*numRichieste+2];
                                             for(int l=1; l<Sol->route[vei]->length-2; l++){
 
                                                 feas22=Sol->route[vei]->capacity_P_feasibility_3(l, rr2,  veic, ric, p1, d1, rr1);
-                                                if(vei==2 && l==9 && rr2==15 && rr1==10 && p1==6 && d1==9)
+                                                //if(vei==2 && l==9 && rr2==15 && rr1==10 && p1==6 && d1==9)
                                                 feas11=Sol->route[vei]->tw_P_feasibility_3(ric, MatTemp,  l, rr2, p1, d1, loc, typ, rid);
                                                 if(feas11>0 && feas22>0){
 

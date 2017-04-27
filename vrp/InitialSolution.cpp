@@ -22,14 +22,15 @@
 #include "Veicoli.hpp"
 #include "RichiesteServizio.hpp"
 #include "Route.hpp"
-
+#include <limits.h>
 
 
 #include <float.h>
 
 SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, int numRichieste, std::vector<RichiesteServizio*> &ric , std::vector<Veicoli*> &veic, std::vector<std::vector<double>> &D, std::vector<std::vector<int>> &MatCompVei, std::vector<std::vector<double>> &MatTemp){
     
-    
+    InitialSol->numAddRoutes=INT_MAX;
+    InitialSol->solution_value=__DBL_MAX__;
     int i, j, l , g, uu;
     
     double bestdist;
@@ -71,6 +72,11 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
         //E is a vector containing the order in which the requests will be inserted
         if(uu<1){ //First ordered according to PickupEarliest TW
             timewinminP_order(ric, numRichieste,E);
+            //for(int iiii=0; iiii<numRichieste; iiii++){
+              //  std::cout << E[iiii] << std::endl;
+
+            // }
+
         }else{ //Randomly ordered
             random_order( ric,  numRichieste, E);
         }
@@ -486,11 +492,17 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
         }
         
         
-        if(Solaux->numAddRoutes<=InitialSol->numAddRoutes){
+        if(Solaux->numAddRoutes<InitialSol->numAddRoutes){
+            InitialSol->CopySolution(Solaux);
+        }else{
+            if(Solaux->numAddRoutes==InitialSol->numAddRoutes){
             if(*Solaux<*InitialSol){
                 
                 
-                //std::cout <<"SOLAUX" << std::endl;
+                //std::cout <<"SOLAUX" << Solaux->getSolutionValue() << std::endl;
+                //std::cout <<"SOLAUX" << Solaux->isFeasible() << std::endl;
+                //std::cout <<"Initial Solution" << InitialSol->getSolutionValue() << std::endl;
+                //std::cout <<"Initial Solution" << InitialSol->isFeasible() << std::endl;
                 // if(uu>0){
                 //    InitialSol->delete_routes();}else{
                 //  }
@@ -509,10 +521,10 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
                   //  InitialSol->route[y]->Eightstepevaluationscheme(MatTemp,ric,veic);
                   //  InitialSol->route[y]->calculate_earliest_latest(ric, MatTemp, veic);}
             }
-            
+            }
         }
         
-        
+     //std::cout << uu << std::endl;
     }
     
     //delete routad;

@@ -1047,32 +1047,37 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
     double F;
     bool feas=true;
     double v1=0, v2=0, v3=0;
-    
+
     for(i=0; i<length; i++){
         arrival[i]=0;
         departure[i]=0;
         waiting[i]=0;
     }
-    
-    
-    
+
+
+
     for(i=1; i<length-1; i++){
-        
+
         arrival[i]=departure[i-1]+Time[locations[i-1]][locations[i]];
-        
+
         if(type[i]==1){
             if(arrival[i]-ric[Ricid[i]]->timewinPmin>=0 && arrival[i]-ric[Ricid[i]]->timewinPmax<=0){
                 departure[i]=arrival[i]+ric[Ricid[i]]->st;
                 waiting[i]=0;
-                
+
             }else{if(arrival[i]-ric[Ricid[i]]->timewinPmin<0){
-                
+
                 departure[i]=ric[Ricid[i]]->timewinPmin+ric[Ricid[i]]->st;
                 waiting[i]=departure[i]-ric[Ricid[i]]->st-arrival[i];
             }else{
-                departure[i]=arrival[i]+ric[Ricid[i]]->st;
-                
-                v1+=arrival[i]-ric[Ricid[i]]->timewinPmax;
+                return false;
+                //departure[i]=arrival[i]+ric[Ricid[i]]->st;
+
+                //v1+=arrival[i]-ric[Ricid[i]]->timewinPmax;
+                //if(v1>0){
+
+                    //return false;
+                //}
                 //Viol+=Arrival[j]-B[int(Sol1[i][j][1])][4];
             }
             }
@@ -1084,23 +1089,29 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
                 departure[i]=ric[Ricid[i]]->timewinDmin+ric[Ricid[i]]->st;
                 waiting[i]=departure[i]-ric[Ricid[i]]->st-arrival[i];
             }else{
-                departure[i]=arrival[i]+ric[Ricid[i]]->st;
-                
-                v1+=arrival[i]-ric[Ricid[i]]->timewinDmax;
+                return false;
+
+                //departure[i]=arrival[i]+ric[Ricid[i]]->st;
+
+               // v1+=arrival[i]-ric[Ricid[i]]->timewinDmax;
+                //if(v1>0){
+
+                  //  return false;
+                //}
                 //Viol+=Arrival[j]-B[int(Sol1[i][j][1])][6];
             }}
         }
-        
+
     }
     arrival[length-1]=departure[length-2]+Time[locations[length-1]][locations[length-2]];
     departure[length-1]=0;
     waiting[length-1]=0;
-    
+
     //for(i=0;i<length;i++){
     //	std::cout << arrival[i] << " " << departure[i] << " " << waiting[i] << "\n" ;
     //}
-    
-    
+
+
     if(v1>0){
         //go to step 8
         //std:: cout << "false \n";
@@ -1108,10 +1119,10 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
         //std:: cout << "true \n";
         //calculate the forward slack
         F=calculateF(1, ric);
-        
+
         double G;
         G=0;
-        
+
         for(i=1; i<length; i++){
             G+=waiting[i];
         }
@@ -1129,12 +1140,12 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
                     departure[i]=arrival[i]+ric[Ricid[i]]->st;
                     waiting[i]=0;
                 }else{if(arrival[i]-ric[Ricid[i]]->timewinPmin<0){
-                    
+
                     departure[i]=ric[Ricid[i]]->timewinPmin+ric[Ricid[i]]->st;
                     waiting[i]=departure[i]-ric[Ricid[i]]->st-arrival[i];
                 }else{
                     departure[i]=arrival[i]+ric[Ricid[i]]->st;
-                    
+
                     v1+=arrival[i]-ric[Ricid[i]]->timewinPmax;
                     //Viol+=Arrival[j]-B[int(Sol1[i][j][1])][4];
                 }}
@@ -1147,7 +1158,7 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
                     waiting[i]=departure[i]-ric[Ricid[i]]->st-arrival[i];
                 }else{
                     departure[i]=arrival[i]+ric[Ricid[i]]->st;
-                    
+
                     v1+=arrival[i]-ric[Ricid[i]]->timewinDmax;
                     //Viol+=Arrival[j]-B[int(Sol1[i][j][1])][6];
                 }}
@@ -1156,39 +1167,46 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
         arrival[length-1]=departure[length-2]+Time[locations[length-1]][locations[length-2]];
         departure[length-1]=0;
         waiting[length-1]=0;
-        
+
         //for(i=0;i<length;i++){
         //	std::cout << arrival[i] << " " << departure[i] << " " << waiting[i] << "\n" ;
         //}
-        
-        
-        
+
+
+
         v3=0;
         for(int ii=0; ii<length; ii++){
-            
+
             if(type[ii]==1){
-                
+
                 req=Ricid[ii];
                 for(int jj=ii+1;jj<length;jj++){
-                    
+
                     if(type[jj]==-1){ //es nodo de delivery
                         if(Ricid[jj]==req){
-                            
+
                             if(departure[jj]-ric[req]->st-departure[ii]-ric[req]->RideTime>0){
                                 v3+=(departure[jj]-ric[req]->st-departure[ii]-ric[req]->RideTime);
-                                
+
                             }else{
-                                
+
                             }
                         }
                     }
-                    
+
                 }
             }
-            
+
         }
         if(v3==0)
-        {}else{
+        {
+            if(v1>0){
+
+                return false;
+            }
+
+
+        }else{
             v1=0;
             //Viol=0;
             for(i=1; i<length-1; i++){
@@ -1202,13 +1220,13 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
                     if(F<G){
                         G=F;
                     }else{
-                        
+
                     }
                     //calculate the others
                     departure[i]=departure[i]+G;
                     waiting[i]=departure[i]-ric[Ricid[i]]->st-arrival[i];
-                    
-                    
+
+
                     for(int kk=i+1;kk<length-1;kk++){
                         arrival[kk]=departure[kk-1]+Time[locations[kk-1]][locations[kk]];
                         if(type[kk]==1){ //if it is a pickup node
@@ -1216,18 +1234,23 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
                                 departure[kk]=arrival[kk]+ric[Ricid[kk]]->st;
                                 waiting[kk]=0;
                             }else{ if(arrival[kk]-ric[Ricid[kk]]->timewinPmin<0){
-                                
+
                                 departure[kk]=ric[Ricid[kk]]->timewinPmin+ric[Ricid[kk]]->st;
                                 waiting[kk]=departure[kk]-ric[Ricid[kk]]->st-arrival[kk];
                             }else{
-                                
-                                departure[kk]=arrival[kk]+ric[Ricid[kk]]->st;
-                                v1+=arrival[kk]-ric[Ricid[kk]]->timewinPmax;
+                                return false;
+
+                                //departure[kk]=arrival[kk]+ric[Ricid[kk]]->st;
+                                //v1+=arrival[kk]-ric[Ricid[kk]]->timewinPmax;
+                                //if(v1>0){
+
+                                //    return false;
+                               // }
                                 //Viol+=Arrival[kk]-B[int(Sol1[i][kk][1])][4];
                             }}
                         }else{ //if it is a delivery node
                             //delivery home
-                            
+
                             //if it is a delivery node
                             if(arrival[kk]-ric[Ricid[kk]]->timewinDmin>=-0 && arrival[kk]-ric[Ricid[kk]]->timewinDmax<=0  ){
                                 departure[kk]=arrival[kk]+ric[Ricid[kk]]->st;
@@ -1236,83 +1259,94 @@ bool Route::Eightstepevaluationscheme(std::vector<std::vector<double>> &Time, st
                                 departure[kk]=ric[Ricid[kk]]->timewinDmin+ric[Ricid[kk]]->st;
                                 waiting[kk]=departure[kk]-ric[Ricid[kk]]->st-arrival[kk];
                             }else{
-                                
-                                departure[kk]=arrival[kk]+ric[Ricid[kk]]->st;
-                                v1+=arrival[kk]-ric[Ricid[kk]]->timewinDmax;
+                                return false;
+
+//                                departure[kk]=arrival[kk]+ric[Ricid[kk]]->st;
+//                                v1+=arrival[kk]-ric[Ricid[kk]]->timewinDmax;
+//                                if(v1>0){
+//
+//                                    return false;
+//                                }
                                 //Viol+=Arrival[kk]-B[int(Sol1[i][kk][1])][6];
                             }}
-                            
-                            
+
+
                         }
-                        
-                        
+
+
                     }
-                    
+
                     arrival[length-1]=departure[length-2]+Time[locations[length-2]][locations[length-1]];
-                    
+
                 }else{
-                    
+
                 }
-                
-                
-                
-                
-                
+
+
+
+
+
             }
-            
-            
+
+
             arrival[1]=departure[1]-ric[Ricid[1]]->st;
             departure[0]=arrival[1]-Time[locations[0]][locations[1]];
-            
-            
-            
-            
+
+
+
+
         }
-        
-        
+
+
     }
-    
+
     v3=0;
     for(int ii=0; ii<length; ii++){
-        
+
         if(type[ii]==1){
-            
+
             req=Ricid[ii];
             for(int jj=ii+1;jj<length;jj++){
-                
+
                 if(type[jj]==-1){ //es nodo de delivery
                     if(Ricid[jj]==req){
                         if(departure[jj]-ric[req]->st-departure[ii]-ric[req]->RideTime>0){
-                            
-                            
-                            v3+=(departure[jj]-ric[req]->st-departure[ii]-ric[req]->RideTime);
+                            return false;
+
+                            //v3+=(departure[jj]-ric[req]->st-departure[ii]-ric[req]->RideTime);
+                            //if(v3>0){
+
+                              //  return false;
+                            //}
                         }else{
                         }
                     }
                 }
-                
+
             }
         }
-        
+
     }
-    
-    
+
+
     if(arrival[length-1]-departure[0]-veic[veh]->MaxRoute>0){
-        
+
         //V[i][1]=arrival[length-1]-departure[0]-MaxTimeRoute;
         v2=arrival[length-1]-departure[0]-veic[veh]->MaxRoute;
-        
-        
+
+
     }else{v2=0;}
-    
-    
+
+
     if(v1>0 || v2>0 || v3>0){
         feas=false;
     }
-    
-    
+
+
     return feas;
 }
+
+
 
 double Route::calculateF(int a, std::vector<RichiesteServizio*>  ric){
     double F, F1;
@@ -2446,11 +2480,13 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         if(c3>ve.stretcher){
             if(c2>ve.seated){
                 if(c1>ve.staff){
+                    return false;
                     feas=false;
                     i=g-l+1;
                 }
             }else{
                 if(c2+c1>ve.staff+ve.seated){
+                    return false;
                     feas=false;
                     i=g-l+1;
                 }
@@ -2458,12 +2494,13 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         }else{
             if(c2>ve.seated){
                 if(c3+c1>ve.staff+ve.stretcher){
-                    
+                    return false;
                     feas=false;
                     i=g-l+1;
                 }
             }else{
                 if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
                     i=g-l+1;
                     
@@ -2473,23 +2510,26 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         }
         if(c3>ve.stretcher){
             if(c2>ve.seated){
+                return false;
                 feas=false;
                 i=g-l+1;
             }
         }else{
             if(c2+c3>ve.stretcher+ve.seated){
+                return false;
                 feas=false;
                 i=g-l+1;
             }
         }
         if(c4>ve.wheelchair){
-            
+            return false;
             feas=false;
             i=g-l+1;
             
         }
         
         if(c3>ve.stretcher){
+            return false;
             feas=false;
             i=g-l+1;
         }
@@ -2517,11 +2557,13 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         if(c3>ve.stretcher){
             if(c2>ve.seated){
                 if(c1>ve.staff){
+                    return false;
                     feas=false;
                     i=g-l+1;
                 }
             }else{
                 if(c2+c1>ve.staff+ve.seated){
+                    return false;
                     feas=false;
                     i=g-l+1;
                 }
@@ -2529,12 +2571,13 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         }else{
             if(c2>ve.seated){
                 if(c3+c1>ve.staff+ve.stretcher){
-                    
+                    return false;
                     feas=false;
                     i=g-l+1;
                 }
             }else{
                 if(c2+c3+c1>ve.staff+ve.stretcher+ve.seated){
+                    return false;
                     feas=false;
                     i=g-l+1;
                     
@@ -2544,23 +2587,26 @@ bool Route::check_cap_from(int l, int g,std::vector<Veicoli*> &veic, int req, st
         }
         if(c3>ve.stretcher){
             if(c2>ve.seated){
+                return false;
                 feas=false;
                 i=g-l+1;
             }
         }else{
             if(c2+c3>ve.stretcher+ve.seated){
+                return false;
                 feas=false;
                 i=g-l+1;
             }
         }
         if(c4>ve.wheelchair){
-            
+            return false;
             feas=false;
             i=g-l+2;
             
         }
         
         if(c3>ve.stretcher){
+            return false;
             feas=false;
             i=g-l+1;
         }
@@ -2735,22 +2781,21 @@ bool Route::check_feas_D_tw1(double* earl, int req, std::vector<RichiesteServizi
         return feas;
 }
 
-
 bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*>&ric, int l, int g, int req, std::vector<Veicoli*>&veic){
     int i;
     bool feas=true;
     int len=length+2;
 
     /*double* arr, *dep, * wait;
-    arr=new double[len];
-    dep=new double[len];
-    wait=new double[len];
+     arr=new double[len];
+     dep=new double[len];
+     wait=new double[len];
 
 
-    int* loc, *rid, *typ;
-    loc=new int[len];
-    rid=new int[len];
-    typ=new int[len];*/
+     int* loc, *rid, *typ;
+     loc=new int[len];
+     rid=new int[len];
+     typ=new int[len];*/
 
     double arr[len];
     double dep[len];
@@ -2780,33 +2825,39 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
         rid[i+2]=Ricid[i];
         typ[i+2]=type[i];
     }
-    
-    
+
+
     double F, v1=0, v2=0, v3=0;
-    
-    
+
+
     for(i=0; i<len; i++){
         arr[i]=0;
         dep[i]=0;
         wait[i]=0;
     }
     for(i=1; i<len-1; i++){
-        
+
         arr[i]=dep[i-1]+Time[loc[i-1]][loc[i]];
-        
+
         if(typ[i]==1){
             if(arr[i]-ric[rid[i]]->timewinPmin>=0 && arr[i]-ric[rid[i]]->timewinPmax<=0){
                 dep[i]=arr[i]+ric[rid[i]]->st;
                 wait[i]=0;
-                
+
             }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
-                
+
                 dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
-                
-                v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                return false;
+
+                //dep[i]=arr[i]+ric[rid[i]]->st;
+
+                //v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                //if(v1>0){
+
+                //    return false;
+               // }
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
             }
             }
@@ -2818,23 +2869,29 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
                 dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
-                
-                v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                return false;
+
+                //dep[i]=arr[i]+ric[rid[i]]->st;
+
+                //v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                //if(v1>0){
+
+                  //  return false;
+                //}
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
             }}
         }
-        
+
     }
     arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
     dep[len-1]=0;
     wait[len-1]=0;
-    
+
     //for(i=0;i<length;i++){
     //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
     //}
-    
-    
+
+
     if(v1>0){
         //go to step 8
         //std:: cout << "false \n";
@@ -2845,7 +2902,7 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
         F=calcF(rid, wait,  arr,  dep, 1, ric, typ,  len);
         double G;
         G=0;
-        
+
         for(i=1; i<len; i++){
             G+=wait[i];
         }
@@ -2863,12 +2920,12 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
                     dep[i]=arr[i]+ric[rid[i]]->st;
                     wait[i]=0;
                 }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
-                    
+
                     dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
                     wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
                 }else{
                     dep[i]=arr[i]+ric[rid[i]]->st;
-                    
+
                     v1+=arr[i]-ric[rid[i]]->timewinPmax;
                     //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
                 }}
@@ -2881,7 +2938,7 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
                     wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
                 }else{
                     dep[i]=arr[i]+ric[rid[i]]->st;
-                
+
                     v1+=arr[i]-ric[rid[i]]->timewinDmax;
                     //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
                 }}
@@ -2890,44 +2947,50 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
         arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
         dep[len-1]=0;
         wait[len-1]=0;
-        
+
         //for(i=0;i<length;i++){
         //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
         //}
-        
-        
-        
+
+
+
         v3=0;
         for(int ii=0; ii<len; ii++){
-            
+
             if(typ[ii]==1){
-                
+
                 req=rid[ii];
                 for(int jj=ii+1;jj<len;jj++){
-                    
+
                     if(typ[jj]==-1){ //es nodo de delivery
                         if(rid[jj]==req){
-                            
+
                             if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
                                 v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
-                                
+
                             }else{
-                                
+
                             }
                         }
                     }
-                    
+
                 }
             }
-            
+
         }
         if(v3==0)
-        {}else{
+        {
+            if(v1>0){
+
+                return false;
+            }
+
+        }else{
             v1=0;
             //Viol=0;
             for(i=1; i<len-1; i++){
                 if(typ[i]==1){
-                   // F=calculateF(i, ric, MaxRideTime);
+                    // F=calculateF(i, ric, MaxRideTime);
                     F=calcF(rid, wait,  arr,  dep, i, ric, typ,  len);
                     //set waits
                     G=0;
@@ -2937,13 +3000,13 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
                     if(F<G){
                         G=F;
                     }else{
-                        
+
                     }
                     //calculate the others
                     dep[i]=dep[i]+G;
                     wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
-                    
-                    
+
+
                     for(int kk=i+1;kk<len-1;kk++){
                         arr[kk]=dep[kk-1]+Time[loc[kk-1]][loc[kk]];
                         if(typ[kk]==1){ //if it is a pickup node
@@ -2951,18 +3014,22 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
                                 dep[kk]=arr[kk]+ric[rid[kk]]->st;
                                 wait[kk]=0;
                             }else{ if(arr[kk]-ric[rid[kk]]->timewinPmin<0){
-                                
+
                                 dep[kk]=ric[rid[kk]]->timewinPmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-                                
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                //if(v1>0){
+
+                                 //   return false;
+                                //}
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][4];
                             }}
                         }else{ //if it is a delivery node
                             //delivery home
-                            
+
                             //if it is a delivery node
                             if(arr[kk]-ric[rid[kk]]->timewinDmin>=-0 && arr[kk]-ric[rid[kk]]->timewinDmax<=0  ){
                                 dep[kk]=arr[kk]+ric[rid[kk]]->st;
@@ -2971,89 +3038,98 @@ bool Route::EightStepEvaluation(std::vector<std::vector<double>> &Time, std::vec
                                 dep[kk]=ric[rid[kk]]->timewinDmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-                                
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+                                //if(v1>0){
+
+                                    return false;
+                                //}
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][6];
                             }}
-                            
-                            
+
+
                         }
-                        
-                        
+
+
                     }
-                    
+
                     arr[len-1]=dep[len-2]+Time[loc[len-2]][loc[len-1]];
-                    
+
                 }else{
-                    
+
                 }
-                
-                
-                
-                
-                
+
+
+
+
+
             }
-            
-            
+
+
             arr[1]=dep[1]-ric[rid[1]]->st;
             dep[0]=arr[1]-Time[loc[0]][loc[1]];
-            
-            
-            
-            
+
+
+
+
         }
-        
-        
+
+
     }
-    
+
     v3=0;
     for(int ii=0; ii<len; ii++){
-        
+
         if(typ[ii]==1){
-            
+
             req=rid[ii];
             for(int jj=ii+1;jj<len;jj++){
-                
+
                 if(typ[jj]==-1){ //es nodo de delivery
                     if(rid[jj]==req){
                         if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
-                            
-                            
-                            v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+
+                            return false;
+                            //v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+                            //if(v3>0){
+
+
+                            //}
                         }else{
                         }
                     }
                 }
-                
+
             }
         }
-        
+
     }
-    
-    
+
+
     if(arr[len-1]-dep[0]-veic[veh]->MaxRoute>0){
-        
+
         //V[i][1]=arr[length-1]-dep[0]-MaxTimeRoute;
         v2=arr[len-1]-dep[0]-veic[veh]->MaxRoute;
-        
-        
+
+
     }else{v2=0;}
-    
-    
+
+
     if(v1>0 || v2>0 || v3>0){
         feas=false;
     }
     /*
-    delete[] loc;
-    delete[] rid;
-    delete[] typ;
-    delete[] arr;
-    delete[] dep;
-    delete[] wait;
-*/
+     delete[] loc;
+     delete[] rid;
+     delete[] typ;
+     delete[] arr;
+     delete[] dep;
+     delete[] wait;
+     */
     return feas;
 }
+
 
 double calcF(int* rid, double* wait, double* arr, double* dep, int a, std::vector<RichiesteServizio*> &ric, int* typ, int len){
 
@@ -3193,14 +3269,16 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
     int i;
     bool feas=true;
     int len=length;
-    double* arr, *dep, * wait;
-    arr=new double[len];
-    dep=new double[len];
-    wait=new double[len];
-    int* loc, *rid, *typ;
-    loc=new int[len];
-    rid=new int[len];
-    typ=new int[len];
+//    double* arr, *dep, * wait;
+//    arr=new double[len];
+//    dep=new double[len];
+//    wait=new double[len];
+//    int* loc, *rid, *typ;
+//    loc=new int[len];
+//    rid=new int[len];
+//    typ=new int[len];
+    double arr[len], dep[len], wait[len];
+    int loc[len], rid[len], typ[len];
     int req;
     for(i=0;i<u;i++){
         loc[i]=locations[i];
@@ -3210,62 +3288,63 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
     int ii_0;
     for(i=0; i<3; i++){
         if(i==ii){
-        
+
             ii_0=u;
         }else{if(j==i){
-        
+
             ii_0=u+1;
         }else{
             ii_0=u+2;
-        
+
         }}
-    
+
         loc[u+i]=locations[ii_0];
         rid[u+i]=Ricid[ii_0];
         typ[u+i]=type[ii_0];
     }
-    
-    
+
+
     for(i=u+3;i<length; i++){
         loc[i]=locations[i];
         rid[i]=Ricid[i];
         typ[i]=type[i];
-    
+
     }
     //std::cout << "u -> " << u << "i -> " << ii  << "j -> " << j  << "z -> " << z << "\n";
 
     //for(i=0;i<len;i++){
     //    std::cout<<loc[i] << "\t" << rid[i] << "\t" <<  typ[i] << "\n";
-    
-   // }
-    
-    
-    
+
+    // }
+
+
+
     double F, v1=0, v2=0, v3=0;
-    
-    
+
+
     for(i=0; i<len; i++){
         arr[i]=0;
         dep[i]=0;
         wait[i]=0;
     }
     for(i=1; i<len-1; i++){
-        
+
         arr[i]=dep[i-1]+Time[loc[i-1]][loc[i]];
-        
+
         if(typ[i]==1){
             if(arr[i]-ric[rid[i]]->timewinPmin>=0 && arr[i]-ric[rid[i]]->timewinPmax<=0){
                 dep[i]=arr[i]+ric[rid[i]]->st;
                 wait[i]=0;
-                
+
             }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
-                
+
                 dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
-                
-                v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                return false;
+                //dep[i]=arr[i]+ric[rid[i]]->st;
+
+               // v1+=arr[i]-ric[rid[i]]->timewinPmax;
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
             }
             }
@@ -3277,23 +3356,24 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
                 dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
-                
-                v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                return false;
+                //dep[i]=arr[i]+ric[rid[i]]->st;
+
+                //v1+=arr[i]-ric[rid[i]]->timewinDmax;
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
             }}
         }
-        
+
     }
     arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
     dep[len-1]=0;
     wait[len-1]=0;
-    
+
     //for(i=0;i<length;i++){
     //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
     //}
-    
-    
+
+
     if(v1>0){
         //go to step 8
         //std:: cout << "false \n";
@@ -3304,7 +3384,7 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
         F=calcF(rid, wait,  arr,  dep, 1, ric, typ,  len);
         double G;
         G=0;
-        
+
         for(i=1; i<len; i++){
             G+=wait[i];
         }
@@ -3322,12 +3402,12 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
                     dep[i]=arr[i]+ric[rid[i]]->st;
                     wait[i]=0;
                 }else{if(arr[i]-ric[rid[i]]->timewinPmin<0){
-                    
+
                     dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
                     wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
                 }else{
                     dep[i]=arr[i]+ric[rid[i]]->st;
-                    
+
                     v1+=arr[i]-ric[rid[i]]->timewinPmax;
                     //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
                 }}
@@ -3339,8 +3419,9 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
                     dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
                     wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
                 }else{
+
                     dep[i]=arr[i]+ric[rid[i]]->st;
-                    
+
                     v1+=arr[i]-ric[rid[i]]->timewinDmax;
                     //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
                 }}
@@ -3349,39 +3430,44 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
         arr[len-1]=dep[len-2]+Time[loc[len-1]][loc[len-2]];
         dep[len-1]=0;
         wait[len-1]=0;
-        
+
         //for(i=0;i<length;i++){
         //	std::cout << arr[i] << " " << dep[i] << " " << wait[i] << "\n" ;
         //}
-        
-        
-        
+
+
+
         v3=0;
         for(int ii=0; ii<len; ii++){
-            
+
             if(typ[ii]==1){
-                
+
                 req=rid[ii];
                 for(int jj=ii+1;jj<len;jj++){
-                    
+
                     if(typ[jj]==-1){ //es nodo de delivery
                         if(rid[jj]==req){
-                            
+
                             if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
                                 v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
-                                
+
                             }else{
-                                
+
                             }
                         }
                     }
-                    
+
                 }
             }
-            
+
         }
         if(v3==0)
-        {}else{
+        {
+            if(v1>0){
+                return false;
+            }
+
+        }else{
             v1=0;
             //Viol=0;
             for(i=1; i<len-1; i++){
@@ -3396,13 +3482,13 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
                     if(F<G){
                         G=F;
                     }else{
-                        
+
                     }
                     //calculate the others
                     dep[i]=dep[i]+G;
                     wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
-                    
-                    
+
+
                     for(int kk=i+1;kk<len-1;kk++){
                         arr[kk]=dep[kk-1]+Time[loc[kk-1]][loc[kk]];
                         if(typ[kk]==1){ //if it is a pickup node
@@ -3410,18 +3496,18 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
                                 dep[kk]=arr[kk]+ric[rid[kk]]->st;
                                 wait[kk]=0;
                             }else{ if(arr[kk]-ric[rid[kk]]->timewinPmin<0){
-                                
+
                                 dep[kk]=ric[rid[kk]]->timewinPmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-                                
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][4];
                             }}
                         }else{ //if it is a delivery node
                             //delivery home
-                            
+
                             //if it is a delivery node
                             if(arr[kk]-ric[rid[kk]]->timewinDmin>=-0 && arr[kk]-ric[rid[kk]]->timewinDmax<=0  ){
                                 dep[kk]=arr[kk]+ric[rid[kk]]->st;
@@ -3430,89 +3516,91 @@ bool Route::EightStepEvaluation_2(std::vector<std::vector<double>> &Time, std::v
                                 dep[kk]=ric[rid[kk]]->timewinDmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-                                
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][6];
                             }}
-                            
-                            
+
+
                         }
-                        
-                        
+
+
                     }
-                    
+
                     arr[len-1]=dep[len-2]+Time[loc[len-2]][loc[len-1]];
-                    
+
                 }else{
-                    
+
                 }
-                
-                
-                
-                
-                
+
+
+
+
+
             }
-            
-            
+
+
             arr[1]=dep[1]-ric[rid[1]]->st;
             dep[0]=arr[1]-Time[loc[0]][loc[1]];
-            
-            
-            
-            
+
+
+
+
         }
-        
-        
+
+
     }
-    
+
     v3=0;
     for(int ii=0; ii<len; ii++){
-        
+
         if(typ[ii]==1){
-            
+
             req=rid[ii];
             for(int jj=ii+1;jj<len;jj++){
-                
+
                 if(typ[jj]==-1){ //es nodo de delivery
                     if(rid[jj]==req){
                         if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
-                            
-                            
-                            v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+                            return false;
+
+                            //v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
                         }else{
                         }
                     }
                 }
-                
+
             }
         }
-        
+
     }
-    
-    
+
+
     if(arr[len-1]-dep[0]-veic[veh]->MaxRoute>0){
-        
+
         //V[i][1]=arr[length-1]-dep[0]-MaxTimeRoute;
         v2=arr[len-1]-dep[0]-veic[veh]->MaxRoute;
-        
-        
+
+
     }else{v2=0;}
-    
-    
+
+
     if(v1>0 || v2>0 || v3>0){
         feas=false;
     }
-    
-    delete[] loc;
-    delete[] rid;
-    delete[] typ;
-    delete[] arr;
-    delete[] dep;
-    delete[] wait;
-    
+
+    //delete[] loc;
+    //delete[] rid;
+    //delete[] typ;
+    //delete[] arr;
+    //delete[] dep;
+    //delete[] wait;
+
     return feas;
 }
+
+
 
 
 
@@ -3631,19 +3719,22 @@ bool Route::check_feas_FirstRequest(int p2, int d2, std::vector<std::vector<doub
 }
 
 
+
 bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> &Time, std::vector<RichiesteServizio*>&ric, std::vector<Veicoli*>&veic){
 
     int i;
     bool feas=true;
     int len=length;
-    double* arr, *dep, * wait;
-    arr=new double[len];
-    dep=new double[len];
-    wait=new double[len];
-    int* loc, *rid, *typ;
-    loc=new int[len];
-    rid=new int[len];
-    typ=new int[len];
+//    double* arr, *dep, * wait;
+//    arr=new double[len];
+//    dep=new double[len];
+//    wait=new double[len];
+//    int* loc, *rid, *typ;
+//    loc=new int[len];
+//    rid=new int[len];
+//    typ=new int[len];
+    double arr[len], dep[len], wait[len];
+    int loc[len], rid[len], typ[len];
     int req;
     for(i=0;i<len;i++){
         loc[i]=locations[i];
@@ -3679,10 +3770,13 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
                 dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
 
-                v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                return false;
+               // dep[i]=arr[i]+ric[rid[i]]->st;
+
+                //v1+=arr[i]-ric[rid[i]]->timewinPmax;
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
+
             }
             }
         }else{//if it is a delivery node
@@ -3693,9 +3787,11 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
                 dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
+                return false;
 
-                v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                //dep[i]=arr[i]+ric[rid[i]]->st;
+
+                //v1+=arr[i]-ric[rid[i]]->timewinDmax;
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
             }}
         }
@@ -3797,7 +3893,11 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
 
         }
         if(v3==0)
-        {}else{
+        {
+            if(v1>0){
+                return false;
+            }
+        }else{
             v1=0;
             //Viol=0;
             for(i=1; i<len-1; i++){
@@ -3830,9 +3930,9 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
                                 dep[kk]=ric[rid[kk]]->timewinPmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][4];
                             }}
                         }else{ //if it is a delivery node
@@ -3846,9 +3946,9 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
                                 dep[kk]=ric[rid[kk]]->timewinDmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][6];
                             }}
 
@@ -3893,9 +3993,9 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
                 if(typ[jj]==-1){ //es nodo de delivery
                     if(rid[jj]==req){
                         if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
+                            return false;
 
-
-                            v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+                            //v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
                         }else{
                         }
                     }
@@ -3920,13 +4020,13 @@ bool Route::EightStep_2(int p2, int d2, int r, std::vector<std::vector<double>> 
         feas=false;
     }
 
-    delete[] loc;
-    delete[] rid;
-    delete[] typ;
-    delete[] arr;
-    delete[] dep;
-    delete[] wait;
-
+//    delete[] loc;
+//    delete[] rid;
+//    delete[] typ;
+//    delete[] arr;
+//    delete[] dep;
+//    delete[] wait;
+//
     return feas;
 
 }
@@ -4872,16 +4972,17 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
     bool feas=true;
     int len;
     len=length;
+    double arr[len], dep[len], wait[len];
+    //int loc[len], rid[len], typ[len];
 
-
-    double *arr, *dep, * wait;
-
-
-    arr=new double[length];
-
-    dep=new double[length];
-    wait=new double[length];
-
+//    double *arr, *dep, * wait;
+//
+//
+//    arr=new double[length];
+//
+//    dep=new double[length];
+//    wait=new double[length];
+//
     int req;
 
 
@@ -4909,9 +5010,10 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
                 dep[i]=ric[rid[i]]->timewinPmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
+                return false;
+                //dep[i]=arr[i]+ric[rid[i]]->st;
 
-                v1+=arr[i]-ric[rid[i]]->timewinPmax;
+                //v1+=arr[i]-ric[rid[i]]->timewinPmax;
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][4];
             }
             }
@@ -4923,9 +5025,10 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
                 dep[i]=ric[rid[i]]->timewinDmin+ric[rid[i]]->st;
                 wait[i]=dep[i]-ric[rid[i]]->st-arr[i];
             }else{
-                dep[i]=arr[i]+ric[rid[i]]->st;
+                return false;
+                //dep[i]=arr[i]+ric[rid[i]]->st;
 
-                v1+=arr[i]-ric[rid[i]]->timewinDmax;
+                //v1+=arr[i]-ric[rid[i]]->timewinDmax;
                 //Viol+=arr[j]-B[int(Sol1[i][j][1])][6];
             }}
         }
@@ -5027,7 +5130,11 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
 
         }
         if(v3==0)
-        {}else{
+        {
+            if(v1>0){
+                return false;
+            }
+        }else{
             v1=0;
             //Viol=0;
             for(i=1; i<len-1; i++){
@@ -5060,9 +5167,9 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
                                 dep[kk]=ric[rid[kk]]->timewinPmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinPmax;
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][4];
                             }}
                         }else{ //if it is a delivery node
@@ -5076,9 +5183,9 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
                                 dep[kk]=ric[rid[kk]]->timewinDmin+ric[rid[kk]]->st;
                                 wait[kk]=dep[kk]-ric[rid[kk]]->st-arr[kk];
                             }else{
-
-                                dep[kk]=arr[kk]+ric[rid[kk]]->st;
-                                v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
+                                return false;
+                                //dep[kk]=arr[kk]+ric[rid[kk]]->st;
+                                //v1+=arr[kk]-ric[rid[kk]]->timewinDmax;
                                 //Viol+=arr[kk]-B[int(Sol1[i][kk][1])][6];
                             }}
 
@@ -5123,9 +5230,9 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
                 if(typ[jj]==-1){ //es nodo de delivery
                     if(rid[jj]==req){
                         if(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime>0){
+                            return false;
 
-
-                            v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
+                            //v3+=(dep[jj]-ric[rid[jj]]->st-dep[ii]-ric[rid[ii]]->RideTime);
                         }else{
                         }
                     }
@@ -5150,14 +5257,15 @@ bool Route::EightStep_3(std::vector<std::vector<double>> &Time, std::vector<Rich
         feas=false;
     }
 
-
-    delete[] arr;
-    delete[] dep;
-    delete[] wait;
+//
+//    delete[] arr;
+//    delete[] dep;
+//    delete[] wait;
 
     return feas;
 
 }
+
 
 bool feasible_with_vehicle(int m, int* E, int vei, std::vector<std::vector<int>> &MatCompVei){
 
