@@ -390,4 +390,34 @@ public:
 }; // SAMaxStepsTermination
 
 
+/**
+ */
+class SAMinTempTermination: public SATermination {
+
+protected:
+    double mintemp;
+
+public:
+    SAMinTempTermination(double _mt):
+        mintemp(_mt),
+        SATermination(MINTEMPTERM) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return false;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.temp <= mintemp) {
+            return true;
+        }
+        return false;
+    }
+
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SAMinTempTermination
+
 #endif

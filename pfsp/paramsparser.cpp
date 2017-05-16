@@ -454,7 +454,7 @@ spostare          */
     SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
-    SATermination*     term       = TERMINATION(tm, nei); // termin(tm);
+    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei, instance);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, cooling, term);
@@ -1776,7 +1776,8 @@ SAAcceptance* prs::ParamsParser::ACCEPTANCE(prs::TokenManager& tm,
 
 
 SATermination* prs::ParamsParser::TERMINATION(prs::TokenManager& tm,
-                                        emili::Neighborhood *nei) {
+                                              SAInitTemp* inittemp,
+                                              emili::Neighborhood *nei) {
 
     if (tm.checkToken(MAXBADITERS)) {
         int    mb = tm.getInteger();
@@ -1811,6 +1812,16 @@ SATermination* prs::ParamsParser::TERMINATION(prs::TokenManager& tm,
     } else if (tm.checkToken(MAXSTEPSTERM)) {
         int ms = tm.getInteger();
         return new SAMaxStepsTermination(ms);
+    } else if (tm.checkToken(MINTEMPTERM)) {
+        char* p = tm.peek();
+        double v;
+        try {
+            v = std::stod(p);
+        } catch(...) {
+            return new SAMinTempTermination(inittemp->getMinTemp());
+        }
+        v = tm.getDecimal();
+        return new SAMinTempTermination(v);
     } else {
         std::cerr << "SATermination expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

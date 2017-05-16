@@ -196,6 +196,10 @@ public:
         return mindelta;
     }
 
+    virtual double getMinTemp(double value) {
+        return value * mindelta;
+    }
+
     virtual double getInit_prob(void) {
         return std::exp(-maxdelta / init_temp);
     }
@@ -261,6 +265,10 @@ public:
 
     virtual double getMinTemp(void) {
         return mindelta;
+    }
+
+    virtual double getMinTemp(double value) {
+        return value * mindelta;
     }
 
     virtual double getInit_prob(void) {
@@ -477,8 +485,8 @@ public:
 
         avgdelta = costsum / length;
 
-        ti = (1 - l11 - l12) * mindelta + l11 * avgdelta + l12 * maxdelta;
-        tf = (1 - l21 - l22) * mindelta + l12 * avgdelta + l22 * maxdelta;
+        ti = value * (1 - l11 - l12) * mindelta + l11 * avgdelta + l12 * maxdelta;
+        tf = value * (1 - l21 - l22) * mindelta + l12 * avgdelta + l22 * maxdelta;
 
         //std::cout << std::fixed << "inittempgapstats " << mindelta << " " << avgdelta << " " << maxdelta << std::endl;
 
@@ -487,6 +495,10 @@ public:
 
     virtual double getMinTemp(void) {
         return tf;
+    }
+
+    virtual double getMinTemp(double value) {
+        return tf; // value already included
     }
 
     virtual double getInit_prob(void) {
@@ -557,14 +569,18 @@ public:
 
         avgdelta = costsum / length;
 
-        ti = (1 - l1) * mindelta + l1 * avgdelta;
-        tf = (1 - l2) * mindelta + l2 * avgdelta;
+        ti = value * (1 - l1) * mindelta + l1 * avgdelta;
+        tf = value * (1 - l2) * mindelta + l2 * avgdelta;
 
         return ti;
     }
 
     virtual double getMinTemp(void) {
         return tf;
+    }
+
+    virtual double getMinTemp(double value) {
+        return tf; // value already included
     }
 
     virtual double getInit_prob(void) {
@@ -659,6 +675,10 @@ public:
 
     virtual double getMinTemp(void) {
         return tf;
+    }
+
+    virtual double getMinTemp(double value) {
+        return value * tf;
     }
 
  }; // OsmanPottsInitTemp

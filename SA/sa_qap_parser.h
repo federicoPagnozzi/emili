@@ -54,6 +54,7 @@ protected:
      * @return    SATermination object
      */
     SATermination*   TERMINATION(prs::TokenManager& tm,
+                                 SAInitTemp* inittemp,
                                  emili::Neighborhood *nei);
 
     /**
