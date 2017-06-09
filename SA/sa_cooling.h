@@ -534,5 +534,31 @@ public:
 
 }; // OsmanPottsPFSPCooling
 
+/**
+ * Arithmetic Cooling for GDA
+ */
+class ArithmeticCooling: public SACooling {
+
+public:
+    ArithmeticCooling(double a, SAInitTemp *it):
+        SACooling(a, 0, it) { }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+        
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+            double tmp = std::max(temp - a, 0.0);
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // ArithmeticCooling
+
 
 #endif

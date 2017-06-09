@@ -244,7 +244,10 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
         return new SATemperatureBandCooling(a, it);
     } else if (tm.checkToken(QUADRATICCOOLING)) {
         return new SAQuadraticCooling(it);
-    } else {
+    } else if (tm.checkToken(ARITHMETICCOOLING)) {
+        int   a = tm.getInteger();
+        return new ArithmeticCooling(a, it);
+    } else  {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
         exit(1);
