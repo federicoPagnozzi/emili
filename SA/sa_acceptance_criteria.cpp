@@ -224,7 +224,7 @@ emili::Solution* SADeterministicAcceptance::accept(emili::Solution *current_solu
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > cs * (1 + delta)) {
+    if (ns > cs + temperature) {
         return current_solution;
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);

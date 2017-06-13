@@ -275,13 +275,11 @@ public:
 class SADeterministicAcceptance: public SAAcceptance {
 
 protected:
-    float delta;
 
 public:
-    SADeterministicAcceptance(float _delta):
-                delta(_delta),
+    SADeterministicAcceptance(float initial_temperature):
                 SAAcceptance(DETERMINISTICACC,
-                             0) { }
+                             initial_temperature) { }
 
     virtual emili::Solution* accept(emili::Solution *current_solution,
                                     emili::Solution *new_solution);
