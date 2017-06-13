@@ -1744,8 +1744,9 @@ SAAcceptance* prs::ParamsParser::ACCEPTANCE(prs::TokenManager& tm,
         double rf = tm.getDecimal();
         return new SAGeometricAcceptance(inittemp->get(), rf);
     } else if (tm.checkToken(GENSAACC)) {
+        double beta = tm.getDecimal();
         double g = tm.getDecimal();
-        return new GeneralizedSAAcceptance(inittemp->get(), g);
+        return new GeneralizedSAAcceptance(inittemp->get(), beta, g);
     } else if (tm.checkToken(DETERMINISTICACC)) {
         return new SADeterministicAcceptance(inittemp->get());
     } else if (tm.checkToken(GDAACC)) {

@@ -166,7 +166,7 @@ emili::Solution* GeneralizedSAAcceptance::accept(emili::Solution *current_soluti
     double ns = new_solution->getSolutionValue();
     
     if (ns > cs) {
-        double prob = std::exp(std::pow(std::abs(cs), g) * (cs-ns) / temperature);
+        double prob = std::exp(beta * std::pow(std::abs(cs), g) * (cs-ns) / temperature);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;

@@ -224,10 +224,14 @@ class GeneralizedSAAcceptance: public SAAcceptance {
 
 protected:
     float g;
+    float beta;
 
 public:
     GeneralizedSAAcceptance(float initial_temperature,
-                            float g):
+                            float _beta,
+                            float _g):
+                beta(_beta),
+                g(_g),
                 SAAcceptance(GENSAACC,
                              initial_temperature) { }
 
