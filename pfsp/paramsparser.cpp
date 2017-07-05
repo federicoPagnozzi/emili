@@ -176,7 +176,7 @@
 
 /* permutation flowshop solution perturbations */
 #define PERTURBATION_RANDOM_MOVE "rndmv"
-#define PERTURBATION_VNRANDOM_MOVE "vnrmv"
+#define PERTURBATION_VNRANDOM_MOVE "vrndmv"
 #define PERTURBATION_NOPER "noper"
 #define PERTURBATION_RND "randpert"
 #define PERTURBATION_NRZ "nrzper"
