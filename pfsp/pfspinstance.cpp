@@ -12,6 +12,7 @@
 #include <exception>
 #include <stdexcept>
 #include "pfspinstance.h"
+#include<assert.h>
 
 //#define ENABLE_SSE
 
@@ -2197,6 +2198,72 @@ void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< st
     }
 }
 
+void PfspInstance::computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
+{
+    int j,m;
+
+    int jobNumber;
+    int end_i = size;
+   // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
+    int prevj = 0;
+    int postj = 0;
+    int k,kp1;
+    for(j=1;j<size;j++)
+    {
+        k = size-j;
+        kp1 = k+1==size?0:k+1;
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1]+ setUpTimes[1][sol[j-1]][jobNumber];
+        postj = postj + processingTimesMatrix[sol[k]][nbMac] + setUpTimes[nbMac][sol[k]][sol[kp1]];
+        head[1][j] = prevj;
+        tail[nbMac][k] = postj;
+    }
+
+      for ( j = 1; j < end_i; ++j )
+        {
+            k = size-j;
+            kp1 = k+1==size?0:k+1;
+            long int previousJobEndTime = head[1][j];
+            long int postJobEndTime = tail[nbMac][k];
+
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+                if(k+1>=size)
+                {
+                    tail[n][k+1] = 0;
+                }
+
+            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + head[m][j-1];
+            if ( previousJobEndTime > stpluspme )
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+
+            }
+            else
+            {
+                head[m][j] = stpluspme + processingTimesMatrix[jobNumber][m];
+            }
+
+            stpluspme = setUpTimes[n][sol[k]][sol[kp1]] + tail[n][kp1] ;
+            if ( stpluspme > postJobEndTime )
+            {
+                tail[n][k] = stpluspme + processingTimesMatrix[sol[k]][n];
+
+            }
+            else
+            {
+                tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
+            }
+
+            previousJobEndTime = head[m][j];
+            postJobEndTime = tail[n][k];
+        }
+    }
+}
+
 
 
 void inline computeTailss(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail,std::vector< std::vector< long> >& processingTimesMatrix,int nbMac)
@@ -3219,6 +3286,7 @@ long int PfspInstance::computeSDSTMS(std::vector<int> &sol, int size)
     // And the end time of the previous job, on the same machine :
     long int previousJobEndTime;
      //1st machine :
+
     previousMachineEndTime[0] = 0;
     for ( j = 1; j <= size; ++j )
     {
@@ -3237,7 +3305,7 @@ long int PfspInstance::computeSDSTMS(std::vector<int> &sol, int size)
         {
             jobNumber = sol[j];
 
-            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + previousMachineEndTime[j];
+            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + previousJobEndTime;
             if (previousMachineEndTime[j] > stpluspme )
             {
                 previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
@@ -3250,7 +3318,6 @@ long int PfspInstance::computeSDSTMS(std::vector<int> &sol, int size)
             }
         }
     }
-
     return previousMachineEndTime[size];
 }
 

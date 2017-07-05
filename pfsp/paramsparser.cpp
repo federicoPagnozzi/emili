@@ -93,6 +93,7 @@
 #define INITIAL_NEHEDD "nehedd"
 #define INITIAL_NEHFF "nehff"
 #define INITIAL_NEHLS "nehls"
+#define INITIAL_NEHEDDLS "neheddls"
 #define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
 #define INITIAL_RANDOM_ITERATED "irandom"
@@ -168,6 +169,10 @@
 
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
+
+
+/* Sequence Dependent Setup times makespan*/
+#define NEIGHBORHOOD_SDSTTA_INSERT "sdsttainsert"
 
 /*
  * END Neighborhoods
@@ -1181,6 +1186,17 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         istances.push_back(pfse);
         init = new emili::pfsp::NEHls(*instance,ll);
     }
+    else if(tm.checkToken(INITIAL_NEHEDDLS))
+    {
+        printTab( "NEHls initial solution");
+        PfspInstance pfs = instance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->instance;
+        this->instance = pfse;
+        emili::LocalSearch* ll = search(tm);
+        this->instance = is;
+        init = new emili::pfsp::NEHeddLS(*instance,ll);
+    }
     else if(tm.checkToken(INITIAL_FRB5))
     {
         printTab( "FRB5 initial solution");
@@ -1449,6 +1465,11 @@ emili::Neighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bool checkEx
          printTab("Random Constructive Heuristic Neighborhood ");
          emili::InitialSolution* in = init(tm);
          neigh = new emili::RandomConstructiveHeuristicNeighborhood(*in);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_SDSTTA_INSERT))
+    {
+        printTab( "Taillard acceleration for Sequence dependent setup times");
+        neigh = new emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood(*instance);
     }
     else
     {
