@@ -472,6 +472,14 @@ public:
     NEHls(PermutationFlowShop& problem_instance,emili::LocalSearch* ls):emili::pfsp::NEH(problem_instance),_ls(ls) {}
 };
 
+class NEHeddLS: public NEHls
+{
+protected:
+    virtual Solution* generate();
+public:
+    NEHeddLS(PermutationFlowShop& problem_instance,emili::LocalSearch* ls):emili::pfsp::NEHls(problem_instance, ls) {}
+};
+
 class NEHffls: public NEH
 {
 protected:
@@ -992,6 +1000,20 @@ protected:
     virtual Solution* computeStep(Solution *value);    
 public:
     NoIdleAcceleratedInsertNeighborhood(PermutationFlowShop& problem):TaillardAcceleratedInsertNeighborhood(problem) { }
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
+/**
+ * Insert neighborhood with Taillard's acceleration
+ * that does a full scan each iteration
+ */
+class SDSTTaillardAcceleratedInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+    std::vector< std::vector < std::vector< int > > >& setUpTimes;
+public:
+    SDSTTaillardAcceleratedInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem),setUpTimes(problem.getInstance().getSetUpTimes()){ }
     virtual NeighborhoodIterator begin(Solution *base);
 };
 

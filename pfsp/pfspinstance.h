@@ -67,6 +67,11 @@ class PfspInstance{
         return priority;
     }
 
+    std::vector< std::vector < std::vector< int > > >& getSetUpTimes()
+    {
+        return setUpTimes;
+    }
+
     /**  Read Data from a file : */
     bool readDataFromFile(char * fileName);
 
@@ -189,7 +194,7 @@ class PfspInstance{
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeTails(std::vector<int> &sol, std::vector < std::vector< std::vector< int > > >& tails);
-
+    void computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);
 

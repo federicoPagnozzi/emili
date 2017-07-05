@@ -72,6 +72,7 @@
 #define INITIAL_NEHEDD "nehedd"
 #define INITIAL_NEHFF "nehff"
 #define INITIAL_NEHLS "nehls"
+#define INITIAL_NEHEDDLS "neheddls"
 #define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
 #define INITIAL_RANDOM_ITERATED "irandom"
@@ -141,6 +142,9 @@
 
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
+
+/* Sequence Dependent Setup times makespan*/
+#define NEIGHBORHOOD_SDSTTA_INSERT "sdsttainsert"
 
 /*
  * END Neighborhoods
@@ -643,6 +647,16 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         gp.setInstance(instance);
         init = new emili::pfsp::NEHls(*instance,ll);
     }
+    else if(tm.checkToken(INITIAL_NEHEDDLS))
+    {
+        printTab( "NEHls initial solution");
+        PfspInstance pfs = instance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+        gp.setInstance(pfse);
+        emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        gp.setInstance(instance);
+        init = new emili::pfsp::NEHeddLS(*instance,ll);
+    }
     else if(tm.checkToken(INITIAL_FRB5))
     {
         printTab( "FRB5 initial solution");
@@ -872,6 +886,11 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     {
         printTab( "Improved Approximated Insert for Total Tardiness with 1 level approximation and online tuned threshold");
         neigh = new emili::pfsp::NatxTTNeighborhood(*istance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_SDSTTA_INSERT))
+    {
+        printTab( "Taillard acceleration for Sequence dependent setup times");
+        neigh = new emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood(*istance);
     }
     prs::decrementTabLevel();
     return neigh;
