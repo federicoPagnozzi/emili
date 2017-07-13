@@ -20,7 +20,7 @@ namespace emili
 namespace pfsp
 {
 /** Permutation Flowshop problem implementation:
-  The class uses the implementation code originally from Jeremie ( see pfspinstance.h)
+  The class uses code based on the code written by Jeremie ( see pfspinstance.h)
 */
 class PermutationFlowShop: public emili::Problem
 {
@@ -72,6 +72,7 @@ public:
     */
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
+//    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 
     /** This methods compute the matrices to implement Taillard's acceleration*/
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
@@ -777,6 +778,21 @@ public:
     virtual Solution* random(Solution *currentSolution);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);    
+};
+
+/**
+ * Kar2016 random neighborhood
+ */
+
+class KarNeighborhood: public emili::pfsp::PfspInsertNeighborhood
+{
+protected:
+    int lastMoveType;
+    virtual Solution* computeStep(Solution *value);
+    virtual void reverseLastMove(Solution *step);
+public:
+    KarNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem),lastMoveType(0) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 /**

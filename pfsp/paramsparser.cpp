@@ -213,7 +213,7 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
-
+#define ACCEPTANCE_KAR "karacc"
 char* problem_type;
 
 emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
@@ -792,6 +792,24 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         temp = n*(temp/(nj*nm))/10;
 
         oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
+        printTab(oss.str().c_str());
+        acc = new  emili::MetropolisAcceptance(temp);
+    }
+    else  if(tm.checkToken(ACCEPTANCE_KAR))
+    {
+        float n = tm.getDecimal();
+        int nj = instance->getNjobs();
+        int lb = instance->getInstance().computeMSLB();
+        std::vector<long>& dd = instance->getDueDates();
+        float temp = 0;
+        for(int i = 1; i<= nj; i++ )
+        {
+            temp += lb - dd[i];
+        }
+
+        temp = n*(temp/nj)/10;
+
+        oss.str(""); oss  << "metropolis like Kar2016 acceptance. temperature : "<<temp;
         printTab(oss.str().c_str());
         acc = new  emili::MetropolisAcceptance(temp);
     }
@@ -1531,12 +1549,16 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
         std::cout << info() << std::endl;
         exit(-1);
 }
-
+#include "pfspBuilder.h"
 
 emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
 {
-    problem(tm);  
-    emili::LocalSearch* local = eparams(tm);
+    prs::GeneralParserE  ps(tm);
+    prs::EmBaseBuilder emb(ps,ps.getTokenManager());
+    prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    ps.addBuilder(&emb);
+    ps.addBuilder(&pfspb);
+    emili::LocalSearch* local = ps.parseParams();
     std::cout << "------" << std::endl;
     return local;
 }

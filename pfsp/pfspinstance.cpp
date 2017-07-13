@@ -2582,6 +2582,20 @@ long int PfspInstance::computeTCT(std::vector< int > &sol,int size)
     return wt;
 }
 
+//long int PfspInstance::computeTCT(std::vector<int> &sol, std::vector<int> makespans,int size)
+//{
+//    int j;
+//    long int wt=0;
+
+//    for ( j = 1; j<=size; ++j ){
+
+//        wt += makespans[j];
+//    }
+
+//    return wt;
+//}
+
+
 /**  Compute the weighted earliness of a given solution */
 long int PfspInstance::computeWE(std::vector< int > & sol)
 {
@@ -2659,6 +2673,21 @@ long int PfspInstance::computeT(std::vector<int> &sol, int size)
     return wt;
 
 }
+
+//long int computeT(std::vector<int> &sol, std::vector<int> makespans,int size)
+//{
+//    int j;
+//    long int wt=0;
+
+//    for ( j = 1; j<= size; ++j ){
+
+//        wt += (std::max(makespans[j] - dueDates[sol[j]], 0L) );//**  priority[sol[j]]);
+//    }
+
+//    return wt;
+//}
+
+
 
 /**  Compute the earliness of a given solution */
 long int PfspInstance::computeE(std::vector< int > & sol)
@@ -3591,6 +3620,31 @@ long int PfspInstance::computeSDSTWT(std::vector<int> &sol, int size)
 
     return wt;
 
+}
+
+long int PfspInstance::computeMSLB()
+{
+    int max_j = 0;
+    int max_i[nbMac];
+
+    for(int i=0;i<nbJob;i++)
+    {
+        int temp_j=0;
+        for(int j=1;j<=nbMac;j++)
+        {
+            int pt = processingTimesMatrix[i][j];
+            max_i[j-1]=i==0?pt:pt+max_i[j-1];
+            temp_j+=pt;
+        }
+        max_j = temp_j>max_j?temp_j:max_j;
+    }
+    int maxx_i = 0;
+    for(int i=0;i<nbMac;i++)
+    {
+        maxx_i = max_i[i]>maxx_i?max_i[i]:maxx_i;
+    }
+    int P=max_j>maxx_i?max_j:maxx_i;
+    return P;
 }
 
 /**

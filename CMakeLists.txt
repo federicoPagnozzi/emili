@@ -4,11 +4,12 @@ aux_source_directory(. SRC_LIST)
 aux_source_directory(./pfsp SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
-option(USE_NEW_MAIN "Use new loading paradigm" OFF)
+option(USE_NEW_MAIN "Use new loading paradigm" ON)
 option(WITH_STATS "Print solution informations" OFF)
 option(WRITE_COMMIT_ID "makes emili display the commit id" ON)
 option(IRACE_OPTIMISED_FLAGS "compiles EMILI using the optimization setting tuned by irace" OFF)
 option(OPT_OPTIMISED_FLAGS "compiles EMILI using the optimization setting tuned by open tuner" OFF)
+option(EM_LIB "experimental library based extension mechanism enabled" OFF)
 
 #IRACE flags
 if(IRACE_OPTIMISED_FLAGS)
