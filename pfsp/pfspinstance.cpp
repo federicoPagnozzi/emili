@@ -3646,6 +3646,40 @@ long int PfspInstance::computeMSLB()
     int P=max_j>maxx_i?max_j:maxx_i;
     return P;
 }
+
+void PfspInstance::computeHead(std::vector<int>& sol,std::vector< std::vector< int > >& head, int njobs)
+{
+    int j,m;
+    int jobNumber;
+    int prevj = 0;
+    for(j=1;j<njobs;j++)
+    {
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        head[1][j] = prevj;
+    }
+
+      for ( j = 1; j < njobs; ++j )
+        {
+            long int previousJobEndTime = head[1][j];
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                if ( head[m][j-1] > previousJobEndTime )
+                {
+                    head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m];
+                }
+                else
+                {
+                    head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                }
+                previousJobEndTime = head[m][j];
+            }
+    }
+}
+
+
 /*
 void PfspInstance::updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans)
 {

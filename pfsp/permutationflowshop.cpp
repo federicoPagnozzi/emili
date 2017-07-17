@@ -979,10 +979,10 @@ int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> 
     return this->computeObjectiveFunction(solution);
 }
 
-long int emili::pfsp::PermutationFlowShop::computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head)
+long int emili::pfsp::PermutationFlowShop::computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, int njobs)
 {
     int nmac = this->getNmachines();
-    int njobs = this->getNjobs();
+    //int njobs = this->getNjobs();
     std::vector< int > makespans = head[nmac];
 //    instance.updateHead(solution,starting_point,head,makespans);
 //    return computeObjectiveFunction(solution,makespans,njobs);
@@ -1041,6 +1041,13 @@ long int emili::pfsp::PermutationFlowShop::computeObjectiveFunctionFromHead(std:
 
     return computeObjectiveFunction(solution,makespans,njobs);
 }
+
+long int emili::pfsp::PermutationFlowShop::computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head)
+{
+    int njobs = this->getNjobs();
+    return computeObjectiveFunctionFromHead(solution,starting_point,head,njobs);
+}
+
 
 void emili::pfsp::PermutationFlowShop::computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime)
 {
@@ -2342,6 +2349,59 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     return s;
 }
 
+emili::Solution* emili::pfsp::IGOPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        int k=removed[l];
+        min = std::numeric_limits<int>::max();
+#ifdef ENABLE_SSE
+        //std::cout << "pre head" << "\n";
+    computeHEAD(solPartial,head,pmatrix,sops-1,nmac);
+        //std::cout << "post head" << "\n";
+#else
+    instance.getInstance().computeHead(solPartial,head,sops);
+#endif
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+//            int tmp = instance.computeObjectiveFunction(solTMP,sops);
+            int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
+//            std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
+//            assert(tmp==tmp1);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+
+    //assert(min == instance.computeObjectiveFunction(solPartial));
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    return s;
+}
 
 void emili::pfsp::IGIOPerturbation::updateWeights()
 {
@@ -3398,11 +3458,11 @@ emili::Solution* emili::pfsp::KarNeighborhood::computeStep(emili::Solution* valu
             std::swap(newsol[start_position],newsol[end_position]);
             lastMoveType=1;
         }
-//       long int new_v = pis.computeObjectiveFunction(newsol);
+    //    long int new_v = pis.computeObjectiveFunction(newsol);
         int starting = start_position>end_position?end_position:start_position;
-        long int new_value = pis.computeObjectiveFunctionFromHead(newsol,starting,this->head);
+        long int new_value = pis.computeObjectiveFunctionFromHead(newsol,starting,this->head,njobs);
         //std::cout << new_v << " " << new_value << std::endl;
-  //      assert(new_v==new_value);
+      //  assert(new_v==new_value);
         value->setSolutionValue(new_value);
         return value;
     }

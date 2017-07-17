@@ -167,6 +167,7 @@
 #define PERTURBATION_IGIO "igio"
 #define PERTURBATION_RSIO "rsio"
 #define PERTURBATION_CP3 "cp3"
+#define PERTURBATION_IG_OPTIMIZED "igoper"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -362,6 +363,16 @@ emili::Perturbation* prs::PfspBuilder::buildPerturbation()
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::IGIOPerturbation(n,*instance);
+    }
+    else if(tm.checkToken(PERTURBATION_IG_OPTIMIZED))
+    {
+        int nj = instance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+
+        oss.str(""); oss  << "IG perturbation with general optimization. d= " << n <<".\n\t";
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::IGOPerturbation(n,*instance);
     }
     else if(tm.checkToken(PERTURBATION_RSIO))
     {

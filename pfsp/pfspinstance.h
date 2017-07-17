@@ -202,6 +202,7 @@ class PfspInstance{
     void computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);
+    void computeHead(std::vector<int>& sol,std::vector< std::vector< int > >& head, int njobs);
     //void updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }

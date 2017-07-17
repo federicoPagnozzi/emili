@@ -74,8 +74,8 @@ public:
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
     virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 
+    virtual long int computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head,int njobs);
     virtual long int computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head);
-
     /** This methods compute the matrices to implement Taillard's acceleration*/
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
@@ -651,6 +651,19 @@ protected:
     emili::pfsp::PermutationFlowShop& instance;
 public:
     IGPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
+class IGOPerturbation: public emili::Perturbation
+{
+protected:
+    int d;
+    emili::pfsp::PermutationFlowShop& instance;
+    std::vector < std::vector < int > > head;
+    const std::vector< std::vector < long int > >& pmatrix;
+    int nmac;
+public:
+    IGOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
