@@ -72,7 +72,9 @@ public:
     */
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution)=0;
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size)=0;
-//    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
+
+    virtual long int computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head);
 
     /** This methods compute the matrices to implement Taillard's acceleration*/
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
@@ -84,6 +86,7 @@ public:
     int computeObjectiveFunction(std::vector< int > & sol,std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
     void computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
+
 };
 /**  CLASSIC PERMUTATION FLOW SHOP*/
 /** Weighted Tardiness*/
@@ -112,6 +115,7 @@ public:
     PFSP_TCT(char* instance_path):PermutationFlowShop(instance_path) { }
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution);
     virtual int computeObjectiveFunction(std::vector< int > & partial_solution, int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Weighted Earliness*/
 class PFSP_WE: public PermutationFlowShop
@@ -130,6 +134,7 @@ public:
     PFSP_T(char* instance_path):PermutationFlowShop(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Earliness*/
 class PFSP_E: public PermutationFlowShop
@@ -781,21 +786,6 @@ public:
 };
 
 /**
- * Kar2016 random neighborhood
- */
-
-class KarNeighborhood: public emili::pfsp::PfspInsertNeighborhood
-{
-protected:
-    int lastMoveType;
-    virtual Solution* computeStep(Solution *value);
-    virtual void reverseLastMove(Solution *step);
-public:
-    KarNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem),lastMoveType(0) { }
-    virtual Solution* random(Solution *currentSolution);
-};
-
-/**
  * Insert neighborhood with Taillard's acceleration
  */
 class TaillardAcceleratedInsertNeighborhood: public emili::pfsp::PfspInsertNeighborhood
@@ -855,6 +845,22 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
+/**
+ * Kar2016 random neighborhood
+ */
+
+class KarNeighborhood: public emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood
+{
+protected:
+    int lastMoveType;
+    virtual Solution* computeStep(Solution *value);
+    virtual void reverseLastMove(Solution *step);
+public:
+    KarNeighborhood(PermutationFlowShop& problem):HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(problem),lastMoveType(0) { }
+    virtual Solution* random(Solution *currentSolution);
+    virtual NeighborhoodIterator begin(Solution *base);
+};
+
 /**  This Insert recomputes the objective function value only for the modified parts of the solution
  * for Weigthed Tardiness
  * */
@@ -865,6 +871,7 @@ protected:
 public:
     OptInsert(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem) { }
 };
+
 /**
  * One level approximation
  */

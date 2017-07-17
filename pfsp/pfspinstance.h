@@ -104,7 +104,7 @@ class PfspInstance{
     long int computeT(std::vector< int > & sol);
     /** Compute partial tardiness*/
     long int computeT(std::vector< int > & sol, int size);
-//    long int computeT(std::vector<int> &sol, std::vector<int> makespans,int size);
+    long int computeT(std::vector<int> &sol, std::vector<int>& makespans,int size);
     /** Compute earliness*/
     long int computeE (std::vector< int > & sol);
     /** Compute partial earliness*/
@@ -112,7 +112,7 @@ class PfspInstance{
     /** Compute total completion time*/
     long int computeTCT(std::vector< int > &sol);
     long int computeTCT(std::vector< int > &sol,int size);
-//    long int computeTCT(std::vector<int> &sol, std::vector<int> makespans,int size);
+    long int computeTCT(std::vector<int> &sol, std::vector<int>& makespans,int size);
 
     /** Compute no wait make span*/
     long int computeNWMS(std::vector< int > & sol);
@@ -202,6 +202,7 @@ class PfspInstance{
     void computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);
+    //void updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
 

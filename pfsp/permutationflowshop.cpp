@@ -37,6 +37,33 @@ struct igioComp
 }igioc;
 #endif
 
+std::vector< float > inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob)
+{
+    std::vector< float > xi;
+    xi.push_back(0);
+    // pmat[ machine ][ job ]
+    const std::vector< std::vector < long int > > & pmat = prob.getProcessingTimesMatrix();
+    int njob = prob.getNjobs();
+    int nmac = prob.getNmachines();
+    float k = (njob-2)/(float)4;
+    for(int j = 1 ; j <= njob; j++)
+    {
+        float pi = pmat[1][j];
+        float wj = 0;
+
+        for( int i = 2; i <= nmac ; i++)
+        {
+            wj = (nmac*pi)/(i-1);
+            pi += pmat[i][j];
+
+        }
+        xi[j] = pi + k * wj;
+    }
+    return xi;
+}
+
+
+
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
 {
     int njobs = prob.getNjobs();
@@ -947,6 +974,74 @@ int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> 
     return instance.computeWT(sol,previousMachineEndTimeMatrix,start_i,end_i);
 }
 
+int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
+{
+    return this->computeObjectiveFunction(solution);
+}
+
+long int emili::pfsp::PermutationFlowShop::computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head)
+{
+    int nmac = this->getNmachines();
+    int njobs = this->getNjobs();
+    std::vector< int > makespans = head[nmac];
+//    instance.updateHead(solution,starting_point,head,makespans);
+//    return computeObjectiveFunction(solution,makespans,njobs);
+    const std::vector < std::vector < long int > >& pmatrix = this->getProcessingTimesMatrix();
+    int sol_i = solution[starting_point];
+    int ins_pos[nmac+1];
+    long int c_cur = head[1][starting_point-1]+pmatrix[sol_i][1];
+    ins_pos[1] = c_cur;
+   // std::vector< int > makespans = head[nmac];
+    //(njobs+1,0);
+    //for( int i=0; i < starting_point; i++)
+     //   makespans[i] = head[nmac][i];
+
+    for (int i = 2; i <= nmac; ++i) {
+        int c_pm = head[i][starting_point-1];
+        if(c_pm < c_cur)
+        {
+            c_cur = c_cur + pmatrix[sol_i][i];
+        }
+        else
+        {
+            c_cur = c_pm + pmatrix[sol_i][i];
+        }
+        ins_pos[i] =  c_cur;
+
+    }
+
+    //int wt = (std::max(c_cur - this.getDueDate(sol_i), 0L) * this.getPriority(sol_i));
+    makespans[starting_point] = c_cur;
+//    long int pre_c_cur = c_cur;
+
+ //   for (int j = 1; j< starting_point; ++j )
+  //  {
+  //      wt += (std::max((long int)head[nmac][j] - pis.getDueDate(solution[j]), 0L) * pis.getPriority(solution[j]));
+  //  }
+
+    for(int k=starting_point+1; k<= njobs; k++)
+    {
+        int job = solution[k];
+        c_cur = ins_pos[1] + pmatrix[job][1];
+        ins_pos[1] = c_cur;
+        for(int m=2; m <= nmac ; m++)
+        {
+            int c_pm = ins_pos[m];
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
+            }
+            c_cur += pmatrix[job][m];
+            ins_pos[m] = c_cur;
+        }
+        makespans[k] = c_cur;
+     //   wt += (std::max(pre_c_cur - pis.getDueDate(solution[k]), 0L) * pis.getPriority(solution[k]));
+    }
+    //value->setSolutionValue(wt);
+
+    return computeObjectiveFunction(solution,makespans,njobs);
+}
+
 void emili::pfsp::PermutationFlowShop::computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime)
 {
    return instance.computeWTs(sol,prevJob,job,previousMachineEndTime);
@@ -1056,6 +1151,11 @@ int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector< int > & partial
     return instance.computeTCT(partial_solution,size);
 }
 
+int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
+{
+    return instance.computeT(solution,makespans,size);
+}
+
 int emili::pfsp::PFSP_WE::computeObjectiveFunction(std::vector< int > & partial_solution)
 {
     return -instance.computeWE(partial_solution);
@@ -1074,6 +1174,11 @@ int emili::pfsp::PFSP_T::computeObjectiveFunction(std::vector<int> &partial_solu
 int emili::pfsp::PFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
     return instance.computeT(partial_solution,size);
+}
+
+int emili::pfsp::PFSP_T::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
+{
+    return instance.computeT(solution,makespans,size);
 }
 
 int emili::pfsp::PFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution)
@@ -3252,6 +3357,22 @@ void emili::pfsp::PfspInsertNeighborhood::reverseLastMove(Solution *step)
     newsol.insert(newsol.begin()+start_position,sol_i);
 }
 
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::KarNeighborhood::begin(Solution *base)
+{
+    ep_iterations = 1;
+    sp_iterations = 1;
+    std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
+    //sol.erase(sol.begin()+start_position);
+#ifdef ENABLE_SSE
+    computeHEAD(sol,head,pmatrix,njobs,nmac);
+#else
+    njobs++;
+    computeHead(sol);
+    njobs--;
+#endif
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
 emili::Solution* emili::pfsp::KarNeighborhood::computeStep(emili::Solution* value)
 {
     emili::iteration_increment();
@@ -3277,7 +3398,11 @@ emili::Solution* emili::pfsp::KarNeighborhood::computeStep(emili::Solution* valu
             std::swap(newsol[start_position],newsol[end_position]);
             lastMoveType=1;
         }
-        long int new_value = pis.computeObjectiveFunction(newsol);
+//       long int new_v = pis.computeObjectiveFunction(newsol);
+        int starting = start_position>end_position?end_position:start_position;
+        long int new_value = pis.computeObjectiveFunctionFromHead(newsol,starting,this->head);
+        //std::cout << new_v << " " << new_value << std::endl;
+  //      assert(new_v==new_value);
         value->setSolutionValue(new_value);
         return value;
     }
@@ -6257,7 +6382,6 @@ emili::Solution* emili::pfsp::OptExchange::computeStep(emili::Solution *value)
 
         int ms_pos = start_position>end_position?end_position:start_position;
         sol_i = newsol[ms_pos];
-
         int ins_pos[nmac+1];
         long int c_cur = head[1][ms_pos-1]+pmatrix[sol_i][1];
         ins_pos[1] = c_cur;

@@ -2582,18 +2582,18 @@ long int PfspInstance::computeTCT(std::vector< int > &sol,int size)
     return wt;
 }
 
-//long int PfspInstance::computeTCT(std::vector<int> &sol, std::vector<int> makespans,int size)
-//{
-//    int j;
-//    long int wt=0;
+long int PfspInstance::computeTCT(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
 
-//    for ( j = 1; j<=size; ++j ){
+    for ( j = 1; j<=size; ++j ){
 
-//        wt += makespans[j];
-//    }
+        wt += makespans[j];
+    }
 
-//    return wt;
-//}
+    return wt;
+}
 
 
 /**  Compute the weighted earliness of a given solution */
@@ -2674,18 +2674,18 @@ long int PfspInstance::computeT(std::vector<int> &sol, int size)
 
 }
 
-//long int computeT(std::vector<int> &sol, std::vector<int> makespans,int size)
-//{
-//    int j;
-//    long int wt=0;
+long int PfspInstance::computeT(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
 
-//    for ( j = 1; j<= size; ++j ){
+    for ( j = 1; j<= size; ++j ){
 
-//        wt += (std::max(makespans[j] - dueDates[sol[j]], 0L) );//**  priority[sol[j]]);
-//    }
+        wt += (std::max(makespans[j] - dueDates[sol[j]], 0L) );//**  priority[sol[j]]);
+    }
 
-//    return wt;
-//}
+    return wt;
+}
 
 
 
@@ -3646,7 +3646,64 @@ long int PfspInstance::computeMSLB()
     int P=max_j>maxx_i?max_j:maxx_i;
     return P;
 }
+/*
+void PfspInstance::updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans)
+{
+    int nmac = nbMac;
+    int njobs = nbJob;
+    const std::vector < std::vector < long int > >& pmatrix = processingTimesMatrix;
+    int sol_i = solution[starting_point];
+    int ins_pos[nmac+1];
+    long int c_cur = head[1][starting_point-1]+pmatrix[sol_i][1];
+    ins_pos[1] = c_cur;
+    //(njobs+1,0);
+    //for( int i=0; i < starting_point; i++)
+     //   makespans[i] = head[nmac][i];
 
+    for (int i = 2; i <= nmac; ++i) {
+        int c_pm = head[i][starting_point-1];
+        if(c_pm < c_cur)
+        {
+            c_cur = c_cur + pmatrix[sol_i][i];
+        }
+        else
+        {
+            c_cur = c_pm + pmatrix[sol_i][i];
+        }
+        ins_pos[i] =  c_cur;
+
+    }
+
+    //int wt = (std::max(c_cur - this.getDueDate(sol_i), 0L) * this.getPriority(sol_i));
+    makespans[starting_point] = c_cur;
+//    long int pre_c_cur = c_cur;
+
+ //   for (int j = 1; j< starting_point; ++j )
+  //  {
+  //      wt += (std::max((long int)head[nmac][j] - pis.getDueDate(solution[j]), 0L) * pis.getPriority(solution[j]));
+  //  }
+
+    for(int k=starting_point+1; k<= njobs; k++)
+    {
+        int job = solution[k];
+        c_cur = ins_pos[1] + pmatrix[job][1];
+        ins_pos[1] = c_cur;
+        for(int m=2; m <= nmac ; m++)
+        {
+            int c_pm = ins_pos[m];
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
+            }
+            c_cur += pmatrix[job][m];
+            ins_pos[m] = c_cur;
+        }
+        makespans[k] = c_cur;
+     //   wt += (std::max(pre_c_cur - pis.getDueDate(solution[k]), 0L) * pis.getPriority(solution[k]));
+    }
+    //value->setSolutionValue(wt);
+}
+*/
 /**
 double computeMS_TEST(PfspInstance& i, std::vector <int>& v)
 {
