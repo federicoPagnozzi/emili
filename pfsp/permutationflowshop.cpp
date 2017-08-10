@@ -2816,6 +2816,84 @@ emili::Solution* emili::pfsp::IgLsPerturbation::perturb(Solution *solution)
     return s_n;
 }
 
+emili::Solution* emili::pfsp::IGOLsPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    //
+    // Local search on partial
+    //
+    emili::pfsp::PermutationFlowShopSolution s(solPartial);
+    s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
+    emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
+
+
+    solPartial = s_n->getJobSchedule();
+
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        int k=removed[l];
+        min = std::numeric_limits<int>::max();
+#ifdef ENABLE_SSE
+        //std::cout << "pre head" << "\n";
+    computeHEAD(solPartial,head,pmatrix,sops-1,nmac);
+        //std::cout << "post head" << "\n";
+#else
+    instance.getInstance().computeHead(solPartial,head,sops);
+#endif
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+//            int tmp = instance.computeObjectiveFunction(solTMP,sops);
+            int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
+//            std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
+//            assert(tmp==tmp1);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+
+    //assert(min == instance.computeObjectiveFunction(solPartial));
+    //emili::pfsp::PermutationFlowShopSolution* ns = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    //return ns;
+    // delete s;
+     s_n->setJobSchedule(solPartial);
+
+    // instance.evaluateSolution(*s_n);
+     //assert(min==s_n->getSolutionValue());
+     s_n->setSolutionValue(min);
+     return s_n;
+}
+
 emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
 {
     //emili::iteration_increment();

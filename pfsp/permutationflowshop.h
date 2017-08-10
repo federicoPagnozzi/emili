@@ -728,6 +728,16 @@ public:
     ~IgLsPerturbation() { delete ls;}
 };
 
+class IGOLsPerturbation: public emili::pfsp::IGOPerturbation
+{
+protected:
+    emili::LocalSearch* ls;
+public:
+    IGOLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):emili::pfsp::IGOPerturbation(d_parameter, problem), ls(ls) { }
+    virtual emili::Solution* perturb(Solution *solution);
+    ~IGOLsPerturbation() { delete ls;}
+};
+
 class RSLSPerturbation: public emili::Perturbation
 {
 protected:

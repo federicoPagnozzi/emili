@@ -168,6 +168,7 @@
 #define PERTURBATION_RSIO "rsio"
 #define PERTURBATION_CP3 "cp3"
 #define PERTURBATION_IG_OPTIMIZED "igoper"
+#define PERTURBATION_IGLS_OPTIMIZED "igols"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -287,6 +288,27 @@ emili::Perturbation* prs::PfspBuilder::buildPerturbation()
             per = new emili::pfsp::IgLsPerturbation(n,*instance,ll);
         } else {
              per = new emili::pfsp::IGPerturbation(1,*instance);
+        }
+    }
+    else if(tm.checkToken(PERTURBATION_IGLS_OPTIMIZED))
+    {
+        int nj = instance->getNjobs()-2;
+        int k = tm.getInteger();
+        int n = k<nj?k:nj-1;
+        oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
+        printTab(oss.str().c_str());
+        if(n > 0)
+        {
+            PfspInstance pfs = instance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            gp.setInstance(pfse);
+            emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+            gp.setInstance(instance);
+            //instances.push_back(pfse);
+            per = new emili::pfsp::IGOLsPerturbation(n,*instance,ll);
+        } else {
+             per = new emili::pfsp::IGOPerturbation(1,*instance);
         }
     }
     else if(tm.checkToken(PERTURBATION_RSLS))
