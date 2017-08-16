@@ -206,7 +206,6 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm,
 SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
                              SAInitTemp *it,
                              emili::Neighborhood *nei,
-                             SATermination *term,
                              emili::Problem* instance) {
 
     if (tm.checkToken(GEOM)) {
@@ -499,10 +498,10 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
-    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
-    SACooling*       cooling    = COOL(tm, inittemp, nei, term, instance);
+    SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
+    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei, instance);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, cooling, term);

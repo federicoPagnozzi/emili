@@ -72,7 +72,6 @@ public:
     SACooling*       COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
                               emili::Neighborhood *nei,
-                              SATermination *term,
                               emili::pfsp::PermutationFlowShop *instance);
 
     /**

@@ -451,10 +451,10 @@ spostare          */
     emili::Neighborhood*    nei        = neigh(tm, true);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei, instance);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
-    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
-    SACooling*       cooling    = COOL(tm, inittemp, nei, term, instance);
+    SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
+    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei, instance);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, cooling, term);
@@ -1835,7 +1835,6 @@ SATermination* prs::ParamsParser::TERMINATION(prs::TokenManager& tm,
 SACooling* prs::ParamsParser::COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
                               emili::Neighborhood *nei,
-                              SATermination *term,
                               emili::pfsp::PermutationFlowShop *instance) {
 
     if (tm.checkToken(GEOM)) {
