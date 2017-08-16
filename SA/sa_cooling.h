@@ -574,7 +574,7 @@ class OldBachelor1: public SACooling {
 
 protected:
     long M;
-    long delta;
+    double delta;
     double a;
     double b;
     double c;
@@ -582,7 +582,7 @@ protected:
 
 public:
     OldBachelor1 (long _M,
-                  long _delta,
+                  double _delta,
                   double _a,
                   double _b,
                   double _c,
@@ -625,14 +625,14 @@ class OldBachelor2: public SACooling {
 
 protected:
     long M;
-    long delta;
+    double delta;
     double d;
     emili::Neighborhood* neigh;
     long age_count;
 
 public:
     OldBachelor2 (long _M,
-                  long _delta,
+                  double _delta,
                   double _d,
                   SAInitTemp *it,
                   emili::Neighborhood* _neigh):

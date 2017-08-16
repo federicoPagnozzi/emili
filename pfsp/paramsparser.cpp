@@ -1879,14 +1879,14 @@ SACooling* prs::ParamsParser::COOL(prs::TokenManager& tm,
         return new ArithmeticCooling(a, it);
     } else if (tm.checkToken(OBA1)) {
         long   M = tm.getInteger();
-        long   delta = tm.getInteger();
+        long   delta = tm.getDecimal();
         float a = tm.getDecimal();
         float b = tm.getDecimal();
         float c = tm.getDecimal();
         return new OldBachelor1(M, delta, a, b, c, it, instance);
     } else if (tm.checkToken(OBA2)) {
         long   M = tm.getInteger();
-        long   delta = tm.getInteger();
+        long   delta = tm.getDecimal();
         float  d = tm.getDecimal();
         return new OldBachelor2(M, delta, d, it, nei);
     } else {
