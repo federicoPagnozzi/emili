@@ -451,10 +451,10 @@ spostare          */
     emili::Neighborhood*    nei        = neigh(tm, true);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei, instance);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
-    SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
+    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
+    SACooling*       cooling    = COOL(tm, inittemp, nei, term, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
-    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei, instance);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, cooling, term);
@@ -1835,6 +1835,7 @@ SATermination* prs::ParamsParser::TERMINATION(prs::TokenManager& tm,
 SACooling* prs::ParamsParser::COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
                               emili::Neighborhood *nei,
+                              SATermination *term,
                               emili::pfsp::PermutationFlowShop *instance) {
 
     if (tm.checkToken(GEOM)) {
@@ -1877,6 +1878,18 @@ SACooling* prs::ParamsParser::COOL(prs::TokenManager& tm,
     } else if (tm.checkToken(ARITHMETICCOOLING)) {
         int   a = tm.getInteger();
         return new ArithmeticCooling(a, it);
+    } else if (tm.checkToken(OBA1)) {
+        long   M = tm.getInteger();
+        long   delta = tm.getInteger();
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        float c = tm.getDecimal();
+        return new OldBachelor1(M, delta, a, b, c, it, instance);
+    } else if (tm.checkToken(OBA2)) {
+        long   M = tm.getInteger();
+        long   delta = tm.getInteger();
+        float  d = tm.getDecimal();
+        return new OldBachelor2(M, delta, d, it, nei);
     } else {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

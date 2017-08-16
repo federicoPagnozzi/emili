@@ -38,7 +38,9 @@ protected:
      */
     SACooling*       COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
-                              emili::Neighborhood *nei);
+                              emili::Neighborhood *nei,
+                              SATermination *term,
+                              emili::Problem* instance);
 
     /**
      * identify acceptance criterion

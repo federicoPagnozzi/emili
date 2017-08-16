@@ -561,4 +561,117 @@ public:
 }; // ArithmeticCooling
 
 
+
+/**
+ * Old Bachelor Acceptance - it's actually a nonmonotonic cooling scheme
+ * Old bachelor acceptance: A new class of non-monotone threshold accepting methods
+ * Hu, Te C and Kahng, Andrew B and Tsao, Chung-Wen Albert
+ */
+/**
+ * version 1
+ */
+class OldBachelor1: public SACooling {
+
+protected:
+    long M;
+    long delta;
+    double a;
+    double b;
+    double c;
+    emili::Problem *prob;
+
+public:
+    OldBachelor1 (long _M,
+                  long _delta,
+                  double _a,
+                  double _b,
+                  double _c,
+                  SAInitTemp *it,
+                  emili::Problem* _prob):
+                  M(_M),
+                  delta(_delta),
+                  a(_a),
+                  b(_b),
+                  c(_c),
+                  prob(_prob),
+                  SACooling(0, 0, it) {
+                    a = std::lrint(a * prob->problemSize());
+                  }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+
+            // status->counter == age variable
+            double tmp = (std::pow(status->counter / a, b) - 1) * delta;
+            tmp = tmp * std::pow(std::fmax(0, 1 - (status->total_counter / M)), c); 
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // OldBachelor1
+
+/**
+ * version 2
+ */
+class OldBachelor2: public SACooling {
+
+protected:
+    long M;
+    long delta;
+    double d;
+    emili::Neighborhood* neigh;
+    long age_count;
+
+public:
+    OldBachelor2 (long _M,
+                  long _delta,
+                  double _d,
+                  SAInitTemp *it,
+                  emili::Neighborhood* _neigh):
+                  M(_M),
+                  delta(_delta),
+                  neigh(_neigh),
+                  SACooling(0, 0, it) {
+                    d = std::sqrt(_d * neigh->size());
+                    age_count = 1;
+                  }
+
+    virtual double update_cooling(double temp) {
+        counter++;
+
+        if (tempLength->isCoolingTime(counter)) {
+            counter = 0;
+            status->step = status->step + 1;
+
+            // status->counter == age variable
+            double tmp = temp;
+            if (status->counter == 0) {
+                if (status->counter < d) {
+                    age_count++;
+                } else {
+                    age_count = 1;
+                }
+                tmp = tmp - age_count * delta * (1 - status->total_counter / M);
+            } else {
+                age_count++;
+                tmp = tmp + (delta / d) * (1 - status->total_counter / M);
+            } 
+
+            return tempRestart->adjust(tmp);
+
+        }
+
+        return(temp);
+    }
+
+}; // OldBachelor2
+
 #endif

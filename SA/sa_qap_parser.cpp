@@ -205,7 +205,9 @@ SATermination* SAQAPParser::TERMINATION(prs::TokenManager& tm,
 
 SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
                              SAInitTemp *it,
-                             emili::Neighborhood *nei) {
+                             emili::Neighborhood *nei,
+                             SATermination *term,
+                             emili::Problem* instance) {
 
     if (tm.checkToken(GEOM)) {
         float a = tm.getDecimal();
@@ -247,7 +249,19 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
     } else if (tm.checkToken(ARITHMETICCOOLING)) {
         int   a = tm.getInteger();
         return new ArithmeticCooling(a, it);
-    } else  {
+    } else if (tm.checkToken(OBA1)) {
+        long   M = tm.getInteger();
+        long   delta = tm.getInteger();
+        float a = tm.getDecimal();
+        float b = tm.getDecimal();
+        float c = tm.getDecimal();
+        return new OldBachelor1(M, delta, a, b, c, it, instance);
+    } else if (tm.checkToken(OBA2)) {
+        long   M = tm.getInteger();
+        long   delta = tm.getInteger();
+        float  d = tm.getDecimal();
+        return new OldBachelor2(M, delta, d, it, nei);
+    } else {
         std::cerr << "SACooling expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
         exit(1);
@@ -485,10 +499,10 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
     SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
-    SACooling*       cooling    = COOL(tm, inittemp, nei);
+    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
+    SACooling*       cooling    = COOL(tm, inittemp, nei, term, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
-    SATermination*     term       = TERMINATION(tm, inittemp, nei); // termin(tm);
     SATempLength*    templ      = TEMPLENGTH(tm, nei, instance);
     cooling->setTempLength(templ);
     SAExploration* explo = EXPLORATION(tm, nei, acceptance, cooling, term);

@@ -83,6 +83,8 @@
 #define NOCOOLING     "NOCOOLING"
 #define OSMANPOTTSPFSPCOOLING "OSMANPOTTSPFSPCOOLING"
 #define ARITHMETICCOOLING "ARITHMETICCOOLING"
+#define OBA1          "OBA1"
+#define OBA2          "OBA2"
 
 /**
  * temperature restart
