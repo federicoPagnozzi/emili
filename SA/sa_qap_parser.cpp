@@ -246,7 +246,7 @@ SACooling* SAQAPParser::COOL(prs::TokenManager& tm,
     } else if (tm.checkToken(QUADRATICCOOLING)) {
         return new SAQuadraticCooling(it);
     } else if (tm.checkToken(ARITHMETICCOOLING)) {
-        int   a = tm.getInteger();
+        double a = tm.getDecimal();
         return new ArithmeticCooling(a, it);
     } else if (tm.checkToken(OBA1)) {
         long   M = tm.getInteger();

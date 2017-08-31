@@ -1875,7 +1875,7 @@ SACooling* prs::ParamsParser::COOL(prs::TokenManager& tm,
     } else if (tm.checkToken(OSMANPOTTSPFSPCOOLING)) {
         return new OsmanPottsPFSPCooling(it, instance);
     } else if (tm.checkToken(ARITHMETICCOOLING)) {
-        int   a = tm.getInteger();
+        double a = tm.getDecimal();
         return new ArithmeticCooling(a, it);
     } else if (tm.checkToken(OBA1)) {
         long   M = tm.getInteger();
