@@ -263,7 +263,7 @@ SACooling* SAPFSPParser::COOL(prs::TokenManager& tm,
     } else if (tm.checkToken(OSMANPOTTSPFSPCOOLING)) {
         return new OsmanPottsPFSPCooling(it, instance);
     } else if (tm.checkToken(ARITHMETICCOOLING)) {
-        int   a = tm.getInteger();
+        double a = tm.getDecimal();
         return new ArithmeticCooling(a, it);
     } else  {
         std::cerr << "SACooling expected, not found : " << std::endl;
