@@ -10,6 +10,7 @@ option(WRITE_COMMIT_ID "makes emili display the commit id" ON)
 option(IRACE_OPTIMISED_FLAGS "compiles EMILI using the optimization setting tuned by irace" OFF)
 option(OPT_OPTIMISED_FLAGS "compiles EMILI using the optimization setting tuned by open tuner" OFF)
 option(USE_EM_LIB "experimental library based extension mechanism" OFF)
+option(PORTABLE "Links the shared library in a static way" OFF)
 
 #IRACE flags
 if(IRACE_OPTIMISED_FLAGS)
@@ -54,12 +55,20 @@ else()
     message(STATUS "Component based algorithm loading not enabled")
 endif(USE_NEW_MAIN)
 
+
 if(USE_EM_LIB)
     message(STATUS "Experimental library based extension mechanism enabled")
     add_definitions(-DEM_LIB)
 else()
     message(STATUS "Experimental library based extension mechanism not enabled")
 endif(USE_EM_LIB)
+
+if(PORTABLE)
+	message(STATUS "Using static linking") 
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
+else()
+endif(PORTABLE)
+
 #C++ 11 detection
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     execute_process( COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
