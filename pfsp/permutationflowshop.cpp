@@ -7249,38 +7249,7 @@ emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::computeStep(Solution *step)
         return new emili::pfsp::PermutationFlowShopSolution(best_res,bestCombination);
     }
 }
-/**
-int emili::pfsp::CompoundPerturbation::calc_distance(std::vector< int >& x, std::vector< int >& y)
-{
-    int dis = 0;
-    std::vector< std::vector<int> > jbx(x.size());
-    std::vector< std::vector<int> > jby(y.size());
-    for( int i = 1; i <= nbj ; i++)
-    {
 
-        for( int j = i+1 ; j <= nbj; j++)
-        {
-            jbx[x[i]].push_back(x[j]);
-            jby[y[i]].push_back(y[j]);
-        }
-    }
-
-    for(int i = 1; i<=nbj; i++)
-    {
-        int s = jbx[i].size();
-        for(int k=0;k<s;k++)
-        {
-            if(std::find(jby[i].begin(),jby[i].end(),jbx[i][k]) == jby[i].end())
-            {
-                dis++;
-            }
-        }
-
-    }
-
-    return dis;
-}
-*/
 int emili::pfsp::CompoundPerturbation::calc_distance(std::vector<int> &x, std::vector<int> &y)
 {
             int arrX[nbj];

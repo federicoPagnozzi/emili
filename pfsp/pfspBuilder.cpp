@@ -89,6 +89,7 @@
 #define INITIAL_MNEH "mneh"
 #define INITIAL_WNSLACK "nwslack"
 #define INITIAL_FRB5 "frb5"
+#define INITIAL_CSFRB5 "csfrb5"
 #define INITIAL_FRB5_GENERAL "gfrb5"
 
 /* Termination criteria*/
@@ -719,6 +720,17 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         emili::Termination* term = new emili::LocalMinimaTermination();
         emili::Neighborhood* nei = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse);
         emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);        
+        init = new emili::pfsp::NEHls(*instance,ll);
+    }
+    else if(tm.checkToken(INITIAL_CSFRB5))
+    {
+        printTab( "CSFRB5 initial solution");
+        PfspInstance pfs = instance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
+        emili::Termination* term = new emili::LocalMinimaTermination();
+        emili::Neighborhood* nei = new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*pfse);
+        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
         init = new emili::pfsp::NEHls(*instance,ll);
     }
     else if(tm.checkToken(INITIAL_FRB5_GENERAL))
