@@ -432,9 +432,18 @@ protected:
      *          This utility method builds a vector of 1 to n Neighborhood
      *          reading from the token manager.
      * @return
-     *          A vector of pointes to Neighborhood objects.
+     *          A vector of pointers to Neighborhood objects.
      */
     virtual std::vector<emili::Neighborhood*> buildNeighborhoodVector();
+    /**
+     * @brief buildComponentVector
+     *          This utility method builds a vector of 1 to n Components
+     *          reading from the token manager.
+     * @return
+     *          A vector of pointers to Components objects.
+     */
+    template <class T>
+    std::vector<T*> buildComponentVector(int type);
 public:
     /**
      * @brief Builder

@@ -238,7 +238,7 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
 
 }
 
-emili::Perturbation* prs::PfspBuilder::buildPerturbation()
+emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
 {
     prs::incrementTabLevel();
     emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();

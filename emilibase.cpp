@@ -996,6 +996,20 @@ emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
     return ret;
 }
 
+emili::Solution* emili::RandomPerturbationSet::perturb(Solution *solution)
+{
+    int p = emili::generateRandomNumber()%size;
+    return perturbations[p]->perturb(solution);
+}
+
+emili::Solution* emili::ComplexPerturbation::perturb(Solution *solution)
+{
+    Solution* div = p->perturb(solution);
+    Solution* inte = ls->search(div);
+    delete div;
+    return inte;
+}
+
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(acc==ACC_DIVERSIFICATION)

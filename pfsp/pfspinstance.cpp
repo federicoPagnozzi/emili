@@ -2743,10 +2743,10 @@ inline void computeNoWaitTimeDistances(std::vector<int> &sol, int nbMac, int siz
         int max_ctd = 0;
         int i = sol[j-1];
         int jj = sol[j];
-        for (int k = 1; k< nbMac ; k++)
+        for (int k = 1; k<= nbMac ; k++)
         {
             int temp_ctd = processingTimesMatrix[i][k];
-            for(int h=k; h < nbMac ; h++ )
+            for(int h=k; h <= nbMac ; h++ )
             {
                 temp_ctd += processingTimesMatrix[jj][h]-processingTimesMatrix[i][h];
             }

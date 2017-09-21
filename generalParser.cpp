@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "4e40b0b579d0e6321377729aabb51fdb5892e9d5"
+#define GIT_COMMIT_NUMBER "c5f0f15616c83f29d477b67e7ab84ec61f4cbc13"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -50,6 +50,8 @@
 #define PERTURBATION_RANDOM_MOVE "rndmv"
 #define PERTURBATION_VNRANDOM_MOVE "vrndmv"
 #define PERTURBATION_NOPER "noper"
+#define PERTURBATION_RANDOM_PERTURBATION_SET "perset"
+#define PERTURBATION_COMPLEX_PERTURBATION "cper"
 /*base acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
@@ -412,7 +414,7 @@ prs::Component prs::Builder::buildComponent(int type)
     case COMPONENT_INITIAL_SOLUTION_GENERATOR: raw_pointer = buildInitialSolution();break;
     case COMPONENT_TERMINATION_CRITERION: raw_pointer =  buildTermination();break;    
     case COMPONENT_NEIGHBORHOOD: raw_pointer = buildNeighborhood();c.setType(COMPONENT_EMPTY);break;
-    case COMPONENT_PERTURBATION: raw_pointer =  buildPerturbation();break;
+    case COMPONENT_PERTURBATION: raw_pointer =  buildPerturbation();c.setType(COMPONENT_EMPTY);break;
     case COMPONENT_ACCEPTANCE: raw_pointer =  buildAcceptance();break;
     case COMPONENT_TABU_TENURE: raw_pointer =  buildTabuTenure();break;
     case COMPONENT_PROBLEM: raw_pointer = buildProblem();break;
@@ -434,6 +436,19 @@ std::vector<emili::Neighborhood*> prs::Builder::buildNeighborhoodVector()
     {
         nes.push_back(c.get<emili::Neighborhood>());
         c = retrieveComponent(COMPONENT_NEIGHBORHOOD,true);
+    }
+    return nes;
+}
+
+template<class T>
+std::vector<T*> prs::Builder::buildComponentVector(int type)
+{
+    std::vector<T*> nes;
+    prs::Component c = retrieveComponent(type);
+    while(!c.is(COMPONENT_EMPTY))
+    {
+        nes.push_back(c.get<T>());
+        c = retrieveComponent(type,true);
     }
     return nes;
 }
@@ -815,7 +830,19 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
         std::vector<emili::Neighborhood*> nes = this->buildNeighborhoodVector();
         per = new emili::VNRandomMovePerturbation(nes,num,iter);
     }
-
+    else if(tm.checkToken(PERTURBATION_RANDOM_PERTURBATION_SET))
+    {
+       printTab("Multiple random perturbation" );
+       std::vector<emili::Perturbation*> ps = this->buildComponentVector<emili::Perturbation>(COMPONENT_PERTURBATION);
+       per = new emili::RandomPerturbationSet(ps);
+    }
+    else if(tm.checkToken(PERTURBATION_COMPLEX_PERTURBATION))
+    {
+        printTab("Complex Perturbation");
+        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        per = new emili::ComplexPerturbation(prsp,lls);
+    }
     prs::decrementTabLevel();
     return per;
 }
