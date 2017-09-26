@@ -1553,12 +1553,15 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
 
 emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
 {
+    /*tm.move(0);
     prs::GeneralParserE  ps(tm);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
     ps.addBuilder(&pfspb);
-    emili::LocalSearch* local = ps.parseParams();
+    emili::LocalSearch* local = ps.parseParams();*/
+    problem(tm);  
+    emili::LocalSearch* local = eparams(tm);
     std::cout << "------" << std::endl;
     return local;
 }
