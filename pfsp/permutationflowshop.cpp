@@ -6292,24 +6292,24 @@ emili::Solution* emili::pfsp::PfspTwoInsertNeighborhood::computeStep(emili::Solu
         }
 
        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
-       std::cout << "++++++++++++\n";
+  /*     std::cout << "++++++++++++\n";
        for(int i = 0 ; i <= njobs ; i++)
            std::cout << " " << newsol[i];
-       std::cout << "\n";
+       std::cout << "\n";*/
        // first insert
        int sol_i = newsol[start_position];
        int sol_i2 = newsol[start_position+1];
-       std::cout << "sol_i " << sol_i << "\nsol_i2 " << sol_i2 << "\n";
+ /*      std::cout << "sol_i " << sol_i << "\nsol_i2 " << sol_i2 << "\n";
        std::cout << "startpos" << start_position << "\n";
        std::cout << "endpos " << end_position << "\n";
-       newsol.erase(newsol.begin()+start_position+1);
+ */    newsol.erase(newsol.begin()+start_position+1);
        newsol.erase(newsol.begin()+start_position);
        newsol.insert(newsol.begin()+end_position,sol_i2);
        newsol.insert(newsol.begin()+end_position,sol_i);
-       for(int i = 0 ; i <= njobs ; i++)
+/*       for(int i = 0 ; i <= njobs ; i++)
            std::cout << " " << newsol[i];
        std::cout << "\n";
-       std::cout << "*************\n";
+       std::cout << "*************\n";*/
        long int new_value = pis.computeObjectiveFunction(newsol);
        value->setSolutionValue(new_value);
        return value;
