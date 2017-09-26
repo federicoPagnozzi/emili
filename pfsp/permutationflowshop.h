@@ -1148,6 +1148,7 @@ class PfspTwoInsertNeighborhood: public PfspInsertNeighborhood
 {
 protected:
     virtual Solution* computeStep(Solution *value);
+    virtual void reverseLastMove(Solution *step);
 public:
     PfspTwoInsertNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem) { }
     virtual Solution* random(Solution *currentSolution);
