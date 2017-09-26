@@ -1075,6 +1075,7 @@ class NoWaitAcceleratedTwoInsertNeighborhood: public NoWaitAcceleratedNeighborho
 {
 protected:
     virtual Solution* computeStep(Solution *value);
+   // virtual void reverseLastMove(Solution *step);
 public:
     NoWaitAcceleratedTwoInsertNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
@@ -1083,16 +1084,18 @@ class NoWaitAcceleratedExchangeNeighborhood: public NoWaitAcceleratedNeighborhoo
 {
 protected:
     virtual Solution* computeStep(Solution *value);
+    virtual void reverseLastMove(Solution *step);
 public:
     NoWaitAcceleratedExchangeNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
 
-class NoWaitAcceleratedTransportNeighborhood: public NoWaitAcceleratedNeighborhood
+class NoWaitAcceleratedTransposeNeighborhood: public NoWaitAcceleratedNeighborhood
 {
 protected:
     virtual Solution* computeStep(Solution *value);
+    virtual void reverseLastMove(Solution *step);
 public:
-    NoWaitAcceleratedTransportNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    NoWaitAcceleratedTransposeNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
 
 /**

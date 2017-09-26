@@ -980,13 +980,13 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_EXCHANGE))
     {
-        printTab("No wait delta evaluation insert");
+        printTab("No wait delta evaluation exchange");
         neigh = new emili::pfsp::NoWaitAcceleratedExchangeNeighborhood(*instance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_TRANSPOSE))
     {
-        printTab("No wait delta evaluation insert");
-        neigh = new emili::pfsp::NoWaitAcceleratedTransportNeighborhood(*instance);
+        printTab("No wait delta evaluation transpose");
+        neigh = new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*instance);
     }
     prs::decrementTabLevel();
     return neigh;

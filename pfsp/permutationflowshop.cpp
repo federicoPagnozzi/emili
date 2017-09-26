@@ -5878,16 +5878,16 @@ void emili::pfsp::NoWaitAcceleratedNeighborhood::computeNoWaitTimeDistances()
             }
         }
     }
-/*    for(int i = 1 ; i <= njobs ; i++)
+    /*
+    for(int i = 0 ; i <= njobs ; i++)
     {
-        for(int j=1; j <= njobs; j++)
+        for(int j=0; j <= njobs; j++)
         {
             std::cout << " " << distance[i][j];
         }
         std::cout << "\n";
     }
 */
-
 }
 
 emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::computeStep(Solution *value)
@@ -6046,6 +6046,11 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeSte
         return value;
 }
 
+void emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::reverseLastMove(Solution *step)
+{
+    std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
+    std::swap(newsol[start_position],newsol[end_position]);
+}
 
 emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep(Solution* value)
 {
@@ -6069,10 +6074,10 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
          end_position = (end_position%njobs)+1;
          std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
          int j = newsol[start_position];
-         int jpo = newsol[start_position+1];
+         int jpo = newsol[(start_position+1)%(njobs+1)];
          int jmo = newsol[start_position-1];
          int k = newsol[end_position];
-         int kpo = newsol[end_position+1];
+         int kpo = newsol[(end_position+1)%(njobs+1)];
          int kmo = newsol[end_position-1];
          long int new_value = value->getSolutionValue();
          int delta = distance[kmo][j] + distance[j][kpo]
@@ -6083,30 +6088,39 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
          {
              delta += distance[j][k]+distance[k][j];
          }
+//         std::cout << "Cmax " << new_value << " delta " << delta << "\n";
          new_value += delta;
-         for(int i=0; i <= njobs ; i++)
+/*         for(int i=0; i <= njobs ; i++)
              std::cout << " " << newsol[i];
-         std::cout << "\n";
+         std::cout << "\n";*/
          std::swap(newsol[start_position],newsol[end_position]);
-         long int old_value = pis.computeObjectiveFunction(newsol);
+/*         long int old_value = pis.computeObjectiveFunction(newsol);
          std::cout << "j " << j << "\n";
                std::cout << "jpo " << jpo << "\n";
                std::cout << "jmo " << jmo << "\n";
                std::cout << "k " << k << "\n";
                std::cout << "kmo " << kmo << "\n";
                std::cout << "kpo " << kpo << "\n";
+
                std::cout << "new " << new_value << " = " << old_value << "\n";
                for(int i=0; i <= njobs ; i++)
                    std::cout << " " << newsol[i];
                std::cout << "\n";
                std::cout << "+++++++++++\n";
-         assert(old_value==new_value);
+         assert(old_value==new_value);*/
          value->setSolutionValue(new_value);
          return value;
      }
 }
 
-emili::Solution* emili::pfsp::NoWaitAcceleratedTransportNeighborhood::computeStep(Solution *value)
+void emili::pfsp::NoWaitAcceleratedTransposeNeighborhood::reverseLastMove(Solution *step)
+{
+    std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
+    int endpos = start_position<njobs?start_position+1:1;
+    std::swap(newsol[start_position],newsol[endpos]);
+}
+
+emili::Solution* emili::pfsp::NoWaitAcceleratedTransposeNeighborhood::computeStep(Solution *value)
 {
     emili::iteration_increment();
     if(sp_iterations >= njobs)
@@ -6120,20 +6134,22 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedTransportNeighborhood::computeSte
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int end_position = start_position<njobs?start_position+1:1;
         int j = newsol[start_position];
-        int jpo = newsol[start_position+1];
+        int jpo = newsol[(start_position+1)%(njobs+1)];
         int jmo = newsol[start_position-1];
         int k = newsol[end_position];
-        int kpo = newsol[end_position+1];
+        int kpo = newsol[(end_position+1)%(njobs+1)];
         int kmo = newsol[end_position-1];
         long int new_value = value->getSolutionValue();
         int delta = distance[kmo][j] + distance[j][kpo]
-                  - distance[kmo][k] + distance[k][jpo]
-                  - distance[jmo][j] - distance[j][jpo]
-                  - distance[k][kpo] + distance[jmo][k];
+                  + distance[jmo][k] + distance[k][jpo]
+                  - distance[kmo][k] - distance[k][kpo]
+                  - distance[jmo][j] - distance[j][jpo];
+        if(kmo == j)
+        {
+            delta += distance[j][k]+distance[k][j];
+        }
         new_value += delta;
         std::swap(newsol[start_position],newsol[end_position]);
-        long int old_value = pis.computeObjectiveFunction(newsol);
-        assert(old_value==new_value);
         value->setSolutionValue(new_value);
         return value;
     }
