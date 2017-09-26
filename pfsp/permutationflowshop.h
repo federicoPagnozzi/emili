@@ -1049,6 +1049,52 @@ public:
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
+class NoWaitAcceleratedNeighborhood: public PfspInsertNeighborhood
+{
+protected:
+    std::vector<std::vector < int > > distance;
+    const std::vector< std::vector< long int > >& pmatrix;
+    const int nmac;
+    void computeNoWaitTimeDistances();
+//    virtual Solution* computeStep(Solution *value);
+public:
+    NoWaitAcceleratedNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem),pmatrix(problem.getProcessingTimesMatrix()),distance(problem.getNjobs()+1,std::vector< int > (problem.getNjobs()+1,0)),nmac(problem.getNmachines()){ computeNoWaitTimeDistances();}
+//    virtual NeighborhoodIterator begin(Solution *base);
+    std::vector<std::vector < int > >& getDistance() { return distance;}
+};
+
+class NoWaitAcceleratedInsertNeighborhood: public NoWaitAcceleratedNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NoWaitAcceleratedInsertNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+};
+
+class NoWaitAcceleratedTwoInsertNeighborhood: public NoWaitAcceleratedNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NoWaitAcceleratedTwoInsertNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+};
+
+class NoWaitAcceleratedExchangeNeighborhood: public NoWaitAcceleratedNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NoWaitAcceleratedExchangeNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+};
+
+class NoWaitAcceleratedTransportNeighborhood: public NoWaitAcceleratedNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NoWaitAcceleratedTransportNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+};
+
 /**
  * Insert neighborhood with Taillard's acceleration
  * that does a full scan each iteration

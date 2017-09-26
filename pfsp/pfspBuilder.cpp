@@ -145,6 +145,12 @@
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 
+/* No wait makespan*/
+#define NEIGHBORHOOD_NW_INSERT "nwinsert"
+#define NEIGHBORHOOD_NW_TWO_INSERT "nwtinsert"
+#define NEIGHBORHOOD_NW_EXCHANGE "nwexchange"
+#define NEIGHBORHOOD_NW_TRANSPOSE "nwtranspose"
+
 /* Sequence Dependent Setup times makespan*/
 #define NEIGHBORHOOD_SDSTTA_INSERT "sdsttainsert"
 
@@ -961,6 +967,26 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     {
         printTab( "KAR2016 Neighborhood");
         neigh = new emili::pfsp::KarNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NW_INSERT))
+    {
+        printTab("No wait delta evaluation insert");
+        neigh = new emili::pfsp::NoWaitAcceleratedInsertNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NW_TWO_INSERT))
+    {
+        printTab("No wait delta evaluation insert");
+        neigh = new emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NW_EXCHANGE))
+    {
+        printTab("No wait delta evaluation insert");
+        neigh = new emili::pfsp::NoWaitAcceleratedExchangeNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_NW_TRANSPOSE))
+    {
+        printTab("No wait delta evaluation insert");
+        neigh = new emili::pfsp::NoWaitAcceleratedTransportNeighborhood(*instance);
     }
     prs::decrementTabLevel();
     return neigh;
