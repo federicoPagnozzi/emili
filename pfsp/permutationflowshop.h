@@ -1058,7 +1058,7 @@ protected:
     void computeNoWaitTimeDistances();
 //    virtual Solution* computeStep(Solution *value);
 public:
-    NoWaitAcceleratedNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem),pmatrix(problem.getProcessingTimesMatrix()),distance(problem.getNjobs()+1,std::vector< int > (problem.getNjobs()+1,0)),nmac(problem.getNmachines()){ computeNoWaitTimeDistances();}
+    NoWaitAcceleratedNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem),pmatrix(problem.getProcessingTimesMatrix()),distance(problem.getProcessingTimesMatrix().size(),std::vector< int > (problem.getProcessingTimesMatrix().size()-1,0)),nmac(problem.getNmachines()){ computeNoWaitTimeDistances();}
 //    virtual NeighborhoodIterator begin(Solution *base);
     std::vector<std::vector < int > >& getDistance() { return distance;}
 };

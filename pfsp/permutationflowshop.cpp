@@ -5848,7 +5848,9 @@ emili::Solution* emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood::compute
 
 void emili::pfsp::NoWaitAcceleratedNeighborhood::computeNoWaitTimeDistances()
 {
-    for(int i = 1 ; i <= njobs ; i++)
+    int nJobs = pmatrix.size()-1;
+
+    for(int i = 1 ; i <= nJobs ; i++)
     {
         int p = 0;
         for(int m=1; m<=nmac; m++)
@@ -5858,7 +5860,7 @@ void emili::pfsp::NoWaitAcceleratedNeighborhood::computeNoWaitTimeDistances()
 
         distance[0][i] = p;
 
-        for(int j=1; j <= njobs; j++)
+        for(int j=1; j <= nJobs; j++)
         {
             if(i!=j)
             {
