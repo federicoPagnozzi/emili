@@ -5880,7 +5880,7 @@ void emili::pfsp::NoWaitAcceleratedNeighborhood::computeNoWaitTimeDistances()
             }
         }
     }
-    /*
+/*
     for(int i = 0 ; i <= njobs ; i++)
     {
         for(int j=0; j <= njobs; j++)
@@ -5928,30 +5928,36 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::computeStep(S
 
         }
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
-/*        std::cout << "*********\n";
-        std::cout << "sp " << start_position<<"\n";
-        std::cout << "ep " << end_position<<"\n";
+/*
+        std::ostringstream oss;
+        oss << "*********\n";
+        oss << "sp " << start_position<<"\n";
+        oss << "ep " << end_position<<"\n";
         for(int i=0; i <= njobs ; i++)
-            std::cout << " " << newsol[i];
-        std::cout << "\n";
+            oss << " " << newsol[i];
+        oss << "\n";
 */
         int j = newsol[start_position];
-        int jpo = newsol[start_position+1];
+        int jpo = newsol[(start_position+1)%(njobs+1)];
         int jmo = newsol[start_position-1];
         newsol.erase(newsol.begin()+start_position);
         int k,kmo;
         //end_position != njobs ? k = newsol[end_position] : k = 0;
         k = newsol[end_position%njobs];
         kmo = newsol[end_position-1];
-        newsol.insert(newsol.begin()+end_position,j);
-//        long int old_value = pis.computeObjectiveFunction(newsol);
+        newsol.insert(newsol.begin()+end_position,j);        
         long int new_value = value->getSolutionValue();
         int delta = distance[kmo][j] + distance[j][k]
                   - distance[kmo][k] + distance[jmo][jpo]
                   - distance[jmo][j] - distance[j][jpo];
         new_value += delta;
         value->setSolutionValue(new_value);
-/*        std::cout << "j " << j << "\n";
+/*
+       long int old_value = pis.computeObjectiveFunction(newsol);
+       if(new_value != old_value)
+       {
+        std::cout << oss.str();
+        std::cout << "j " << j << "\n";
         std::cout << "jpo " << jpo << "\n";
         std::cout << "jmo " << jmo << "\n";
         std::cout << "k " << k << "\n";
@@ -5961,7 +5967,9 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::computeStep(S
             std::cout << " " << newsol[i];
         std::cout << "\n";
         std::cout << "+++++++++++\n";
-        assert(new_value == old_value);*/
+        assert(new_value == old_value);
+        }
+*/
         return value;
     }
 }
