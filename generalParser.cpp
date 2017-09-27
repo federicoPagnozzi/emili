@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "c5f0f15616c83f29d477b67e7ab84ec61f4cbc13"
+#define GIT_COMMIT_NUMBER "e5dffeb8ea6a4577658872eac6ae82376edd42e5"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -156,7 +156,7 @@ char* prs::TokenManager::peek()
     }
     else
     {
-        return " ";
+        return empty;
     }
 }
 
@@ -389,6 +389,7 @@ prs::Component& prs::Component::operator=(const Component& a)
     this->type = a.type;
     this->rawComponent = a.rawComponent;
     this->token = a.token;
+    return *this;
 }
 
 
@@ -597,7 +598,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
     }else if(tm.checkToken(TABU))
     {
         printTab("TABU SEARCH");
-        bool best = -1;
+        char best = -1;
         if(tm.checkToken(BEST))
         {
             best = 1;
@@ -605,6 +606,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         {
            best = 0;
         }
+
         if(best >= 0)
         {
             emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
@@ -674,7 +676,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
     else if(tm.checkToken(VND))
     {
         //printTab("VND SEARCH");
-        bool best = -1;
+        char best = -1;
         if(tm.checkToken(BEST))
         {
             printTab("BEST IMPROVEMENT VND");
@@ -876,7 +878,7 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
     else  if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {
         emili::accept_candidates accc;
-        char* t1;
+        std::string t1;
         if(tm.checkToken(ACCEPTANCE_INTENSIFY))
         {
             accc = emili::ACC_INTENSIFICATION;

@@ -6094,18 +6094,24 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
                    + distance[jmo][k] + distance[k][jpo]
                    - distance[kmo][k] - distance[k][kpo]
                    - distance[jmo][j] - distance[j][jpo];
-         if(kmo == j)
+         if(kmo == j || kpo == j)
          {
              delta += distance[j][k]+distance[k][j];
          }
-//         std::cout << "Cmax " << new_value << " delta " << delta << "\n";
+         std::ostringstream oss;
+ /*        oss << "Cmax " << new_value << " delta " << delta << "\n";
          new_value += delta;
-/*         for(int i=0; i <= njobs ; i++)
-             std::cout << " " << newsol[i];
-         std::cout << "\n";*/
+         for(int i=0; i <= njobs ; i++)
+             oss << " " << newsol[i];
+        oss << "\n";
+*/
          std::swap(newsol[start_position],newsol[end_position]);
-/*         long int old_value = pis.computeObjectiveFunction(newsol);
-         std::cout << "j " << j << "\n";
+/*
+         long int old_value = pis.computeObjectiveFunction(newsol);
+         if(new_value != old_value)
+         {
+               std::cout << oss.str();
+               std::cout << "j " << j << "\n";
                std::cout << "jpo " << jpo << "\n";
                std::cout << "jmo " << jmo << "\n";
                std::cout << "k " << k << "\n";
@@ -6117,7 +6123,9 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
                    std::cout << " " << newsol[i];
                std::cout << "\n";
                std::cout << "+++++++++++\n";
-         assert(old_value==new_value);*/
+               assert(old_value==new_value);
+         }
+*/
          value->setSolutionValue(new_value);
          return value;
      }

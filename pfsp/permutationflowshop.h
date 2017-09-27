@@ -87,6 +87,8 @@ public:
     void computeWTs(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     void computeTails(std::vector<int> &sol, std::vector< std::vector< std::vector< int > > > & tails);
 
+    virtual ~PermutationFlowShop() { }
+
 };
 /**  CLASSIC PERMUTATION FLOW SHOP*/
 /** Weighted Tardiness*/

@@ -392,6 +392,7 @@ public:
      * it should be possible to reset the state ( e.g. counters) of a Termination criterion.
      */
     virtual void reset()=0;
+    virtual ~Termination() {}
 };
 
 /**
@@ -1025,6 +1026,8 @@ class Perturbation
      * perturbed solution
      */
     virtual Solution* perturb(Solution* solution)=0;
+
+    virtual ~Perturbation() { }
 };
 
 /** @brief The NoPerturbation class
@@ -1127,6 +1130,7 @@ public:
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
     virtual void reset() { }
+    virtual ~Acceptance() { }
 };
 /**
  * @brief The accept_candidates enum

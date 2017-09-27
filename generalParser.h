@@ -89,6 +89,11 @@ protected:
      *          index to the previuos value assumed by currentToken
      */
     int previousCurrentToken;
+    /**
+     * @brief empty
+     *        returned in case there is no token
+     */
+    char empty[3] = {'"',' ','"'};
 public:
     /**
      * @brief TokenManager
@@ -340,7 +345,7 @@ public:
      * @param rawData
      *          A void pointer that leads to an object of the type type
      */
-    Component(int type,void* rawData):type(type),rawComponent(rawComponent) { }
+    Component(int type,void* rawData):type(type),rawComponent(rawData) { }
     /**
      * @brief Component
      * The default component has type COMPONENT_NULL

@@ -26,7 +26,7 @@ elseif(O3_FLAGS)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
 elseif(DEBUG_FLAGS)
         message(STATUS "Compiling in debug mode")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -g")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif(IRACE_OPTIMISED_FLAGS)
 
 #ADD COMMIT HASH TO SOURCE CODE
