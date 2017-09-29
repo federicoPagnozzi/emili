@@ -1077,7 +1077,7 @@ class NoWaitAcceleratedTwoInsertNeighborhood: public NoWaitAcceleratedNeighborho
 {
 protected:
     virtual Solution* computeStep(Solution *value);
-   // virtual void reverseLastMove(Solution *step);
+    virtual void reverseLastMove(Solution *step);
 public:
     NoWaitAcceleratedTwoInsertNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };

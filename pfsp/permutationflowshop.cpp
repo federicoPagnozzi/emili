@@ -5974,15 +5974,17 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::computeStep(S
     }
 }
 
-emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeStep(Solution *value)
+emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeStep(emili::Solution* value)
 {
+
     emili::iteration_increment();
-    if(sp_iterations > njobs)
+    if(sp_iterations >= njobs)
     {
         return nullptr;
     }
     else{
-        end_position = ((end_position)%njobs)+1;
+        end_position = ((end_position+1)%njobs);
+        end_position==0?end_position=1:1+1;
         if(ep_iterations < njobs){
             ep_iterations++;
            /**  if(ep_iterations == sp_iterations){
@@ -5992,7 +5994,8 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeSte
             }*/
             if(end_position == start_position-1)
             {
-                end_position=((end_position+1)%njobs)+1;
+                end_position=((end_position+2)%njobs);
+                end_position==0?end_position=1:1+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
@@ -6003,57 +6006,76 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeSte
         {
             sp_iterations++;
             ep_iterations = 1;
-            start_position = ((start_position)%njobs)+1;
+            start_position = ((start_position+1)%njobs);
+            start_position==0?start_position=1:1+1;
             if(end_position == start_position-1)
             {
-                end_position=((end_position+1)%njobs)+1;
+                end_position=((end_position+2)%njobs);
+                end_position==0?end_position=1:1+1;
                 ep_iterations+=2;
                 if(ep_iterations > njobs && sp_iterations+1 > njobs)
                     return nullptr;
             }
 
         }
-     }
+
        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+/*
+       std::cout << "++++++++++++\n";
+       for(int i = 0 ; i <= njobs ; i++)
+           std::cout << " " << newsol[i];
+       std::cout << "\n";
+*/
+       int j = newsol[start_position];
+       int j2 = newsol[start_position+1];
+       int jpo = newsol[(start_position+2)%(njobs+1)];
+       int jmo = newsol[start_position-1];
+/*
+       std::cout << "sol_i " << j << "\nsol_i2 " << j2 << "\n";
+       std::cout << "startpos " << start_position << "\n";
+       std::cout << "endpos " << end_position << "\n";
+*/
+       newsol.erase(newsol.begin()+start_position+1);
+       newsol.erase(newsol.begin()+start_position);
+       //std::cout << "epos " << epos << "\n";
+       int k = newsol[end_position%(njobs-1)];
+       int kmo = newsol[end_position-1];
+       newsol.insert(newsol.begin()+end_position,j2);
+       newsol.insert(newsol.begin()+end_position,j);
+       long int new_value = value->getSolutionValue();
+       int delta = distance[kmo][j] + distance[j2][k]
+                 - distance[kmo][k] + distance[jmo][jpo]
+                 - distance[jmo][j] - distance[j2][jpo];
+       new_value += delta;
+/*
+       long int old_value = pis.computeObjectiveFunction(newsol);
+       std::cout << "j " << j << "\n";
+       std::cout << "j2 " << j2 << "\n";
+       std::cout << "jpo " << jpo << "\n";
+       std::cout << "jmo " << jmo << "\n";
+       std::cout << "k " << k << "\n";
+       std::cout << "kmo " << kmo << "\n";
+       std::cout << "new " << new_value << " = " << old_value << "\n";
+       for(int i = 0 ; i <= njobs ; i++)
+           std::cout << " " << newsol[i];
+       std::cout << "\n";
+       std::cout << "*************\n";
+       assert(old_value == new_value);
+*/
+       value->setSolutionValue(new_value);
+       return value;
+    }
+}
 
-        // first insert
-        //int sol_i = newsol[start_position];
-        //newsol.erase(newsol.begin()+start_position);
-        //newsol.insert(newsol.begin()+end_position,sol_i);
-
-        int j = newsol[start_position];
-        int jpo = newsol[start_position+1];
-        int jmo = newsol[start_position-1];
-        newsol.erase(newsol.begin()+start_position);
-        int k,kmo;
-        k = newsol[end_position%njobs];
-        kmo = newsol[end_position-1];
-        newsol.insert(newsol.begin()+end_position,j);
-        long int new_value = value->getSolutionValue();
-        int delta = distance[kmo][j] + distance[j][k]
-                  - distance[kmo][k] + distance[jmo][jpo]
-                  - distance[jmo][j] - distance[j][jpo];
-        new_value += delta;
-        // second insert
-        //sol_i = newsol[start_position];
-        //newsol.erase(newsol.begin()+start_position);
-        //newsol.insert(newsol.begin()+end_position,sol_i);
-        j = newsol[start_position];
-        jpo = newsol[start_position+1];
-        jmo = newsol[start_position-1];
-        newsol.erase(newsol.begin()+start_position);
-        k = newsol[end_position%njobs];
-        kmo = newsol[end_position-1];
-        newsol.insert(newsol.begin()+end_position,j);
-        delta = distance[kmo][j] + distance[j][k]
-                  - distance[kmo][k] + distance[jmo][jpo]
-                  - distance[jmo][j] - distance[j][jpo];
-        new_value += delta;
-
-        long int old_value = pis.computeObjectiveFunction(newsol);
-        assert(new_value==old_value);
-        value->setSolutionValue(new_value);
-        return value;
+void emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::reverseLastMove(Solution *step)
+{
+    std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
+    int sol_i = newsol[end_position];
+    int sol_i2 = newsol[end_position+1];
+    newsol.erase(newsol.begin()+end_position+1);
+    newsol.erase(newsol.begin()+end_position);
+    newsol.insert(newsol.begin()+start_position,sol_i2);
+    newsol.insert(newsol.begin()+start_position,sol_i);
 }
 
 void emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::reverseLastMove(Solution *step)
