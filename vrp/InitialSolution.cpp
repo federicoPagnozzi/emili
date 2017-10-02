@@ -497,6 +497,10 @@ SolutionVRP* InitialSolutionBraekersF2(SolutionVRP* InitialSol, int numVeicoli, 
         
         
         if(Solaux->numAddRoutes<InitialSol->numAddRoutes){
+            if(InitialSol->numAddRoutes == INT_MAX)
+            {
+                InitialSol->numAddRoutes = 0;
+            }
             InitialSol->CopySolution(Solaux);
         }else{
             if(Solaux->numAddRoutes==InitialSol->numAddRoutes){
