@@ -44,6 +44,15 @@ void check(char* t,const char* message);
  */
 void printTab(const char* string);
 /**
+ * @brief printTab
+ * printTabPlusOne is used to print messages one tabLevel more than printTab
+ * when incrementTabLevel is called an additional \ t is added ad the beginning
+ * of the line before string. decrementTabLevel reduces the number of \ t
+ * displayed.
+ * @param string
+ */
+void printTabPlusOne(const char* string);
+/**
  * @brief incrementTabLevel
  *          Increments the number of tabs added at the beginning of a line by printTab
  */
@@ -81,6 +90,11 @@ protected:
      *          index to the previuos value assumed by currentToken
      */
     int previousCurrentToken;
+    /**
+     * @brief empty
+     *        returned in case there is no token
+     */
+    char empty[3] = {'"',' ','"'};
 public:
     /**
      * @brief TokenManager
@@ -332,7 +346,7 @@ public:
      * @param rawData
      *          A void pointer that leads to an object of the type type
      */
-    Component(int type,void* rawData):type(type),rawComponent(rawComponent) { }
+    Component(int type,void* rawData):type(type),rawComponent(rawData) { }
     /**
      * @brief Component
      * The default component has type COMPONENT_NULL
@@ -424,9 +438,18 @@ protected:
      *          This utility method builds a vector of 1 to n Neighborhood
      *          reading from the token manager.
      * @return
-     *          A vector of pointes to Neighborhood objects.
+     *          A vector of pointers to Neighborhood objects.
      */
     virtual std::vector<emili::Neighborhood*> buildNeighborhoodVector();
+    /**
+     * @brief buildComponentVector
+     *          This utility method builds a vector of 1 to n Components
+     *          reading from the token manager.
+     * @return
+     *          A vector of pointers to Components objects.
+     */
+    template <class T>
+    std::vector<T*> buildComponentVector(int type);
 public:
     /**
      * @brief Builder

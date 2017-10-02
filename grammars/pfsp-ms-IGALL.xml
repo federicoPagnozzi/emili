@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+     17/06/2015
+
+     Grammar for PFSP Makespan NOT FOR ALGORIHTM CONFIGURATION!!!!,
+     without time related termination and optimized for simple algorithms
+
+     13/04/2016
+
+     fixed bug that was used by irace to instantiate a two level ils by setting soater as termination
+     on a three level ils.
+ -->
+
+<gr:grammar xmlns:gr="grammar">
+    <gr:derivations xmlns:pfsp="pfsp_automatic_generation">
+		
+	 <pfsp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
+	 <pfsp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
+	 <pfsp:steps type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:sp_impact type="int" min="1" max="10" stepIfEnumerated="1"/>
+	 <pfsp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
+	 <pfsp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
+	 <pfsp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
+	 <pfsp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
+	 <pfsp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
+	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+       	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
+       	 <pfsp:metro_alpha type="real" min="0.1" max="1" stepIfEnumeraterd="0.1"/>
+ <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
+ <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
+
+<pfsp:always_acc_param>
+	<![CDATA[intensify ]]>
+    <or/> 
+   <![CDATA[diversify ]]>
+</pfsp:always_acc_param>
+	
+<pfsp:initial_solution>
+   <![CDATA[nrz ]]>
+  <or/>
+  <![CDATA[nrz2 ]]>
+ <or/>
+  <![CDATA[neh ]]>
+ <or/>
+  <![CDATA[nehff ]]>
+ <or/>
+  <![CDATA[frb5 ]]>
+</pfsp:initial_solution>
+
+<pfsp:termination>
+   <![CDATA[locmin ]]>
+   <or/>
+    <![CDATA[msorlocmin ]]><pfsp:steps/><![CDATA[ ]]>
+   <or/>
+   <![CDATA[soater ]]>
+</pfsp:termination>
+
+
+<pfsp:ilstermination>
+   <![CDATA[locmin ]]>
+   <or/>
+    <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
+</pfsp:ilstermination>
+
+<pfsp:neighborhood>
+	   <![CDATA[exchange ]]>
+	<or/>
+	   <![CDATA[transpose ]]>
+	<or/>
+	  <![CDATA[cstainsert ]]>
+	</pfsp:neighborhood>
+	
+	<pfsp:pertubation>
+		<![CDATA[rsio ]]><pfsp:sp_impact/><![CDATA[ ]]>
+	  	<or/>
+		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>
+		<or/>
+		<![CDATA[rndmv ]]><pfsp:neighborhood/><pfsp:random_moves/><![CDATA[ ]]>
+		<or/>
+		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<or/>
+		<![CDATA[rsffls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<or/>
+		<![CDATA[rsff ]]><pfsp:sp_impact/><![CDATA[ ]]>
+	</pfsp:pertubation>
+
+	<pfsp:acceptance>
+		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
+	<!--	<or/>
+		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
+		<or/>
+		<![CDATA[metropolis ]]><pfsp:metrotemp/><![CDATA[ ]]> -->
+		<or/>
+		<![CDATA[improve ]]>
+		<or/>
+		<![CDATA[always ]]><pfsp:always_acc_param/>
+	<!--	<or/>
+		<![CDATA[sa_metropolis ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]> -->
+		<or/>
+		<![CDATA[pmetro ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]><pfsp:tempiterations/><![CDATA[ ]]>
+		<or/>
+		<![CDATA[saacc ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]><pfsp:tempiterations/><![CDATA[ ]]><pfsp:metro_alpha/><![CDATA[ ]]>
+	</pfsp:acceptance>	
+
+	<pfsp:first>
+           <![CDATA[first ]]>
+		  <pfsp:initial_solution/>
+          	  <pfsp:termination/>
+  		  <pfsp:neighborhood/>
+	</pfsp:first>
+
+	<pfsp:best>
+           <![CDATA[best ]]>
+           <pfsp:initial_solution/>
+           <pfsp:termination/>
+	   <pfsp:neighborhood/>
+	</pfsp:best>
+	
+	<pfsp:ails>
+		<![CDATA[ils ]]>
+		<pfsp:ilsalgos/>
+	        <![CDATA[true ]]>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+	</pfsp:ails>
+        
+	<pfsp:localsearch>
+		<pfsp:firstp/>
+		<or/>
+		<pfsp:bestp/>
+	</pfsp:localsearch>	
+
+	<pfsp:firstp>
+           <![CDATA[first random ]]>
+          	  <pfsp:termination/>
+  		  <pfsp:neighborhood/>
+	</pfsp:firstp>
+
+	<pfsp:bestp>
+           <![CDATA[best random ]]>
+           <pfsp:termination/>
+	   <pfsp:neighborhood/>
+	</pfsp:bestp>
+	
+	<pfsp:ilsalgos>
+		<pfsp:first/>
+		<or/>
+		<pfsp:best/>
+	</pfsp:ilsalgos>
+	
+	<pfsp:algos>
+		<pfsp:ails/>
+	</pfsp:algos>
+
+	<pfsp:main>
+	        <!--<pfsp:gls/>
+	        <or/>-->
+		<pfsp:algos/>
+	</pfsp:main>
+
+        <pfsp:main_algorithm output="params">
+	<!--	<![CDATA[
+			#define GRAMMAR2CODE
+		]]>
+	-->
+                <![CDATA[PFSP_MS ]]>
+        	<pfsp:main/>     
+           <!--<![CDATA[
+                /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
+		clock_t time = clock();
+		if(search_time == 0 )
+			solution = ls->search();
+		else
+			solution = ls->timedSearch(search_time);
+		*/
+           ]]>-->
+        </pfsp:main_algorithm>
+
+    </gr:derivations>
+</gr:grammar>

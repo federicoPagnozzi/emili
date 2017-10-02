@@ -430,11 +430,14 @@ emili::Solution* emili::LocalSearch::search()
 emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
 {
     neighbh->reset();
+    setTimer(time_seconds);
+    beginTime = clock();
+    localsearch = this;
     emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = timedSearch(time_seconds,current);
+    emili::Solution* sol = search(current);
     if(current!=sol)
         delete current;
-
+    stopTimer();
     return sol;
 }
 
@@ -480,18 +483,25 @@ emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *i
 emili::Solution* emili::LocalSearch::timedSearch()
 {
     neighbh->reset();
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
     emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = timedSearch(seconds,current);
+    emili::Solution* sol = search(current);
     if(current!=sol)
         delete current;
-
+    stopTimer();
     return sol;
 }
 
 emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
 {
     neighbh->reset();
-    emili::Solution* sol = timedSearch(seconds,initial);
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
+    emili::Solution* sol = search(initial);
+    stopTimer();
     return sol;
 }
 
@@ -995,6 +1005,20 @@ emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
     }
 
     return ret;
+}
+
+emili::Solution* emili::RandomPerturbationSet::perturb(Solution *solution)
+{
+    int p = emili::generateRandomNumber()%size;
+    return perturbations[p]->perturb(solution);
+}
+
+emili::Solution* emili::ComplexPerturbation::perturb(Solution *solution)
+{
+    Solution* div = p->perturb(solution);
+    Solution* inte = ls->search(div);
+    delete div;
+    return inte;
 }
 
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
