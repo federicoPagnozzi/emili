@@ -1089,6 +1089,7 @@ protected:
     virtual Solution* computeStep(Solution *value);
 public:
     NoWaitAcceleratedInsertNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 class NoWaitAcceleratedTwoInsertNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1098,6 +1099,7 @@ protected:
     virtual void reverseLastMove(Solution *step);
 public:
     NoWaitAcceleratedTwoInsertNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 class NoWaitAcceleratedExchangeNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1107,6 +1109,7 @@ protected:
     virtual void reverseLastMove(Solution *step);
 public:
     NoWaitAcceleratedExchangeNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 class NoWaitAcceleratedTransposeNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1116,6 +1119,7 @@ protected:
     virtual void reverseLastMove(Solution *step);
 public:
     NoWaitAcceleratedTransposeNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    virtual Solution* random(Solution *currentSolution);
 };
 
 /**

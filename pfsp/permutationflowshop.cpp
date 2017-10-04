@@ -6049,6 +6049,28 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::computeStep(S
     }
 }
 
+emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::random(Solution *currentSolution)
+{
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int sposition = (emili::generateRandomNumber()%njobs) +1;
+    int eposition = (emili::generateRandomNumber()%njobs) +1;
+    int j = newsol[sposition];
+    int jpo = newsol[(sposition+1)%(njobs+1)];
+    int jmo = newsol[sposition-1];
+    newsol.erase(newsol.begin()+sposition);
+    int k,kmo;
+    //end_position != njobs ? k = newsol[end_position] : k = 0;
+    k = newsol[eposition%njobs];
+    kmo = newsol[eposition-1];
+    newsol.insert(newsol.begin()+eposition,j);
+    long int new_value = currentSolution->getSolutionValue();
+    int delta = distance[kmo][j] + distance[j][k]
+              - distance[kmo][k] + distance[jmo][jpo]
+              - distance[jmo][j] - distance[j][jpo];
+    new_value += delta;
+    return new emili::pfsp::PermutationFlowShopSolution(new_value,newsol);
+}
+
 emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeStep(emili::Solution* value)
 {
 
@@ -6142,6 +6164,29 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::computeSte
     }
 }
 
+emili::Solution* emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::random(Solution *currentSolution)
+{
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int sposition = (emili::generateRandomNumber()%(njobs-1))+1;
+    int eposition = (emili::generateRandomNumber()%njobs) +1;
+    int j = newsol[sposition];
+    int j2 = newsol[sposition+1];
+    int jpo = newsol[(sposition+2)%(njobs+1)];
+    int jmo = newsol[sposition-1];
+    newsol.erase(newsol.begin()+sposition+1);
+    newsol.erase(newsol.begin()+sposition);
+    int k = newsol[eposition%(njobs-1)];
+    int kmo = newsol[eposition-1];
+    newsol.insert(newsol.begin()+eposition,j2);
+    newsol.insert(newsol.begin()+eposition,j);
+    long int new_value = currentSolution->getSolutionValue();
+    int delta = distance[kmo][j] + distance[j2][k]
+              - distance[kmo][k] + distance[jmo][jpo]
+              - distance[jmo][j] - distance[j2][jpo];
+    new_value += delta;
+    return new PermutationFlowShopSolution(new_value,newsol);
+}
+
 void emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood::reverseLastMove(Solution *step)
 {
     std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
@@ -6195,8 +6240,8 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
          {
              delta += distance[j][k]+distance[k][j];
          }
-         std::ostringstream oss;
- /*        oss << "Cmax " << new_value << " delta " << delta << "\n";
+  /*        std::ostringstream oss;
+        oss << "Cmax " << new_value << " delta " << delta << "\n";
          new_value += delta;
          for(int i=0; i <= njobs ; i++)
              oss << " " << newsol[i];
@@ -6226,6 +6271,31 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
          value->setSolutionValue(new_value);
          return value;
      }
+}
+
+emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::random(Solution *currentSolution)
+{
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int sposition = (emili::generateRandomNumber()%njobs)+1;
+    int eposition = (emili::generateRandomNumber()%njobs) +1;
+    int j = newsol[sposition];
+    int jpo = newsol[(sposition+1)%(njobs+1)];
+    int jmo = newsol[sposition-1];
+    int k = newsol[eposition];
+    int kpo = newsol[(eposition+1)%(njobs+1)];
+    int kmo = newsol[eposition-1];
+    long int new_value = currentSolution->getSolutionValue();
+    int delta = distance[kmo][j] + distance[j][kpo]
+              + distance[jmo][k] + distance[k][jpo]
+              - distance[kmo][k] - distance[k][kpo]
+              - distance[jmo][j] - distance[j][jpo];
+    if(kmo == j || kpo == j)
+    {
+        delta += distance[j][k]+distance[k][j];
+    }
+    std::swap(newsol[sposition],newsol[eposition]);
+
+   return new PermutationFlowShopSolution(new_value,newsol);
 }
 
 void emili::pfsp::NoWaitAcceleratedTransposeNeighborhood::reverseLastMove(Solution *step)
@@ -6263,11 +6333,37 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedTransposeNeighborhood::computeSte
         {
             delta += distance[j][k]+distance[k][j];
         }
+        //int delta2 = distance[jmo][k]+distance[k][j]+distance[j][kpo]
+        //          - distance[jmo][j]-distance[j][k]-distance[k][kpo];
         new_value += delta;
-        std::swap(newsol[start_position],newsol[end_position]);
+        std::swap(newsol[start_position],newsol[end_position]);        
         value->setSolutionValue(new_value);
         return value;
     }
+}
+
+emili::Solution* emili::pfsp::NoWaitAcceleratedTransposeNeighborhood::random(Solution *currentSolution)
+{
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int sposition = (emili::generateRandomNumber()%njobs)+1;
+    int eposition = sposition<njobs?sposition+1:1;
+    int j = newsol[sposition];
+    int jpo = newsol[(sposition+1)%(njobs+1)];
+    int jmo = newsol[sposition-1];
+    int k = newsol[eposition];
+    int kpo = newsol[(eposition+1)%(njobs+1)];
+    int kmo = newsol[eposition-1];
+    long int new_value = currentSolution->getSolutionValue();
+    int delta = distance[kmo][j] + distance[j][kpo]
+              + distance[jmo][k] + distance[k][jpo]
+              - distance[kmo][k] - distance[k][kpo]
+              - distance[jmo][j] - distance[j][jpo];
+    if(kmo == j || kpo == j)
+    {
+        delta += distance[j][k]+distance[k][j];
+    }
+    std::swap(newsol[sposition],newsol[eposition]);
+    return new PermutationFlowShopSolution(new_value,newsol);
 }
 
 

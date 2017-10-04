@@ -2807,6 +2807,7 @@ long int PfspInstance::computeNWWT(std::vector< int > &sol)
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
     }
+    return wt;
 }
 
 long int PfspInstance::computeNWWT(std::vector< int > &sol, int size)
@@ -2823,6 +2824,7 @@ long int PfspInstance::computeNWWT(std::vector< int > &sol, int size)
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
     }
+    return wt;
 }
 
 /** No wait weighted earliness*/
