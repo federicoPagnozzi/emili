@@ -1208,6 +1208,49 @@ int emili::pfsp::PFSP_MS::computeObjectiveFunction(std::vector<int> &partial_sol
     return instance.computeMS(partial_solution,size);
 }
 
+void emili::pfsp::NWPFSP_MS::computeNoWaitTimeDistances()
+{
+    const std::vector< std::vector < long int > >& pmatrix = this->instance.getProcessingTimesMatrix();
+    int nmac = this->instance.getNbMac();
+    int nJobs = pmatrix.size()-1;
+
+    for(int i = 1 ; i <= nJobs ; i++)
+    {
+        int p = 0;
+        for(int m=1; m<=nmac; m++)
+        {
+            p+=pmatrix[i][m];
+        }
+
+        distances[0][i] = p;
+
+        for(int j=1; j <= nJobs; j++)
+        {
+            if(i!=j)
+            {
+                int max_ctd = 0;
+                for (int k = 1; k<= nmac ; k++)
+                {
+                    int temp_ctd = pmatrix[i][k];
+                    for(int h=k; h <= nmac ; h++ )
+                    {
+                        temp_ctd += pmatrix[j][h]-pmatrix[i][h];
+                    }
+                    if(temp_ctd > max_ctd){
+                        max_ctd = temp_ctd;
+                    }
+                }
+                distances[i][j] = max_ctd;
+            }
+        }
+    }
+}
+
+const std::vector< std::vector < int > >& emili::pfsp::NWPFSP_MS::getDistances()
+{
+    return distances;
+}
+
 int emili::pfsp::NWPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeNWMS(partial_solution);
@@ -2346,6 +2389,84 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     //int new_value =  instance.computeObjectiveFunction(solPartial,etm,1,instance.getNjobs()+1);
 
     //s->setSolutionValue(new_value);
+    return s;
+}
+
+emili::Solution* emili::pfsp::NWIGPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int k,tmp=0,partial_ms=0,ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int makespan = solution->getSolutionValue();
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        int indexj = solPartial[index];
+        int indexmo = solPartial[index-1];
+        int indexpo = solPartial[(index+1)%(sops+1)];
+        removed.push_back(indexj);
+        makespan = makespan - distances[indexmo][indexj] - distances[indexj][indexpo] + distances[indexmo][indexpo];
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+/*
+        int realms = instance.computeObjectiveFunction(solPartial,sops);
+        if( makespan != realms)
+        {
+            std::cout << "indexj   " << indexj << " " << index << "\n";
+            std::cout << "indexmo  " << indexmo << " "<< index-1 << "\n";
+            std::cout << "indexpo  " << indexpo << " " << (index+1)%(sops+1) <<"\n";
+            std::cout << "makespan " << makespan << " real " << realms <<"\n";
+            assert(makespan == instance.computeObjectiveFunction(solPartial,sops));
+        }
+*/
+    }
+
+    //min = makespan;
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        k=removed[l];
+        min = std::numeric_limits<int>::max();
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+            int kmo = solTMP[r-1];
+            int kpo = solTMP[(r+1)%(sops+1)];
+            partial_ms = makespan + distances[kmo][k] + distances[k][kpo] - distances[kmo][kpo];
+/*
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
+            if(partial_ms != tmp)
+            {
+                std::cout << "k   " << k << "\n";
+                std::cout << "kmo " << kmo << "\n";
+                std::cout << "kpo " << kpo << "\n";
+                std::cout << "partial_ms " << partial_ms << " real " << tmp <<"\n";
+                assert(partial_ms == tmp);
+            }
+
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+*/
+            if(partial_ms<min)
+            {
+                min = partial_ms;
+                ind = r;
+            }
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+        makespan = min;
+    }
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
     return s;
 }
 
@@ -5845,52 +5966,6 @@ emili::Solution* emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood::compute
  * No Wait Delta evaluation
  *
  */
-
-void emili::pfsp::NoWaitAcceleratedNeighborhood::computeNoWaitTimeDistances()
-{
-    int nJobs = pmatrix.size()-1;
-
-    for(int i = 1 ; i <= nJobs ; i++)
-    {
-        int p = 0;
-        for(int m=1; m<=nmac; m++)
-        {
-            p+=pmatrix[i][m];
-        }
-
-        distance[0][i] = p;
-
-        for(int j=1; j <= nJobs; j++)
-        {
-            if(i!=j)
-            {
-                int max_ctd = 0;
-                for (int k = 1; k<= nmac ; k++)
-                {
-                    int temp_ctd = pmatrix[i][k];
-                    for(int h=k; h <= nmac ; h++ )
-                    {
-                        temp_ctd += pmatrix[j][h]-pmatrix[i][h];
-                    }
-                    if(temp_ctd > max_ctd){
-                        max_ctd = temp_ctd;
-                    }
-                }
-                distance[i][j] = max_ctd;
-            }
-        }
-    }
-/*
-    for(int i = 0 ; i <= njobs ; i++)
-    {
-        for(int j=0; j <= njobs; j++)
-        {
-            std::cout << " " << distance[i][j];
-        }
-        std::cout << "\n";
-    }
-*/
-}
 
 emili::Solution* emili::pfsp::NoWaitAcceleratedInsertNeighborhood::computeStep(Solution *value)
 {

@@ -176,6 +176,7 @@
 #define PERTURBATION_CP3 "cp3"
 #define PERTURBATION_IG_OPTIMIZED "igoper"
 #define PERTURBATION_IGLS_OPTIMIZED "igols"
+#define PERTURBATION_NWIG "nwig"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -266,6 +267,14 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss << "NEH destruct/construct perturbation. number of job erased: "<<n;
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSPerturbation(n,*instance);
+    }else if(tm.checkToken(PERTURBATION_NWIG))
+    {
+        int nj = instance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+        oss << "No wait optimized NEH destruct/construct perturbation. number of job erased: "<<n;
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::NWIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
     }
     else if(tm.checkToken(PERTURBATION_RSFF))
         {
@@ -971,22 +980,22 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     else if(tm.checkToken(NEIGHBORHOOD_NW_INSERT))
     {
         printTab("No wait delta evaluation insert");
-        neigh = new emili::pfsp::NoWaitAcceleratedInsertNeighborhood(*instance);
+        neigh = new emili::pfsp::NoWaitAcceleratedInsertNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_TWO_INSERT))
     {
         printTab("No wait delta evaluation insert");
-        neigh = new emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood(*instance);
+        neigh = new emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_EXCHANGE))
     {
         printTab("No wait delta evaluation exchange");
-        neigh = new emili::pfsp::NoWaitAcceleratedExchangeNeighborhood(*instance);
+        neigh = new emili::pfsp::NoWaitAcceleratedExchangeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_TRANSPOSE))
     {
         printTab("No wait delta evaluation transpose");
-        neigh = new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*instance);
+        neigh = new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
     }
     prs::decrementTabLevel();
     return neigh;

@@ -163,11 +163,20 @@ public:
 /** Make span*/
 class NWPFSP_MS: public PermutationFlowShop
 {
+protected:
+    std::vector< std::vector < int > > distances;
+    void computeNoWaitTimeDistances();
 public:
-    NWPFSP_MS(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
+    NWPFSP_MS(PfspInstance& problem_instance):
+         PermutationFlowShop(problem_instance),
+         distances(problem_instance.getProcessingTimesMatrix().size(),std::vector< int > (problem_instance.getProcessingTimesMatrix().size(),0))
+         {
+             computeNoWaitTimeDistances();
+         }
     NWPFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
+    const std::vector< std::vector < int > >& getDistances();
 };
 /** Weighted Tardiness*/
 class NWPFSP_WT: public PermutationFlowShop
@@ -656,6 +665,15 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class NWIGPerturbation: public emili::pfsp::IGPerturbation
+{
+protected:
+    const std::vector < std::vector < int > >& distances;
+public:
+    NWIGPerturbation(int d_parameter, emili::pfsp::NWPFSP_MS& problem):emili::pfsp::IGPerturbation(d_parameter,problem),distances(problem.getDistances()) { }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class IGOPerturbation: public emili::Perturbation
 {
 protected:
@@ -1054,15 +1072,15 @@ public:
 class NoWaitAcceleratedNeighborhood: public PfspInsertNeighborhood
 {
 protected:
-    std::vector<std::vector < int > > distance;
+    const std::vector<std::vector < int > >& distance;
     const std::vector< std::vector< long int > >& pmatrix;
     const int nmac;
-    void computeNoWaitTimeDistances();
+//    void computeNoWaitTimeDistances();
 //    virtual Solution* computeStep(Solution *value);
 public:
-    NoWaitAcceleratedNeighborhood(PermutationFlowShop& problem):PfspInsertNeighborhood(problem),pmatrix(problem.getProcessingTimesMatrix()),distance(problem.getProcessingTimesMatrix().size(),std::vector< int > (problem.getProcessingTimesMatrix().size(),0)),nmac(problem.getNmachines()){ computeNoWaitTimeDistances();}
+    NoWaitAcceleratedNeighborhood(NWPFSP_MS& problem):PfspInsertNeighborhood(problem),pmatrix(problem.getProcessingTimesMatrix()),distance(problem.getDistances()),nmac(problem.getNmachines()){ }
 //    virtual NeighborhoodIterator begin(Solution *base);
-    std::vector<std::vector < int > >& getDistance() { return distance;}
+    const std::vector<std::vector < int > >& getDistance() { return distance;}
 };
 
 class NoWaitAcceleratedInsertNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1070,7 +1088,7 @@ class NoWaitAcceleratedInsertNeighborhood: public NoWaitAcceleratedNeighborhood
 protected:
     virtual Solution* computeStep(Solution *value);
 public:
-    NoWaitAcceleratedInsertNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    NoWaitAcceleratedInsertNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
 
 class NoWaitAcceleratedTwoInsertNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1079,7 +1097,7 @@ protected:
     virtual Solution* computeStep(Solution *value);
     virtual void reverseLastMove(Solution *step);
 public:
-    NoWaitAcceleratedTwoInsertNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    NoWaitAcceleratedTwoInsertNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
 
 class NoWaitAcceleratedExchangeNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1088,7 +1106,7 @@ protected:
     virtual Solution* computeStep(Solution *value);
     virtual void reverseLastMove(Solution *step);
 public:
-    NoWaitAcceleratedExchangeNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    NoWaitAcceleratedExchangeNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
 
 class NoWaitAcceleratedTransposeNeighborhood: public NoWaitAcceleratedNeighborhood
@@ -1097,7 +1115,7 @@ protected:
     virtual Solution* computeStep(Solution *value);
     virtual void reverseLastMove(Solution *step);
 public:
-    NoWaitAcceleratedTransposeNeighborhood(PermutationFlowShop& problem):NoWaitAcceleratedNeighborhood(problem) { }
+    NoWaitAcceleratedTransposeNeighborhood(NWPFSP_MS& problem):NoWaitAcceleratedNeighborhood(problem) { }
 };
 
 /**
