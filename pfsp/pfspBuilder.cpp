@@ -163,10 +163,12 @@
 #define PERTURBATION_RND "randpert"
 #define PERTURBATION_NRZ "nrzper"
 #define PERTURBATION_TMIIG "tmiigper"
+#define PERTURBATION_NWTMIIG "nwtmiigper"
 #define PERTURBATION_SOA "igper"
 #define PERTURBATION_SOA_LEGACY "soaper"
 #define PERTURBATION_TEST "testper"
 #define PERTURBATION_IGLS "igls"
+#define PERTURBATION_NWIGLS "nwigls"
 #define PERTURBATION_RSLS "rsls"
 #define PERTURBATION_RSffLS "rsffls"
 #define PERTURBATION_RS "rsper"
@@ -276,6 +278,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         printTab(oss.str().c_str());
         per = new emili::pfsp::NWIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
     }
+
     else if(tm.checkToken(PERTURBATION_RSFF))
         {
         int nj = instance->getNjobs();
@@ -304,6 +307,27 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
             per = new emili::pfsp::IgLsPerturbation(n,*instance,ll);
         } else {
              per = new emili::pfsp::IGPerturbation(1,*instance);
+        }
+    }
+    else if(tm.checkToken(PERTURBATION_NWIGLS))
+    {
+        int nj = instance->getNjobs()-2;
+        int k = tm.getInteger();
+        int n = k<nj?k:nj-1;
+        oss.str(""); oss  << "IG perturbation with local search applied on the partial solution. d = "<<n;
+        printTab(oss.str().c_str());
+        if(n > 0)
+        {
+            PfspInstance pfs = instance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            gp.setInstance(pfse);
+            emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+            gp.setInstance(instance);
+            //instances.push_back(pfse);
+            per = new emili::pfsp::NwIgLsPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance),ll);
+        } else {
+             per = new emili::pfsp::NWIGPerturbation(1,*((emili::pfsp::NWPFSP_MS*)instance));
         }
     }
     else if(tm.checkToken(PERTURBATION_IGLS_OPTIMIZED))
@@ -391,6 +415,16 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss.str(""); oss  << "TMIIG PERTURBATION. Number of job erased " << n << ". tabu list size " << tsize <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::TMIIGPerturbation(n,*instance,tsize);
+    }
+    else if(tm.checkToken(PERTURBATION_NWTMIIG))
+    {
+        int nj = instance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+        int tsize = tm.getInteger();
+        oss.str(""); oss  << "No wait optimized TMIIG PERTURBATION. Number of job erased " << n << ". tabu list size " << tsize <<".\n\t";
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::NWTMIIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance),tsize);
     }
     else if(tm.checkToken(PERTURBATION_IGIO))
     {

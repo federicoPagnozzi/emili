@@ -655,6 +655,15 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class NWTMIIGPerturbation: public emili::pfsp::TMIIGPerturbation
+{
+protected:
+    const std::vector < std::vector < int > >& distances;
+public:
+    NWTMIIGPerturbation(int d_parameter, emili::pfsp::NWPFSP_MS& problem,int tabu_list_size):TMIIGPerturbation(d_parameter,problem,tabu_list_size),distances(problem.getDistances()){ }
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class IGPerturbation: public emili::Perturbation
 {
 protected:
@@ -746,6 +755,15 @@ public:
     IgLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::IGPerturbation(d_parameter,problem),ls(ls) {/**    */}
     virtual emili::Solution* perturb(Solution *solution);
     ~IgLsPerturbation() { delete ls;}
+};
+
+class NwIgLsPerturbation: public emili::pfsp::IgLsPerturbation
+{
+protected:
+    const std::vector< std::vector < int > >& distances;
+public:
+    NwIgLsPerturbation(int d_parameter, emili::pfsp::NWPFSP_MS& problem, emili::LocalSearch* ls): emili::pfsp::IgLsPerturbation(d_parameter,problem,ls),distances(problem.getDistances()) {/**    */}
+    virtual emili::Solution* perturb(Solution *solution);
 };
 
 class IGOLsPerturbation: public emili::pfsp::IGOPerturbation
