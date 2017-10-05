@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+     11/04/2017
+
+     Grammar for Dial a Ride VRP,
+     without time related termination and optimized for simple algorithms
+
+	 -->
+
+	<gr:grammar xmlns:gr="grammar">
+	    <gr:derivations xmlns:vrp="vrp_automatic_generation">
+			
+		 <vrp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
+		 <vrp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
+		 <vrp:steps type="int" min="1" max="100" stepIfEnumerated="1"/>
+		 <vrp:sp_impact type="int" min="1" max="10" stepIfEnumerated="1"/>
+		 <vrp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.1"/>
+		 <vrp:ac_percentage type="int" min="1" max="100" stepIfEnumerated="1"/>
+		 <vrp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="1"/>
+		 <vrp:tabutenure_size type="int" min="1" max="20" stepIfEnumerated="1"/>
+		 <vrp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
+		 <vrp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.1"/>
+		 <vrp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.1"/>
+		 <vrp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.01"/>
+		 <vrp:metro_alpha type="real" min="0.1" max="1" stepIfEnumeraterd="0.1"/>
+		  <vrp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
+
+	<vrp:always_acc_param>
+		<![CDATA[intensify ]]>
+	    <or/> 
+	   <![CDATA[diversify ]]>
+	</vrp:always_acc_param>
+		
+	<vrp:initial_solution>
+	   <![CDATA[is ]]>
+	</vrp:initial_solution>
+
+	<vrp:termination>
+	   <![CDATA[locmin ]]>
+	   <or/>
+	    <![CDATA[msorlocmin ]]><vrp:steps/><![CDATA[ ]]>
+	</vrp:termination>
+
+
+	<vrp:ilstermination>
+	   <![CDATA[locmin ]]>
+	   <or/>
+	    <![CDATA[maxstep ]]><vrp:steps/><![CDATA[ ]]>
+	</vrp:ilstermination>
+
+	<vrp:neighborhood>
+		   <![CDATA[relocate ]]>
+		<or/>
+		   <![CDATA[eliminate ]]>
+		<or/>
+		   <![CDATA[topt ]]>
+		<or/>
+		   <![CDATA[fopt ]]>
+		<or/>
+		   <![CDATA[exchange ]]>
+		<or/>
+		  <![CDATA[vehicle_exchange ]]>
+	</vrp:neighborhood>
+		<vrp:perset>
+			<![CDATA[perset ]]>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			
+		</vrp:perset>
+		<vrp:pertubation>
+			<![CDATA[rndmv ]]><vrp:neighborhood/><vrp:random_moves/><![CDATA[ ]]>
+			<or/>
+			<![CDATA[noper ]]>
+			<or/>
+			<vrp:perset/>
+		</vrp:pertubation>
+
+		<vrp:acceptance>
+			<![CDATA[improve ]]>
+			<or/>
+			<![CDATA[always ]]><vrp:always_acc_param/>
+			<or/>
+			<![CDATA[pmetro ]]><vrp:start_temp/><![CDATA[ ]]><vrp:end_temp/><![CDATA[ ]]><vrp:temp_ratio/><![CDATA[ ]]><vrp:tempiterations/><![CDATA[ ]]>
+			<or/>
+			<![CDATA[saacc ]]><vrp:start_temp/><![CDATA[ ]]><vrp:end_temp/><![CDATA[ ]]><vrp:temp_ratio/><![CDATA[ ]]><vrp:tempiterations/><![CDATA[ ]]><vrp:metro_alpha/><![CDATA[ ]]>
+		</vrp:acceptance>	
+
+		<vrp:nols>
+			<![CDATA[nols ]]>
+			<vrp:initial_solution/>
+		</vrp:nols>
+
+		<vrp:first>
+		   <![CDATA[ffirst ]]>
+			  <vrp:initial_solution/>
+			  <vrp:termination/>
+			  <vrp:neighborhood/>
+		</vrp:first>
+
+		<vrp:best>
+		   <![CDATA[fbest ]]>
+		   <vrp:initial_solution/>
+		   <vrp:termination/>
+		   <vrp:neighborhood/>
+		</vrp:best>
+
+		<vrp:alns>
+			<![CDATA[fils ]]>
+			<vrp:nols/>
+			<![CDATA[true ]]>
+			<vrp:perset/>
+			<vrp:acceptance/>
+		</vrp:alns>
+		<vrp:lns>
+			<![CDATA[fils ]]>
+			<vrp:nols/>
+			<vrp:ilstermination/>
+			<vrp:perset/>
+			<vrp:acceptance/>
+		</vrp:lns>
+		<vrp:ils>
+			<![CDATA[fils ]]>
+			<vrp:ilsalgos/>
+			<vrp:ilstermination/>
+			<vrp:pertubation/>
+			<vrp:acceptance/>
+		</vrp:ils>
+		
+		<vrp:ails>
+			<![CDATA[fils ]]>
+			<vrp:ilsalgos/>
+			<![CDATA[true ]]>
+			<vrp:pertubation/>
+			<vrp:acceptance/>
+		</vrp:ails>
+		
+		<vrp:gls>
+		   <![CDATA[fils ]]>
+			<vrp:ils/>
+			<![CDATA[true ]]>
+			<vrp:pertubation/>
+			<vrp:acceptance/>
+		</vrp:gls>
+
+		<vrp:vnd>
+		   <![CDATA[vnd ]]>
+			<vrp:vnds/>
+			<vrp:initial_solution/>
+			<vrp:termination/>
+			<vrp:vndn/>
+		</vrp:vnd>
+
+		<vrp:vndn>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<or/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<or/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+			<vrp:neighborhood/>
+		</vrp:vndn>
+		
+		<vrp:vnds>
+			<![CDATA[ffirst ]]>
+			<or/>
+			<![CDATA[fbest ]]>
+		</vrp:vnds>
+		
+		<vrp:ilsalgos>
+			<vrp:first/>
+			<or/>
+			<vrp:best/>
+			<or/>
+			<vrp:ils/>
+			<or/>
+			<vrp:vnd/>
+			<or/>
+			<vrp:nols/>
+			<or/>
+			<vrp:lns/>
+		</vrp:ilsalgos>
+		
+		<vrp:algos>
+		<!--	<vrp:first/>
+			<or/>
+			<vrp:best/>
+			<or/>-->
+			<vrp:ails/>
+		<!--	<or/>
+			<vrp:vnd/>-->
+			<or/>
+			<vrp:gls/>
+			<or/>
+			<vrp:alns/>
+		</vrp:algos>
+
+		<vrp:main>
+			<!--<vrp:gls/>
+			<or/>-->
+			<vrp:algos/>
+		</vrp:main>
+
+		<vrp:main_algorithm output="params">
+		<!--	<![CDATA[
+				#define GRAMMAR2CODE
+			]]>
+		-->
+			<![CDATA[VRP ]]>
+			<vrp:main/>     
+		   <!--<![CDATA[
+			/*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);
+			clock_t time = clock();
+			if(search_time == 0 )
+				solution = ls->search();
+			else
+				solution = ls->timedSearch(search_time);
+			*/
+		   ]]>-->
+		</vrp:main_algorithm>
+
+    </gr:derivations>
+</gr:grammar>
