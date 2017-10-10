@@ -1340,6 +1340,17 @@ public:
     void reset();
 };
 
+class KarTermination: public emili::Termination
+{
+protected:
+    int iterations;
+    int maxIterations;
+public:
+    KarTermination(int max_iterations):maxIterations(max_iterations),iterations(0) { }
+    virtual bool terminate(Solution *currentSolution, Solution *newSolution);
+    virtual void reset();
+};
+
 class PfspTabuHashMemory: public emili::TabuMemory
 {
 protected:

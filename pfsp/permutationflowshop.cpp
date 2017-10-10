@@ -7461,6 +7461,31 @@ void emili::pfsp::PfspTerminationIterations::reset()
     iterations=0;
 }
 
+bool emili::pfsp::KarTermination::terminate(Solution *currentSolution, Solution *newSolution)
+{
+    if(iterations < maxIterations)
+    {
+        if(newSolution != nullptr && currentSolution->operator <=(*newSolution))
+        {
+            iterations++;
+        }
+        else
+        {
+           iterations = 0;
+        }
+         return false;
+    }
+    emili::iteration_increment();
+    return true;
+}
+
+void emili::pfsp::KarTermination::reset()
+{
+    iterations=0;
+}
+
+
+
 size_t emili::pfsp::PfspTabuHashMemory::calc_hash(std::vector< int >& v )
 {
     std::hash< std::string> hasher;

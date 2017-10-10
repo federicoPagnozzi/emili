@@ -95,6 +95,7 @@
 /* Termination criteria*/
 #define TERMINATION_ITERA "iteration"
 #define TERMINATION_SOA "soater"
+#define TERMINATION_KAR "karter"
 
 /*
  *  permutation flowshop neighborhoods
@@ -835,6 +836,13 @@ emili::Termination* prs::PfspBuilder::buildTermination()
          printTabPlusOne(oss.str().c_str());
         term =  new emili::pfsp::SOAtermination(ti);
     }
+    if(tm.checkToken(TERMINATION_KAR))
+    {
+        int ti = instance->getNjobs();
+        printTab("Kar termination");
+        term =  new emili::pfsp::KarTermination(ti);
+    }
+
 
     prs::decrementTabLevel();
     return term;
