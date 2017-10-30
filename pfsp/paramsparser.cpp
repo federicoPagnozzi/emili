@@ -1684,6 +1684,12 @@ SAInitTemp* prs::ParamsParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new RandomWalkInitTemp(initsol, nei, length);
         init_temp->set(value);
         return init_temp;
+    } else if (tm.checkToken(CONNOLLYRWIT)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new ConnollyRandomWalkInitTemp(initsol, nei, length);
+        init_temp->set(value);
+        return init_temp;
     } else if (tm.checkToken(RANDOMWALKAVGINITTEMP)) {
         int length = tm.getInteger();
         double value = tm.getDecimal();
