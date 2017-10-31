@@ -3772,7 +3772,7 @@ emili::Solution* emili::pfsp::KarNeighborhood::computeStep(emili::Solution* valu
             std::swap(newsol[start_position],newsol[end_position]);
             lastMoveType=1;
         }
-    //    long int new_v = pis.computeObjectiveFunction(newsol);
+        //long int new_value = pis.computeObjectiveFunction(newsol);
         int starting = start_position>end_position?end_position:start_position;
         long int new_value = pis.computeObjectiveFunctionFromHead(newsol,starting,this->head,njobs);
         //std::cout << new_v << " " << new_value << std::endl;
@@ -7452,7 +7452,6 @@ bool emili::pfsp::PfspTerminationIterations::terminate(Solution* currentSolution
 
             return false;
     }
-    emili::iteration_increment();
     return true;
 }
 
@@ -7465,17 +7464,17 @@ bool emili::pfsp::KarTermination::terminate(Solution *currentSolution, Solution 
 {
     if(iterations < maxIterations)
     {
-        if(newSolution != nullptr && currentSolution->operator <=(*newSolution))
+        if(*newSolution < *currentSolution)
         {
-            iterations++;
+            //std::cout << "iterations " << iterations << "\n news <- " << newSolution->getSolutionValue() << "\n current <- " <<currentSolution->getSolutionValue() << "\n";
+            iterations = 0;
         }
         else
         {
-           iterations = 0;
+           iterations++;
         }
          return false;
     }
-    emili::iteration_increment();
     return true;
 }
 
