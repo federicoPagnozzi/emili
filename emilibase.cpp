@@ -1563,7 +1563,7 @@ emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, S
 {
     if(counter == interval && temperature > end_temp)
     {     
-        temperature = (alpha * temperature) - rate;        
+        temperature = (alpha * temperature) - beta;
         counter=0;
     }    
     counter++;

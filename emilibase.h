@@ -1368,12 +1368,12 @@ protected:
     float end_temp;
     int interval;
     int counter;
-    float rate;
+    float beta;
     float alpha;
 public:
-    Metropolis(float initial_temperature,float final_temperature,float descending_ratio):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(1),counter(0),alpha(1) { }
-    Metropolis(float initial_temperature,float final_temperature,float descending_ratio,int iterations):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(iterations),counter(0),alpha(1) { }
-    Metropolis(float initial_temperature, float final_temperature, float descending_ratio, int iterations, float alpha):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),rate(descending_ratio),interval(iterations),counter(0),alpha(alpha) { }
+    Metropolis(float initial_temperature,float final_temperature,float descending_ratio):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),beta(descending_ratio),interval(1),counter(0),alpha(1) { }
+    Metropolis(float initial_temperature,float final_temperature,float descending_ratio,int iterations):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),beta(descending_ratio),interval(iterations),counter(0),alpha(1) { }
+    Metropolis(float initial_temperature, float final_temperature, float descending_ratio, int iterations, float alpha):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),beta(descending_ratio),interval(iterations),counter(0),alpha(alpha) { }
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
     virtual void reset();
 };
