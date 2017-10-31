@@ -393,6 +393,7 @@ public:
      * it should be possible to reset the state ( e.g. counters) of a Termination criterion.
      */
     virtual void reset()=0;
+    virtual ~Termination() {}
 };
 
 /**
@@ -1026,6 +1027,8 @@ class Perturbation
      * perturbed solution
      */
     virtual Solution* perturb(Solution* solution)=0;
+
+    virtual ~Perturbation() { }
 };
 
 /** @brief The NoPerturbation class
@@ -1083,6 +1086,39 @@ public:
   virtual Solution* perturb(Solution *solution);
 };
 /**
+ * @brief The RandomPerturbationSet class
+ * Applies a perturbation selected randomly from a perturbations set
+ * Can be used to instantiate a Large neighborhood search when used with ILS, nols, and
+ * each perturbations is a destruct-construct operator.
+ */
+class RandomPerturbationSet : public emili::Perturbation
+{
+protected:
+    std::vector<Perturbation*> perturbations;
+    int size;
+public:
+    RandomPerturbationSet(std::vector< Perturbation* > perturbations):perturbations(perturbations),size(perturbations.size()) { }
+    virtual Solution* perturb(Solution *solution);
+    ~RandomPerturbationSet() {
+        for(std::vector<Perturbation*>::iterator it = perturbations.begin();it!=perturbations.end();++it)
+        {
+            delete *it;
+        }
+     }
+};
+
+class ComplexPerturbation : public emili::Perturbation
+{
+protected:
+    emili::Perturbation* p;
+    emili::LocalSearch* ls;
+public:
+    ComplexPerturbation(emili::Perturbation* perturbation, emili::LocalSearch* localsearch):p(perturbation),ls(localsearch) { }
+    virtual Solution* perturb(Solution *solution);
+    ~ComplexPerturbation() {delete p; delete ls;}
+};
+
+/**
  * @brief The Acceptance class
  */
 class Acceptance
@@ -1095,6 +1131,7 @@ public:
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
     virtual void reset() { }
+    virtual ~Acceptance() { }
 };
 /**
  * @brief The accept_candidates enum
@@ -1149,8 +1186,8 @@ public:
 
     virtual Solution* search();
     virtual Solution* search(emili::Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* timedSearch(float seconds);
+    virtual Solution* timedSearch(float seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
     virtual ~IteratedLocalSearch() {delete &pert; delete &acc;}
 };
@@ -1165,8 +1202,8 @@ public:
 
     virtual Solution* search();
     virtual Solution* search(emili::Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* timedSearch(float seconds);
+    virtual Solution* timedSearch(float seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
     virtual ~FeasibleIteratedLocalSearch() {}
 };

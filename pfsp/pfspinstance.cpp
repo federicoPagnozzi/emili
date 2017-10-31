@@ -12,6 +12,7 @@
 #include <exception>
 #include <stdexcept>
 #include "pfspinstance.h"
+#include<assert.h>
 
 //#define ENABLE_SSE
 
@@ -2197,6 +2198,72 @@ void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< st
     }
 }
 
+void PfspInstance::computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
+{
+    int j,m;
+
+    int jobNumber;
+    int end_i = size;
+   // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
+    int prevj = 0;
+    int postj = 0;
+    int k,kp1;
+    for(j=1;j<size;j++)
+    {
+        k = size-j;
+        kp1 = k+1==size?0:k+1;
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1]+ setUpTimes[1][sol[j-1]][jobNumber];
+        postj = postj + processingTimesMatrix[sol[k]][nbMac] + setUpTimes[nbMac][sol[k]][sol[kp1]];
+        head[1][j] = prevj;
+        tail[nbMac][k] = postj;
+    }
+
+      for ( j = 1; j < end_i; ++j )
+        {
+            k = size-j;
+            kp1 = k+1==size?0:k+1;
+            long int previousJobEndTime = head[1][j];
+            long int postJobEndTime = tail[nbMac][k];
+
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+                if(k+1>=size)
+                {
+                    tail[n][k+1] = 0;
+                }
+
+            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + head[m][j-1];
+            if ( previousJobEndTime > stpluspme )
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+
+            }
+            else
+            {
+                head[m][j] = stpluspme + processingTimesMatrix[jobNumber][m];
+            }
+
+            stpluspme = setUpTimes[n][sol[k]][sol[kp1]] + tail[n][kp1] ;
+            if ( stpluspme > postJobEndTime )
+            {
+                tail[n][k] = stpluspme + processingTimesMatrix[sol[k]][n];
+
+            }
+            else
+            {
+                tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
+            }
+
+            previousJobEndTime = head[m][j];
+            postJobEndTime = tail[n][k];
+        }
+    }
+}
+
 
 
 void inline computeTailss(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail,std::vector< std::vector< long> >& processingTimesMatrix,int nbMac)
@@ -2515,6 +2582,20 @@ long int PfspInstance::computeTCT(std::vector< int > &sol,int size)
     return wt;
 }
 
+long int PfspInstance::computeTCT(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
+
+    for ( j = 1; j<=size; ++j ){
+
+        wt += makespans[j];
+    }
+
+    return wt;
+}
+
+
 /**  Compute the weighted earliness of a given solution */
 long int PfspInstance::computeWE(std::vector< int > & sol)
 {
@@ -2593,6 +2674,21 @@ long int PfspInstance::computeT(std::vector<int> &sol, int size)
 
 }
 
+long int PfspInstance::computeT(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
+
+    for ( j = 1; j<= size; ++j ){
+
+        wt += (std::max(makespans[j] - dueDates[sol[j]], 0L) );//**  priority[sol[j]]);
+    }
+
+    return wt;
+}
+
+
+
 /**  Compute the earliness of a given solution */
 long int PfspInstance::computeE(std::vector< int > & sol)
 {
@@ -2647,10 +2743,10 @@ inline void computeNoWaitTimeDistances(std::vector<int> &sol, int nbMac, int siz
         int max_ctd = 0;
         int i = sol[j-1];
         int jj = sol[j];
-        for (int k = 1; k< nbMac ; k++)
+        for (int k = 1; k<= nbMac ; k++)
         {
             int temp_ctd = processingTimesMatrix[i][k];
-            for(int h=k; h < nbMac ; h++ )
+            for(int h=k; h <= nbMac ; h++ )
             {
                 temp_ctd += processingTimesMatrix[jj][h]-processingTimesMatrix[i][h];
             }
@@ -2711,6 +2807,7 @@ long int PfspInstance::computeNWWT(std::vector< int > &sol)
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
     }
+    return wt;
 }
 
 long int PfspInstance::computeNWWT(std::vector< int > &sol, int size)
@@ -2727,6 +2824,7 @@ long int PfspInstance::computeNWWT(std::vector< int > &sol, int size)
         nwms += completionTimeDistance[j];
         wt += (std::max(nwms - dueDates[sol[j]], 0L) * priority[sol[j]]);
     }
+    return wt;
 }
 
 /** No wait weighted earliness*/
@@ -3219,6 +3317,7 @@ long int PfspInstance::computeSDSTMS(std::vector<int> &sol, int size)
     // And the end time of the previous job, on the same machine :
     long int previousJobEndTime;
      //1st machine :
+
     previousMachineEndTime[0] = 0;
     for ( j = 1; j <= size; ++j )
     {
@@ -3237,7 +3336,7 @@ long int PfspInstance::computeSDSTMS(std::vector<int> &sol, int size)
         {
             jobNumber = sol[j];
 
-            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + previousMachineEndTime[j];
+            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + previousJobEndTime;
             if (previousMachineEndTime[j] > stpluspme )
             {
                 previousMachineEndTime[j] = previousMachineEndTime[j] + processingTimesMatrix[jobNumber][m];
@@ -3250,7 +3349,6 @@ long int PfspInstance::computeSDSTMS(std::vector<int> &sol, int size)
             }
         }
     }
-
     return previousMachineEndTime[size];
 }
 
@@ -3526,6 +3624,122 @@ long int PfspInstance::computeSDSTWT(std::vector<int> &sol, int size)
 
 }
 
+long int PfspInstance::computeMSLB()
+{
+    int max_j = 0;
+    int max_i[nbMac];
+
+    for(int i=0;i<nbJob;i++)
+    {
+        int temp_j=0;
+        for(int j=1;j<=nbMac;j++)
+        {
+            int pt = processingTimesMatrix[i][j];
+            max_i[j-1]=i==0?pt:pt+max_i[j-1];
+            temp_j+=pt;
+        }
+        max_j = temp_j>max_j?temp_j:max_j;
+    }
+    int maxx_i = 0;
+    for(int i=0;i<nbMac;i++)
+    {
+        maxx_i = max_i[i]>maxx_i?max_i[i]:maxx_i;
+    }
+    int P=max_j>maxx_i?max_j:maxx_i;
+    return P;
+}
+
+void PfspInstance::computeHead(std::vector<int>& sol,std::vector< std::vector< int > >& head, int njobs)
+{
+    int j,m;
+    int jobNumber;
+    int prevj = 0;
+    for(j=1;j<njobs;j++)
+    {
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        head[1][j] = prevj;
+    }
+
+      for ( j = 1; j < njobs; ++j )
+        {
+            long int previousJobEndTime = head[1][j];
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                if ( head[m][j-1] > previousJobEndTime )
+                {
+                    head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m];
+                }
+                else
+                {
+                    head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                }
+                previousJobEndTime = head[m][j];
+            }
+    }
+}
+
+
+/*
+void PfspInstance::updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans)
+{
+    int nmac = nbMac;
+    int njobs = nbJob;
+    const std::vector < std::vector < long int > >& pmatrix = processingTimesMatrix;
+    int sol_i = solution[starting_point];
+    int ins_pos[nmac+1];
+    long int c_cur = head[1][starting_point-1]+pmatrix[sol_i][1];
+    ins_pos[1] = c_cur;
+    //(njobs+1,0);
+    //for( int i=0; i < starting_point; i++)
+     //   makespans[i] = head[nmac][i];
+
+    for (int i = 2; i <= nmac; ++i) {
+        int c_pm = head[i][starting_point-1];
+        if(c_pm < c_cur)
+        {
+            c_cur = c_cur + pmatrix[sol_i][i];
+        }
+        else
+        {
+            c_cur = c_pm + pmatrix[sol_i][i];
+        }
+        ins_pos[i] =  c_cur;
+
+    }
+
+    //int wt = (std::max(c_cur - this.getDueDate(sol_i), 0L) * this.getPriority(sol_i));
+    makespans[starting_point] = c_cur;
+//    long int pre_c_cur = c_cur;
+
+ //   for (int j = 1; j< starting_point; ++j )
+  //  {
+  //      wt += (std::max((long int)head[nmac][j] - pis.getDueDate(solution[j]), 0L) * pis.getPriority(solution[j]));
+  //  }
+
+    for(int k=starting_point+1; k<= njobs; k++)
+    {
+        int job = solution[k];
+        c_cur = ins_pos[1] + pmatrix[job][1];
+        ins_pos[1] = c_cur;
+        for(int m=2; m <= nmac ; m++)
+        {
+            int c_pm = ins_pos[m];
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
+            }
+            c_cur += pmatrix[job][m];
+            ins_pos[m] = c_cur;
+        }
+        makespans[k] = c_cur;
+     //   wt += (std::max(pre_c_cur - pis.getDueDate(solution[k]), 0L) * pis.getPriority(solution[k]));
+    }
+    //value->setSolutionValue(wt);
+}
+*/
 /**
 double computeMS_TEST(PfspInstance& i, std::vector <int>& v)
 {
