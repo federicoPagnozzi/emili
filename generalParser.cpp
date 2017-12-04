@@ -39,7 +39,6 @@
 /*Base Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
-#define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
 #define TERMINATION_TIMERO "timero"
 #define TERMINATION_LOCMIN "locmin"
@@ -841,8 +840,8 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
     else if(tm.checkToken(PERTURBATION_COMPLEX_PERTURBATION))
     {
         printTab("Complex Perturbation");
-        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         per = new emili::ComplexPerturbation(prsp,lls);
     }
     prs::decrementTabLevel();

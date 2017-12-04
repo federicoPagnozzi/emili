@@ -2070,7 +2070,7 @@ std::vector< int > inline lr_solution_sequence(int start,std::vector< int > u,st
     std::sort(u.begin(),u.end(),stdc);
 #endif
     initial.push_back(u[start]);
-    u.erase(u.begin());
+    u.erase(u.begin()+start);
 
     int usize = u.size()-1;
 
@@ -2088,7 +2088,9 @@ std::vector< int > inline lr_solution_sequence(int start,std::vector< int > u,st
     }
 
     initial.push_back(u[0]);
-
+/*    for(int i = 0; i< initial.size() ; i++)
+        std::cout << " " << initial[i];
+    std::cout << " -> " << initial.size() <<  "\n";*/
     return initial;
 }
 
