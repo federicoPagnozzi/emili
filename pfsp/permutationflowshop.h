@@ -553,6 +553,14 @@ public:
     MNEH(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
 };
 
+class RMNEH: public emili::pfsp::PfspInitialSolution
+{
+protected:
+    virtual Solution* generate();
+public:
+    RMNEH(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
+};
+
 class NeRZSolution: public emili::pfsp::PfspInitialSolution
 {
 protected:

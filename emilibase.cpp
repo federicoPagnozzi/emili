@@ -1515,18 +1515,20 @@ void emili::MaxStepsTermination::reset()
 
 emili::Solution* emili::PipeSearch::search(Solution *initial)
 {
-    Solution* bestSoFar = init->generateEmptySolution();
-    bestSoFar->operator =(*initial);
-    Solution* ithSolution = bestSoFar;
+    Solution* current = init->generateEmptySolution();
+    *bestSoFar = *initial;
+    *current  = *initial;
     for(std::vector< emili::LocalSearch*>::iterator iter = lss.begin();iter!=lss.end();++iter)
     {
-        ithSolution = (*iter)->search(ithSolution);
-        if(ithSolution->operator <(*bestSoFar))
-        {
-            delete bestSoFar;
-            bestSoFar = ithSolution;
+        Solution* ithSolution = (*iter)->search(current);
+        *current = *ithSolution;
+        if(current->operator <(*bestSoFar))
+        {            
+            *bestSoFar = *ithSolution;
         }
+        delete ithSolution;
     }
+    delete current;
     return bestSoFar;
 }
 

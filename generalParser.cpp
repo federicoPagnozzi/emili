@@ -36,6 +36,7 @@
 #define GVNS_ILS "gvns"
 #define TEST_INIT "stin"
 #define EMPTY_LOCAL "nols"
+#define LS_PIPE "lspipe"
 /*Base Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
@@ -410,7 +411,7 @@ prs::Component prs::Builder::buildComponent(int type)
     void* raw_pointer=nullptr;
     switch(type)
     {    
-    case COMPONENT_ALGORITHM: raw_pointer = buildAlgo();break;
+    case COMPONENT_ALGORITHM: raw_pointer = buildAlgo();c.setType(COMPONENT_EMPTY);break;
     case COMPONENT_INITIAL_SOLUTION_GENERATOR: raw_pointer = buildInitialSolution();break;
     case COMPONENT_TERMINATION_CRITERION: raw_pointer =  buildTermination();break;    
     case COMPONENT_NEIGHBORHOOD: raw_pointer = buildNeighborhood();c.setType(COMPONENT_EMPTY);break;
@@ -507,7 +508,12 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
     {
         emili::initializeRandom(getSeed(tm));
         this->instance = probBuilder->openInstance();
-        emili::LocalSearch* ls = buildComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        prs::Component cls = buildComponent(COMPONENT_ALGORITHM);
+        if(cls.getType() == COMPONENT_EMPTY || cls.getType() == COMPONENT_NULL)
+        {
+            fatalError(cls.getType(),COMPONENT_ALGORITHM);
+        }
+        emili::LocalSearch* ls = cls.get<emili::LocalSearch>();
         ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
         if(tm.seek(PRINT_SOLUTION)>0)
         {
@@ -721,6 +727,13 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         printTab("NO LOCAL SEARCH");
         emili::InitialSolution* ini = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         ls = new emili::EmptyLocalSearch(*ini);
+    }
+    else if(tm.checkToken(LS_PIPE))
+    {
+        printTab("Localserach pipe");
+        emili::InitialSolution* ini = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        std::vector<emili::LocalSearch* > algos = this->buildComponentVector< emili::LocalSearch >(COMPONENT_ALGORITHM);
+        ls = new emili::PipeSearch(*ini,algos);
     }
 
     prs::decrementTabLevel();

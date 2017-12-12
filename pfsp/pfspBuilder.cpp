@@ -87,6 +87,7 @@
 #define INITIAL_LR_NM "lrnm"
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
+#define INITIAL_RMNEH "rmneh"
 #define INITIAL_WNSLACK "nwslack"
 #define INITIAL_FRB5 "frb5"
 #define INITIAL_CSFRB5 "csfrb5"
@@ -713,6 +714,12 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             printTab( "mneh initial solution");
             //return new testIS(instance);
             init = new emili::pfsp::MNEH(*instance);
+        }
+    else if(tm.checkToken(INITIAL_RMNEH))
+        {
+            printTab( "mneh initial solution");
+            //return new testIS(instance);
+            init = new emili::pfsp::RMNEH(*instance);
         }
     else if(tm.checkToken(INITIAL_NEH))
     {
