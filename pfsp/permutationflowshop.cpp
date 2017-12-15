@@ -3394,7 +3394,7 @@ emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
         {
             delete best;
             best = current;
-            std::cout << "initial " << best->getSolutionValue() << "\n";
+            //std::cout << "initial " << best->getSolutionValue() << "\n";
         }
         else
         {
