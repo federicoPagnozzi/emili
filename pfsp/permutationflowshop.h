@@ -806,6 +806,22 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+
+class MPTLMPerturbation: public emili::Perturbation
+{
+protected:
+    int num_of_solutions;
+    bool locser;
+    emili::InitialSolution* initial;
+    emili::LocalSearch* ls;
+public:
+    MPTLMPerturbation(int np, emili::InitialSolution* init, emili::LocalSearch* ll):num_of_solutions(np),initial(init),ls(ll),locser(true) {}
+    MPTLMPerturbation(int np, emili::InitialSolution* init):num_of_solutions(np),initial(init),ls(nullptr),locser(false) {}
+
+    emili::Solution* perturb(Solution *solution);
+    ~MPTLMPerturbation();
+};
+
 class PfspDestructorTest: public emili::Destructor
 {
 protected:

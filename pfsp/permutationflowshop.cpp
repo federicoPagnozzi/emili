@@ -3381,6 +3381,47 @@ emili::Solution* emili::pfsp::RSffLSPerturbation::perturb(Solution *solution)
     return s_n;
 }
 
+emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
+{
+    emili::Solution* best;
+    emili::Solution* current;
+    best = initial->generateSolution();
+
+    for(int i=0;i<num_of_solutions;i++)
+    {
+        current = initial->generateSolution();
+        if( *current < *best)
+        {
+            delete best;
+            best = current;
+            std::cout << "initial " << best->getSolutionValue() << "\n";
+        }
+        else
+        {
+            delete current;
+        }
+
+    }
+
+    if(locser)
+    {
+        current = ls->search(best);
+        if(current!=best)
+            delete best;
+
+        return current;
+    }
+
+    return best;
+}
+
+emili::pfsp::MPTLMPerturbation::~MPTLMPerturbation()
+{
+    if(ls!=nullptr)
+        delete ls;
+    delete initial;
+}
+
 
 emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
 {

@@ -181,6 +181,8 @@
 #define PERTURBATION_IG_OPTIMIZED "igoper"
 #define PERTURBATION_IGLS_OPTIMIZED "igols"
 #define PERTURBATION_NWIG "nwig"
+#define PERTURBATION_MPTLM "mptlm"
+#define PERTURBATION_MPTLM_LS "mptlmls"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -457,6 +459,23 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSIOPerturbation(n,*instance);
+    }
+    else if(tm.checkToken(PERTURBATION_MPTLM))
+    {
+        int n = tm.getInteger();
+        oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
+        printTab(oss.str().c_str());
+        emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        per = new emili::pfsp::MPTLMPerturbation(n,init);
+    }
+    else if(tm.checkToken(PERTURBATION_MPTLM_LS))
+    {
+        int n = tm.getInteger();
+        oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
+        printTab(oss.str().c_str());
+        emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        per = new emili::pfsp::MPTLMPerturbation(n,init,ll);
     }
     else if(tm.checkToken(PERTURBATION_CP3))
     {
