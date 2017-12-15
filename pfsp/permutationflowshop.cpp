@@ -403,6 +403,13 @@ std::vector< int > inline nehrs(std::vector<int >& _fsp, int N, emili::pfsp::Per
             _fsp[2] = _fsp[ind2];
             _fsp[ind2] = swp;
 
+            /*solTMP[1]=_fsp[2];
+            solTMP[2]=_fsp[1];
+            int mS=pis.computeObjectiveFunction(_fsp,2);//compute_total_wt(_fsp,2);
+            if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
+                _fsp[1]=solTMP[1];
+                _fsp[2]=solTMP[2];
+            }*/
             for(int k=3;k<=N;k++){
                     min = std::numeric_limits<int>::max();//min=10000000;
                 for(int r=1; r<=k; r++){
@@ -432,6 +439,68 @@ std::vector< int > inline nehrs(std::vector<int >& _fsp, int N, emili::pfsp::Per
             }
 
          return _fsp;
+}
+
+int inline nwnehrs(std::vector<int >& _fsp, int N, emili::pfsp::PermutationFlowShop& pis, const std::vector < std::vector < int > >& distances)
+{
+            int min;
+            int tmp,ind;
+            std::vector< int >  solTMP(N+1,0);
+ /*          solTMP[1]=_fsp[2];
+               solTMP[2]=_fsp[1];
+            int mS=pis.computeObjectiveFunction(_fsp,2);//compute_total_wt(_fsp,2);
+            if(pis.computeObjectiveFunction(solTMP,2)<mS){//compute_total_wt(solTMP,2)<mS){
+                _fsp[1]=solTMP[1];
+                _fsp[2]=solTMP[2];
+            }
+*/
+            int ind1 = emili::generateRandomNumber()%N +1;
+            int ind2 = emili::generateRandomNumber()%N +1;
+
+            int swp = _fsp[1];
+            _fsp[1] = _fsp[ind1];
+            _fsp[ind1] = swp;
+
+            swp = _fsp[2];
+            _fsp[2] = _fsp[ind2];
+            _fsp[ind2] = swp;
+            int makespan = distances[0][_fsp[1]]+distances[_fsp[1]][_fsp[2]];
+            for(int k=3;k<=N;k++){
+                    min = std::numeric_limits<int>::max();//min=10000000;
+                for(int r=1; r<=k; r++){
+
+                    for(int h=1; h<r; h++)
+                        solTMP[h]=_fsp[h];
+                    solTMP[r]=_fsp[k];
+                    for(int h=r+1; h<=k; h++)
+                        solTMP[h]=_fsp[h-1];
+
+                 //   int tmp2=pis.computeObjectiveFunction(solTMP,k);//compute_total_wt(solTMP,k+1);
+                    int kk = solTMP[r];
+                    int kmo = solTMP[r-1];
+                    int kpo = solTMP[(r+1)%(N+1)];
+                    tmp = makespan + distances[kmo][kk] + distances[kk][kpo] - distances[kmo][kpo];
+                   // assert(tmp2 == tmp);
+                    if(tmp<min){
+                        min=tmp;
+                        ind=r;
+                    }
+
+                }
+
+                for(int h=0; h<ind; h++)
+                    solTMP[h]=_fsp[h];
+                solTMP[ind]=_fsp[k];
+                for(int h=ind+1; h<=k; h++)
+                    solTMP[h]=_fsp[h-1];
+
+                for(int h=0; h<=k; ++h)
+                    _fsp[h]=solTMP[h];
+
+                 makespan = min;
+            }
+
+         return makespan;
 }
 
 std::vector< int > inline nehls(std::vector<int >& _fsp, int N, emili::pfsp::PermutationFlowShop& pis,emili::LocalSearch* ls)
@@ -3381,7 +3450,7 @@ emili::Solution* emili::pfsp::RSffLSPerturbation::perturb(Solution *solution)
     return s_n;
 }
 
-emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
+emili::Solution* emili::pfsp::RestartPerturbation::perturb(Solution *solution)
 {
     emili::Solution* best;
     emili::Solution* current;
@@ -3394,7 +3463,6 @@ emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
         {
             delete best;
             best = current;
-            //std::cout << "initial " << best->getSolutionValue() << "\n";
         }
         else
         {
@@ -3415,7 +3483,32 @@ emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
     return best;
 }
 
-emili::pfsp::MPTLMPerturbation::~MPTLMPerturbation()
+emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
+{
+    std::vector<int> sol = ((PermutationFlowShopSolution*)solution)->getJobSchedule();
+    std::vector<int> best = sol;
+    std::vector<int> current = sol;
+    int bms = nwnehrs(best,njobs,pis,distances);
+    int cms = 0;
+    for(int i=0;i<num_of_solutions;i++)
+    {
+        //current = sol;
+        cms = nwnehrs(current,njobs,pis,distances);
+        //cms = pis.computeObjectiveFunction(current);
+       // std::cout << i+1 << "] current " << cms << " best " << bms << std::endl;
+        if( cms < bms)
+        {
+            best = current;
+            bms = cms;
+        }
+
+    }
+    //std::cout << "final " << bms << "\n";
+    //assert(bms = pis.computeObjectiveFunction(best));
+    return new PermutationFlowShopSolution(bms,best);
+}
+
+emili::pfsp::RestartPerturbation::~RestartPerturbation()
 {
     if(ls!=nullptr)
         delete ls;

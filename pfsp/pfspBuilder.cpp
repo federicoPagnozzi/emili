@@ -182,7 +182,8 @@
 #define PERTURBATION_IGLS_OPTIMIZED "igols"
 #define PERTURBATION_NWIG "nwig"
 #define PERTURBATION_MPTLM "mptlm"
-#define PERTURBATION_MPTLM_LS "mptlmls"
+#define PERTURBATION_RESTART "restart"
+#define PERTURBATION_RESTART_LS "restartls"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -460,22 +461,30 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSIOPerturbation(n,*instance);
     }
-    else if(tm.checkToken(PERTURBATION_MPTLM))
+    else if(tm.checkToken(PERTURBATION_RESTART))
     {
         int n = tm.getInteger();
-        oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
+        oss.str(""); oss  << "Restart perturbation, n =" << n << "";
         printTab(oss.str().c_str());
         emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        per = new emili::pfsp::MPTLMPerturbation(n,init);
+        per = new emili::pfsp::RestartPerturbation(n,init);
     }
-    else if(tm.checkToken(PERTURBATION_MPTLM_LS))
+    else if(tm.checkToken(PERTURBATION_RESTART_LS))
     {
         int n = tm.getInteger();
-        oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
+        oss.str(""); oss  << "Restart perturbation, n =" << n << "";
         printTab(oss.str().c_str());
         emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        per = new emili::pfsp::MPTLMPerturbation(n,init,ll);
+        per = new emili::pfsp::RestartPerturbation(n,init,ll);
+    }
+    else if(tm.checkToken(PERTURBATION_MPTLM))
+        {
+
+            int n = tm.getInteger();
+            oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::MPTLMPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
     }
     else if(tm.checkToken(PERTURBATION_CP3))
     {

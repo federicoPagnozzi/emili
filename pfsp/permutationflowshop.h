@@ -555,7 +555,7 @@ public:
 
 class RMNEH: public emili::pfsp::PfspInitialSolution
 {
-protected:
+protected:    
     virtual Solution* generate();
 public:
     RMNEH(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
@@ -807,7 +807,7 @@ public:
 };
 
 
-class MPTLMPerturbation: public emili::Perturbation
+class RestartPerturbation: public emili::Perturbation
 {
 protected:
     int num_of_solutions;
@@ -815,11 +815,25 @@ protected:
     emili::InitialSolution* initial;
     emili::LocalSearch* ls;
 public:
-    MPTLMPerturbation(int np, emili::InitialSolution* init, emili::LocalSearch* ll):num_of_solutions(np),initial(init),ls(ll),locser(true) {}
-    MPTLMPerturbation(int np, emili::InitialSolution* init):num_of_solutions(np),initial(init),ls(nullptr),locser(false) {}
+    RestartPerturbation(int np, emili::InitialSolution* init, emili::LocalSearch* ll):num_of_solutions(np),initial(init),ls(ll),locser(true) {}
+    RestartPerturbation(int np, emili::InitialSolution* init):num_of_solutions(np),initial(init),ls(nullptr),locser(false) {}
 
     emili::Solution* perturb(Solution *solution);
-    ~MPTLMPerturbation();
+    ~RestartPerturbation();
+};
+
+class MPTLMPerturbation: public emili::Perturbation
+{
+protected:
+    const std::vector < std::vector < int > >& distances;
+    int num_of_solutions;
+    emili::pfsp::NWPFSP_MS& pis;
+    int njobs;
+public:
+    MPTLMPerturbation(int np, emili::pfsp::NWPFSP_MS& init):num_of_solutions(np),pis(init),njobs(init.getNjobs()),distances(init.getDistances()) {}
+
+    emili::Solution* perturb(Solution *solution);
+
 };
 
 class PfspDestructorTest: public emili::Destructor
