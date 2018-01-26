@@ -521,6 +521,23 @@ void emili::LocalSearch::setSearchTime(float time)
     this->seconds = time;
 }
 
+emili::LocalSearch::~LocalSearch()
+ {
+    if(init != nullptr)
+    {
+        delete init;
+    }
+    if(termcriterion != nullptr)
+    {
+       delete termcriterion;
+    }
+    if(neighbh != nullptr)
+    {
+       delete neighbh;
+    }
+      delete bestSoFar;
+}
+
 emili::Termination& emili::LocalSearch::getTermination()
 {
     return *this->termcriterion;
@@ -1594,23 +1611,22 @@ emili::Solution* emili::LS_VND::search(emili::Solution *initial)
 {
     int i = 0;
     int k = neigh.size();
-    Solution* incumbent = neigh[i]->search(initial);
+    bestSoFar = neigh[i]->search(initial);
     do{
 
-        Solution* new_s = neigh[i]->search(incumbent);
-        if(*new_s < *incumbent)
+        Solution* new_s = neigh[i]->search(bestSoFar);
+        if(*new_s < *bestSoFar)
         {
-            delete incumbent;
-            incumbent = new_s;
+            *bestSoFar = *new_s;
             i = 0;
         }
         else
         {
-    delete new_s;
             i = i+1;
         }
+        delete new_s;
     }while(i < k);
-    return incumbent;
+    return bestSoFar;
 }
 
 
@@ -1666,14 +1682,13 @@ emili::Solution* emili::GVNS::search(Solution* initial)
         //initialization done
         do{
             k = 0;
-            do{
-               // std::cout << "starting loop" << std::endl;
+            do{              
                 if(s_p != s && s_p != nullptr)
                     delete s_p;
                 //Shake step
                // std::cout << "pre shake"<< k << std::endl;
                 s_p = shaker.shake(s,k);
-               // std::cout << "post shake" << std::endl;
+                //std::cout << "post shake" << std::endl;
                 //local search on s_p
                 if(s!=s_s && s_s != nullptr)
                     delete s_s;
@@ -1691,14 +1706,15 @@ emili::Solution* emili::GVNS::search(Solution* initial)
                 //neighborhood change step
                 s_p = s;
                // std::cout << "pre nc " << std::endl;
-                s = changer.neighborhoodChange(s_p,s_s,k);
-               // std::cout << "post nc" << std::endl;
+                s = changer.neighborhoodChange(s_p,s_s,k);                
+                //std::cout << "post nc" << std::endl;
             }while (k < k_max);
         }while(!termcriterion->terminate(s_p,s));
        // std::cout << "returning" << std::endl;
+
         delete s_p;
         delete s_s;
-
+        std::cout << "RETURNING!"<< std::endl;
         return bestSoFar->clone();
 
 }

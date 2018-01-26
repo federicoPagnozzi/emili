@@ -896,7 +896,7 @@ public:
     emili::InitialSolution& getInitialSolution();
     virtual Solution* getBestSoFar(); //{ return bestSoFar;}
     virtual void setBestSoFar(Solution* newBest);// {this->bestSoFar=newBest;}
-    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh; delete bestSoFar;}
+    virtual ~LocalSearch();
 
 };
 
@@ -1419,7 +1419,7 @@ public:
     }
     virtual Solution* search(emili::Solution* initial);
     virtual Solution* getBestSoFar();
-    virtual ~GVNS() { delete neighbh;}
+    virtual ~GVNS() {delete &shaker;delete &changer;}
 };
 
 
