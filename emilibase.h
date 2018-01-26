@@ -1335,6 +1335,7 @@ public:
     {
         this->init = &is;
         this->termcriterion = &tc;
+        this->bestSoFar = is.generateEmptySolution();
     }
     LS_VND(emili::LocalSearch& ls, std::vector<emili::LocalSearch*> n):LocalSearch(ls),neigh(n) { }
     virtual emili::Solution* search(emili::Solution *initial);
