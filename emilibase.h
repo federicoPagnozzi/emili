@@ -833,7 +833,7 @@ float seconds;
      * the empty constructor is declared protected so that an extending class can not
      * use a public one
      */
-    LocalSearch() { }
+    LocalSearch():bestSoFar(nullptr),feasibleBest(nullptr) { }
 public:
     /**
      * @brief LocalSearch

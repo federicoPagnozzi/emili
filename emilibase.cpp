@@ -1611,22 +1611,28 @@ emili::Solution* emili::LS_VND::search(emili::Solution *initial)
 {
     int i = 0;
     int k = neigh.size();
-    bestSoFar = neigh[i]->search(initial);
+    Solution* incumbent = neigh[i]->search(initial);
+    *bestSoFar = *incumbent;
     do{
 
-        Solution* new_s = neigh[i]->search(bestSoFar);
-        if(*new_s < *bestSoFar)
+        Solution* new_s = neigh[i]->search(incumbent);
+        if(*new_s < *incumbent)
         {
-            *bestSoFar = *new_s;
+            delete incumbent;
+            incumbent = new_s;
+            if(incumbent->operator <(*bestSoFar))
+            {
+                *bestSoFar = *incumbent;
+            }
             i = 0;
         }
         else
         {
             i = i+1;
+            delete new_s;
         }
-        delete new_s;
     }while(i < k);
-    return bestSoFar;
+    return bestSoFar->clone();
 }
 
 
@@ -1714,7 +1720,6 @@ emili::Solution* emili::GVNS::search(Solution* initial)
 
         delete s_p;
         delete s_s;
-        std::cout << "RETURNING!"<< std::endl;
         return bestSoFar->clone();
 
 }
