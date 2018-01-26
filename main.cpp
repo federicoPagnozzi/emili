@@ -16,6 +16,7 @@
 #include "pfsp/paramsparser.h"
 #else
 #include "pfsp/pfspBuilder.h"
+//#include "template/problem_builder.h"
 #endif
 #include "setup.h"
 #include <sys/types.h>
@@ -189,7 +190,9 @@ int main(int argc, char *argv[])
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
+    //ps.addBuilder(&px);
 #ifdef EM_LIB
     loadBuilders(ps);
 #else

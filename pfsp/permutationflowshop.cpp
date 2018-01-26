@@ -1960,48 +1960,6 @@ emili::Solution* emili::pfsp::NEHff::generate()
     return s;
 }
 
-emili::Solution* emili::pfsp::SlackConstructor::construct(Solution *partial)
-{
-    int nbJobs = pis.getNjobs();
-    std::vector< int >  sol(nbJobs+1, 0);
-    std::vector< int >&  p = ((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule();
-    int Ci = pis.computeMS(p);
-    std::vector<bool> assigned(nbJobs+1, false);
-    for(std::vector< int >::const_iterator iter = p.begin();iter !=  p.end();++iter)
-    {
-        assigned[*iter] = true;
-    }
-//    assigned[0] = false;
-    for (int var = 0; var < nbJobs; ++var) {
-        int kish = p[var+1];
-        if(kish==0)
-        {
-            int minJ = 0 ;
-            int minE = INT_MAX;
-            for (int jb = 1; jb <= nbJobs; ++jb) {
-                if(!assigned[jb]){
-                    int dd = pis.getDueDate(jb);
-                    int pr = pis.getPriority(jb);
-                    int wej = pr * (dd-Ci);
-                    if(minE > wej){
-                        minJ = jb;
-                        minE = wej;
-                    }
-                }
-            }
-             p[var+1] = minJ;
-            assigned[minJ] = true;
-            Ci = pis.computeMS(p);
-        }
-        //cout << "partial makespan: " << Ci << std::endl;
-    }
-    sol = p;
-    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    pis.evaluateSolution(*s);
-    return s;
-
-}
-
 emili::Solution* emili::pfsp::LITSolution::generate()
 {
     int nbJobs = pis.getNjobs();
@@ -2033,38 +1991,6 @@ emili::Solution* emili::pfsp::LITSolution::generate()
    // sol = neh2(sol,nbJobs,pis);
    // best = pis.computeWT(sol);
     return new PermutationFlowShopSolution(best,sol);
-}
-
-emili::Solution* emili::pfsp::SlackConstructor::constructFull()
-{
-    int nbJobs = pis.getNjobs();
-    std::vector< int >  sol(nbJobs+1, 0);
-    int Ci  = 0;
-    std::vector<bool> assigned(nbJobs+1, false);
-    std::vector<int> partial(nbJobs+1,0);
-    for (int var = 0; var < nbJobs; ++var) {
-        int minJ = 0 ;
-        int minE = INT_MAX;
-        for (int jb = 1; jb <= nbJobs; ++jb) {
-            if(!assigned[jb]){
-                int dd = pis.getDueDate(jb);
-                int pr = pis.getPriority(jb);
-                int wej = pr * (dd-Ci);
-                if(minE > wej){
-                    minJ = jb;
-                    minE = wej;
-                }
-            }
-        }
-        partial[var+1] = minJ;
-        assigned[minJ] = true;
-        Ci = pis.computeMS(partial);
-        //cout << "partial makespan: " << Ci << std::endl;
-    }
-    sol = partial;
-    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    pis.evaluateSolution(*s);
-    return s;
 }
 
 emili::Solution* emili::pfsp::RZSolution::generate()
@@ -2230,93 +2156,6 @@ emili::Solution* emili::pfsp::NLRSolution::generate()
     best_wt = pis.computeObjectiveFunction(best);
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(best_wt,best);
 
-    return s;
-}
-
-
-emili::Solution* emili::pfsp::NEHSlackConstructor::construct(Solution *partial)
-{
-    int nbJobs = pis.getNjobs();
-    std::vector< int >  sol(nbJobs+1, 0);
-
-    std::vector<int > part = slack_construct(((emili::pfsp::PermutationFlowShopSolution*)partial)->getJobSchedule(),nbJobs,pis);
-    sol = neh(part,nbJobs,pis);
-    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    pis.evaluateSolution(*s);
-    return s;
-
-}
-
-
-
-emili::Solution* emili::pfsp::NEHSlackConstructor::constructFull()
-{
-    int nbJobs = pis.getNjobs();
-    std::vector< int >  sol(nbJobs+1, 0);
-    int Ci  = 0;
-    std::vector<bool> assigned(nbJobs+1, false);
-    std::vector<int> partial(nbJobs+1,0);
-    for (int var = 0; var < nbJobs; ++var) {
-        int minJ = 0 ;
-        int minE = INT_MAX;
-        for (int jb = 1; jb <= nbJobs; ++jb) {
-            if(!assigned[jb]){
-                int dd = pis.getDueDate(jb);
-                int pr = pis.getPriority(jb);
-                int wej = pr * (dd-Ci);
-                if(minE > wej){
-                    minJ = jb;
-                    minE = wej;
-                }
-            }
-        }
-        partial[var+1] = minJ;
-        assigned[minJ] = true;
-        Ci = pis.computeMS(partial);
-        //cout << "partial makespan: " << Ci << std::endl;
-    }
-    sol = neh(partial,nbJobs,pis);
-    PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
-    pis.evaluateSolution(*s);
-    return s;
-}
-
-emili::Solution* emili::pfsp::PfspDestructor::destruct(Solution *solutioon)
-{
-
-    std::vector< int > des(((emili::pfsp::PermutationFlowShopSolution*)solutioon)->getJobSchedule());
-    int size = des.size();
-    int start_position = emili::generateRandomNumber()%(size-1);
-    int num_postion = emili::generateRandomNumber()%(size-start_position-1);
-    des.erase(des.begin()+start_position,des.begin()+start_position+num_postion);
-    des.insert(des.begin()+start_position,num_postion,0);
-
-    int nbJobs = instance.getNjobs();
-    std::vector<int> res = slack_construct(des,nbJobs,instance);
-    res = neh2(res,nbJobs,instance);
-    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(res);
-    instance.evaluateSolution(*s);
-    return s;
-}
-
-emili::Solution* emili::pfsp::SOADestructor::destruct(Solution *solutioon)
-{
-
-    std::vector< int > des (((emili::pfsp::PermutationFlowShopSolution*)solutioon)->getJobSchedule());
-    int size = des.size();
-    for (int var = 0; var < d; ++var) {
-        int num = emili::generateRandomNumber()%(size-1)+1;
-        if(des[num]!=0){
-            des[num]=0;
-        }else{
-            var--;
-        }
-    }
-    int nbJobs = instance.getNjobs();
-    std::vector<int> res = slack_construct(des,nbJobs,instance);
-    res = neh2(res,nbJobs,instance);
-    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(res);
-    instance.evaluateSolution(*s);
     return s;
 }
 
@@ -3515,31 +3354,6 @@ emili::pfsp::RestartPerturbation::~RestartPerturbation()
     delete initial;
 }
 
-
-emili::Solution* emili::pfsp::PfspDestructorTest::destruct(Solution *solutioon)
-{
-
-    std::vector< int > des(((emili::pfsp::PermutationFlowShopSolution*)solutioon)->getJobSchedule());
-    int size = des.size();    
-    int hsize = size/2;
-    int start_position =  emili::generateRandomNumber()%(hsize-1);
-    int start_position_2 = emili::generateRandomNumber()%(hsize-1)+hsize;
-    int num_postion = size/10;
-    int end_pos = (start_position+num_postion)<hsize?(start_position+num_postion):hsize;
-    int end_pos_2 = (start_position_2+num_postion)<size?(start_position_2+num_postion):size;
-    //std::cout << "start_position , num_position " << start_position << " , " << end_pos << std::endl;
-    //std::cout << "start_position2 , num_position2 " << start_position_2 << " , " << end_pos_2 << std::endl;
-    des.erase(des.begin()+start_position,des.begin()+end_pos);
-    des.insert(des.begin()+start_position,(end_pos-start_position),0);
-    des.erase(des.begin()+start_position_2,des.begin()+end_pos_2);
-    des.insert(des.begin()+start_position_2,(end_pos_2-start_position_2),0);
-    int nbJobs = istance.getNjobs();
-    std::vector<int> res = slack_construct(des,nbJobs,istance);
-    res = neh(res,nbJobs,istance);
-    emili::Solution* s = new emili::pfsp::PermutationFlowShopSolution(res);
-    istance.evaluateSolution(*s);
-    return s;
-}
 
 /**
 Construct the solution inserting one job at a time, by always selecting

@@ -22,7 +22,6 @@
 
 #include <iostream>
 #include <assert.h>
-#include "pfsp/permutationflowshop.h"
 /**
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
@@ -1591,51 +1590,117 @@ void emili::Metropolis::reset()
 
 /**  GVNS */
 
+emili::Solution* emili::LS_VND::search(emili::Solution *initial)
+{
+    int i = 0;
+    int k = neigh.size();
+    Solution* incumbent = neigh[i]->search(initial);
+    do{
+
+        Solution* new_s = neigh[i]->search(incumbent);
+        if(*new_s < *incumbent)
+        {
+            delete incumbent;
+            incumbent = new_s;
+            i = 0;
+        }
+        else
+        {
+    delete new_s;
+            i = i+1;
+        }
+    }while(i < k);
+    return incumbent;
+}
+
+
+emili::Solution* emili::Shake::perturb(Solution *solution)
+{
+        return shake(solution,emili::generateRandomNumber()%Kmax);
+}
+
+emili::Solution* emili::PerShake::shake(Solution *s, int n)
+{
+    Perturbation* p = shakes[n];
+    return p->perturb(s);
+}
+
+emili::Solution* emili::NeighborhoodShake::shake(Solution *s, int n)
+{
+    Neighborhood* p = shakes[n];
+    return p->random(s);
+}
+
+emili::Solution* emili::NeighborhoodChange::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+        int n = 1;
+        return neighborhoodChange(intensification_solution,diversification_solution,n);
+}
+
+emili::Solution* emili::AccNeighborhoodChange::neighborhoodChange(emili::Solution *intensification_solution,emili::Solution *diversification_solution, int &n)
+{
+    Solution* accepted = acc->accept(intensification_solution,diversification_solution);
+    if(accepted == intensification_solution)
+    {
+        n++;
+    }
+    else
+    {
+        n=0;
+    }
+    return accepted;
+}
+
+
 emili::Solution* emili::GVNS::search(Solution* initial)
 {
         int k = 0;
-        int k_max = perturbations.size();
-        bestSoFar = initial;
-        ls.setBestSoFar(initial);
-        emili::Solution*  s = ls.search(bestSoFar);
-        *bestSoFar = *s ;
-
+        int k_max = shaker.getKmax();
+        termcriterion->reset();
+        changer.reset();
+        emili::Solution* s = this->init->generateEmptySolution();
+        *s = *initial;
+        *bestSoFar = *s;
         emili::Solution* s_s = nullptr;
+        emili::Solution* s_p = nullptr;
         //initialization done
         do{
-
-            //Perturbation step
-            emili::Solution* s_p = perturbations[k]->perturb(s);
-
-            //local search on s_p
-            if(s!=s_s && s_s != nullptr)
-                delete s_s;
-
-            //ls.setBestSoFar(bestSoFar);
-            s_s = ls.search(s_p);
-
-            //best solution
-            if(*s_s < *bestSoFar)
-            {
-                *bestSoFar = *s_s;
-                //ls.setBestSoFar(bestSoFar);
-            }
-
-            if(*s_s < *s_p)
-            {
-                s = s_s;
-                k = 0 ;
+            k = 0;
+            do{
+               // std::cout << "starting loop" << std::endl;
+                if(s_p != s && s_p != nullptr)
+                    delete s_p;
+                //Shake step
+               // std::cout << "pre shake"<< k << std::endl;
+                s_p = shaker.shake(s,k);
+               // std::cout << "post shake" << std::endl;
+                //local search on s_p
+                if(s!=s_s && s_s != nullptr)
+                    delete s_s;
+               // std::cout << "pre ls" << std::endl;
+                s_s = ls.search(s_p);
+               // std::cout << "post ls" << std::endl;
                 delete s_p;
-            }
-            else
-            {
-                delete s_p;
-                k++;
-            }
+                //best solution
+                if(*s_s < *bestSoFar)
+                {
+                    *bestSoFar = *s_s;
+                    printSolstats(bestSoFar);
+                    //s_time = clock();
+                }
+                //neighborhood change step
+                s_p = s;
+               // std::cout << "pre nc " << std::endl;
+                s = changer.neighborhoodChange(s_p,s_s,k);
+               // std::cout << "post nc" << std::endl;
+            }while (k < k_max);
+        }while(!termcriterion->terminate(s_p,s));
+       // std::cout << "returning" << std::endl;
+        delete s_p;
+        delete s_s;
 
-        }while(k < k_max && keep_going);
+        return bestSoFar->clone();
 
-        return bestSoFar;
 }
 
 emili::Solution* emili::GVNS::getBestSoFar()

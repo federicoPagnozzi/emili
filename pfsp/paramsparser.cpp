@@ -916,23 +916,7 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
 
 emili::LocalSearch* prs::ParamsParser::gvns(prs::TokenManager& tm)
 {
-    emili::InitialSolution* is = init(tm);
-    emili::Perturbation* p1 = per(tm);
-    emili::Perturbation* p2 = per(tm);
-    emili::pfsp::GVNS_innerloop* gvi = new emili::pfsp::GVNS_innerloop(*is);
-    emili::Perturbation* p3 = per(tm);
-    emili::Perturbation* p4 = per(tm);
-
-    std::vector< emili::Perturbation* > p;
-    p.push_back(p1);
-    p.push_back(p2);
-
-    std::vector< emili::Perturbation* > pl;
-    pl.push_back(p3);
-    pl.push_back(p4);
-
-    emili::GVNS* gg = new emili::GVNS(*gvi,p);
-    return new emili::GVNS(*gvi,pl);
+  return nullptr;
 }
 
 emili::BestTabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)

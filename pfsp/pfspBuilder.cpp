@@ -1084,7 +1084,7 @@ emili::Problem* prs::PfspBuilder::buildProblem()
 }
 
 emili::pfsp::PermutationFlowShop* loadProblem(char* t, PfspInstance i)
-{
+{    
     emili::pfsp::PermutationFlowShop* prob;
     if(strcmp(t,PROBLEM_PFS_WT)==0)
     {

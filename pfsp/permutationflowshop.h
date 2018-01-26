@@ -527,16 +527,6 @@ public:
     LITSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) { }
 };
 
-class SlackConstructor: public emili::Constructor
-{
-protected:
-   PermutationFlowShop& pis;
-public:
-   SlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
-   virtual emili::Solution* construct(Solution *partial);
-   virtual emili::Solution* constructFull();
-};
-
 class RZSolution: public emili::pfsp::PfspInitialSolution
 {
 protected:
@@ -610,35 +600,6 @@ protected:
 public:
     NLRSolution(PermutationFlowShop& problem):emili::pfsp::LRSolution(problem) { }
     NLRSolution(PermutationFlowShop& problem,int number_of_sequences):emili::pfsp::LRSolution(problem,number_of_sequences) { }
-};
-
-class NEHSlackConstructor: public emili::Constructor
-{
-protected:
-   PermutationFlowShop& pis;
-public:
-   NEHSlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
-   virtual emili::Solution* construct(Solution *partial);
-   virtual emili::Solution* constructFull();
-};
-
-class PfspDestructor: public emili::Destructor
-{
-protected:
-    emili::pfsp::PermutationFlowShop& instance;
-public:
-    PfspDestructor(emili::pfsp::PermutationFlowShop& ist):instance(ist) { }
-    virtual emili::Solution* destruct(Solution* solutioon);
-};
-
-class SOADestructor: public emili::Destructor
-{
-protected:
-    int d;
-    emili::pfsp::PermutationFlowShop& instance;
-public:
-    SOADestructor(int d_parameter, emili::pfsp::PermutationFlowShop& inst):d(d_parameter),instance(inst) {}
-    virtual emili::Solution* destruct(Solution *solutioon);
 };
 
 class NRZPerturbation: public emili::Perturbation
@@ -835,16 +796,6 @@ public:
     emili::Solution* perturb(Solution *solution);
 
 };
-
-class PfspDestructorTest: public emili::Destructor
-{
-protected:
-    PermutationFlowShop& istance;
-public:
-    PfspDestructorTest(PermutationFlowShop& instance):istance(instance) { }
-    virtual emili::Solution* destruct(Solution* solutioon);
-};
-
 
 class PfspNeighborhood: public emili::Neighborhood
 {
