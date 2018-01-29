@@ -8025,4 +8025,142 @@ emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *sol
 }
 
 
+int emili::pfsp::RIS::neh_ig(std::vector<int>& solPartial, int x)
+{
+   int k = solPartial[x];
+   solPartial.erase(solPartial.begin()+x);
+   int tmp=0,ind=1;
+   int min = std::numeric_limits<int>::max();
+   int sops = njob+1;
+   std::vector< int > solTMP(sops,0);
+   for(int r=1; r<sops; r++){
+
+       for(int h=1; h<r; h++)
+           solTMP[h]=solPartial[h];
+       solTMP[r]=k;
+       for(int h=r+1; h<=sops; h++)
+           solTMP[h]=solPartial[h-1];
+
+       tmp = instance.computeObjectiveFunction(solTMP);
+
+       if(tmp<min){
+           min=tmp;
+           ind=r;
+       }
+
+   }
+   ni_position = ind;
+   solPartial.insert(solPartial.begin()+ind,k);
+   return min;
+}
+
+void emili::pfsp::RIS::invertPerturbation(std::vector<int>& pi, std::vector<int>& pi_i)
+{
+    for(int i = 1; i<=njob;i++)
+    {
+        pi_i[pi[i]] = i;
+    }
+}
+
+emili::Solution* emili::pfsp::RIS::search(Solution *initial)
+{
+    *bestSoFar = *initial;
+    int h = 1;
+    int i = 1;
+    std::vector<int> pi = ((emili::pfsp::PermutationFlowShopSolution*)initial)->getJobSchedule();
+    emili::LocalSearch* ls = emili::getAlgo();
+    emili::Solution* best = bestSoFar;
+    if(ls!=nullptr)
+    {
+        emili::Solution* best = ls->getBestSoFar();
+    }
+    std::vector<int> pi_r = ((emili::pfsp::PermutationFlowShopSolution*)best)->getJobSchedule();
+    int pi_value = initial->getSolutionValue();
+    int initial_value = pi_value;
+    std::vector<int> pi_i(njob+1,0);
+    invertPerturbation(pi,pi_i);
+    while(i < njob+1)
+    {
+        h = h%njob+1;
+        int job = pi_r[h];
+        int k = pi_i[job];
+        int value = neh_ig(pi,k);
+        if(value < pi_value)
+        {
+            pi_value = value;
+            i = 1;
+            invertPerturbation(pi,pi_i);
+        }
+        else
+        {
+            h++;
+            i++;
+            pi.erase(pi.begin()+ni_position);
+            pi.insert(pi.begin()+k,job);
+        }
+
+    }
+    if(initial_value==pi_value)
+    {
+        return bestSoFar->clone();
+    }
+    else
+    {
+        emili::Solution* last = new PermutationFlowShopSolution(pi_value,pi);
+        *bestSoFar = *last;
+        return last;
+    }
+}
+
+int emili::pfsp::NoIdle_RIS::neh_ig(std::vector<int>& solPartial, int x)
+{
+   int k = solPartial[x];
+   solPartial.erase(solPartial.begin()+x);
+   int tmp=0,ind=1;
+   int min = std::numeric_limits<int>::max();
+   int sops = njob+1;
+   std::vector< int > solTMP(sops,0);
+   pis.computeNoIdleTAmatrices(solPartial,head,tail);
+   for(int r=1; r<sops; r++){
+
+       for(int h=1; h<r; h++)
+           solTMP[h]=solPartial[h];
+       solTMP[r]=k;
+       for(int h=r+1; h<=sops; h++)
+           solTMP[h]=solPartial[h-1];
+
+//       tmp = instance.computeObjectiveFunction(solTMP,njob);
+
+       long int c_cur = head[1][r-1]+pmatrix[k][1];
+       long int c_max = c_cur+tail[1][r];
+       long int a = 0;
+       long int aa = 0;
+       for (int i = 2; i <= nmac; ++i) {
+           int c_pm = head[i][r-1];
+           if(c_pm + aa < c_cur)
+           {
+               aa += c_cur - (c_pm+aa);
+               c_cur = c_cur + pmatrix[k][i];
+           }
+           else
+           {
+               c_cur = c_pm + aa + pmatrix[k][i];
+           }
+           long int c_can = (c_cur+a+tail[i][r]);
+           c_max = c_max>c_can?c_max:c_can;
+           a = a+c_max-c_can;
+       }
+       //assert(c_max == tmp);
+       tmp = c_max;
+       if(tmp<min){
+           min=tmp;
+           ind=r;
+       }
+
+   }
+   ni_position = ind;
+   solPartial.insert(solPartial.begin()+ind,k);
+   return min;
+}
+
 

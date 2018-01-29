@@ -3081,6 +3081,30 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol)
    return nims;
 }
 
+long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
+{
+   long int nims = processingTimesMatrix[sol[1]][1];
+
+   std::vector< int > minimumDiff(nbMac,0);
+   for(int m=1;m<nbMac;++m)
+       minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
+
+
+   for(int j=2; j<= size; ++j)
+   {
+       nims += processingTimesMatrix[sol[j]][1];
+       for(int m=1;m<nbMac;++m)
+       {
+           minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j]][m],0L) + processingTimesMatrix[sol[j]][m+1];
+       }
+   }
+
+   for(int m=1;m<nbMac;++m)
+       nims += minimumDiff[m];
+
+   return nims;
+}
+
 
 
 long int PfspInstance::computeNIMS(std::vector<int> &sol, long int nims)
@@ -3106,32 +3130,7 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol, long int nims)
     return nims;
 }
 
-long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
-{
-   long int nims = processingTimesMatrix[sol[1]][1];;
 
-   std::vector< int > minimumDiff(nbMac,0);
-   for(int m=1;m<nbMac;++m)
-       minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
-
-
-   for(int j=2; j<= size; ++j)
-   {
-
-       nims += processingTimesMatrix[sol[j]][1];
-       for(int m=1;m<nbMac;++m)
-       {
-           minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j-1]][m],0L) + processingTimesMatrix[sol[j]][m+1];
-
-       }
-   }
-
-   for(int m=1;m<nbMac;++m)
-       nims += minimumDiff[m];
-
-
-   return nims;
-}
 // Compute no idle weighted tardiness
 long int PfspInstance::computeNIWT(std::vector<int> &sol)
 {

@@ -1575,6 +1575,38 @@ public:
     }
 };
 
+class RIS : public emili::LocalSearch
+{
+protected:
+    int ni_position;
+    int njob;
+    virtual int neh_ig(std::vector<int>& pi, int k);
+    void invertPerturbation(std::vector<int>& pi, std::vector<int>& pi_i);
+    emili::pfsp::PermutationFlowShop& instance;
+public:
+    RIS(emili::pfsp::PermutationFlowShop& problem, emili::InitialSolution& is):emili::LocalSearch(),instance(problem),njob(problem.getNjobs())
+    {
+        this->init = &is;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = is.generateEmptySolution();
+    }
+    virtual emili::Solution* search(Solution *initial);
+};
+
+class NoIdle_RIS : public RIS
+{
+protected:
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+    const int nmac;
+    PfspInstance& pis;
+    virtual int neh_ig(std::vector<int> &pi, int k);
+public:
+    NoIdle_RIS(emili::pfsp::PermutationFlowShop& problem, emili::InitialSolution& is):emili::pfsp::RIS(problem,is),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),pis(problem.getInstance()) { }
+};
+
 }
 }
 

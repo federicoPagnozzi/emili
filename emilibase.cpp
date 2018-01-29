@@ -94,7 +94,7 @@ std::string lastMessage;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
-emili::LocalSearch* localsearch;
+emili::LocalSearch* localsearch = nullptr;
 
 
 double emili::getCurrentExecutionTime()

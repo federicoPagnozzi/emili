@@ -15,6 +15,8 @@
 
 /* Algos */
 #define CH6_LS "ch6"
+#define RIS_LS "ris"
+#define NI_RIS_LS "niris"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -245,6 +247,20 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         emili::Neighborhood* ne2 = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         ls = new emili::pfsp::CH6(*in,*te,*ne,*ne2);
+    }
+    else if(tm.checkToken(RIS_LS))
+    {
+        printTab("RIS");
+        emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::RIS(*instance,*in);
+    }
+    else if(tm.checkToken(NI_RIS_LS))
+    {
+        printTab("NoIdle RIS");
+        emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::NoIdle_RIS(*instance,*in);
     }
 
     prs::decrementTabLevel();
