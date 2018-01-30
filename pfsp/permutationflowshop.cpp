@@ -8034,7 +8034,7 @@ int emili::pfsp::RIS::neh_ig(std::vector<int>& solPartial, int x)
    int sops = njob+1;
    std::vector< int > solTMP(sops,0);
    for(int r=1; r<sops; r++){
-
+    emili::iteration_increment();
        for(int h=1; h<r; h++)
            solTMP[h]=solPartial[h];
        solTMP[r]=k;
@@ -8122,7 +8122,7 @@ int emili::pfsp::NoIdle_RIS::neh_ig(std::vector<int>& solPartial, int x)
    std::vector< int > solTMP(sops,0);
    pis.computeNoIdleTAmatrices(solPartial,head,tail);
    for(int r=1; r<sops; r++){
-
+    emili::iteration_increment();
        for(int h=1; h<r; h++)
            solTMP[h]=solPartial[h];
        solTMP[r]=k;
@@ -8161,6 +8161,80 @@ int emili::pfsp::NoIdle_RIS::neh_ig(std::vector<int>& solPartial, int x)
    ni_position = ind;
    solPartial.insert(solPartial.begin()+ind,k);
    return min;
+}
+
+emili::Solution* emili::pfsp::NoIdleIGper::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int k,tmp=0,ind=1;
+    int nmac = instance.getNmachines();
+    PfspInstance& pis = instance.getInstance();
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    //std::cout << "partial size " << solPartial.size() << std::endl;
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        //std::cout << index << " " ;//<< std::endl;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        k=removed[l];
+        min = std::numeric_limits<int>::max();
+        pis.computeNoIdleTAmatrices(solPartial,head,tail,sops);
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+            long int c_cur = head[1][r-1]+pmatrix[k][1];
+            long int c_max = c_cur+tail[1][r];
+            long int a = 0;
+            long int aa = 0;
+            for (int i = 2; i <= nmac; ++i) {
+                int c_pm = head[i][r-1];
+                if(c_pm + aa < c_cur)
+                {
+                    aa += c_cur - (c_pm+aa);
+                    c_cur = c_cur + pmatrix[k][i];
+                }
+                else
+                {
+                    c_cur = c_pm + aa + pmatrix[k][i];
+                }
+                long int c_can = (c_cur+a+tail[i][r]);
+
+                c_max = c_max>c_can?c_max:c_can;
+                a = a+c_max-c_can;
+            }
+            tmp = instance.computeObjectiveFunction(solTMP,sops);
+
+            //assert(c_max == tmp);
+            tmp = c_max;
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+        //std::cout << "end insert " << solPartial.size() << std::endl;
+    }
+
+    //assert(min == instance.computeObjectiveFunction(solPartial));
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    //instance.evaluateSolution(*s);
+    return s;
 }
 
 

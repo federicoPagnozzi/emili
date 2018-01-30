@@ -183,6 +183,7 @@
 #define PERTURBATION_IG_OPTIMIZED "igoper"
 #define PERTURBATION_IGLS_OPTIMIZED "igols"
 #define PERTURBATION_NWIG "nwig"
+#define PERTURBATION_NIIG "niig"
 #define PERTURBATION_MPTLM "mptlm"
 #define PERTURBATION_RESTART "restart"
 #define PERTURBATION_RESTART_LS "restartls"
@@ -299,6 +300,15 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         printTab(oss.str().c_str());
         per = new emili::pfsp::NWIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
     }
+    else if(tm.checkToken(PERTURBATION_NIIG))
+        {
+            int nj = instance->getNjobs();
+            int n = tm.getInteger();
+            n = n<nj?n:nj-1;
+            oss << "No idle optimized NEH destruct/construct perturbation. number of job erased: "<<n;
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::NoIdleIGper(n,*((emili::pfsp::NWPFSP_MS*)instance));
+        }
 
     else if(tm.checkToken(PERTURBATION_RSFF))
         {

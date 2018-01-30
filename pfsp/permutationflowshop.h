@@ -1607,6 +1607,13 @@ public:
     NoIdle_RIS(emili::pfsp::PermutationFlowShop& problem, emili::InitialSolution& is):emili::pfsp::RIS(problem,is),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),pis(problem.getInstance()) { }
 };
 
+class NoIdleIGper : public RSPerturbation
+{
+public:
+    NoIdleIGper(int d, emili::pfsp::PermutationFlowShop& problem):RSPerturbation(d,problem) {}
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 }
 }
 
