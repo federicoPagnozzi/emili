@@ -2151,7 +2151,7 @@ void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vec
 
 void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
 {
-    computeNoIdleTAmatrices(sol,head,tail,nbJob-1);
+    computeNoIdleTAmatrices(sol,head,tail,nbJob);
 }
 
 void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)

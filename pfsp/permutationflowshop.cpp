@@ -8129,7 +8129,7 @@ int emili::pfsp::NoIdle_RIS::neh_ig(std::vector<int>& solPartial, int x)
        for(int h=r+1; h<=sops; h++)
            solTMP[h]=solPartial[h-1];
 
-//       tmp = instance.computeObjectiveFunction(solTMP,njob);
+       //tmp = instance.computeObjectiveFunction(solTMP,njob);
 
        long int c_cur = head[1][r-1]+pmatrix[k][1];
        long int c_max = c_cur+tail[1][r];
@@ -8150,6 +8150,7 @@ int emili::pfsp::NoIdle_RIS::neh_ig(std::vector<int>& solPartial, int x)
            c_max = c_max>c_can?c_max:c_can;
            a = a+c_max-c_can;
        }
+
        //assert(c_max == tmp);
        tmp = c_max;
        if(tmp<min){
@@ -8217,7 +8218,7 @@ emili::Solution* emili::pfsp::NoIdleIGper::perturb(Solution *solution)
                 c_max = c_max>c_can?c_max:c_can;
                 a = a+c_max-c_can;
             }
-            tmp = instance.computeObjectiveFunction(solTMP,sops);
+            //tmp = instance.computeObjectiveFunction(solTMP,sops);
 
             //assert(c_max == tmp);
             tmp = c_max;
