@@ -14,6 +14,9 @@
 #include "../pfsp/pfspinstance.h"
 #include "../pfsp/permutationflowshop.h"
 
+namespace emili {
+namespace sa {
+
 
 /**
  * Generic initial temperature setup for SA.
@@ -30,6 +33,7 @@ protected:
                       mindelta;
 
     double move_time;
+    double start_value;
 
 public:
 
@@ -37,7 +41,7 @@ public:
      * Empty constructor
      */
     SAInitTemp(void):
-        solution(nullptr) { }
+        solution(nullptr),start_value(1) { }
     /**
      * Constructor: set initial temperature starting from a valid solution.
      */
@@ -58,6 +62,7 @@ public:
      * @return       initial temperature
      */
     virtual double set(double value)=0;
+    virtual double setup() { return set(start_value);}
     virtual double getMinTemp(void)=0;
 
     virtual double get(void) {
@@ -68,6 +73,18 @@ public:
         status = _status;
         status->move_time = move_time;
     }
+
+    virtual void setInitialSolution(emili::InitialSolution* initial_solution)
+    {
+        solution = initial_solution->generateSolution();
+    }
+
+    virtual void setStartValue(double svalue)
+    {
+        this->start_value = svalue;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh){}
 
     virtual double getInit_prob(void) {
         return 1;
@@ -86,7 +103,7 @@ public:
 /**
  * Set the initial temperature at a fixed value.
  *
- * It just uses the value provieded by the user.
+ * It just uses the value provided by the user.
  */
 class FixedInitTemp: public SAInitTemp {
 public:
@@ -115,6 +132,7 @@ public:
  */
 class InitTempFromSolution: public SAInitTemp {
 public:
+    InitTempFromSolution():SAInitTemp() {}
 
     InitTempFromSolution(emili::Solution *solution):
         SAInitTemp(solution) { }
@@ -143,7 +161,12 @@ protected:
     emili::Neighborhood *nei;
     int length;
 
-public:
+public:    
+    RandomWalkInitTemp(int _length):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        length(_length) { }
 
     RandomWalkInitTemp(emili::InitialSolution* _is,
                        emili::Neighborhood *_nei,
@@ -204,6 +227,16 @@ public:
         return std::exp(-maxdelta / init_temp);
     }
 
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
 }; // RandomWalkInitTemp
 
 
@@ -215,6 +248,11 @@ protected:
     int length;
 
 public:
+    ConnollyRandomWalkInitTemp(int _length):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        length(_length) { }
 
     ConnollyRandomWalkInitTemp(emili::InitialSolution* _is,
                                emili::Neighborhood *_nei,
@@ -275,6 +313,17 @@ public:
         return std::exp(-maxdelta / init_temp);
     }
 
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
+
 }; // ConnollyRandomWalkInitTemp
 
 
@@ -289,6 +338,11 @@ protected:
     int length;
 
 public:
+    RandomWalkAvgInitTemp(int _length):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        length(_length) { }
 
     RandomWalkAvgInitTemp(emili::InitialSolution* _is,
                        emili::Neighborhood *_nei,
@@ -338,6 +392,17 @@ public:
         return std::exp(-maxdelta / init_temp);
     }
 
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
+
 }; // RandomWalkAvgInitTemp
 
 
@@ -353,6 +418,13 @@ protected:
     int length;
 
 public:
+    RandomWalkInitProb(float _init_prob,
+                       int _length):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        init_prob(_init_prob),
+        length(_length) { }
 
     RandomWalkInitProb(emili::InitialSolution* _is,
                        emili::Neighborhood *_nei,
@@ -404,6 +476,17 @@ public:
         return init_prob;
     }
 
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
+
 }; // RandomWalkInitProb
 
 
@@ -420,6 +503,30 @@ protected:
     double avgdelta, ti, tf;
 
 public:
+
+    MiseviciusInitTemp(int _length,
+                       float _l11,
+                       float _l12,
+                       float _l21,
+                       float _l22):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        length(_length),
+        l11(_l11),
+        l12(_l12),
+        l21(_l21),
+        l22(_l22) {
+            if (l11 + l12 > 1) {
+                l11 = l11 / (l11 + l12);
+                l12 = l12 / (l11 + l12);
+            }
+            if (l21 + l22 > 1) {
+                l21 = l21 / (l21 + l22);
+                l22 = l22 / (l21 + l22);
+            }
+
+        }
 
     MiseviciusInitTemp(emili::InitialSolution* _is,
                        emili::Neighborhood *_nei,
@@ -505,6 +612,17 @@ public:
         return std::exp(maxdelta / ti);
     }
 
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
+
 }; // MiseviciusInitTemp
 
 /**
@@ -519,6 +637,20 @@ protected:
     double mindelta, avgdelta, ti, tf;
 
 public:
+    SimplifiedMiseviciusInitTemp(int _length,
+                                 float _l1,
+                                 float _l2):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        length(_length),
+        l1(_l1),
+        l2(_l2)
+    {
+        if (l2 >= l1) {
+            std::swap(l1, l2);
+        }
+    }
 
     SimplifiedMiseviciusInitTemp(emili::InitialSolution* _is,
                        emili::Neighborhood *_nei,
@@ -587,6 +719,17 @@ public:
         return std::exp(avgdelta / ti);
     }
 
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
+
 }; // SimplifiedMiseviciusInitTemp
 
 
@@ -628,7 +771,10 @@ public:
         min_temp(_min_temp),
         target_ratio(_target_ratio) { }
 
-
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
 
 }; // BestRatioInitTemp
 
@@ -684,5 +830,8 @@ public:
  }; // OsmanPottsInitTemp
 
 
+}
+
+}
 #endif
 

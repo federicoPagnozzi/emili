@@ -11,14 +11,17 @@
 #include "qapsolution.h"
 #include "qap.h"
 
+namespace emili {
+namespace qap {
+
 
 class QAPInitialSolution: public emili::InitialSolution {
 
 protected:
-    qap::QAP& problem;
+    QAP& problem;
 
 public:
-    QAPInitialSolution(qap::QAP& problem_instance):
+    QAPInitialSolution(QAP& problem_instance):
         emili::InitialSolution(problem_instance),
         problem(problem_instance) { }
 
@@ -64,4 +67,6 @@ public:
 }; // QAPRandomInitialSolution
 
 
+}
+}
 #endif

@@ -18,6 +18,8 @@
 #include "sa_temperature_restart.h"
 
 #include "../emilibase.h"
+namespace emili {
+namespace sa {
 
 
 class SimulatedAnnealing: public emili::LocalSearch
@@ -132,8 +134,11 @@ public:
       delete tempLength;
       free(status->last_accepted);
       delete (status);
-    };
+    }
 
 }; // class SimulatedAnnealing
 
+}
+
+}
 #endif

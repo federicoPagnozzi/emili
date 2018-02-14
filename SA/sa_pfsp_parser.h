@@ -80,7 +80,7 @@
 #define NEIGHBORHOOD_HATAx_INSERT "hatxinsert"
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 
-
+using namespace emili::sa;
 
 class SAPFSPParser: public prs::AlgoBuilder {
 

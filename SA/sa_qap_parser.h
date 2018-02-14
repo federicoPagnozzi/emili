@@ -20,6 +20,10 @@
 
 
 #define QAPPROBLEMNAME "QAP"
+using namespace emili::sa;
+using namespace emili::qap;
+
+
 
 
 class SAQAPParser: public prs::AlgoBuilder {
@@ -29,7 +33,7 @@ protected:
     /**
      * an instance of QAP problem
      */
-    qap::QAP* instance;
+    QAP* instance;
 
     /**
      * identify cooling scheme

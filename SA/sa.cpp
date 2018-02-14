@@ -1,5 +1,5 @@
 #include "sa.h"
-
+using namespace emili::sa;
 emili::Solution* SimulatedAnnealing::search() {
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = SimulatedAnnealing::search(current);

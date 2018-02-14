@@ -1,73 +1,44 @@
 #ifndef SABUILDER_H
 #define SABUILDER_H
 
-#include "../emilibase.h"
-#include "../generalParser.h"
+#include "sa.h"
 
 #include "sa_constants.h"
+#include "sa_init_temp.h"
 #include "sa_acceptance_criteria.h"
 #include "sa_cooling.h"
 #include "sa_termination_criteria.h"
-#include "sa_neighborhood.h"
-#include "sa_init_temp.h"
+#include "sa_templength.h"
+#include "sa_exploration.h"
+#include "sa_temperature_restart.h"
 
-#include "sa.h"
+#include "../generalParser.h"
 
-class SABuilder: public prs::AlgoBuilder {
 
-protected:
+#define COMPONENT_COOLING      0xD1
+#define COMPONENT_TEMP_RESTART 0xD2
+#define COMPONENT_TEMP_LENGTH  0xD3
+#define COMPONENT_EXPLORATION  0xD4
+#define COMPONENT_INIT_TEMP  0xD5
 
-    /**
-     * identify cooling scheme
-     * @param  tm TokenManager
-     * @return    SACooling object
-     */
-    SACooling*       COOL(prs::TokenManager& tm);
+namespace prs {
 
-    /**
-     * identify acceptance criterion
-     * @param  tm TokenManager
-     * @return    SAAcceptance object
-     */
-    SAAcceptance*    ACCEPTANCE(prs::TokenManager& tm);
 
-    /**
-     * identify termination criterion
-     * @param  tm TokenManager
-     * @return    SATermination object
-     */
-    SATermination*   TERMINATION(prs::TokenManager& tm);
-
-    /**
-     * identify Neighborhood
-     * @param  tm TokenManager
-     * @return    SANeighborhood object
-     */
-    emili::Neighborhood*  NEIGH(prs::TokenManager& tm);
-
-    /**
-     * identify initial temperature
-     * @param  tm TokenManager
-     * @return    SAInitTemp object
-     */
-    SAInitTemp*      INITTEMP(prs::TokenManager& tm);
-
-    /**
-     * identify initial solution builder
-     * @param  tm TokenManager
-     * @return    InitialSolution object
-     */
-    emili::InitialSolution* INITSOL(prs::TokenManager& tm);
-
+class SABuilder: public prs::Builder
+{
 public:
+    SABuilder(GeneralParserE& generalParser,TokenManager& tokenManager):Builder(generalParser,tokenManager) { }
+    virtual bool isCompatibleWith(char* problem_definition);
+    virtual prs::Component buildComponent(int type);
+    virtual emili::LocalSearch* buildAlgo();
+    virtual emili::Termination* buildTermination();
+    virtual emili::Acceptance* buildAcceptance();
+    virtual emili::sa::SACooling* buildCooling();
+    virtual emili::sa::SATempRestart* buildTempRestart();
+    virtual emili::sa::SATempLength* buildTempLength();
+    virtual emili::sa::SAExploration* buildExploration();
+    virtual emili::sa::SAInitTemp* buildInitTemp();
+};
 
-    /**
-     * algorithm builder, according to grammar
-     * @param  tm TokenManager
-     * @return    assembled algorithm
-     */
-    virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);
-
-}; // class SABuilder
-
+}
 #endif

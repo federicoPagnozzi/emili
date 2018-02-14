@@ -1,6 +1,6 @@
 #include "qapinstance.h"
 
-
+using namespace emili::qap;
 QAPInstance::QAPInstance() {
     n = 0;
     bestKnownValue = -1;

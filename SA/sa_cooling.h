@@ -16,6 +16,9 @@
  *
  * The actual scheme has to be implemented with derived classes.
  */
+namespace emili {
+namespace sa{
+
 class SACooling {
 
 protected:
@@ -31,6 +34,15 @@ protected:
     SATempLength*  tempLength;
 
 public:
+    SACooling(double a, double b):
+        a(a),
+        b(b),
+        counter(0)
+        {
+            if (a < b) {
+                std::swap(a, b);
+            }
+        }
 
     SACooling(double a, double b, SAInitTemp *it):
         a(a),
@@ -77,6 +89,13 @@ public:
         search_time_seconds = ts;
     }
 
+    virtual void setInitTemp(double init)
+    {
+        this->inittemp = init;
+    }
+
+    virtual void setNeighborhood(int neighborhood_size){}
+
 }; // SACooling
 
 
@@ -94,6 +113,8 @@ public:
  */
 class GeomCooling: public SACooling {
 public:
+    GeomCooling(double a, double b):
+        SACooling(a, b) { }
 
     GeomCooling(double a, double b, SAInitTemp *it):
         SACooling(a, b, it) { }
@@ -120,6 +141,8 @@ public:
  */
 class MarkovCooling: public SACooling{
 public:
+    MarkovCooling(double b):
+        SACooling(0, b) { }
 
     MarkovCooling(double b, SAInitTemp *it):
         SACooling(it->get(), b, it) { }
@@ -138,6 +161,15 @@ public:
 
         return(temp);
     }
+
+    virtual void setInitTemp(double init)
+    {
+        SACooling::setInitTemp(init);
+        this->a = init;
+        if (a < b) {
+            std::swap(a, b);
+        }
+    }
 }; // MarkovCooling
 
 
@@ -147,6 +179,9 @@ public:
 class LogCooling: public SACooling {
 
 public:
+    LogCooling(double b):
+        SACooling(0, b) { }
+
     LogCooling(double b, SAInitTemp *it):
         SACooling(it->get(), b, it) { }
 
@@ -165,6 +200,15 @@ public:
         return(temp);
     }
 
+    virtual void setInitTemp(double init)
+    {
+        SACooling::setInitTemp(init);
+        this->a = init;
+        if (a < b) {
+            std::swap(a, b);
+        }
+    }
+
 }; // LogCooling
 
 
@@ -176,6 +220,9 @@ public:
 class ConstantCooling: public SACooling {
 
 public:
+    ConstantCooling(double a, double b):
+        SACooling(a, b) { }
+
     ConstantCooling(double a, double b, SAInitTemp *it):
         SACooling(a, b, it) { }
 
@@ -209,6 +256,9 @@ public:
 class LundyMeesCooling: public SACooling {
 
 public:
+    LundyMeesCooling(double a, double b):
+        SACooling(a, b) { }
+
     LundyMeesCooling(double a, double b, SAInitTemp *it):
         SACooling(a, b, it) { }
 
@@ -238,6 +288,9 @@ class LundyMeesConnollyCooling: public SACooling {
 
 
 public:
+    LundyMeesConnollyCooling():
+        SACooling(0, 0) { }
+
     LundyMeesConnollyCooling(SAInitTemp *it):
         SACooling(0, 0, it) { }
 
@@ -279,6 +332,9 @@ public:
 class LinearCooling: public SACooling {
 
 public:
+    LinearCooling(double a):
+        SACooling(a, 0) { }
+
     LinearCooling(double a, SAInitTemp *it):
         SACooling(a, 0, it) { }
 
@@ -303,6 +359,8 @@ public:
 class SATemperatureBandCooling: public SACooling {
 
 public:
+    SATemperatureBandCooling(double a):
+        SACooling(a, 0) { }
 
     SATemperatureBandCooling(double a, SAInitTemp *it):
         SACooling(a * it->get(), it->get(), it) { }
@@ -321,6 +379,16 @@ public:
 
         return(temp);
     }
+
+    virtual void setInitTemp(double init)
+    {
+        SACooling::setInitTemp(init);
+        this->a = a*init;
+        this->b = init;
+        if (a < b) {
+            std::swap(a, b);
+        }
+    }
     
 }; // SATemperatureBandCooling
 
@@ -336,6 +404,10 @@ class SAQuadraticCooling: public SACooling {
 protected:
     float c;
 public:
+    SAQuadraticCooling():
+        c(0),
+        SACooling(0, 0) {  }
+
     SAQuadraticCooling(SAInitTemp *it):
         c(it->get()),
         SACooling(0, 0, it) {
@@ -363,6 +435,14 @@ public:
         return(temp);
     }
 
+    virtual void setInitTemp(double init)
+    {
+        SACooling::setInitTemp(init);
+        c = inittemp;
+        a = -inittemp; // T_i - T_f
+        b = 2 * inittemp; // 2 * (T_f - T_i)
+    }
+
 }; // SAQuadraticCooling
 
 
@@ -372,6 +452,9 @@ public:
 class NoCooling: public SACooling {
 
 public:
+    NoCooling():
+        SACooling(0, 0) { }
+
     NoCooling(SAInitTemp *it):
         SACooling(0, 0, it) { }
 
@@ -390,6 +473,11 @@ protected:
     bool in_fixed_temp_state;
 
 public:
+    Q87Cooling(double a, double b, int _max_reject):
+        max_reject(_max_reject),
+        in_fixed_temp_state(false),
+        SACooling(a, b) { }
+
     Q87Cooling(double a, double b, int _max_reject, SAInitTemp *it):
         max_reject(_max_reject),
         in_fixed_temp_state(false),
@@ -439,6 +527,11 @@ protected:
     bool in_fixed_temp_state;
 
 public:
+    ConnollyQ87Cooling():
+        max_reject(0),
+        in_fixed_temp_state(false),
+        SACooling(1, 0) { }
+
     ConnollyQ87Cooling(SAInitTemp *it,
                        emili::Neighborhood *nei):
         max_reject(nei->size()),
@@ -492,7 +585,10 @@ public:
 
         return(temp);
     }
-
+    virtual void setNeighborhood(int neighborhood_size)
+    {
+        this->max_reject = neighborhood_size;
+    }
 }; // ConnollyQ87Cooling
 
 
@@ -503,6 +599,12 @@ emili::pfsp::PermutationFlowShop *instance;
 double K;
 
 public:
+    OsmanPottsPFSPCooling(emili::Problem*_instance):
+                    instance(((emili::pfsp::PermutationFlowShop*)_instance)),
+                    SACooling(1, 0) {
+                        K = std::max(3300 * std::log(instance->getNjobs()) + 7500 * std::log(instance->getNmachines()) - 18250, 2000.0);
+                    }
+
     OsmanPottsPFSPCooling(SAInitTemp *_it,
                           emili::pfsp::PermutationFlowShop *_instance):
                         instance(_instance),
@@ -540,6 +642,9 @@ public:
 class ArithmeticCooling: public SACooling {
 
 public:
+    ArithmeticCooling(double a):
+        SACooling(a, 0) { }
+
     ArithmeticCooling(double a, SAInitTemp *it):
         SACooling(a, 0, it) { }
 
@@ -581,6 +686,22 @@ protected:
     emili::Problem *prob;
 
 public:
+    OldBachelor1 (long _M,
+                  double _delta,
+                  double _a,
+                  double _b,
+                  double _c,
+                  emili::Problem* _prob):
+                  M(_M),
+                  delta(_delta),
+                  a(_a),
+                  b(_b),
+                  c(_c),
+                  prob(_prob),
+                  SACooling(0, 0) {
+                    a = std::lrint(a * prob->problemSize());
+                  }
+
     OldBachelor1 (long _M,
                   double _delta,
                   double _a,
@@ -633,6 +754,17 @@ protected:
 public:
     OldBachelor2 (long _M,
                   double _delta,
+                  double _d):
+                  M(_M),
+                  delta(_delta),
+                  neigh(nullptr),
+                  SACooling(0, 0) {
+                    d = _d;
+                    age_count = 1;
+                  }
+
+    OldBachelor2 (long _M,
+                  double _delta,
                   double _d,
                   SAInitTemp *it,
                   emili::Neighborhood* _neigh):
@@ -671,7 +803,12 @@ public:
 
         return(temp);
     }
+    virtual void setNeighborhood(int neighborhood_size)
+    {
+        d = std::sqrt(d * neighborhood_size);
+    }
 
 }; // OldBachelor2
-
+}
+}
 #endif

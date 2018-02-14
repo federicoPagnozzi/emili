@@ -527,16 +527,6 @@ public:
     LITSolution(PermutationFlowShop& problem_instance):emili::pfsp::PfspInitialSolution(problem_instance) { }
 };
 
-class SlackConstructor: public emili::Constructor
-{
-protected:
-   PermutationFlowShop& pis;
-public:
-   SlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
-   virtual emili::Solution* construct(Solution *partial);
-   virtual emili::Solution* constructFull();
-};
-
 class RZSolution: public emili::pfsp::PfspInitialSolution
 {
 protected:
@@ -551,6 +541,14 @@ protected:
     virtual Solution* generate();
 public:
     MNEH(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
+};
+
+class RMNEH: public emili::pfsp::PfspInitialSolution
+{
+protected:    
+    virtual Solution* generate();
+public:
+    RMNEH(PermutationFlowShop& problem):emili::pfsp::PfspInitialSolution(problem) { }
 };
 
 class NeRZSolution: public emili::pfsp::PfspInitialSolution
@@ -602,35 +600,6 @@ protected:
 public:
     NLRSolution(PermutationFlowShop& problem):emili::pfsp::LRSolution(problem) { }
     NLRSolution(PermutationFlowShop& problem,int number_of_sequences):emili::pfsp::LRSolution(problem,number_of_sequences) { }
-};
-
-class NEHSlackConstructor: public emili::Constructor
-{
-protected:
-   PermutationFlowShop& pis;
-public:
-   NEHSlackConstructor(PermutationFlowShop& problem):emili::Constructor(),pis(problem) { }
-   virtual emili::Solution* construct(Solution *partial);
-   virtual emili::Solution* constructFull();
-};
-
-class PfspDestructor: public emili::Destructor
-{
-protected:
-    emili::pfsp::PermutationFlowShop& instance;
-public:
-    PfspDestructor(emili::pfsp::PermutationFlowShop& ist):instance(ist) { }
-    virtual emili::Solution* destruct(Solution* solutioon);
-};
-
-class SOADestructor: public emili::Destructor
-{
-protected:
-    int d;
-    emili::pfsp::PermutationFlowShop& instance;
-public:
-    SOADestructor(int d_parameter, emili::pfsp::PermutationFlowShop& inst):d(d_parameter),instance(inst) {}
-    virtual emili::Solution* destruct(Solution *solutioon);
 };
 
 class NRZPerturbation: public emili::Perturbation
@@ -798,15 +767,35 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
-class PfspDestructorTest: public emili::Destructor
+
+class RestartPerturbation: public emili::Perturbation
 {
 protected:
-    PermutationFlowShop& istance;
+    int num_of_solutions;
+    bool locser;
+    emili::InitialSolution* initial;
+    emili::LocalSearch* ls;
 public:
-    PfspDestructorTest(PermutationFlowShop& instance):istance(instance) { }
-    virtual emili::Solution* destruct(Solution* solutioon);
+    RestartPerturbation(int np, emili::InitialSolution* init, emili::LocalSearch* ll):num_of_solutions(np),initial(init),ls(ll),locser(true) {}
+    RestartPerturbation(int np, emili::InitialSolution* init):num_of_solutions(np),initial(init),ls(nullptr),locser(false) {}
+
+    emili::Solution* perturb(Solution *solution);
+    ~RestartPerturbation();
 };
 
+class MPTLMPerturbation: public emili::Perturbation
+{
+protected:
+    const std::vector < std::vector < int > >& distances;
+    int num_of_solutions;
+    emili::pfsp::NWPFSP_MS& pis;
+    int njobs;
+public:
+    MPTLMPerturbation(int np, emili::pfsp::NWPFSP_MS& init):num_of_solutions(np),pis(init),njobs(init.getNjobs()),distances(init.getDistances()) {}
+
+    emili::Solution* perturb(Solution *solution);
+
+};
 
 class PfspNeighborhood: public emili::Neighborhood
 {
@@ -1584,6 +1573,45 @@ public:
         }
         return incumbent;
     }
+};
+
+class RIS : public emili::LocalSearch
+{
+protected:
+    int ni_position;
+    int njob;
+    virtual int neh_ig(std::vector<int>& pi, int k);
+    void invertPerturbation(std::vector<int>& pi, std::vector<int>& pi_i);
+    emili::pfsp::PermutationFlowShop& instance;
+public:
+    RIS(emili::pfsp::PermutationFlowShop& problem, emili::InitialSolution& is):emili::LocalSearch(),instance(problem),njob(problem.getNjobs())
+    {
+        this->init = &is;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = is.generateEmptySolution();
+    }
+    virtual emili::Solution* search(Solution *initial);
+};
+
+class NoIdle_RIS : public RIS
+{
+protected:
+    std::vector < std::vector < int > > head;
+    std::vector < std::vector < int > > tail;
+    const std::vector < std::vector < long int > >& pmatrix;
+    const int nmac;
+    PfspInstance& pis;
+    virtual int neh_ig(std::vector<int> &pi, int k);
+public:
+    NoIdle_RIS(emili::pfsp::PermutationFlowShop& problem, emili::InitialSolution& is):emili::pfsp::RIS(problem,is),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),pis(problem.getInstance()) { }
+};
+
+class NoIdleIGper : public RSPerturbation
+{
+public:
+    NoIdleIGper(int d, emili::pfsp::PermutationFlowShop& problem):RSPerturbation(d,problem) {}
+    virtual emili::Solution* perturb(Solution *solution);
 };
 
 }

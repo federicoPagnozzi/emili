@@ -51,6 +51,19 @@ void printTab(const char* string);
  * @param string
  */
 void printTabPlusOne(const char* string);
+
+int getTabLevel();
+
+template <typename T >
+void printTabPlusOne(const char* string,T value)
+{
+    int tab_level = getTabLevel();
+    for(int i=0;i<=tab_level; i++)
+    {
+        std::cout << "  ";
+    }
+    std::cout << string << " : " << value << std::endl;
+}
 /**
  * @brief incrementTabLevel
  *          Increments the number of tabs added at the beginning of a line by printTab
@@ -298,6 +311,8 @@ public:
 #define COMPONENT_NEIGHBORHOOD_OR_EMPTY         0xBE
 #define COMPONENT_PERTURBATION                  0xC1
 #define COMPONENT_ACCEPTANCE                    0xC2
+#define COMPONENT_SHAKE                         0xC3
+#define COMPONENT_NEIGHBORHOOD_CHANGE           0xC4
 #define COMPONENT_PROBLEM                       0x99 //Request to load a problem
 
 
@@ -326,6 +341,8 @@ protected:
        COMPONENT_NEIGHBORHOOD_OR_EMPTY         0xBE
        COMPONENT_PERTURBATION                  0xC1
        COMPONENT_ACCEPTANCE                    0xC2
+       COMPONENT_SHAKE                         0xC3
+       COMPONENT_NEIGHBORHOOD_CHANGE           0xC4
      */
     int type;
     /** @brief rawComponent
@@ -579,6 +596,20 @@ public:
      */
     virtual emili::Acceptance* buildAcceptance(){return nullptr;}
     /**
+     * @brief buildShake
+     *          This method is called by buildComponent(type) if type is COMPONENT_SHAKE.
+     * @return
+     *       a pointer to an object of type COMPONENT_SHAKE or, if nothing found, nullptr.
+     */
+    virtual emili::Shake* buildShake(){return nullptr;}
+    /**
+     * @brief buildNeighborhoodChange()
+     *          This method is called by buildComponent(type) if type is COMPONENT_NEIGHBORHOOD_CHANGE.
+     * @return
+     *       a pointer to an object of type COMPONENT_NEIGHBORHOOD_CHANGE or, if nothing found, nullptr.
+     */
+    virtual emili::NeighborhoodChange* buildNeighborhoodChange(){return nullptr;}
+    /**
      * @brief buildAlgo
      *          This method is called by buildComponent(type) if type is COMPONENT_TABU_TENURE.
      * @return
@@ -755,6 +786,18 @@ public:
      * a neighborhood
      */
     virtual emili::Neighborhood* buildNeighborhood();
+    /**
+     * @brief buildShake
+     * @return
+     * a Shake operator to be used in a VNS algorithm
+     */
+    virtual emili::Shake* buildShake();
+    /**
+     * @brief buildNeighborhoodChange
+     * @return
+     * a NeighborhoodChange operator to be used in a VNS algorithm
+     */
+    virtual emili::NeighborhoodChange* buildNeighborhoodChange();
 };
 
 }

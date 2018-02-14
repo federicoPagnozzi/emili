@@ -1,5 +1,5 @@
 #include "sa_acceptance_criteria.h"
-
+using namespace emili::sa;
 emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solution,
                                                 emili::Solution *new_solution) {
 

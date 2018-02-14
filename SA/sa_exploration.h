@@ -12,6 +12,8 @@
 #include "sa_cooling.h"
 #include "sa_termination_criteria.h"
 
+namespace emili {
+namespace sa {
 
 
 class SAExploration {
@@ -25,6 +27,9 @@ protected:
     std::string tc_type;
 
 public:
+    SAExploration(std::string _type):
+        type(_type) { }
+
     SAExploration(emili::Neighborhood* _neigh,
                   SAAcceptance* _acceptance,
                   SACooling* _cooling,
@@ -44,12 +49,36 @@ public:
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
                                           SAStatus& status)=0;
 
+    virtual void setNeighborhood(emili::Neighborhood* neighborhood)
+    {
+        neigh = neighborhood;
+    }
+
+    virtual void setAcceptance(emili::sa::SAAcceptance* accept)
+    {
+        acceptance = accept;
+    }
+
+    virtual void setCooling(emili::sa::SACooling* cool)
+    {
+        cooling = cool;
+    }
+
+    virtual void setTermination(emili::sa::SATermination* termination)
+    {
+        term = termination;
+        tc_type = term->getType();
+    }
+
 }; // SAExploration
 
 
 class SARandomExploration: public SAExploration {
 
 public:
+    SARandomExploration():
+        SAExploration(SARANDOMEXPLORATION) { }
+
     SARandomExploration(emili::Neighborhood* _neigh,
                         SAAcceptance* _acceptance,
                         SACooling* _cooling,
@@ -69,6 +98,9 @@ public:
 class SASequentialExploration: public SAExploration {
 
 public:
+    SASequentialExploration():
+        SAExploration(SASEQUENTIALEXPLORATION) { }
+
     SASequentialExploration(emili::Neighborhood* _neigh,
                             SAAcceptance* _acceptance,
                             SACooling* _cooling,
@@ -94,6 +126,10 @@ class SABestOfKExploration: public SAExploration {
 long k;
 
 public:
+    SABestOfKExploration(long _k):
+        k(_k),
+        SAExploration(SABESTOFKEXPLORATION) { }
+
     SABestOfKExploration(emili::Neighborhood* _neigh,
                          SAAcceptance* _acceptance,
                          SACooling* _cooling,
@@ -120,6 +156,10 @@ class SAFirstBestOfKExploration: public SAExploration {
 long k;
 
 public:
+    SAFirstBestOfKExploration(long _k):
+            k(_k),
+            SAExploration(SAFIRSTBESTOFKEXPLORATION) { }
+
     SAFirstBestOfKExploration(emili::Neighborhood* _neigh,
                               SAAcceptance* _acceptance,
                               SACooling* _cooling,
@@ -141,6 +181,9 @@ public:
 class SAFirstImprovementExploration: public SAExploration {
 
 public:
+    SAFirstImprovementExploration():
+        SAExploration(SAFIRSTIMPROVEMENTEXPLORATION) { }
+
     SAFirstImprovementExploration(emili::Neighborhood* _neigh,
                                   SAAcceptance* _acceptance,
                             SACooling* _cooling,
@@ -160,6 +203,9 @@ public:
 class SABEstImprovementExploration: public SAExploration {
 
 public:
+    SABEstImprovementExploration():
+        SAExploration(SABESTIMPROVEMENTEXPLORATION) { }
+
     SABEstImprovementExploration(emili::Neighborhood* _neigh,
                                  SAAcceptance* _acceptance,
                             SACooling* _cooling,
@@ -175,4 +221,6 @@ public:
 
 }; // SABEstImprovementExploration
 
+}
+}
 #endif
