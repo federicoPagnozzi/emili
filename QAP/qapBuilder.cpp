@@ -1,4 +1,5 @@
 #include "qapBuilder.h"
+#include <cstring>
 #define QAPPROBLEMNAME "QAP"
 
 /* QAP Initial Solution*/
