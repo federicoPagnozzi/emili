@@ -119,7 +119,7 @@ static void finalise (int _)
         {
             messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            messages << "objective function value : "<< sol_val << std::endl;
+            messages << "objective function value : "<< std::fixed << sol_val << std::endl;
             messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
@@ -128,7 +128,7 @@ static void finalise (int _)
         {
             std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            std::cerr << sol_val << std::endl;
+            std::cerr << std::fixed << sol_val << std::endl;
             std::cerr << std::flush;
         }
     }
@@ -258,7 +258,7 @@ void emili::iteration_counter_zero()
 }
 
 
-int emili::iteration_counter(){
+unsigned long emili::iteration_counter(){
     return iteration_counter_;
 }
 

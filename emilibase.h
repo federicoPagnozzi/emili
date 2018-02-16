@@ -73,7 +73,7 @@ void iteration_counter_zero();
  * @return
  * returns iterations counter that is used in the neighborhoods to keep track of how many solutions are generated
  */
-int iteration_counter();
+unsigned long iteration_counter();
 /**
  * @brief iteration_increment
  * adds 1 to the iterations counter
