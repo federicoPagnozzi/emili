@@ -17,6 +17,8 @@
 #define CH6_LS "ch6"
 #define RIS_LS "ris"
 #define NI_RIS_LS "niris"
+#define NW_RIS_LS "nwris"
+#define RNW_RIS_LS "rnwris"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -262,6 +264,20 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         ls = new emili::pfsp::NoIdle_RIS(*instance,*in);
+    }
+    else if(tm.checkToken(NW_RIS_LS))
+    {
+        printTab("NoWait RIS");
+        emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::NoWait_RIS(*instance,*in);
+    }
+    else if(tm.checkToken(RNW_RIS_LS))
+    {
+        printTab("Random NoWait RIS");
+        emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::RandomNoWait_RIS(*instance,*in);
     }
 
     prs::decrementTabLevel();
@@ -562,9 +578,9 @@ emili::Acceptance* prs::PfspBuilder::buildAcceptance()
             }
         }
 
-        temp = n*(temp/(nj*nm))/10;
+        temp = n*(temp/(nj*nm))/10.0;
 
-        oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
+        oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : " << temp;
         printTab(oss.str().c_str());
         acc = new  emili::MetropolisAcceptance(temp);
     }

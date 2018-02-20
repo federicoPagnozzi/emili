@@ -9,6 +9,7 @@
 #include "pfspinstance.h"
 #include <iostream>
 #include <cstdlib>
+#include <limits>
 
 /**
  *
@@ -1613,6 +1614,40 @@ public:
     NoIdleIGper(int d, emili::pfsp::PermutationFlowShop& problem):RSPerturbation(d,problem) {}
     virtual emili::Solution* perturb(Solution *solution);
 };
+
+class NoWait_RIS : public RIS
+{
+protected:
+    const std::vector < std::vector < long int > >& pmatrix;
+    const std::vector<std::vector < int > >& distance;
+    const int nmac;
+    PfspInstance& pis;
+    virtual int neh_ig(std::vector<int> &pi, int k);
+public:
+    NoWait_RIS(NWPFSP_MS& problem, emili::InitialSolution& is):
+        emili::pfsp::RIS(problem,is),
+        distance(problem.getDistances()),
+        nmac(problem.getNmachines()),
+        pmatrix(problem.getProcessingTimesMatrix()),
+        pis(problem.getInstance())
+    { }
+    const std::vector<std::vector < int > >& getDistance() { return distance;}
+};
+
+class RandomNoWait_RIS : public NoWait_RIS
+{
+protected:
+    long cmax;
+    emili::pfsp::PfspRandomInitialSolution rand;
+public:
+    RandomNoWait_RIS(NWPFSP_MS& problem, emili::InitialSolution& is):
+        emili::pfsp::NoWait_RIS(problem,is),
+        cmax(std::numeric_limits<long>::max()),
+        rand(problem)
+        { }
+    virtual emili::Solution* search(Solution *initial);
+};
+
 
 }
 }
