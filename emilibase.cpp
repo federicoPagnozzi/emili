@@ -716,7 +716,6 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
         emili::Solution* incumbent = initial->clone();
         emili::Solution* ithSolution;
 
-        //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
         Neighborhood::NeighborhoodIterator end = neighbh->end();
         do{
 

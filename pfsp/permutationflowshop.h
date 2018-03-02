@@ -1648,6 +1648,165 @@ public:
     virtual emili::Solution* search(Solution *initial);
 };
 
+class BeamSearchHeuristic : public PfspInitialSolution
+{
+protected:
+    int _gamma;
+    double _a;
+    double _b;
+    double _c;
+    double _e;
+    std::vector<int> xi;
+    std::vector<int> xi_order;
+    const std::vector< std::vector< long > >& pi;
+    const std::vector<long>& dueDates;
+    void buildXi();
+    int njobs;
+    int nmacs;
+    virtual emili::Solution* generate();
+public:
+    BeamSearchHeuristic(PermutationFlowShop& problem, int gamma, double a, double b,double c,double e):
+        emili::pfsp::PfspInitialSolution(problem),
+        _gamma(gamma),
+        _a(a),
+        _b(b),
+        _c(c),
+        _e(e),
+        pi(problem.getProcessingTimesMatrix()),
+        xi(problem.getNjobs()+1,0),
+        njobs(problem.getNjobs()),
+        nmacs(problem.getNmachines()),
+        dueDates(problem.getDueDates())
+    {
+        buildXi();
+    }
+
+    class bs_node{
+    protected:
+        std::vector<int> scheduled;
+        std::vector<int> unscheduled;
+        std::vector< int > completionTimes;
+        std::vector< float > tpj;
+        double tpd;
+        bs_node* father;
+        int k;
+        int kjob;
+        std::vector< bs_node* > children;
+        BeamSearchHeuristic& init;
+        int m;
+        int n;
+        void evaluateNode();
+    public:
+        double g_value;
+        double TE;
+        double TI;
+        double TT;
+        bs_node(BeamSearchHeuristic& bs):
+            father(nullptr),
+            init(bs),
+            completionTimes(bs.nmacs+1,0),
+            tpj(bs.nmacs+1,0),
+            m(bs.nmacs),
+            n(bs.njobs),
+            k(1)
+        {
+            scheduled.push_back(0);
+            std::vector<int>& xi = init.getXi_order();
+            kjob = xi[0];
+            scheduled.push_back(kjob);
+            unscheduled = xi;
+            unscheduled.erase(unscheduled.begin());
+            for(int i=1;i<=m;i++)
+                completionTimes[i] = completionTimes[i-1]+bs.pi[kjob][i];
+
+            TE = std::max(((int)bs.dueDates[kjob])-completionTimes[m],0);
+            TT = std::max(completionTimes[m]-((int)bs.dueDates[kjob]),0);
+            TI = 0;
+            tpd = 0;
+            for(int i=0;i<n-1;i++)
+            {
+                tpj[1] += bs.pi[unscheduled[i]][1];
+                tpd += bs.dueDates[unscheduled[i]];
+            }
+            for(int j=2;j<=m;j++)
+            {
+                for(int i=0;i<n-1;i++)
+                {
+                    tpj[j] += bs.pi[unscheduled[i]][j];
+                }
+            }
+        }
+
+        bs_node(bs_node& fat,int i):
+            father(&fat),
+            init(fat.init),
+            m(fat.m),
+            n(fat.n),
+            completionTimes(fat.m+1,0),
+            tpj(fat.tpj),
+            tpd(fat.tpd),
+            k(fat.k+1),
+            TE(fat.TE),
+            TT(fat.TT),
+            TI(fat.TI)
+        {
+            scheduled = fat.scheduled;
+            std::vector<int>& xi = fat.unscheduled;
+            kjob = xi[i];
+            scheduled.push_back(kjob);
+            unscheduled = xi;
+            unscheduled.erase(unscheduled.begin()+i);
+            evaluateNode();
+        }
+
+        bs_node(bs_node& node):
+            father(node.father),
+            init(node.init),
+            m(node.m),
+            n(node.n),
+            completionTimes(node.completionTimes),
+            tpj(node.tpj),
+            tpd(node.tpd),
+            k(node.k),
+            TE(node.TE),
+            TT(node.TT),
+            TI(node.TI),
+            scheduled(node.scheduled),
+            unscheduled(node.unscheduled),
+            g_value(node.g_value),
+            children(node.children)
+            { }
+       void buildChildren();
+      // bs_node* generateSequence();
+
+       virtual bool operator < (bs_node& a)
+       {
+           return g_value < a.g_value;
+       }
+
+       virtual std::vector<int>& getPermutation()
+       {
+           return scheduled;
+       }
+       std::vector< bs_node* >& getChildren()
+       {
+           return this->children;
+       }
+
+       ~bs_node()
+       {
+            std::vector<bs_node*>::iterator iter = children.begin();
+            for(;iter!=children.end();++iter)
+            {
+                delete *iter;
+            }
+       }
+
+    };
+
+    virtual std::vector<int>& getXi();
+    virtual std::vector<int>& getXi_order();
+};
 
 }
 }

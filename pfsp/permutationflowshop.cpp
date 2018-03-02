@@ -8348,3 +8348,209 @@ emili::Solution* emili::pfsp::RandomNoWait_RIS::search(Solution *initial)
         return last;
     }
 }
+
+void emili::pfsp::BeamSearchHeuristic::buildXi()
+{
+    double wprod = (njobs-2.0)/4.0;
+
+    for(int j=1; j<=njobs ; j++ )
+    {
+        double wj = 0;
+        double pij = pi[j][1];
+        for(int i = 2; i<=nmacs ; i++)
+        {
+            pij = pij + pi[j][i];
+            double wjprime = 0;
+            for(int ip = 1; ip < i ; ip++ )
+            {
+                wjprime += pi[j][ip];
+            }
+            wjprime = (wjprime*nmacs)/(i-1);
+            wj = wjprime*wprod;
+        }
+        xi[j] = pij+wj;
+        xi_order.push_back(j);
+    }
+    std::vector<int>& xil = xi;
+    std::sort(xi_order.begin(),xi_order.end(),[xil](int i1,int i2){
+                                                            if(xil[i1]==xil[i2] && i2!=0)
+                                                                return i1>i2;
+                                                            else
+                                                               return xil[i1] < xil[i2];
+    });
+
+/*    for(int i = 0; i<=njobs; i++)
+        std::cout << " " << xi[i];
+    std::cout << "\n";
+
+    for(int i = 0; i<=njobs; i++)
+        std::cout << " " << xi_order[i];
+    std::cout << "\n";
+*/
+}
+std::vector<int>& emili::pfsp::BeamSearchHeuristic::getXi()
+{
+    return xi;
+}
+
+std::vector<int>& emili::pfsp::BeamSearchHeuristic::getXi_order()
+{
+    return xi_order;
+}
+
+emili::Solution* emili::pfsp::BeamSearchHeuristic::generate()
+{
+    bs_node start(*this);
+    start.buildChildren();
+    int k = 2;
+    std::vector<bs_node*> current_iteration=start.getChildren();
+    std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+    do{
+       // std::cout << "#child " << current_iteration.size() << std::endl;
+        current_iteration[0]->buildChildren();
+        std::vector<bs_node*> next_iteration = current_iteration[0]->getChildren();
+        int size = current_iteration.size();
+        size = _gamma<size?_gamma:size;
+        for(int i=1;i < size; i++)
+        {
+            current_iteration[i]->buildChildren();
+            std::vector<bs_node*> ccc = current_iteration[i]->getChildren();
+            next_iteration.insert(next_iteration.end(),ccc.begin(),ccc.end());
+        }
+         current_iteration = next_iteration;
+         std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+         k++;
+    }while(k<(njobs));
+    std::vector<int> seq = current_iteration[0]->getPermutation();
+    double res = pis.computeObjectiveFunction(seq);
+//    std::cout << "sol " << seq.size() << " children " <<  std::endl;
+    return new emili::pfsp::PermutationFlowShopSolution(res,seq);
+}
+
+
+void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
+{
+
+    completionTimes[1] = father->completionTimes[1]+init.pi[kjob][1];
+    double I = 0.0;
+    double W = father->completionTimes[1]+tpj[1];
+    tpd = tpd - init.dueDates[kjob];
+    for(int i=2;i<=m;i++)
+    {
+        completionTimes[i] = std::max(father->completionTimes[i],completionTimes[i-1])+init.pi[kjob][i];
+        W = std::max((double)father->completionTimes[i],W)+tpj[i];
+        tpj[i] = tpj[i] - init.pi[kjob][i];
+        double iden = i-1+((k-1)*(m-i+1)/(n-2));
+        I = I + (m * std::max(completionTimes[i-1]-father->completionTimes[i],0))/iden;
+    }
+
+    W = W - tpd;
+    W = std::max(W,0.0);
+
+    double E = std::max((int)init.dueDates[kjob]-completionTimes[m],0);
+    double T = std::max(completionTimes[m]-(int)init.dueDates[kjob],0);
+    TE = TE + E;
+    TT = TT + T;
+    TI = TI + I;
+
+    double F = TI * (n-k-1)/n
+             + init._a * TE * (2*n-k-1)/(2*n)
+             + init._b * TT * (k-1+n)/(2*n);
+
+    double L = I * (n - k - 1)
+             + init._c*E
+             + (init._e)/(n-k+1)*W;
+
+    g_value = F + L;
+}
+/*
+void emili::pfsp::BeamSearchHeuristic::bs_node::buildTree()
+{
+    std::vector< bs_node* > offspring;
+
+    int size = n-k;
+    for(int i=0;i < size; i++)
+    {
+        bs_node* b = new bs_node(*this,i);
+        offspring.push_back(b);
+    }
+
+    int childnum = std::min(size,init._gamma);
+    for(int i=0; i < childnum ; i++)
+    {
+        double best = offspring[0]->g_value;
+        int b = 0;
+        for(int j=0; j < size; j++)
+        {
+            if(best > offspring[j]->g_value)
+            {
+                b = j;
+                best = offspring[j]->g_value;
+            }
+        }
+        children.push_back(offspring[b]);
+        offspring.erase(offspring.begin()+b);
+        size--;
+    }
+    int remaining_nodes = offspring.size();
+    for(int i=0;i < remaining_nodes;i++)
+    {
+        delete offspring[i];
+    }
+}*/
+
+void emili::pfsp::BeamSearchHeuristic::bs_node::buildChildren()
+{
+    int size = n-k;
+    for(int i=0;i < size; i++)
+    {
+        bs_node* b = new bs_node(*this,i);
+        children.push_back(b);
+    }
+}
+
+
+/*emili::pfsp::BeamSearchHeuristic::bs_node* emili::pfsp::BeamSearchHeuristic::bs_node::generateSequence()
+{
+    count++;
+    emili::pfsp::BeamSearchHeuristic::bs_node* best = this;
+    if((n-k-1) == 0)
+    {
+/
+        std::cout << "K: " << k << " L: " << kjob << " G: "
+                  << g_value << " un: "<< unscheduled.size()
+                  << " sc: " << scheduled.size() << " this " << (long)this  << std::endl;
+        what++;
+        if(what>1)
+        std::cout << "what! " << what << std::endl;
+        /
+        scheduled.push_back(unscheduled[0]);
+        this->g_value = init.pis.computeObjectiveFunction(scheduled);
+    }
+    else
+    {
+        buildTree();
+        if(k==n-2)
+        {
+            kc++;
+        }
+        best = (children[0])->generateSequence();
+        int size = children.size();
+        for(int i = 1 ;i<size;i++)
+        {
+            emili::pfsp::BeamSearchHeuristic::bs_node* current = (children[i])->generateSequence();
+            if(*current < *best)
+            {
+                delete best;
+                best = current;
+            }
+            else
+            {
+               if(best!=current)
+                 delete current;
+            }
+        }
+    }
+    return best;
+}
+*/

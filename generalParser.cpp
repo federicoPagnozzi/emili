@@ -96,6 +96,11 @@ void prs::printTabPlusOne(const char* string)
     std::cout << string << std::endl;
 }
 
+int prs::getTabLevel()
+{
+    return tab_level;
+}
+
 void prs::incrementTabLevel()
 {
     tab_level++;

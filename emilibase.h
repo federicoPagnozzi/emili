@@ -1023,7 +1023,7 @@ class Perturbation
      * @param solution
      * The solution to perturb
      * @return
-     * perturbed solution
+     * A new solution representing the perturbed solution
      */
     virtual Solution* perturb(Solution* solution)=0;
 

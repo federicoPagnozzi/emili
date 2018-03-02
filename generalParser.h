@@ -51,6 +51,19 @@ void printTab(const char* string);
  * @param string
  */
 void printTabPlusOne(const char* string);
+
+int getTabLevel();
+
+template <typename T >
+void printTabPlusOne(const char* string,T value)
+{
+    int tab_level = getTabLevel();
+    for(int i=0;i<=tab_level; i++)
+    {
+        std::cout << "  ";
+    }
+    std::cout << string << " : " << value << std::endl;
+}
 /**
  * @brief incrementTabLevel
  *          Increments the number of tabs added at the beginning of a line by printTab

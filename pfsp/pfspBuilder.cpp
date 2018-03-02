@@ -96,6 +96,8 @@
 #define INITIAL_FRB5 "frb5"
 #define INITIAL_CSFRB5 "csfrb5"
 #define INITIAL_FRB5_GENERAL "gfrb5"
+#define INITIAL_BS "bs"
+#define INITIAL_BSNN "bsnn"
 
 /* Termination criteria*/
 #define TERMINATION_ITERA "iteration"
@@ -880,6 +882,36 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         gp.setInstance(instance);
         init = new emili::pfsp::NEHffls(*instance,ll);
+    }
+    else if(tm.checkToken(INITIAL_BS))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = tm.getInteger();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BSNN))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = instance->getNjobs()/10;
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
     }
 
 
