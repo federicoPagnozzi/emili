@@ -21,6 +21,8 @@
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
 #define GIT_COMMIT_NUMBER "e5dffeb8ea6a4577658872eac6ae82376edd42e5"
+/*Base Initials*/
+#define COMPOSED_INITIAL "cinit"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -591,7 +593,19 @@ std::string prs::GeneralParserE::typeName(int type)
     return oss.str();
 }
 
-
+emili::InitialSolution* prs::EmBaseBuilder::buildInitialSolution()
+{
+    prs::incrementTabLevel();
+    emili::InitialSolution* init= nullptr;
+    if(tm.checkToken(COMPOSED_INITIAL))
+    {
+        printTab("Composed InitialSolution");
+        emili::InitialSolution* i = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::LocalSearch* ls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        init = new emili::ComposedInitialSolution(*i,*ls);
+    }
+    return init;
+}
 
 emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
 {
@@ -744,11 +758,11 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
         std::cout << "time : " << time_elapsed << std::endl;
         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-        std::cout << "Objective function value: " << s->getSolutionValue() << std::endl;
+        std::cout << "Objective function value: " << std::fixed << s->getSolutionValue() << std::endl;
         std::cout << "Found solution: ";
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << std::endl;
-        std::cerr << s-> getSolutionValue() << std::endl;
+        std::cerr << std::fixed << s-> getSolutionValue() << std::endl;
         exit(123);
     }
     else if(tm.checkToken(EMPTY_LOCAL))

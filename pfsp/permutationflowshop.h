@@ -1656,7 +1656,7 @@ protected:
     double _b;
     double _c;
     double _e;
-    std::vector<int> xi;
+    std::vector<double> xi;
     std::vector<int> xi_order;
     const std::vector< std::vector< long > >& pi;
     const std::vector<long>& dueDates;
@@ -1678,7 +1678,7 @@ public:
         nmacs(problem.getNmachines()),
         dueDates(problem.getDueDates())
     {
-        buildXi();
+        buildXi();        
     }
 
     class bs_node{
@@ -1686,29 +1686,35 @@ public:
         std::vector<int> scheduled;
         std::vector<int> unscheduled;
         std::vector< int > completionTimes;
-        std::vector< float > tpj;
-        double tpd;
+       //std::vector< float > tpj;
+       //double tpd;
         bs_node* father;
-        int k;
-        int kjob;
+
         std::vector< bs_node* > children;
         BeamSearchHeuristic& init;
         int m;
         int n;
         void evaluateNode();
+        double calcW();
     public:
+        int k;
+        int kjob;
         double g_value;
         double TE;
         double TI;
         double TT;
+        double T;
+        double L;        
         bs_node(BeamSearchHeuristic& bs):
             father(nullptr),
             init(bs),
-            completionTimes(bs.nmacs+1,0),
-            tpj(bs.nmacs+1,0),
+            completionTimes(bs.nmacs+1,0),            
             m(bs.nmacs),
             n(bs.njobs),
-            k(1)
+            g_value(0),
+            k(0),
+            L(0.0),
+            T(0)
         {
             scheduled.push_back(0);
             std::vector<int>& xi = init.getXi_order();
@@ -1722,19 +1728,32 @@ public:
             TE = std::max(((int)bs.dueDates[kjob])-completionTimes[m],0);
             TT = std::max(completionTimes[m]-((int)bs.dueDates[kjob]),0);
             TI = 0;
-            tpd = 0;
-            for(int i=0;i<n-1;i++)
-            {
-                tpj[1] += bs.pi[unscheduled[i]][1];
-                tpd += bs.dueDates[unscheduled[i]];
-            }
-            for(int j=2;j<=m;j++)
-            {
-                for(int i=0;i<n-1;i++)
-                {
-                    tpj[j] += bs.pi[unscheduled[i]][j];
-                }
-            }
+        }
+
+        bs_node(BeamSearchHeuristic& bs,int start):
+            father(nullptr),
+            init(bs),
+            completionTimes(bs.nmacs+1,0),
+            m(bs.nmacs),
+            n(bs.njobs),
+            g_value(0),
+            k(0),
+            L(0.0),
+            T(0)
+        {
+            scheduled.push_back(0);
+            std::vector<int>& xi = init.getXi_order();
+
+            kjob = xi[start];
+            scheduled.push_back(kjob);
+            unscheduled = xi;
+            unscheduled.erase(unscheduled.begin()+start);
+            for(int i=1;i<=m;i++)
+                completionTimes[i] = completionTimes[i-1]+bs.pi[kjob][i];
+
+            TE = std::max(((int)bs.dueDates[kjob])-completionTimes[m],0);
+            TT = std::max(completionTimes[m]-((int)bs.dueDates[kjob]),0);
+            TI = 0;
         }
 
         bs_node(bs_node& fat,int i):
@@ -1742,17 +1761,17 @@ public:
             init(fat.init),
             m(fat.m),
             n(fat.n),
-            completionTimes(fat.m+1,0),
-            tpj(fat.tpj),
-            tpd(fat.tpd),
+            completionTimes(fat.completionTimes),
             k(fat.k+1),
             TE(fat.TE),
             TT(fat.TT),
-            TI(fat.TI)
+            TI(fat.TI),
+            L(0.0),
+            T(0)
         {
             scheduled = fat.scheduled;
             std::vector<int>& xi = fat.unscheduled;
-            kjob = xi[i];
+            kjob = xi[i];           
             scheduled.push_back(kjob);
             unscheduled = xi;
             unscheduled.erase(unscheduled.begin()+i);
@@ -1764,10 +1783,9 @@ public:
             init(node.init),
             m(node.m),
             n(node.n),
-            completionTimes(node.completionTimes),
-            tpj(node.tpj),
-            tpd(node.tpd),
+            completionTimes(node.completionTimes),           
             k(node.k),
+            kjob(node.kjob),
             TE(node.TE),
             TT(node.TT),
             TI(node.TI),
@@ -1775,7 +1793,7 @@ public:
             unscheduled(node.unscheduled),
             g_value(node.g_value),
             children(node.children)
-            { }
+            {         }
        void buildChildren();
       // bs_node* generateSequence();
 
@@ -1793,18 +1811,20 @@ public:
            return this->children;
        }
 
+      double calcG(double W);
+
        ~bs_node()
        {
-            std::vector<bs_node*>::iterator iter = children.begin();
+          /*  std::vector<bs_node*>::iterator iter = children.begin();
             for(;iter!=children.end();++iter)
             {
                 delete *iter;
-            }
+            }*/
        }
 
     };
 
-    virtual std::vector<int>& getXi();
+    virtual std::vector<double>& getXi();
     virtual std::vector<int>& getXi_order();
 };
 

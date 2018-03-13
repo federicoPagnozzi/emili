@@ -1679,6 +1679,7 @@ emili::Solution* emili::GVNS::search(Solution* initial)
         int k_max = shaker.getKmax();
         termcriterion->reset();
         changer.reset();
+        changer.setKmax(k_max);
         emili::Solution* s = this->init->generateEmptySolution();
         *s = *initial;
         *bestSoFar = *s;
@@ -1733,4 +1734,19 @@ emili::Solution* emili::GVNS::getBestSoFar()
     }
     return bestSoFar;
 }
+
+emili::Solution* emili::ComposedInitialSolution::generateEmptySolution()
+{
+    return is.generateEmptySolution();
+}
+
+emili::Solution* emili::ComposedInitialSolution::generateSolution()
+{
+    Solution* s = is.generateSolution();
+    Solution* ss = ls.search(s);
+    if(s!=ss)
+        delete s;
+    return ss;
+}
+
 

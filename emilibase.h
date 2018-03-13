@@ -1383,9 +1383,12 @@ public:
  */
 class NeighborhoodChange: public Acceptance
 {
+protected:
+    int kmax;
 public:
-    virtual Solution* neighborhoodChange(Solution *intensification_solution,Solution* diversification_solution,int& n)=0;
+    virtual Solution* neighborhoodChange(Solution *intensification_solution,Solution* diversification_solution,int& k)=0;
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    virtual void setKmax(int kmax){ this->kmax = kmax;}
 };
 /**
  * @brief The AccNeighborhoodChange class allows the use of acceptance criteria as neighborhood
@@ -1467,6 +1470,18 @@ public:
     Metropolis(float initial_temperature, float final_temperature, float descending_ratio, int iterations, float alpha):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),beta(descending_ratio),interval(iterations),counter(0),alpha(alpha) { }
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
     virtual void reset();
+};
+
+class ComposedInitialSolution: public emili::InitialSolution
+{
+protected:
+    InitialSolution& is;
+    LocalSearch& ls;
+public:
+    ComposedInitialSolution(InitialSolution& initial, LocalSearch& local):InitialSolution(initial.getProblem()),is(initial),ls(local){}
+    virtual Solution* generateEmptySolution();
+    virtual Solution* generateSolution();
+    virtual ~ComposedInitialSolution() { delete &is; delete &ls;}
 };
 
 /**

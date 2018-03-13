@@ -8352,10 +8352,10 @@ emili::Solution* emili::pfsp::RandomNoWait_RIS::search(Solution *initial)
 void emili::pfsp::BeamSearchHeuristic::buildXi()
 {
     double wprod = (njobs-2.0)/4.0;
-
+    std::vector<double> wj(njobs+1,0.0);
     for(int j=1; j<=njobs ; j++ )
     {
-        double wj = 0;
+
         double pij = pi[j][1];
         for(int i = 2; i<=nmacs ; i++)
         {
@@ -8366,29 +8366,41 @@ void emili::pfsp::BeamSearchHeuristic::buildXi()
                 wjprime += pi[j][ip];
             }
             wjprime = (wjprime*nmacs)/(i-1);
-            wj = wjprime*wprod;
+            wj[j] = wj[j] + wjprime;
         }
-        xi[j] = pij+wj;
+
+        wj[j] = wj[j]*wprod;
+        xi[j] = pij+wj[j];
         xi_order.push_back(j);
     }
-    std::vector<int>& xil = xi;
-    std::sort(xi_order.begin(),xi_order.end(),[xil](int i1,int i2){
+    std::vector<double>& xil = xi;
+
+    std::sort(xi_order.begin(),xi_order.end(),[xil,wj](int i1,int i2){
                                                             if(xil[i1]==xil[i2] && i2!=0)
-                                                                return i1>i2;
+                                                                return wj[i1]<wj[i2];
                                                             else
                                                                return xil[i1] < xil[i2];
     });
-
-/*    for(int i = 0; i<=njobs; i++)
+/*
+    for(int i = 0; i<=njobs; i++)
         std::cout << " " << xi[i];
     std::cout << "\n";
 
     for(int i = 0; i<=njobs; i++)
         std::cout << " " << xi_order[i];
     std::cout << "\n";
+
+    for(int i=1; i<=njobs; i++)
+    {
+        std::cout << i << ": ";
+        for(int k = 1; k<=nmacs; k++)
+             std::cout << pi[i][k] << " ";
+
+        std::cout << std::endl;
+    }
 */
 }
-std::vector<int>& emili::pfsp::BeamSearchHeuristic::getXi()
+std::vector<double>& emili::pfsp::BeamSearchHeuristic::getXi()
 {
     return xi;
 }
@@ -8400,52 +8412,117 @@ std::vector<int>& emili::pfsp::BeamSearchHeuristic::getXi_order()
 
 emili::Solution* emili::pfsp::BeamSearchHeuristic::generate()
 {
-    bs_node start(*this);
-    start.buildChildren();
-    int k = 2;
-    std::vector<bs_node*> current_iteration=start.getChildren();
-    std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+
+
+    //start.buildChildren();
+
+    int k = 1;
+
+    std::vector<bs_node*> current_iteration;
+    int g = _gamma<njobs?_gamma:njobs;
+    for(int x=0;x<g;x++)
+    {
+      bs_node* start = new bs_node(*this,x);
+      current_iteration.push_back(start);
+    }
+
+    //std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+
     do{
        // std::cout << "#child " << current_iteration.size() << std::endl;
-        current_iteration[0]->buildChildren();
-        std::vector<bs_node*> next_iteration = current_iteration[0]->getChildren();
+        //current_iteration[0]->buildChildren();
+        //std::vector<bs_node*> next_iteration = current_iteration[0]->getChildren();
+        std::vector<bs_node*> next_iteration;
         int size = current_iteration.size();
+
         size = _gamma<size?_gamma:size;
-        for(int i=1;i < size; i++)
+
+        //for(int i=1;i < size; i++)
+        //std::cout << k << " " << k << std::endl;
+        for(int i=0;i < size; i++)
         {
-            current_iteration[i]->buildChildren();
-            std::vector<bs_node*> ccc = current_iteration[i]->getChildren();
-            next_iteration.insert(next_iteration.end(),ccc.begin(),ccc.end());
+           // std::cout << " ITERATION " << i <<"/" << size << std::endl;
+         //   std::cout << "Node value " << current_iteration[i]->g_value << std::endl;
+            //current_iteration[i]->buildChildren();
+            //std::vector<bs_node*> ccc = current_iteration[i]->getChildren();
+            //next_iteration.insert(next_iteration.end(),ccc.begin(),ccc.end());
+            int csize = njobs-k;
+            double W = 0.0;
+            for(int c=0;c < csize; c++)
+            {
+                bs_node* b = new bs_node(*current_iteration[i],c);
+                W += b->TT;
+                next_iteration.push_back(b);
+            }
+
+            for(int c=0;c < csize; c++)
+            {
+                int node = i*csize+c;
+                next_iteration[node]->calcG(W);
+            }
+
         }
+
+  //      std::vector< bs_node* >::iterator iter = next_iteration.begin();
+    //    for(;iter!=next_iteration.end();++iter)
+      //      (*iter)->calcG(W);
+        std::vector< bs_node* >::iterator iter = current_iteration.begin();
+            for(;iter!=current_iteration.end();++iter)
+            {
+                delete *iter;
+            }
          current_iteration = next_iteration;
          std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+
+       /*  std::cout << k << ": ";
+         for(;iter!=current_iteration.end();++iter)
+         {
+             //std::cout << "K " << (*iter)->k << " J " << (*iter)->kjob << " TE " << (*iter)->TE << " TT " << (*iter)->TT << " TI " << (*iter)->TI << " G " <<  (*iter)->g_value << std::endl;
+             std::cout << "( " << (*iter)->kjob << "," << (*iter)->g_value << ") ";
+         }
+         std::cout << std::endl;*/
          k++;
     }while(k<(njobs));
-    std::vector<int> seq = current_iteration[0]->getPermutation();
+    /*std::vector< bs_node* >::iterator iter = current_iteration.begin();
+      for(;iter!=current_iteration.end();++iter)
+    {
+    std::vector<int> seq = (*iter)->getPermutation();
     double res = pis.computeObjectiveFunction(seq);
+    std::cout << "K " << (*iter)->k << " G "<< (*iter)->g_value << " V " << res << std::endl;
+     }*/
+    std::vector<int> seq = current_iteration[0]->getPermutation();
+    double res = current_iteration[0]->g_value;
+    std::vector< bs_node* >::iterator iter = current_iteration.begin();
+        for(;iter!=current_iteration.end();++iter)
+        {
+            delete *iter;
+        }
+    //pis.computeObjectiveFunction(seq);
 //    std::cout << "sol " << seq.size() << " children " <<  std::endl;
+
     return new emili::pfsp::PermutationFlowShopSolution(res,seq);
 }
 
-
+/*
 void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
 {
 
     completionTimes[1] = father->completionTimes[1]+init.pi[kjob][1];
     double I = 0.0;
+    //tpj[1] = tpj[1] - init.pi[kjob][1];
     double W = father->completionTimes[1]+tpj[1];
-    tpd = tpd - init.dueDates[kjob];
     for(int i=2;i<=m;i++)
     {
         completionTimes[i] = std::max(father->completionTimes[i],completionTimes[i-1])+init.pi[kjob][i];
+      //  tpj[i] = tpj[i] - init.pi[kjob][i];
         W = std::max((double)father->completionTimes[i],W)+tpj[i];
-        tpj[i] = tpj[i] - init.pi[kjob][i];
         double iden = i-1+((k-1)*(m-i+1)/(n-2));
         I = I + (m * std::max(completionTimes[i-1]-father->completionTimes[i],0))/iden;
     }
+    //tpd = tpd - init.dueDates[kjob];
 
-    W = W - tpd;
-    W = std::max(W,0.0);
+    //W =  W - tpd;
+    //W = std::max(W,0.0);
 
     double E = std::max((int)init.dueDates[kjob]-completionTimes[m],0);
     double T = std::max(completionTimes[m]-(int)init.dueDates[kjob],0);
@@ -8453,6 +8530,7 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
     TT = TT + T;
     TI = TI + I;
 
+    //std::cout << "K " << k << " TE " << TE << " TT " << TT << " TI " << TI << " W " << W << " TPD " <<  tpd << std::endl;
     double F = TI * (n-k-1)/n
              + init._a * TE * (2*n-k-1)/(2*n)
              + init._b * TT * (k-1+n)/(2*n);
@@ -8462,7 +8540,91 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
              + (init._e)/(n-k+1)*W;
 
     g_value = F + L;
+}*/
+
+double emili::pfsp::BeamSearchHeuristic::bs_node::calcW()
+{
+    std::vector<int>::iterator iter = unscheduled.begin();
+    std::vector<int> ctimes(completionTimes);
+    double W = TT;
+    for(;iter!=unscheduled.end();++iter)
+    {
+        int cj = *iter;
+        ctimes[1] += init.pi[cj][1];
+        for(int i=2;i<=m;i++)
+        {
+            ctimes[i] = std::max(ctimes[i],ctimes[i-1])+init.pi[cj][i];
+        }
+        //ctimes[m] = ctimes[m]+init.pi[cj][m];
+        W = W + std::max(ctimes[m]-(int)init.dueDates[cj],0);
+    }
+    //std::vector< int > asd = scheduled;
+    //asd.insert(asd.end(),unscheduled.begin(),unscheduled.end());
+    //assert(W == init.pis.computeObjectiveFunction(asd));
+    return W;
 }
+
+void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
+{
+
+    completionTimes[1] += init.pi[kjob][1];
+
+    double I = 0.0;
+    double km = k-1;
+    double nd = n;
+    double md = m;
+    for(int i=2;i<=m;i++)
+    {
+        double iden = md / (i-1+km*(md-i+1)/(nd-2));
+        double idletime = std::max(completionTimes[i-1]-completionTimes[i],0);
+        I = I + idletime*iden;
+        completionTimes[i] = std::max(completionTimes[i],completionTimes[i-1])+init.pi[kjob][i];
+    }    
+    T = std::max(completionTimes[m]-(int)init.dueDates[kjob],0);
+    TT = TT + T;
+
+    if(k == (n-1))
+    {
+        g_value = TT;
+
+    }
+    else
+    {
+        double E = std::max((int)init.dueDates[kjob]-completionTimes[m],0);
+        TE = TE + E;
+        TI = TI + I;
+       // std::cout << "K " << k << " F " << father->kjob << " J " << kjob << " I " << I << " E " << E << std::endl;
+        double F = TI * (nd-km)/nd
+                + init._a * TE * (2*nd-km)/(2*nd)
+                + init._b * TT * (km+nd)/(2*nd);
+
+        //double W = calcW();
+        L = I * (nd - km) + E*init._c;// + ((init._e)/(n-k+1))*W;
+        g_value = F ;//+ L ;
+        //if(k < 4)
+
+    }
+}
+
+double emili::pfsp::BeamSearchHeuristic::bs_node::calcG(double W)
+{
+    double F = g_value;
+    if(k< (n-1))
+    {
+        //L = L + (init._e)/(n-k+1)*W;
+        double nd = n;
+        double kd = k;
+        L = L + (init._e)/(nd-kd+1)*W;
+        //L = L/10;
+        g_value = g_value+L;
+    }
+
+    //std::cout << "K " << k << " F "<< father->kjob << " J " << kjob << " TE " << TE << " TT " << TT << " TI " << TI
+    //        << " W " << W << " L " <<  L << " G " << g_value << " F "<< F << std::endl;
+
+    return g_value;
+}
+
 /*
 void emili::pfsp::BeamSearchHeuristic::bs_node::buildTree()
 {

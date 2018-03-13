@@ -910,7 +910,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         double e = tm.getDecimal();
         printTabPlusOne("e",e);
         int gamma = instance->getNjobs()/10;
-        printTabPlusOne("gamma",gamma);
+        printTabPlusOne("gamma",gamma);        
         init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
     }
 
