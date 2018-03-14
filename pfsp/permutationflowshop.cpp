@@ -8420,11 +8420,11 @@ emili::Solution* emili::pfsp::BeamSearchHeuristic::generate()
 
     std::vector<bs_node*> current_iteration;
     int g = _gamma<njobs?_gamma:njobs;
-    for(int x=0;x<g;x++)
-    {
-      bs_node* start = new bs_node(*this,x);
+   // for(int x=0;x<g;x++)
+    //{
+       bs_node* start = new bs_node(*this,0);
       current_iteration.push_back(start);
-    }
+    //}
 
     //std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
 
@@ -8599,7 +8599,7 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
                 + init._b * TT * (km+nd)/(2*nd);
 
         //double W = calcW();
-        L = I * (nd - km) + E*init._c;// + ((init._e)/(n-k+1))*W;
+        L = I * ((nd - k) - 1) + E*init._c;// + ((init._e)/(n-k+1))*W;
         g_value = F ;//+ L ;
         //if(k < 4)
 
@@ -8608,14 +8608,12 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
 
 double emili::pfsp::BeamSearchHeuristic::bs_node::calcG(double W)
 {
-    double F = g_value;
+   // double F = g_value;
     if(k< (n-1))
     {
         //L = L + (init._e)/(n-k+1)*W;
-        double nd = n;
-        double kd = k;
-        L = L + (init._e)/(nd-kd+1)*W;
-        //L = L/10;
+        double nd = n-k;
+        L = L + (init._e)/(nd+1)*W;
         g_value = g_value+L;
     }
 
