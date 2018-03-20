@@ -6619,11 +6619,56 @@ void emili::pfsp::PfspTwoInsertNeighborhood::reverseLastMove(Solution *step)
     newsol.insert(newsol.begin()+start_position,sol_i);
 }
 
+emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());    
+    int njobs = pis.getNjobs();    
+    std::vector < int > indexes;
+    std::vector < int > kn(njobs+1,0);
+    if(size >= njobs)
+    {
+        size = njobs-1;
+    }
+
+    int k=0;
+    while(k <= size)
+    {
+        int ind = (emili::generateRandomNumber()%njobs)+1;
+        if(kn[ind] == 0)
+        {
+            kn[ind] = 1;
+            indexes.push_back(ind);
+            k++;
+        }
+    }
+    int i = 0;
+    for(; i < size; i+=2)
+    {
+        int sol_i = newsol[indexes[i]];
+        newsol.erase(newsol.begin()+indexes[i]);
+        newsol.insert(newsol.begin()+indexes[i+1],sol_i);
+    }
+    i++;
+    if(i < size)
+    {
+        int sol_i = newsol[indexes[i]];
+        newsol.erase(newsol.begin()+indexes[i]);
+        newsol.insert(newsol.begin()+indexes[0],sol_i);
+    }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
+}
+
 emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution)
 {
 
     std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int njobs = pis.getNjobs();
+
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%njobs)+1;
     int sol_i = newsol[best_i];
@@ -7223,6 +7268,46 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
 }
 
+emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int njobs = pis.getNjobs();
+    std::vector < int > indexes;
+    std::vector < int > kn(njobs+1,0);
+    if(size >= njobs)
+    {
+        size = njobs-1;
+    }
+
+    int k=0;
+    while(k <= size)
+    {
+        int ind = (emili::generateRandomNumber()%njobs)+1;
+        if(kn[ind] == 0)
+        {
+            kn[ind] = 1;
+            indexes.push_back(ind);
+            k++;
+        }
+    }
+    int i = 0;
+    for(; i < size; i+=2)
+    {
+        std::swap(newsol[indexes[i]],newsol[indexes[i+1]]);
+    }
+    i++;
+    if(i < size)
+    {
+       std::swap(newsol[indexes[i]],newsol[indexes[0]]);
+    }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
+}
+
 
 void emili::pfsp::PfspExchangeNeighborhood::reset()
 {    
@@ -7305,6 +7390,41 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = pis.computeObjectiveFunction(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+}
+
+emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+        int njobs = pis.getNjobs()-1;
+        std::vector < int > indexes;
+        std::vector < int > kn(njobs+1,0);
+        if(size >= njobs)
+        {
+            size = njobs-2;
+        }
+
+        int k=0;
+        while(k < size)
+        {
+            int ind = (emili::generateRandomNumber()%njobs)+1;
+            if(kn[ind] == 0)
+            {
+                kn[ind] = 1;
+                indexes.push_back(ind);
+                k++;
+            }
+        }
+        int i = 0;
+        for(; i < size; i++)
+        {
+            std::swap(newsol[indexes[i]],newsol[indexes[i]+1]);
+        }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
 }
 
 void emili::pfsp::PfspTransposeNeighborhood::reset()
@@ -7623,7 +7743,7 @@ bool emili::pfsp::PfspMovesMemory::tabu_check(std::pair< int,int > value)
 
 void emili::pfsp::PfspMovesMemory::forbid(Solution *solution)
 {
-
+    //std::cout << lastMove.first << " <-> " << lastMove.second << std::endl;
     if(tabu_check(lastMove))
     {
         if(tt_index < this->tabutenure){
@@ -7641,6 +7761,14 @@ void emili::pfsp::PfspMovesMemory::forbid(Solution *solution)
 void emili::pfsp::PfspMovesMemory::registerMove(emili::Solution* base,emili::Solution* solution)
 {
     lastMove = neigh->lastMove();
+}
+
+void emili::pfsp::PfspMovesMemory2::registerMove(emili::Solution* base,emili::Solution* solution)
+{
+    std::pair<int,int> lm = neigh->lastMove();
+
+    int job = ((emili::pfsp::PermutationFlowShopSolution*) base)->getJobSchedule()[lm.second];
+    lastMove = std::pair<int,int>(job,lm.first);
 }
 
 void emili::pfsp::PfspMovesMemory::reset()
@@ -7682,8 +7810,7 @@ void emili::pfsp::TSABtestMemory::forbid(Solution *solution)
 {
     std::pair< int , int > fmove;
     int k = lastMove.first;
-    int l = lastMove.second;
-
+    int l = lastMove.second;    
     if(k<l)
     {
         fmove = std::pair< int, int > (k,k+1);
@@ -7854,6 +7981,11 @@ void emili::pfsp::GVNS_RIS_Neighborhood::reset()
 }
 
 emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution)
+{
+    return currentSolution;
+}
+
+emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution,int size)
 {
     return currentSolution;
 }
@@ -8420,11 +8552,11 @@ emili::Solution* emili::pfsp::BeamSearchHeuristic::generate()
 
     std::vector<bs_node*> current_iteration;
     int g = _gamma<njobs?_gamma:njobs;
-    for(int x=0;x<g;x++)
-    {
-      bs_node* start = new bs_node(*this,x);
+   // for(int x=0;x<g;x++)
+    //{
+       bs_node* start = new bs_node(*this,0);
       current_iteration.push_back(start);
-    }
+    //}
 
     //std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
 
@@ -8570,12 +8702,12 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
     completionTimes[1] += init.pi[kjob][1];
 
     double I = 0.0;
-    double km = k-1;
+    double km = k;
     double nd = n;
     double md = m;
     for(int i=2;i<=m;i++)
     {
-        double iden = md / (i-1+km*(md-i+1)/(nd-2));
+        double iden = md / (i-1+(km-1)*(md-i+1)/(nd-2));
         double idletime = std::max(completionTimes[i-1]-completionTimes[i],0);
         I = I + idletime*iden;
         completionTimes[i] = std::max(completionTimes[i],completionTimes[i-1])+init.pi[kjob][i];
@@ -8594,12 +8726,12 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
         TE = TE + E;
         TI = TI + I;
        // std::cout << "K " << k << " F " << father->kjob << " J " << kjob << " I " << I << " E " << E << std::endl;
-        double F = TI * (nd-km)/nd
-                + init._a * TE * (2*nd-km)/(2*nd)
-                + init._b * TT * (km+nd)/(2*nd);
+        double F = TI * (nd-km-1)/nd
+                + init._a * TE * (2*nd-km-1)/(2*nd)
+                + init._b * TT * (km-1+nd)/(2*nd);
 
         //double W = calcW();
-        L = I * (nd - km) + E*init._c;// + ((init._e)/(n-k+1))*W;
+        L = I * (nd - km - 1) + E*init._c;// + ((init._e)/(n-k+1))*W;
         g_value = F ;//+ L ;
         //if(k < 4)
 
@@ -8608,14 +8740,12 @@ void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
 
 double emili::pfsp::BeamSearchHeuristic::bs_node::calcG(double W)
 {
-    double F = g_value;
+   // double F = g_value;
     if(k< (n-1))
     {
         //L = L + (init._e)/(n-k+1)*W;
-        double nd = n;
-        double kd = k;
-        L = L + (init._e)/(nd-kd+1)*W;
-        //L = L/10;
+        double nd = n-k;
+        L = L + (init._e)/(nd+1)*W;
         g_value = g_value+L;
     }
 

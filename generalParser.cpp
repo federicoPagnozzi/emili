@@ -67,10 +67,12 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
+#define ACCEPTANCE_EXPLORE "explore"
 /*base neighborhoods*/
 #define NEIGHBORHOOD_RANDCONHE "rch"
 /*SHAKE*/
 #define SHAKE_PERSHAKE "pershake"
+#define SHAKE_NEIGHBORHOOD "nshake"
 /*NEIGHBORHOOD_CHANGE*/
 #define NEIGHBORHOOD_CHANGE_ACC "accng"
 
@@ -577,6 +579,8 @@ std::string prs::GeneralParserE::typeName(int type)
     case COMPONENT_NEIGHBORHOOD_OR_EMPTY: return std::string("Neighborhood or empty");
     case COMPONENT_PERTURBATION: return std::string("Perturbation");
     case COMPONENT_ACCEPTANCE: return std::string("Acceptance");
+    case COMPONENT_SHAKE: return std::string("Shake");
+    case COMPONENT_NEIGHBORHOOD_CHANGE: return std::string("Neighborhood change");
     }
     /*TODO - if Gp does not have a name for the component it should ask the builders*/
     for(std::vector<Builder*>::iterator iter = activeBuilders.begin(); iter != activeBuilders.end();iter++)
@@ -1029,6 +1033,13 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         printTab(oss.str().c_str());
         acc = new  emili::AcceptPlateau(plateau_steps,threshold);
     }
+    else if(tm.checkToken(ACCEPTANCE_EXPLORE))
+    {
+        printTab("Explore acceptance");
+        int steps = tm.getInteger();
+        printTabPlusOne("steps",steps);
+        acc = new emili::AcceptExplore(steps);
+    }
 
 
     prs::decrementTabLevel();
@@ -1044,6 +1055,14 @@ emili::Shake* prs::EmBaseBuilder::buildShake()
         printTab("PerShake Shake operator ");
         std::vector<emili::Perturbation*> nes = buildComponentVector<emili::Perturbation>(COMPONENT_PERTURBATION);
         sh = new emili::PerShake(nes);
+    }
+    else if(tm.checkToken(SHAKE_NEIGHBORHOOD))
+    {
+        printTab("Neighborhood shake");
+        std::vector<emili::Neighborhood*> nes = buildComponentVector<emili::Neighborhood>(COMPONENT_NEIGHBORHOOD);
+        int size = tm.getInteger();
+        printTabPlusOne("Max size",size);
+        sh = new emili::NeighborhoodShake(nes,size);
     }
     prs::decrementTabLevel();
     return sh;

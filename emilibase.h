@@ -698,9 +698,23 @@ public:
      * This method shoudl return a new solution.
      */
     virtual Solution* random(Solution* currentSolution) = 0;
+    /**
+     * @brief random
+     * When implementing metaheuristics like ILS or VNS it is usefull to
+     * have a method that executes a random step in a given neighborhood of
+     * a given size.
+     * @param currentSolution
+     * the base solution for the random step
+     * @param size
+     * the size of the step
+     * @return
+     * A new solution that is size-neighbor of currentSolution
+     */
+    virtual Solution* random(Solution *currentSolution, int size){return currentSolution;}
+
     /** @brief size
      * This method returns the size of the neighborhood
-    */
+    */    
     virtual int size()=0;
     virtual ~Neighborhood() {}
 };
@@ -858,7 +872,7 @@ public:
      * Maximum amount of time, in seconds, for the local search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -1169,6 +1183,21 @@ public:
     AcceptPlateau(int maxNonImprovingSteps,int threshold):max_plateau_steps(maxNonImprovingSteps),plateau_threshold(threshold),current_step(0),threshold_status(0) { }
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
 };
+/**
+ * @brief The AcceptExplore class
+ * This acceptance criterion accepts always new solution for at least k
+ * search steps, if no improvement is found after k steps it will make
+ * the search go back to the best solution.
+ */
+class AcceptExplore : public emili::Acceptance
+{
+protected:
+    int k;
+    int iteration;
+public:
+    AcceptExplore(int steps):k(steps),iteration(0) {}
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
 
 /**
  * IteratedLocalSearch it's a general implementation of iterated local search.
@@ -1371,9 +1400,10 @@ public:
 class NeighborhoodShake: public Shake
 {
 protected:
-    std::vector< Neighborhood* > shakes;
+    int n_num;
+    std::vector< Neighborhood* > shakes;    
 public:
-    NeighborhoodShake(std::vector<Neighborhood*> nes):shakes(nes),Shake(nes.size()) { }
+    NeighborhoodShake(std::vector<Neighborhood*> nes, int max_size):shakes(nes),n_num(nes.size()),Shake(nes.size()*max_size) { }
     virtual Solution* shake(Solution *s, int n);
 };
 

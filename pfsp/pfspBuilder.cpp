@@ -22,6 +22,7 @@
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
+#define TABU_MEMORY_MOVES2 "move2"
 #define TABU_MEMORY_HASHES "hash"
 #define TABU_MEMORY_SOLUTIONS "solution"
 #define TABU_MEMORY_TSAB "tsabm"
@@ -635,54 +636,61 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
     prs::incrementTabLevel();
     std::ostringstream oss;
     emili::TabuMemory* tmem = nullptr;
-    printTab(oss.str().c_str());
-
+    //printTab(oss.str().c_str());
     if(tm.checkToken(TABU_MEMORY_MOVES))
     {
         oss.str(""); oss << "USING MOVES\n\t";
-        printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspMovesMemory(ts);
+    }
+    else if(tm.checkToken(TABU_MEMORY_MOVES2))
+    {
+        oss.str(""); oss << "USING MOVES2\n\t";
+        int ts = tm.getInteger();
+        oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
+        tmem = new  emili::pfsp::PfspMovesMemory2(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_HASHES))
     {
         oss.str(""); oss << "USING HASHES\n\t";
-        printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspTabuHashMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_SOLUTIONS))
     {
-        oss.str(""); oss << "USING FULL SOLUtiON\n\t";
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING FULL SOLUtiON\n\t";        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspFullSolutionMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB))
     {
-        oss.str(""); oss << "USING TSAB\n\t";
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING TSAB\n\t";        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::TSABMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB_TEST))
     {
-        oss.str(""); oss << "USING TSAB\n\t";
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING TSAB\n\t";        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::TSABtestMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_VALUE))
     {
-        oss.str(""); oss << "USING VALUE\n\t" ;
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING VALUE\n\t" ;        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspTabuValueMemory(ts);
     }
 
@@ -910,6 +918,8 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         double e = tm.getDecimal();
         printTabPlusOne("e",e);
         int gamma = instance->getNjobs()/10;
+        if(gamma==0)
+            gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);        
         init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
     }

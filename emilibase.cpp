@@ -443,13 +443,9 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
         termcriterion->reset();
         neighbh->reset();        
         emili::Solution* newSolution = init->generateEmptySolution();
-
         *newSolution = *initial;
-
         do
         { 
-
-
             newSolution = neighbh->step(bestSoFar);
             if(bestSoFar->operator >(*newSolution))
             {
@@ -467,8 +463,7 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
 }
 
 emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *initial)
-{
-
+{   
     setTimer(time_seconds);
     beginTime = clock();
     localsearch = this;
@@ -479,7 +474,6 @@ emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *i
 
 emili::Solution* emili::LocalSearch::timedSearch()
 {
-    neighbh->reset();
     setTimer(seconds);
     beginTime = clock();
     localsearch = this;
@@ -493,7 +487,6 @@ emili::Solution* emili::LocalSearch::timedSearch()
 
 emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
 {
-    neighbh->reset();
     setTimer(seconds);
     beginTime = clock();
     localsearch = this;
@@ -850,12 +843,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 emili::Solution* emili::BestTabuSearch::search()
 {
     tabuMemory.reset();
-    emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = search(current);
-    if(current!=sol)
-    delete current;
-
-    return sol;
+     return LocalSearch::search();
 }
 
 
@@ -863,12 +851,12 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
 {
     termcriterion->reset();
     neighbh->reset();
-    emili::Solution* incumbent = initial->clone();
+    emili::Solution* incumbent = initial->clone();    
     emili::Solution* ithSolution = nullptr;
     do
     {
         if(*bestSoFar > *incumbent){
-            *bestSoFar = *incumbent;
+            *bestSoFar = *incumbent;            
         }
 
         Neighborhood::NeighborhoodIterator iter = neighbh->begin(bestSoFar);
@@ -880,10 +868,10 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
 
         for(;iter!=neighbh->end();++iter)
         {
-            ithSolution = *iter;
-            tabuMemory.registerMove(incumbent,ithSolution);// make the tabu memory record the move used on incumbent to generate ithSolution
-            if(*incumbent > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar))
+            ithSolution = *iter;            
+            if(*incumbent > *ithSolution && (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar))                
             {
+                tabuMemory.registerMove(incumbent,ithSolution);// make the tabu memory record the move used on incumbent to generate ithSolution
                 *incumbent = *ithSolution;
                 printSolstats(incumbent);
             }
@@ -918,9 +906,9 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
 
             for(;iter!=neighbh->end();++iter)
             {
-                ithSolution = *iter;
-                tabuMemory.registerMove(incumbent,ithSolution);
+                ithSolution = *iter;                
                 if(incumbent->operator >(*ithSolution)&& (tabuMemory.tabu_check(ithSolution) || *ithSolution < *bestSoFar)){                    
+                    tabuMemory.registerMove(incumbent,ithSolution);
                     *incumbent = *ithSolution;
                     printSolstats(incumbent);
                     break;
@@ -1082,6 +1070,25 @@ emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution
         }
     }
     return intensification_solution;
+}
+
+emili::Solution* emili::AcceptExplore::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+    if(*diversification_solution < *intensification_solution)
+    {
+        iteration = 0;
+    }
+    else if(iteration < k)
+    {
+        iteration++;
+    }
+    else
+    {
+        iteration=0;
+        Solution* bestSoFar = emili::getAlgo()->getBestSoFar();
+        *diversification_solution = *bestSoFar;
+    }
+    return diversification_solution;
 }
 
 
@@ -1648,8 +1655,11 @@ emili::Solution* emili::PerShake::shake(Solution *s, int n)
 
 emili::Solution* emili::NeighborhoodShake::shake(Solution *s, int n)
 {
-    Neighborhood* p = shakes[n];
-    return p->random(s);
+    int k = n%n_num;
+    int size = n/n_num + 1 ;
+    //std::cout << "N " << n << " K " << k << " S " << size << std::endl;
+    Neighborhood* p = shakes[k];
+    return p->random(s,size);
 }
 
 emili::Solution* emili::NeighborhoodChange::accept(Solution *intensification_solution, Solution *diversification_solution)
