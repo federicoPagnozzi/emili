@@ -811,6 +811,7 @@ public:
     virtual void setNjobs(int num_of_jobs) {njobs=num_of_jobs;}
     virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
+    virtual Solution* random(Solution *currentSolution,int size) = 0;
     virtual int size();
 };
 
@@ -832,6 +833,7 @@ public:
     PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);    
 };
@@ -1199,7 +1201,8 @@ public:
     PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
-    virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
+    virtual Solution* random(Solution *currentSolution,int size);
+    virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }    
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
@@ -1254,6 +1257,7 @@ public:
     PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),sp_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);
     virtual int size();
@@ -1491,6 +1495,7 @@ public:
     void setReference(emili::Solution* ref) {this->reference = ref;}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(index,index); }
     virtual NeighborhoodIterator begin(Solution *base);
 };
@@ -1547,6 +1552,7 @@ public:
     CompoundPerturbation(emili::pfsp::PermutationFlowShop& problem):pis(problem),ins(problem),tra(problem),nbj(problem.getNjobs()),omega(30),d(3),pc(0.2) {}
     CompoundPerturbation(emili::pfsp::PermutationFlowShop& problem,int phy_size,int number_of_perturbations, float perturbation_probability):pis(problem),ins(problem),tra(problem),nbj(problem.getNjobs()),omega(phy_size),d(number_of_perturbations),pc(perturbation_probability) {}
     virtual Solution* perturb(Solution *solution);
+
 
 };
 

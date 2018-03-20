@@ -1072,6 +1072,25 @@ emili::Solution* emili::AcceptPlateau::accept(Solution *intensification_solution
     return intensification_solution;
 }
 
+emili::Solution* emili::AcceptExplore::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+    if(*diversification_solution < *intensification_solution)
+    {
+        iteration = 0;
+    }
+    else if(iteration < k)
+    {
+        iteration++;
+    }
+    else
+    {
+        iteration=0;
+        Solution* bestSoFar = emili::getAlgo()->getBestSoFar();
+        *diversification_solution = *bestSoFar;
+    }
+    return diversification_solution;
+}
+
 
 /**
  * Iterated Local Search
@@ -1636,8 +1655,11 @@ emili::Solution* emili::PerShake::shake(Solution *s, int n)
 
 emili::Solution* emili::NeighborhoodShake::shake(Solution *s, int n)
 {
-    Neighborhood* p = shakes[n];
-    return p->random(s);
+    int k = n%n_num;
+    int size = n/n_num + 1 ;
+    //std::cout << "N " << n << " K " << k << " S " << size << std::endl;
+    Neighborhood* p = shakes[k];
+    return p->random(s,size);
 }
 
 emili::Solution* emili::NeighborhoodChange::accept(Solution *intensification_solution, Solution *diversification_solution)

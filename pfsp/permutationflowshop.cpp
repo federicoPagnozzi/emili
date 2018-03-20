@@ -6619,11 +6619,56 @@ void emili::pfsp::PfspTwoInsertNeighborhood::reverseLastMove(Solution *step)
     newsol.insert(newsol.begin()+start_position,sol_i);
 }
 
+emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());    
+    int njobs = pis.getNjobs();    
+    std::vector < int > indexes;
+    std::vector < int > kn(njobs+1,0);
+    if(size >= njobs)
+    {
+        size = njobs-1;
+    }
+
+    int k=0;
+    while(k <= size)
+    {
+        int ind = (emili::generateRandomNumber()%njobs)+1;
+        if(kn[ind] == 0)
+        {
+            kn[ind] = 1;
+            indexes.push_back(ind);
+            k++;
+        }
+    }
+    int i = 0;
+    for(; i < size; i+=2)
+    {
+        int sol_i = newsol[indexes[i]];
+        newsol.erase(newsol.begin()+indexes[i]);
+        newsol.insert(newsol.begin()+indexes[i+1],sol_i);
+    }
+    i++;
+    if(i < size)
+    {
+        int sol_i = newsol[indexes[i]];
+        newsol.erase(newsol.begin()+indexes[i]);
+        newsol.insert(newsol.begin()+indexes[0],sol_i);
+    }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
+}
+
 emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution)
 {
 
     std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int njobs = pis.getNjobs();
+
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%njobs)+1;
     int sol_i = newsol[best_i];
@@ -7223,6 +7268,46 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
 }
 
+emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int njobs = pis.getNjobs();
+    std::vector < int > indexes;
+    std::vector < int > kn(njobs+1,0);
+    if(size >= njobs)
+    {
+        size = njobs-1;
+    }
+
+    int k=0;
+    while(k <= size)
+    {
+        int ind = (emili::generateRandomNumber()%njobs)+1;
+        if(kn[ind] == 0)
+        {
+            kn[ind] = 1;
+            indexes.push_back(ind);
+            k++;
+        }
+    }
+    int i = 0;
+    for(; i < size; i+=2)
+    {
+        std::swap(newsol[indexes[i]],newsol[indexes[i+1]]);
+    }
+    i++;
+    if(i < size)
+    {
+       std::swap(newsol[indexes[i]],newsol[indexes[0]]);
+    }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
+}
+
 
 void emili::pfsp::PfspExchangeNeighborhood::reset()
 {    
@@ -7305,6 +7390,41 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = pis.computeObjectiveFunction(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+}
+
+emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+        int njobs = pis.getNjobs()-1;
+        std::vector < int > indexes;
+        std::vector < int > kn(njobs+1,0);
+        if(size >= njobs)
+        {
+            size = njobs-2;
+        }
+
+        int k=0;
+        while(k < size)
+        {
+            int ind = (emili::generateRandomNumber()%njobs)+1;
+            if(kn[ind] == 0)
+            {
+                kn[ind] = 1;
+                indexes.push_back(ind);
+                k++;
+            }
+        }
+        int i = 0;
+        for(; i < size; i++)
+        {
+            std::swap(newsol[indexes[i]],newsol[indexes[i]+1]);
+        }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
 }
 
 void emili::pfsp::PfspTransposeNeighborhood::reset()
@@ -7861,6 +7981,11 @@ void emili::pfsp::GVNS_RIS_Neighborhood::reset()
 }
 
 emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution)
+{
+    return currentSolution;
+}
+
+emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution,int size)
 {
     return currentSolution;
 }
