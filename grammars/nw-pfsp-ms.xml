@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
-     15/09/2017
+     20/02/2018
 
      Grammar for No wait PFSP 
      without time related termination and optimized for simple algorithms
+     - added gvns and vns 
+     - added nwris and rnwris
+     - added ignw and ignwls
  -->
 
 <gr:grammar xmlns:gr="grammar">
@@ -35,8 +38,6 @@
 <pfsp:initial_solution>
    <![CDATA[random ]]>
    <or/>
-   <![CDATA[slack ]]>
-   <or/>
    <![CDATA[nrz ]]>
   <or/>
   <![CDATA[nrz2 ]]>
@@ -52,10 +53,6 @@
    <![CDATA[locmin ]]>
    <or/>
     <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
-  <!--
-   <or/>
-   <![CDATA[soater ]]>
-   -->
 </pfsp:termination>
 
 <pfsp:neighborhood>
@@ -91,9 +88,7 @@
 	</pfsp:pertubation>
 
 	<pfsp:acceptance>
-		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
-		<or/>
-		<![CDATA[testacc ]]><pfsp:ac_percentage/><![CDATA[ ]]>
+		<![CDATA[rsacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
 		<or/>
 		<![CDATA[improve ]]>
 		<or/>
@@ -110,13 +105,25 @@
 	     <![CDATA[hash ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
 	     <or/>
 	     <![CDATA[solution ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
-	     <or/>
-	     <![CDATA[tsabm ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
-	     <or/>
-	     <![CDATA[tsabmt ]]><pfsp:tabutenure_size/><![CDATA[ ]]>
 	</pfsp:tabutenure>
 
-	<pfsp:first>
+	<pfsp:rndmove>
+             <![CDATA[rndmv ]]><pfsp:neighborhood/><pfsp:random_moves/><![CDATA[ ]]>
+        </pfsp:rndmove>
+
+	<pfsp:shaker>
+	    <![CDATA[pershake ]]><pfsp:rndmove/><pfsp:rndmove/><pfsp:rndmove/>
+            <or/> 
+	    <![CDATA[pershake ]]><pfsp:pertubation/><pfsp:pertubation/>
+	    <or/>
+	    <![CDATA[pershake ]]><pfsp:pertubation/><pfsp:pertubation/><pfsp:pertubation/>
+	</pfsp:shaker>
+
+        <pfsp:neighborhoodchanger>
+           <![CDATA[accng ]]><pfsp:acceptance/>
+        </pfsp:neighborhoodchanger>
+	
+        <pfsp:first>
            <![CDATA[first ]]>
 		  <pfsp:initial_solution/>
           	  <pfsp:termination/>
@@ -219,6 +226,28 @@
            <pfsp:termination/>
 	   <pfsp:neighborhood/>
 	</pfsp:bestp>
+
+	<pfsp:nwris>
+	<![CDATA[nwris ]]><pfsp:initial_solution/>
+	<or/>
+	<![CDATA[rnwris ]]><pfsp:initial_solution/>
+	</pfsp:nwris>
+	
+        <pfsp:vns>
+             <![CDATA[vns ]]>
+             <pfsp:vnd/>
+             <pfsp:termination/>
+             <pfsp:shaker/>
+             <pfsp:neighborhoodchanger/>
+        </pfsp:vns>
+        
+	<pfsp:gvns>
+             <![CDATA[vns ]]>
+             <pfsp:vnd/>
+	     <![CDATA[true ]]>
+             <pfsp:shaker/>
+             <pfsp:neighborhoodchanger/>
+        </pfsp:gvns>
 	
 	<pfsp:ilsalgos>
 		<pfsp:first/>
@@ -232,6 +261,10 @@
 		<pfsp:vnd/>
 		<or/>
 		<pfsp:tabuf/>
+		<or/>
+		<pfsp:nwris/>
+		<or/>
+		<pfsp:vns/>
 	</pfsp:ilsalgos>
 	
 	<pfsp:algos>
@@ -242,6 +275,8 @@
 		<pfsp:gls/>
 		<or/>
 		<pfsp:stabuf/>
+		<or/>
+		<pfsp:gvns/>
 	</pfsp:algos>
 
 	<pfsp:main>
