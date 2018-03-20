@@ -1412,6 +1412,19 @@ protected:
       virtual void setNeighborhood(Neighborhood *neighborhood) {neigh = (emili::pfsp::PfspNeighborhood*)neighborhood;}
 };
 
+class PfspMovesMemory2: public PfspMovesMemory
+{
+  public:
+      PfspMovesMemory2(int tabtenure,emili::pfsp::PfspNeighborhood* n):PfspMovesMemory(tabtenure,n) { }
+      PfspMovesMemory2(emili::pfsp::PfspNeighborhood* n):PfspMovesMemory(n) { }
+      PfspMovesMemory2(int tabtenure):PfspMovesMemory(tabtenure) { }
+      /**
+       * this method should return true if the solution is not tabu and false in the other case,
+       */
+      virtual void registerMove(emili::Solution* base,emili::Solution* solution);
+};
+
+
 class TSABtestMemory: public emili::pfsp::PfspMovesMemory
 {
 

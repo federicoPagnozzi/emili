@@ -698,9 +698,26 @@ public:
      * This method shoudl return a new solution.
      */
     virtual Solution* random(Solution* currentSolution) = 0;
+    /**
+     * @brief random
+     * When implementing metaheuristics like ILS or VNS it is usefull to
+     * have a method that executes a random step in a given neighborhood of
+     * a given size.
+     * @param currentSolution
+     * the base solution for the random step
+     * @param size
+     * the size of the step
+     * @return
+     * A new solution that is size-neighbor of currentSolution
+     */
+    virtual Solution* random(Solution *currentSolution, int size)
+       {
+           return nullptr;
+       }
+
     /** @brief size
      * This method returns the size of the neighborhood
-    */
+    */    
     virtual int size()=0;
     virtual ~Neighborhood() {}
 };
@@ -858,7 +875,7 @@ public:
      * Maximum amount of time, in seconds, for the local search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
      * to generate the first solution for the local search
