@@ -99,6 +99,11 @@
 #define INITIAL_FRB5_GENERAL "gfrb5"
 #define INITIAL_BS "bs"
 #define INITIAL_BSNN "bsnn"
+#define INITIAL_FF "ff"
+#define INITIAL_FFN "ffn"
+#define INITIAL_BSCHO "bscho"
+#define INITIAL_BSCH "bsch"
+
 
 /* Termination criteria*/
 #define TERMINATION_ITERA "iteration"
@@ -922,6 +927,59 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);        
         init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_FF))
+    {
+        printTab(" FF initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        int x = tm.getInteger();
+        printTabPlusOne("x",x);
+        init = new emili::pfsp::FFheuristic(*instance,x,a,b);
+    }
+    else if(tm.checkToken(INITIAL_FFN))
+    {
+        printTab(" FF initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        int x = instance->getNjobs();
+        printTabPlusOne("x",x);
+        init = new emili::pfsp::FFheuristic(*instance,x,a,b);
+    }
+    else if(tm.checkToken(INITIAL_BSCHO))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        int gamma = tm.getInteger();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("x",gamma);
+        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+    }
+    else if(tm.checkToken(INITIAL_BSCH))
+    {
+        printTab(" BS based initial solution");
+        double a = 9;
+        printTabPlusOne("a",a);
+        double b = 3;
+        printTabPlusOne("b",b);
+        double c = 7;
+        printTabPlusOne("c",c);
+        float r = tm.getDecimal();
+        int gamma = instance->getNjobs()*r;
+        if(gamma==0 || gamma > instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("x",gamma);
+        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
     }
 
 

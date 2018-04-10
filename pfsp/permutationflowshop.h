@@ -1847,6 +1847,38 @@ public:
     virtual std::vector<int>& getXi_order();
 };
 
+class FFheuristic : public PfspInitialSolution{
+protected:
+    int x;
+    float a;
+    float b;
+    virtual Solution* generate();
+public:
+    FFheuristic(PermutationFlowShop& problem_instance, int num_sols, float a_opt, float b_opt):
+        emili::pfsp::PfspInitialSolution(problem_instance),
+        a(a_opt),
+        b(b_opt),
+        x(num_sols) { }
+
+
+};
+
+class BSCH : public PfspInitialSolution{
+protected:
+    int x;
+    float ap;
+    float bp;
+    float cp;
+    virtual Solution* generate();
+public:
+    BSCH(PermutationFlowShop& instance,int l,float a,float b,float c):
+        emili::pfsp::PfspInitialSolution(instance),
+        x(l),
+        ap(a),
+        bp(b),
+        cp(c){ }
+};
+
 }
 }
 

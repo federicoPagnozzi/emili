@@ -168,12 +168,25 @@ public:
      */
     virtual double evaluateSolution(Solution & solution)=0;
     /**
+     * @brief solutionDistance
+     * In several problems, the objective function value of a solution can
+     * be calculated more efficiently by calcuting the "distance" with another
+     * solution. The default behaviour of this method is to return the difference
+     * in objective function value, but it should be overwritten when the solution
+     * representation and the problem type allow thi kind of speedup.
+     * @param solution1
+     * @param solution2
+     * @return
+     * the distance as a double
+     */
+    virtual double solutionDistance(Solution& solution1, Solution& solution2);
+    /**
      * @brief problemSize
      * @return
      *  if overloaded this function should return the problem size as an integer number
      *  This value is used by some Termination criterion and by the -ro running option
-     */
-    virtual int problemSize() {return 1;}
+     */    
+    virtual int problemSize();
 };
 
 /**

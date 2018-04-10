@@ -295,6 +295,19 @@ bool emili::get_print()
     return print;
 }
 
+/**
+  * Problem Implementation
+  */
+
+double emili::Problem::solutionDistance(Solution& solution1, Solution& solution2)
+{
+    return evaluateSolution(solution1)-evaluateSolution(solution2);
+}
+
+int emili::Problem::problemSize()
+{
+    return 1;
+}
 
 /**
  * Solution implementation
@@ -628,6 +641,10 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        if(*bestSoFar > *incumbent)
+        {
+            *bestSoFar = *incumbent;
+        }
         delete incumbent;
         return bestSoFar->clone();
 }
@@ -666,6 +683,10 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        if(*bestSoFar > *incumbent)
+        {
+            *bestSoFar = *incumbent;
+        }
         delete incumbent;
         return bestSoFar->clone();
 }
@@ -695,6 +716,10 @@ emili::Solution* emili::FeasibleBestImprovementSearch::search(emili::Solution* i
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        if(*bestSoFar > *incumbent)
+        {
+            *bestSoFar = *incumbent;
+        }
         delete incumbent;
         return bestSoFar->clone();
 }
@@ -726,6 +751,10 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        if(*bestSoFar > *incumbent)
+        {
+            *bestSoFar = *incumbent;
+        }
         delete incumbent;
         return bestSoFar->clone();
 }
@@ -769,6 +798,10 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        if(*bestSoFar > *incumbent)
+        {
+            *bestSoFar = *incumbent;
+        }
         delete incumbent;
         return bestSoFar->clone();
 }
@@ -801,6 +834,10 @@ emili::Solution* emili::FeasibleFirstImprovementSearch::search(emili::Solution* 
             }
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
+        if(*bestSoFar > *incumbent)
+        {
+            *bestSoFar = *incumbent;
+        }
         delete incumbent;
         return bestSoFar->clone();
 }
@@ -876,11 +913,14 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
                 printSolstats(incumbent);
             }
         }
-
         delete ithSolution;
         tabuMemory.forbid(incumbent);
         }
     }while(!termcriterion->terminate(bestSoFar,incumbent));
+    if(*bestSoFar > *incumbent)
+    {
+        *bestSoFar = *incumbent;
+    }
     delete incumbent;
     return bestSoFar->clone();
 
