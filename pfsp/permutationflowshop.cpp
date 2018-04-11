@@ -226,7 +226,9 @@ std::ostream &operator<<(std::ostream &os, bsnode const &m) {
     {
         oss << " F " << m.father->job<<" ,";
     }
-    return os << "{" << oss.str() << "J " << m.job << " ,K " << m.k << " ,L " << m.l << " ,T " << m.TCT << " ,SI " << m.SIT << " ,SC " << m.SCT <<  " ,F " << m.F <<" ,B " << m.B <<" }";
+    return os << "{" << oss.str() << "J " << m.job << " ,K " << m.k << " ,L " << m.l << " ,T "
+              << m.TCT << " ,SI " << m.SIT << " ,SC " << m.SCT <<  " ,F " << m.F << " ,IT "
+              << m.IT << " ,B " << m.B <<" }";
 }
 template< typename T>
 void print_vector(std::vector<T>& vec)
@@ -323,7 +325,7 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
                 for(int m=2;m<=nmac;m++)
                 {
                     cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
-                    float den = m-1+(k*(float)(nmac-m+1)/(float)(njob-2));
+                    float den = m-1+(k*(float)(nmac-m+1)/(float)(njobs-2));
                     float num = nmac * std::max(cnn[m-1]-fct[m],0);
                     ITujk = ITujk + (num/den);
                 }
@@ -345,6 +347,10 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
         });
         nodes.clear();
         nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+x);
+//        std::cout << nodes.size() << std::endl;
+//        for(int i=0; i<x; i++)
+//            std::cout << *nodes[i] << std::endl;
+
         garbage.insert(garbage.end(),new_nodes.begin()+x+1,new_nodes.end());
         //end
         //Forecasting Phase.        
@@ -416,6 +422,7 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
             delete nnode;
         }
     }
+  // assert(best->TCT == prob.computeObjectiveFunction(best->S));
     s->setSolutionValue(best->TCT);
     s->setJobSchedule(best->S);
     delete best;
