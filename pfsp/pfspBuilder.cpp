@@ -102,6 +102,7 @@
 #define INITIAL_FF "ff"
 #define INITIAL_FFN "ffn"
 #define INITIAL_BSCHO "bscho"
+#define INITIAL_BSCHR "bschr"
 #define INITIAL_BSCH "bsch"
 
 
@@ -960,6 +961,21 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         double c = tm.getDecimal();
         printTabPlusOne("c",c);
         int gamma = tm.getInteger();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("x",gamma);
+        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+    }
+    else if(tm.checkToken(INITIAL_BSCHR))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        int gamma = instance->getNjobs()*tm.getDecimal();
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("x",gamma);

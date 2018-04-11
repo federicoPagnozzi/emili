@@ -331,7 +331,6 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
                 nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
                 //Candidate Nodes Evaluation
                 nnode->B = father->F + c * cnn[nmac] + ITujk * (njobs-(k+2));//B_jkl := F_kl + c * CT_jkl + IT_jkl
-                nnode->TCT = father->TCT+cnn[nmac];
                 new_nodes.push_back(nnode);
                // std::cout << k<< l << " " << *nnode << std::endl;
             }
@@ -367,9 +366,11 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
               n.PT[m] = (n.PT[m]-ptimes[n.job][m]); // Average processing time of the remaining jobs
               CTG=std::max((float)n.C[m],CTG) + n.PT[m]/(njobs-(k+1));
           }
+          int CTjkl = n.C[nmac];
           n.SIT = (njobs-b)/(float)njobs *( n.father->SIT + n.IT*(njobs-(k+2)));//SIT_1l = (n-b)/n * (IT_alpha[l],0,l * (n — 0 — 2));
-          n.SCT = n.father->SCT + n.C[nmac] + CTG;//SCT_1l = CT_alpha[l],0,l + CT_gamma,o,l;
+          n.SCT = n.father->SCT + CTjkl + CTG;//SCT_1l = CT_alpha[l],0,l + CT_gamma,o,l;
           n.F = a*n.SCT+n.SIT;//F1,l = a  * SCT_1,l + SIT_1,l;
+          n.TCT = n.father->TCT+CTjkl;
           //std::cout << k << " " << n << std::endl;
          // std::cout << n << std::endl;
          // std::cout << "N->" << n << std::endl;
