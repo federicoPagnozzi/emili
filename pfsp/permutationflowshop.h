@@ -1879,6 +1879,24 @@ public:
         cp(c){ }
 };
 
+class BSheuristic : public PfspInitialSolution{
+protected:
+    int x;
+    float ap;
+    float bp;
+    float cp;
+    float ep;
+    virtual Solution* generate();
+public:
+    BSheuristic(PermutationFlowShop& instance,int l,float a,float b,float c,float e):
+        emili::pfsp::PfspInitialSolution(instance),
+        x(l),
+        ap(a),
+        bp(b),
+        cp(c),
+        ep(e){ }
+};
+
 }
 }
 

@@ -98,6 +98,8 @@
 #define INITIAL_CSFRB5 "csfrb5"
 #define INITIAL_FRB5_GENERAL "gfrb5"
 #define INITIAL_BS "bs"
+#define INITIAL_BS2 "bs2"
+#define INITIAL_BS2N "bs2n"
 #define INITIAL_BSNN "bsnn"
 #define INITIAL_FF "ff"
 #define INITIAL_FFN "ffn"
@@ -928,6 +930,40 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);        
         init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BS2))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = tm.getInteger();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BS2N))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = instance->getNjobs()*tm.getDecimal();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
     }
     else if(tm.checkToken(INITIAL_FF))
     {
