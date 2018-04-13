@@ -9218,13 +9218,13 @@ void inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob,std::vector
     float k = (njob-2)/(float)4;
     for(int j = 1 ; j <= njob; j++)
     {
-        float pi = pmat[1][j];
+        float pi = pmat[j][1];
         float wj = 0;
 
         for( int i = 2; i <= nmac ; i++)
         {
             wj = (nmac*pi)/(i-1);
-            pi += pmat[i][j];
+            pi += pmat[j][i];
 
         }
         xi[j] = pi + k * wj;
