@@ -9255,20 +9255,20 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
     // INITIALIZATION
     std::vector< bsnnode* > garbage;
     std::vector< bsnnode* > nodes;
-    for(int i = 0; i < x; i++ )//for l=1 to x do
-    {
+   // for(int i = 0; i < 1; i++ )//for l=1 to x do
+   // {
         bsnnode* base = new bs_node;
-        std::vector<int>& s = base->S;
+        std::vector<int>& s1 = base->S;
         base->U = jobs;
         //Update S_1l (S_11l = alpha_l) for each l and U_1l with the remaining jobs.
-        s.push_back(0);
-        s.push_back(alpha[i]);
-        int index = alpha[i]-1;
+        s1.push_back(0);
+        s1.push_back(alpha[0]);
+        int index = alpha[0]-1;
         base->U.erase(base->U.begin()+index);
         base->father = nullptr;
         base->k = 1;
-        base->job = alpha[i];
-        base->l = i;
+        base->job = alpha[0];
+        base->l = 0;
         base->C = std::vector<int>(nmac+1,0);
         base->IT = 0.0;
         //Calculate I and C
@@ -9290,12 +9290,13 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
         base->G = 0;
         nodes.push_back(base);
        // std::cout << *base << std::endl;
-    }//end
+   // }//end
 
     for(int k = 1; k < (njobs-1); k++)//for k= 1 to n — 1 do
     {
         std::vector< bsnnode* > new_nodes;
-        for(int l = 0; l< x ; l++)  //for each l = 1 to x
+        int xs = x>nodes.size()?nodes.size():x;
+        for(int l = 0; l< xs ; l++)  //for each l = 1 to x
         {
             int rj = njobs-k;
             bsnnode* father = nodes[l];
