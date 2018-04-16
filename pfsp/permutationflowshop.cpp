@@ -9364,9 +9364,10 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
           n.TIT = n.father->TIT + n.IT;
           n.TT = n.father->TT + n.T;
           n.TE = n.father->TE + n.E;
-          n.F = (njobs-k-1)/njobs * n.TIT +
-                c * (2*njobs - k -1)/(2*njobs) *n.TE +
-                b * (k-1+njobs)/(2*njobs) * n.TT;
+
+          n.F = (njobs-k-1)/(float)njobs * n.TIT +
+                c * (2*njobs - k -1)/(float)(2*njobs) *n.TE +
+                b * (k-1+njobs)/(float)(2*njobs) * n.TT;
         }//end
         int s = garbage.size();
         for(int l=0;l<s;l++)
