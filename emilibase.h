@@ -45,7 +45,7 @@ Neighborhood and Perturbation.
 #if defined( _WIN32) || defined( _WIN64)
 
 #define NOSIG 1
-#define NO_CALLBACK
+//#define NO_CALLBACK
 #endif
 
 
@@ -345,7 +345,7 @@ public:
         this->termcriterion = new emili::MaxStepsTermination(0);
         }
     virtual Solution* search(Solution* initial) { return initial->clone();}
-    virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
+    virtual Solution* timedSearch(float seconds, Solution *initial) { return initial->clone();}
     virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
 };
 
@@ -478,8 +478,8 @@ public:
 
     virtual Solution* search();
     virtual Solution* search(emili::Solution* initial);
-    virtual Solution* timedSearch(int seconds);
-    virtual Solution* timedSearch(int seconds,emili::Solution* initial);
+    virtual Solution* timedSearch(float seconds);
+    virtual Solution* timedSearch(float seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
     virtual ~IteratedLocalSearch() {delete &pert; delete &acc;}
 };
@@ -694,7 +694,7 @@ public:
  virtual emili::Solution* constructFull() = 0;
  virtual emili::Solution* search() {return constructFull();}
  virtual emili::Solution* search(emili::Solution* initial) { return construct(initial);}
- virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial);}
+ virtual emili::Solution* timedSearch(float seconds, Solution *initial) { return construct(initial);}
 };
 
 /*

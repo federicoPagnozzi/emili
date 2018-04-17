@@ -1194,6 +1194,7 @@ emili::Solution* emili::pfsp::PfspSlackInitialSolution::generate()
     sol = partial;
     PermutationFlowShopSolution* s = new PermutationFlowShopSolution(sol);
     pis.evaluateSolution(*s);
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]PfspSlackInitialSolution::generate()  SV: " << s->getSolutionValue() << " SR:" << s->getSolutionRepresentation() << std::endl;
     return s;
 }
 
@@ -1706,6 +1707,12 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
 {
     //emili::iteration_increment();
 
+	if (emili::checkTimer())
+	{
+		std::cout << "Skip IGPerturbation " << std::endl;
+		return solution;
+	}
+
     int index;
     int min;
     int k,tmp=0,ind=1;
@@ -1733,6 +1740,13 @@ emili::Solution* emili::pfsp::IGPerturbation::perturb(Solution *solution)
     // Local search on partial
     //
     for(int l=0;l<removed.size();l++){
+
+		if (emili::checkTimer())
+		{
+			std::cout << "Break in IGPerturbation " << std::endl;
+			break;
+		}
+
         sops++;
         k=removed[l];
         min = std::numeric_limits<int>::max();
@@ -1798,6 +1812,9 @@ void emili::pfsp::IGIOPerturbation::updateWeights()
 
 emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
 {
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]IGIOPerturbation::perturb(Solution *solution) IGIOPerturbation_Start" << std::endl;
+//	std::cout << "Sol.SV: " << solution->getSolutionValue() << " Sol.SR: " << solution->getSolutionRepresentation() << std::endl;
+
     int index;
     int min;
     int k,tmp=0,ind=1;
@@ -1810,7 +1827,8 @@ emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
         index = (emili::generateRandomNumber()%sops)+1;
         removed.push_back(solPartial[index]);
         solPartial.erase(solPartial.begin() + index);
-        sops--;
+		sops--;
+//		std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]IGIOPerturbation sops: "<< sops << std::endl;
     }
 
     std::vector < int >& w = this->weights;
@@ -1836,7 +1854,9 @@ emili::Solution* emili::pfsp::IGIOPerturbation::perturb(Solution *solution)
         solPartial.insert(solPartial.begin()+ind,k);
     }
 
-    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+	emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min, solPartial);
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]IGIOPerturbation::perturb(Solution *solution) IGIOPerturbation_End" << std::endl;
+//	std::cout << "s.SV: " << s->getSolutionValue() << " s.SR: " << solution->getSolutionRepresentation() << std::endl;
     return s;
 }
 
@@ -4822,6 +4842,7 @@ void emili::pfsp::PfspExchangeNeighborhood::reverseLastMove(Solution *step)
 {
     std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule();
     std::swap(newsol[start_position],newsol[end_position]);
+	//std::cout << "(" << emili::getCurrentExecutionTime() << ")emili::pfsp::PfspExchangeNeighborhood::reverseLastMove" << std::endl;
 }
 
 void emili::pfsp::AxtExchange::computeHead(std::vector<int>& sol)

@@ -120,19 +120,23 @@ static void finalise (int _)
         {
     	    messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            messages << "objective function value : "<< sol_val << std::endl;
-            messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+			messages << "objective function value : " << sol_val << std::endl;
+			messages << "Found solution: ";
+			messages << s_cap->getSolutionRepresentation() << std::endl;
+            //messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
 #ifdef NOSIG
 			std::cout << messages.str() << std::endl;
 #endif
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";            
+            //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";            
         }
         else
         {
             std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
 			std::cout << "iteration counter : " << emili::iteration_counter() << std::endl;
 			std::cout << "objective function value : " << sol_val << std::endl;
+			std::cout << "Found solution: ";
+			std::cout << s_cap->getSolutionRepresentation() << std::endl;
             std::cerr << sol_val << std::endl;
             std::cerr << std::flush;
         }
@@ -179,7 +183,7 @@ void timeUp(int _)
     timer_keep_going = false;
 }
 
-void setTerminationTimer(int time)
+void setTerminationTimer(float time)
 {
 
     termination_timer.it_value.tv_sec = time;
@@ -297,7 +301,7 @@ DWORD WINAPI timerThread( LPVOID lpParam )
 }
 
 //creates and run the thread
-static inline void setTimer(int maxTime)
+static inline void setTimer(float maxTime)
 {
 	max_time = maxTime;
 	emili::iteration_counter_zero();
@@ -315,10 +319,10 @@ static inline void setTimer(int maxTime)
     //std::cout << "timer set"
 }
 #else
-static inline void setTimer(int maxTime)
+static inline void setTimer(float maxTime)
 {
     max_time = maxTime;
-    beginTime = clock();
+	beginTime = clock();
 	keep_going = true;
 }
 
@@ -462,9 +466,12 @@ emili::Neighborhood::NeighborhoodIterator emili::Neighborhood::end()
 
 emili::Solution* emili::LocalSearch::search()
 {
-    neighbh->reset();
-    emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = search(current);
+	neighbh->reset();
+	//std::cout << "(" << emili::getCurrentExecutionTime() << ")InitialSolutionStart" << std::endl;
+	emili::Solution* current = init->generateSolution();
+	//std::cout << "(" << emili::getCurrentExecutionTime() << ")InitialSolutionEnd" << std::endl;
+	emili::Solution* sol = search(current);
+	//std::cout << "(" << emili::getCurrentExecutionTime() << ")No llega" << std::endl;
     if(current!=sol)
         delete current;
 
@@ -610,22 +617,47 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
  */
 emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
 {
+//	int counter_LS = 0;
+//	int counter_NB = 0;
+//	int counter_NB_improves = 0;
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]FirstImprovementSearch::search(emili::Solution* initial). Start. " << std::endl;
         termcriterion->reset();
         neighbh->reset();
         emili::Solution* incumbent = initial->clone();
         emili::Solution* ithSolution;
 
+//		std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]Solution.SV:" << incumbent->getSolutionValue() << " SR: " << incumbent->getSolutionRepresentation() << std::endl;
+
         //bestSoFar->setSolutionValue(bestSoFar->getSolutionValue()+1);
         Neighborhood::NeighborhoodIterator end = neighbh->end();
-        do{
-
+		do{
+			//std::cout << "(" << emili::getCurrentExecutionTime() << ")FirstImprovementSearchStart" << std::endl;
+			if (emili::checkTimer())
+			{
+				std::cout << "Break FirstImprovement" << std::endl;
+				break;
+			}
+//			counter_LS++;
             *bestSoFar = *incumbent;            
-            Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
-            ithSolution = *iter;
+			Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);
+			ithSolution = *iter;
+			//std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]incumbent.SV:" << incumbent->getSolutionValue() << " SR: " << incumbent->getSolutionRepresentation() << std::endl;
+			//std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]ithSolution.SV:" << ithSolution->getSolutionValue() << " SR: " << ithSolution->getSolutionRepresentation() << std::endl;
+//			counter_NB=0;
+//			counter_NB_improves = 0;
             for(;iter!=end;++iter)
-            {               
+			{
+				if (emili::checkTimer())
+				{
+					std::cout << "Break NeighborhoodIterator" << std::endl;
+					break;
+				}
+//				counter_NB++;
+				//std::cout << "incumbent.SV:" << incumbent->getSolutionValue() << " ithSolution.SV: " << ithSolution->getSolutionValue() << std::endl;
                 if(incumbent->operator >(*ithSolution)){
-                    *incumbent=*ithSolution;
+					//std::cout << "incumbent > ithSolution" << std::endl;
+					*incumbent = *ithSolution;
+//					counter_NB_improves++;
                     break;
 
                 }
@@ -633,6 +665,9 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
             delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent));
         delete incumbent;
+
+//		std::cout << "Counters: LS, NB, NBimproves (" << counter_LS << "," << counter_NB << "," << counter_NB_improves << ")" << std::endl;
+//		std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]FirstImprovementSearch::search(emili::Solution* initial). End. " << std::endl;
         return bestSoFar->clone();
 }
 
@@ -907,7 +942,11 @@ emili::Solution* emili::IteratedLocalSearch::search(){
 }
 
 emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
-    termcriterion->reset();
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]IteratedLocalSearch::search(emili::Solution* initial) ILS_s_Start" << std::endl;
+
+	termcriterion->reset();
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]en ILS_s_termcriterion->reset();" << std::endl;
+
     acc.reset();
     emili::Solution* s = ls.search(initial);
     *bestSoFar = *s;
@@ -915,6 +954,9 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     emili::Solution* s_p = nullptr;
     //initialization done
     do{
+		if (emili::checkTimer()) 
+			break; //emili::getCurrentExecutionTime() > max_time) break;
+
         if(s_p != s && s_p != nullptr)
             delete s_p;
         //Perturbation step
@@ -936,27 +978,36 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         s = acc.accept(s_p,s_s);
     }while(!termcriterion->terminate(s_p,s));
     delete s_p;
-    delete s_s;
+	delete s_s;
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]IteratedLocalSearch::search(emili::Solution* initial) ILS_s_End" << std::endl;
     return bestSoFar->clone();
 }
 
-emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
+emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime)
 {
+//	std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]IteratedLocalSearch::timedSearch(float maxTime" << maxTime << ") ILS_Start" << std::endl;
         termcriterion->reset();
+//		std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]en ILS_termcriterion->reset();" << std::endl;
+
         acc.reset();
         localsearch = this;
-        setTimer(maxTime);
+		setTimer(maxTime);
+//		std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]en ILS setTimer(maxTime"<<maxTime<<");" << std::endl;
         /*
             search start
         */
 		beginTime = clock();
+		
+//		std::cout << "(" << emili::getCurrentExecutionTime() << ")[" << emili::iteration_counter() << "]en ILS beginTime = clock();" << std::endl;
 
         emili::Solution*  s = ls.search();
         *bestSoFar = *s ;
         emili::Solution* s_s = nullptr;
         emili::Solution* s_p = nullptr;
         //initialization done
-        do{
+		do{
+			if (emili::checkTimer())
+				break; //emili::getCurrentExecutionTime() > max_time) break;
             if(s_p != s && s_p != nullptr)
                 delete s_p;
             //Perturbation step
@@ -983,7 +1034,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime,emili::Solution* initial)
 {
         termcriterion->reset();
         acc.reset();
@@ -999,7 +1050,9 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solu
         emili::Solution* s_s = nullptr;
         emili::Solution* s_p = nullptr;
         //initialization done
-        do{
+		do{
+			if (emili::checkTimer())
+				break; //emili::getCurrentExecutionTime() > max_time) break;
             if(s_p != s && s_p != nullptr)
                 delete s_p;
             //Perturbation step
