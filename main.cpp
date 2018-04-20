@@ -78,9 +78,9 @@ prs::emili_header();
 //<<<<<<< HEAD
 //    std::cout << "searching..." << std::endl;
  //   SAPFSPParser p;
-    //SAQAPParser p;
+    SAQAPParser p;
 // =======
-    prs::ParamsParser p;
+//    prs::ParamsParser p;
 // >>>>>>> master
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
