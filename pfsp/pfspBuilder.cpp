@@ -15,6 +15,8 @@
 
 /* Algos */
 #define CH6_LS "ch6"
+#define RIS_LS "ris"
+#define NI_RIS_LS "niris"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -87,6 +89,7 @@
 #define INITIAL_LR_NM "lrnm"
 #define INITIAL_NLR "nlr"
 #define INITIAL_MNEH "mneh"
+#define INITIAL_RMNEH "rmneh"
 #define INITIAL_WNSLACK "nwslack"
 #define INITIAL_FRB5 "frb5"
 #define INITIAL_CSFRB5 "csfrb5"
@@ -180,6 +183,10 @@
 #define PERTURBATION_IG_OPTIMIZED "igoper"
 #define PERTURBATION_IGLS_OPTIMIZED "igols"
 #define PERTURBATION_NWIG "nwig"
+#define PERTURBATION_NIIG "niig"
+#define PERTURBATION_MPTLM "mptlm"
+#define PERTURBATION_RESTART "restart"
+#define PERTURBATION_RESTART_LS "restartls"
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -242,6 +249,20 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::Neighborhood* ne2 = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         ls = new emili::pfsp::CH6(*in,*te,*ne,*ne2);
     }
+    else if(tm.checkToken(RIS_LS))
+    {
+        printTab("RIS");
+        emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::RIS(*instance,*in);
+    }
+    else if(tm.checkToken(NI_RIS_LS))
+    {
+        printTab("NoIdle RIS");
+        emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::NoIdle_RIS(*instance,*in);
+    }
 
     prs::decrementTabLevel();
     return ls;
@@ -279,6 +300,15 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         printTab(oss.str().c_str());
         per = new emili::pfsp::NWIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
     }
+    else if(tm.checkToken(PERTURBATION_NIIG))
+        {
+            int nj = instance->getNjobs();
+            int n = tm.getInteger();
+            n = n<nj?n:nj-1;
+            oss << "No idle optimized NEH destruct/construct perturbation. number of job erased: "<<n;
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::NoIdleIGper(n,*((emili::pfsp::NWPFSP_MS*)instance));
+        }
 
     else if(tm.checkToken(PERTURBATION_RSFF))
         {
@@ -456,6 +486,31 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSIOPerturbation(n,*instance);
+    }
+    else if(tm.checkToken(PERTURBATION_RESTART))
+    {
+        int n = tm.getInteger();
+        oss.str(""); oss  << "Restart perturbation, n =" << n << "";
+        printTab(oss.str().c_str());
+        emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        per = new emili::pfsp::RestartPerturbation(n,init);
+    }
+    else if(tm.checkToken(PERTURBATION_RESTART_LS))
+    {
+        int n = tm.getInteger();
+        oss.str(""); oss  << "Restart perturbation, n =" << n << "";
+        printTab(oss.str().c_str());
+        emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        per = new emili::pfsp::RestartPerturbation(n,init,ll);
+    }
+    else if(tm.checkToken(PERTURBATION_MPTLM))
+        {
+
+            int n = tm.getInteger();
+            oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::MPTLMPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
     }
     else if(tm.checkToken(PERTURBATION_CP3))
     {
@@ -713,6 +768,12 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             printTab( "mneh initial solution");
             //return new testIS(instance);
             init = new emili::pfsp::MNEH(*instance);
+        }
+    else if(tm.checkToken(INITIAL_RMNEH))
+        {
+            printTab( "mneh initial solution");
+            //return new testIS(instance);
+            init = new emili::pfsp::RMNEH(*instance);
         }
     else if(tm.checkToken(INITIAL_NEH))
     {
@@ -1049,7 +1110,7 @@ emili::Problem* prs::PfspBuilder::buildProblem()
 }
 
 emili::pfsp::PermutationFlowShop* loadProblem(char* t, PfspInstance i)
-{
+{    
     emili::pfsp::PermutationFlowShop* prob;
     if(strcmp(t,PROBLEM_PFS_WT)==0)
     {

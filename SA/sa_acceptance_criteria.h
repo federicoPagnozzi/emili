@@ -12,6 +12,9 @@
 
 #include "../emilibase.h"
 
+namespace emili {
+namespace sa {
+
 /**
  * Acceptance criteria for Simulated Annealing
  */
@@ -42,6 +45,12 @@ public:
                 start_temp(initial_temperature),
                 status(nullptr) { }
 
+    SAAcceptance(std::string type):
+        type(type),
+        temperature(0),
+        start_temp(0),
+        status(nullptr) { }
+
     /**
      * Acceptance method
      * 
@@ -68,6 +77,12 @@ public:
         status = _status;
     }
 
+    virtual void setStartTemperature(double initial_temperature)
+    {
+        start_temp = initial_temperature;
+        temperature = initial_temperature;
+    }
+
 }; // class SAAcceptance
 
 
@@ -77,6 +92,15 @@ protected:
     int acc_pointer;
     int acc_tsize;
 public:
+    SAMetropolisAcceptance():
+        SAAcceptance(METROPOLIS)
+    {
+        acc_tsize = 5000;
+        acc_tracker = (short *)malloc(acc_tsize * sizeof(short));
+        acc_pointer = 0;
+        for (int i = 0 ; i < acc_tsize ; i++) acc_tracker[i] = 1;
+    }
+
     SAMetropolisAcceptance(float initial_temperature):
                 SAAcceptance(METROPOLIS,
                              initial_temperature) {
@@ -110,6 +134,17 @@ protected:
     double* probs;
 
 public:
+    SAPrecomputedMetropolisAcceptance(int _numprec):
+                num_precomputed(_numprec),
+                delta(5.3 / _numprec),
+                SAAcceptance(PRECOMPUTEDMETROPOLIS) {
+                    probs = (double *)malloc(num_precomputed * sizeof(double));
+                    double t = 0;
+                    for (int i = 0 ; i < num_precomputed; i++) {
+                        probs[i] = std::exp(t);
+                        t -= delta;
+                    }
+                }
     SAPrecomputedMetropolisAcceptance(float initial_temperature,
                                       int _numprec):
                 num_precomputed(_numprec),
@@ -146,6 +181,18 @@ protected:
     double* probs;
 
 public:
+    SAPrecomputedMetropolisWithForcedAcceptance(int _numprec):
+                num_precomputed(_numprec),
+                delta(5.3 / _numprec),
+                SAAcceptance(PRECOMPUTEDMETROPOLISWFORCED) {
+                    probs = (double *)malloc(num_precomputed * sizeof(double));
+                    double t = 0;
+                    for (int i = 0 ; i < num_precomputed; i++) {
+                        probs[i] = std::exp(t);
+                        t -= delta;
+                    }
+                }
+
     SAPrecomputedMetropolisWithForcedAcceptance(float initial_temperature,
                                       int _numprec):
                 num_precomputed(_numprec),
@@ -177,6 +224,15 @@ protected:
     int acc_pointer;
     int acc_tsize;
 public:
+    SAMetropolisWithForcedAcceptance():
+        SAAcceptance(METROPOLISWFORCED)
+    {
+        acc_tsize = 5000;
+        acc_tracker = (short *)malloc(acc_tsize * sizeof(short));
+        acc_pointer = 0;
+        for (int i = 0 ; i < acc_tsize ; i++) acc_tracker[i] = 1;
+    }
+
     SAMetropolisWithForcedAcceptance(float initial_temperature):
                 SAAcceptance(METROPOLISWFORCED,
                              initial_temperature) {
@@ -195,6 +251,9 @@ public:
 // https://faculty.washington.edu/aragon/pubs/annealing-pt1a.pdf
 class SAApproxExpAcceptance: public SAAcceptance {
 public:
+    SAApproxExpAcceptance():
+        SAAcceptance(APPROXEXPACC) {}
+
     SAApproxExpAcceptance(float initial_temperature):
                 SAAcceptance(APPROXEXPACC,
                              initial_temperature) { }
@@ -227,6 +286,11 @@ protected:
     float beta;
 
 public:
+    GeneralizedSAAcceptance(float _beta,
+                            float _g):
+                beta(_beta),
+                g(_g),
+                SAAcceptance(GENSAACC) {}
     GeneralizedSAAcceptance(float initial_temperature,
                             float _beta,
                             float _g):
@@ -255,6 +319,10 @@ protected:
     int step;
 
 public:
+    SAGeometricAcceptance(float reducing_factor):
+        SAAcceptance(GEOMACC),
+        rate(reducing_factor) { }
+
     SAGeometricAcceptance(float initial_acceptance,
                           float reducing_factor):
                 rate(reducing_factor),
@@ -281,6 +349,9 @@ class SADeterministicAcceptance: public SAAcceptance {
 protected:
 
 public:
+    SADeterministicAcceptance():
+        SAAcceptance(DETERMINISTICACC) {}
+
     SADeterministicAcceptance(float initial_temperature):
                 SAAcceptance(DETERMINISTICACC,
                              initial_temperature) { }
@@ -369,6 +440,15 @@ protected:
     int acc_tsize;
     double reldelta;
 public:
+    SABoundedMetropolisAcceptance(float _reldelta):
+                reldelta(_reldelta),
+                SAAcceptance(BOUNDEDMETROPOLIS) {
+        acc_tsize = 5000;
+        acc_tracker = (short *)malloc(acc_tsize * sizeof(short));
+        acc_pointer = 0;
+        for (int i = 0 ; i < acc_tsize ; i++) acc_tracker[i] = 1;
+    }
+
     SABoundedMetropolisAcceptance(float initial_temperature,
                                   float _reldelta):
                 reldelta(_reldelta),
@@ -389,6 +469,7 @@ public:
 
 }; // SABoundedMetropolisAcceptance
 
+<<<<<<< HEAD
 class SAAcceptanceAll: public SAAcceptance {
 public:
     SAAcceptanceAll(void):
@@ -400,4 +481,9 @@ public:
     
 }; // SAAcceptanceAll
 
+=======
+}
+
+}
+>>>>>>> e3ed595ae99c15157b74fd01563484f23d654675
 #endif

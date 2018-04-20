@@ -12,7 +12,7 @@
 #include <exception>
 #include <stdexcept>
 #include "pfspinstance.h"
-#include<assert.h>
+#include  <assert.h>
 
 //#define ENABLE_SSE
 
@@ -24,6 +24,30 @@
 #endif
 #endif
 
+void show_head_and_tail(std::vector< std::vector < int > >& head,std::vector< std::vector < int > >& tail, int nbMac, int nbJob)
+{
+    for( int m = 0; m <= nbMac ; m++)
+    {
+        for(int n=0;n <= nbJob ; n++)
+        {
+            std::cout << " " << head[m][n];
+        }
+        std::cout << "\n";
+    }
+
+    std::cout << "\n";
+
+    for( int m = 0; m <= nbMac ; m++)
+    {
+        for(int n=0;n <= nbJob ; n++)
+        {
+            std::cout << " " << tail[m][n];
+        }
+        std::cout << "\n";
+    }
+    std::cout << "\n";
+    std::cout << "\n";
+}
 
 PfspInstance::PfspInstance()
 {
@@ -2125,22 +2149,26 @@ void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vec
     }
 }
 
-
 void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
+{
+    computeNoIdleTAmatrices(sol,head,tail,nbJob);
+}
+
+void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
 {
     int j,m;
 
     int jobNumber;
-    int end_i = nbJob-1;
+    int end_i = size;//nbJob-1;
    // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
     long int a_h = 0;
     long int a_t = 0;
     int prevj = 0;
     int postj = 0;
     int k;
-    for(j=1;j<nbJob;j++)
+    for(j=1;j<size;j++)
     {
-        k = nbJob-j;
+        k = size-j;
         jobNumber = sol[j];
         prevj = prevj + processingTimesMatrix[jobNumber][1];
         postj = postj + processingTimesMatrix[sol[k]][nbMac];
@@ -2148,7 +2176,7 @@ void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< st
         tail[nbMac][k] = postj;
     }
 
-    k = nbJob-1;
+    k = size-1;//nbJob-1;
 
 
 
@@ -2161,7 +2189,7 @@ void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< st
 
       for ( j = 2; j <= end_i; ++j )
         {
-            k = nbJob-j;
+            k = size-j;
             long int previousJobEndTime = head[1][j];
             long int postJobEndTime = tail[nbMac][k];
             a_t = 0;
@@ -2196,6 +2224,7 @@ void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< st
             postJobEndTime = tail[n][k];
         }
     }
+
 }
 
 void PfspInstance::computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
@@ -3081,6 +3110,30 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol)
    return nims;
 }
 
+long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
+{
+   long int nims = processingTimesMatrix[sol[1]][1];
+
+   std::vector< int > minimumDiff(nbMac,0);
+   for(int m=1;m<nbMac;++m)
+       minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
+
+
+   for(int j=2; j<= size; ++j)
+   {
+       nims += processingTimesMatrix[sol[j]][1];
+       for(int m=1;m<nbMac;++m)
+       {
+           minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j]][m],0L) + processingTimesMatrix[sol[j]][m+1];
+       }
+   }
+
+   for(int m=1;m<nbMac;++m)
+       nims += minimumDiff[m];
+
+   return nims;
+}
+
 
 
 long int PfspInstance::computeNIMS(std::vector<int> &sol, long int nims)
@@ -3106,32 +3159,7 @@ long int PfspInstance::computeNIMS(std::vector<int> &sol, long int nims)
     return nims;
 }
 
-long int PfspInstance::computeNIMS(std::vector<int> &sol,int size)
-{
-   long int nims = processingTimesMatrix[sol[1]][1];;
 
-   std::vector< int > minimumDiff(nbMac,0);
-   for(int m=1;m<nbMac;++m)
-       minimumDiff[m] = processingTimesMatrix[sol[1]][m+1];
-
-
-   for(int j=2; j<= size; ++j)
-   {
-
-       nims += processingTimesMatrix[sol[j]][1];
-       for(int m=1;m<nbMac;++m)
-       {
-           minimumDiff[m] = std::max(minimumDiff[m]-processingTimesMatrix[sol[j-1]][m],0L) + processingTimesMatrix[sol[j]][m+1];
-
-       }
-   }
-
-   for(int m=1;m<nbMac;++m)
-       nims += minimumDiff[m];
-
-
-   return nims;
-}
 // Compute no idle weighted tardiness
 long int PfspInstance::computeNIWT(std::vector<int> &sol)
 {

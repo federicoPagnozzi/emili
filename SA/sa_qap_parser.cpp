@@ -34,7 +34,7 @@
 
 // char* problem_type;
 
-//using namespace prs;
+using namespace emili::qap;
 
 SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
                                   emili::InitialSolution *initsol,
@@ -378,7 +378,7 @@ QAPNeighborhood* SAQAPParser::neigh(prs::TokenManager& tm)
 
 void SAQAPParser::problem(prs::TokenManager& tm) {
     tm.nextToken();
-    instance = new qap::QAP(tm.tokenAt(1));
+    instance = new QAP(tm.tokenAt(1));
     return;
 }
 

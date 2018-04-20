@@ -33,12 +33,14 @@
 #define FEASIBLE_BEST "fbest"
 #define TB_BEST "tbest"
 #define VND "vnd"
-#define GVNS_ILS "gvns"
+//#define GVNS_ILS "gvns"
 #define TEST_INIT "stin"
 #define EMPTY_LOCAL "nols"
+#define LS_PIPE "lspipe"
+#define ALG_GVNS "vns"
+#define ALG_LS_VND "lsvnd"
 /*Base Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
-#define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
 #define TERMINATION_TIME "time"
 #define TERMINATION_TIMERO "timero"
@@ -65,6 +67,10 @@
 #define ACCEPTANCE_SA "saacc"
 /*base neighborhoods*/
 #define NEIGHBORHOOD_RANDCONHE "rch"
+/*SHAKE*/
+#define SHAKE_PERSHAKE "pershake"
+/*NEIGHBORHOOD_CHANGE*/
+#define NEIGHBORHOOD_CHANGE_ACC "accng"
 
 int tab_level = 0;
 
@@ -88,6 +94,11 @@ void prs::printTabPlusOne(const char* string)
     }
     //std::cout << " -";
     std::cout << string << std::endl;
+}
+
+int prs::getTabLevel()
+{
+    return tab_level;
 }
 
 void prs::incrementTabLevel()
@@ -411,12 +422,14 @@ prs::Component prs::Builder::buildComponent(int type)
     void* raw_pointer=nullptr;
     switch(type)
     {    
-    case COMPONENT_ALGORITHM: raw_pointer = buildAlgo();break;
+    case COMPONENT_ALGORITHM: raw_pointer = buildAlgo();c.setType(COMPONENT_EMPTY);break;
     case COMPONENT_INITIAL_SOLUTION_GENERATOR: raw_pointer = buildInitialSolution();break;
     case COMPONENT_TERMINATION_CRITERION: raw_pointer =  buildTermination();break;    
     case COMPONENT_NEIGHBORHOOD: raw_pointer = buildNeighborhood();c.setType(COMPONENT_EMPTY);break;
     case COMPONENT_PERTURBATION: raw_pointer =  buildPerturbation();c.setType(COMPONENT_EMPTY);break;
     case COMPONENT_ACCEPTANCE: raw_pointer =  buildAcceptance();break;
+    case COMPONENT_NEIGHBORHOOD_CHANGE: raw_pointer = buildNeighborhoodChange();break;
+    case COMPONENT_SHAKE: raw_pointer = buildShake();break;
     case COMPONENT_TABU_TENURE: raw_pointer =  buildTabuTenure();break;
     case COMPONENT_PROBLEM: raw_pointer = buildProblem();break;
     }
@@ -508,7 +521,12 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
     {
         emili::initializeRandom(getSeed(tm));
         this->instance = probBuilder->openInstance();
-        emili::LocalSearch* ls = buildComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        prs::Component cls = buildComponent(COMPONENT_ALGORITHM);
+        if(cls.getType() == COMPONENT_EMPTY || cls.getType() == COMPONENT_NULL)
+        {
+            fatalError(cls.getType(),COMPONENT_ALGORITHM);
+        }
+        emili::LocalSearch* ls = cls.get<emili::LocalSearch>();
         ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
         if(tm.seek(PRINT_SOLUTION)>0)
         {
@@ -595,6 +613,22 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
         emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
         ls = new emili::FeasibleIteratedLocalSearch(*lls,*pft,*prsp,*tac);
+    }else if(tm.checkToken(ALG_LS_VND))
+    {
+        printTab("VND that uses localsearches as neighborhoods");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = new emili::LocalMinimaTermination();
+        std::vector< emili::LocalSearch* > lls = buildComponentVector<emili::LocalSearch>(COMPONENT_ALGORITHM);
+        ls = new emili::LS_VND(*in,*te,lls);
+    }else if(tm.checkToken(ALG_GVNS))
+    {
+        printTab("VNS");
+
+        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        emili::Termination* pft = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::Shake* shk = retrieveComponent(COMPONENT_SHAKE).get<emili::Shake>();
+        emili::NeighborhoodChange* ng = retrieveComponent(COMPONENT_NEIGHBORHOOD_CHANGE).get<emili::NeighborhoodChange>();
+        ls = new emili::GVNS(*lls,*pft,*shk,*ng);
     }else if(tm.checkToken(TABU))
     {
         printTab("TABU SEARCH");
@@ -723,6 +757,13 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::InitialSolution* ini = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         ls = new emili::EmptyLocalSearch(*ini);
     }
+    else if(tm.checkToken(LS_PIPE))
+    {
+        printTab("Localserach pipe");
+        emili::InitialSolution* ini = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        std::vector<emili::LocalSearch* > algos = this->buildComponentVector< emili::LocalSearch >(COMPONENT_ALGORITHM);
+        ls = new emili::PipeSearch(*ini,algos);
+    }
 
     prs::decrementTabLevel();
     return ls;
@@ -841,8 +882,8 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
     else if(tm.checkToken(PERTURBATION_COMPLEX_PERTURBATION))
     {
         printTab("Complex Perturbation");
-        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         per = new emili::ComplexPerturbation(prsp,lls);
     }
     prs::decrementTabLevel();
@@ -980,4 +1021,30 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
     return acc;
 }
 
+emili::Shake* prs::EmBaseBuilder::buildShake()
+{
+    prs::incrementTabLevel();
+    emili::Shake* sh = nullptr;
+    if(tm.checkToken(SHAKE_PERSHAKE))
+    {
+        printTab("PerShake Shake operator ");
+        std::vector<emili::Perturbation*> nes = buildComponentVector<emili::Perturbation>(COMPONENT_PERTURBATION);
+        sh = new emili::PerShake(nes);
+    }
+    prs::decrementTabLevel();
+    return sh;
+}
 
+emili::NeighborhoodChange* prs::EmBaseBuilder::buildNeighborhoodChange()
+{
+    prs::incrementTabLevel();
+    emili::NeighborhoodChange* ng = nullptr;
+    if(tm.checkToken(NEIGHBORHOOD_CHANGE_ACC))
+    {
+        printTab("AccNeighborhoodChange operator");
+        emili::Acceptance* acc = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
+        ng = new emili::AccNeighborhoodChange(acc);
+    }
+    prs::decrementTabLevel();
+    return ng;
+}

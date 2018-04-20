@@ -38,23 +38,23 @@
 #else
 //if the compiler does not support c++11 this compile path will be selected.
 #include <tr1/random>
-+//#define nullptr NULL
-+const // It is a const object...
-+class nullptr_t 
-+{
-+  public:
-+    template<class T>
-+    inline operator T*() const // convertible to any type of null non-member pointer...
-+    { return 0; }
-+
-+    template<class C, class T>
-+    inline operator T C::*() const   // or any type of null member pointer...
-+    { return 0; }
-+
-+  private:
-+    void operator&() const;  // Can't take address of nullptr
-+
-+} nullptr = {};
+//#define nullptr NULL
+const // It is a const object...
+class nullptr_t
+{
+  public:
+    template<class T>
+    inline operator T*() const // convertible to any type of null non-member pointer...
+    { return 0; }
+
+    template<class C, class T>
+    inline operator T C::*() const   // or any type of null member pointer...
+    { return 0; }
+
+   private:
+    void operator&() const;  // Can't take address of nullptr
+
+} nullptr = {};
 #endif
 #include <functional>
 
@@ -834,7 +834,7 @@ float seconds;
      * the empty constructor is declared protected so that an extending class can not
      * use a public one
      */
-    LocalSearch() { }
+    LocalSearch():bestSoFar(nullptr),feasibleBest(nullptr) { }
 public:
     /**
      * @brief LocalSearch
@@ -897,7 +897,7 @@ public:
     emili::InitialSolution& getInitialSolution();
     virtual Solution* getBestSoFar(); //{ return bestSoFar;}
     virtual void setBestSoFar(Solution* newBest);// {this->bestSoFar=newBest;}
-    virtual ~LocalSearch() { delete init; delete termcriterion; delete neighbh; delete bestSoFar;}
+    virtual ~LocalSearch();
 
 };
 
@@ -1312,7 +1312,7 @@ public:
             }
             else
             {
-		delete new_s;
+        delete new_s;
                 i = i+1;
             }
         }while(i < neigh.size());
@@ -1320,17 +1320,108 @@ public:
     }
 };
 
-/** DEPRECATED*/
+/**
+ * Variable Neighborhood Descent implementation
+ * accept as template parameters a LocalSearch and uses it with the various kinds of neighborhoods
+ */
+
+
+class LS_VND: public LocalSearch
+{
+protected:
+    std::vector < emili::LocalSearch* > neigh;
+
+public:
+    LS_VND(emili::InitialSolution& is, emili::Termination& tc, std::vector< emili::LocalSearch* > n):LocalSearch(),neigh(n)
+    {
+        this->init = &is;
+        this->termcriterion = &tc;
+        this->bestSoFar = is.generateEmptySolution();
+    }
+    LS_VND(emili::LocalSearch& ls, std::vector<emili::LocalSearch*> n):LocalSearch(ls),neigh(n) { }
+    virtual emili::Solution* search(emili::Solution *initial);
+};
+
+/**
+ * @brief The Shake class models the shake operator of a VNS metaheuristics
+ */
+class Shake: public Perturbation
+{
+protected:
+    int Kmax;
+public:
+    Shake(int Nmax):Kmax(Nmax) {}
+    int getKmax(){return Kmax;}
+    virtual Solution* shake(Solution* s, int n)=0;
+    virtual Solution* perturb(Solution *solution);
+};
+
+/**
+ * @brief The PerShake class is a "meta" shake operator that allows the use of
+ * Perturbation classes as neighborhoods
+ */
+class PerShake: public Shake
+{
+protected:
+    std::vector< Perturbation* > shakes;
+public:
+    PerShake(std::vector<Perturbation*> perturbations):shakes(perturbations),Shake(perturbations.size()) {}
+    virtual Solution* shake(Solution *s, int n);
+};
+
+class NeighborhoodShake: public Shake
+{
+protected:
+    std::vector< Neighborhood* > shakes;
+public:
+    NeighborhoodShake(std::vector<Neighborhood*> nes):shakes(nes),Shake(nes.size()) { }
+    virtual Solution* shake(Solution *s, int n);
+};
+
+/**
+ * @brief The NeighborhoodChange class models the component of a VNS that
+ * decides if accepting a solution and controls the change of the current neighborhood
+ */
+class NeighborhoodChange: public Acceptance
+{
+public:
+    virtual Solution* neighborhoodChange(Solution *intensification_solution,Solution* diversification_solution,int& n)=0;
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
+/**
+ * @brief The AccNeighborhoodChange class allows the use of acceptance criteria as neighborhood
+ * change operators. The neighborhood index is reset if the acceptance accepts the current solution
+ * otherwise if the best of the iteration is accepted the neigboorhood index is incremented
+ */
+class AccNeighborhoodChange: public NeighborhoodChange
+{
+protected:
+    Acceptance* acc;
+public:
+    AccNeighborhoodChange(Acceptance* acceptance):acc(acceptance) { }
+    virtual Solution* neighborhoodChange(Solution *intensification_solution,Solution* diversification_solution,int& n);
+};
+/**
+ * @brief The GVNS class
+ * General Variable Neighborhood Search implementation
+ */
 class GVNS: public emili::LocalSearch
 {
 protected:
-    std::vector < emili::Perturbation* > perturbations;
+    emili::Shake& shaker;
+    emili::NeighborhoodChange& changer;
     emili::LocalSearch& ls;
 public:
-    GVNS(emili::LocalSearch& localsearch,std::vector< emili::Perturbation* > perturbs):emili::LocalSearch(),perturbations(perturbs),ls(localsearch) {this->init = &ls.getInitialSolution();this->neighbh = new emili::EmptyNeighBorHood(); }
+    GVNS(emili::LocalSearch& localsearch,emili::Termination& term,emili::Shake& shake, emili::NeighborhoodChange& nchange):emili::LocalSearch(),ls(localsearch),shaker(shake),changer(nchange)
+    {
+        this->init = &ls.getInitialSolution();
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = &term;
+        this->bestSoFar = init->generateEmptySolution();
+    }
     virtual Solution* search(emili::Solution* initial);
     virtual Solution* getBestSoFar();
-    virtual ~GVNS() { delete neighbh;}
+    virtual ~GVNS() {delete &shaker;delete &changer;}
 };
 
 
@@ -1379,45 +1470,6 @@ public:
     virtual void reset();
 };
 
-/**   DEPRECATED
- *  This class models the pertubation algorithm that destruct the solution
- *  used in the iterated greedy algorithms
- */
-class Destructor: public emili::Perturbation
-{
-public:
-    virtual emili::Solution* destruct(Solution* solutioon)=0;
-    virtual emili::Solution* perturb(Solution *solution) { return destruct(solution); }
-};
-
-/**  DEPRECATED
- * this class models the algorithm that returns a solution
- * starting from a partial one.
- */
-class Constructor: public emili::LocalSearch
-{
-public:
-  Constructor():emili::LocalSearch()
-  {
-      this->neighbh = nullptr;//new emili::EmptyNeighBorHood();
-      this->init = nullptr;
-      this->termcriterion = nullptr;
-  }
- virtual emili::Solution* construct(emili::Solution* partial) = 0;
- virtual emili::Solution* constructFull() = 0;
- virtual emili::Solution* search() {return constructFull();}
- virtual emili::Solution* search(emili::Solution* initial) { return construct(initial);}
- virtual emili::Solution* timedSearch(int seconds, Solution *initial) { return construct(initial);}
-};
-
-/**  DEPRECATED
- * This class models an iterated greedy heuristics
- */
-class IteratedGreedy : public emili::IteratedLocalSearch
-{
-public:
-    IteratedGreedy(Constructor& c,Termination& t,Destructor& d,Acceptance& ac):emili::IteratedLocalSearch(c,t,d,ac) { }
-};
 /**
 class SimulatedAnnealing : public emili::LocalSearch
 {

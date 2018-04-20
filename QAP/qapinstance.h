@@ -11,6 +11,8 @@
 
 #include "qapsolution.h"
 
+namespace emili {
+namespace qap {
 
 using namespace std;
 
@@ -127,4 +129,6 @@ public:
 
 }; // QAPInstance
 
+}
+}
 #endif

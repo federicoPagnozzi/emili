@@ -1,5 +1,5 @@
 #include "sa_exploration.h"
-
+using namespace emili::sa;
 emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolution,
                                                    SAStatus& status) {
 

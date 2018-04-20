@@ -10,6 +10,7 @@
 
 #include "../emilibase.h"
 
+namespace emili{
 
 namespace qap {
 
@@ -42,6 +43,7 @@ public:
 
 }; // QAP
 
+}
 } // namespace qap
 
 #endif

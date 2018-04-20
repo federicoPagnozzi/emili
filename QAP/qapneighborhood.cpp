@@ -1,5 +1,5 @@
 #include "qapneighborhood.h"
-
+using namespace emili::qap;
 
 QAPNeighborhood::~QAPNeighborhood(void) { }
 QAPInsertNeighborhood::~QAPInsertNeighborhood(void) { }

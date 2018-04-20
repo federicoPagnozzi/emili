@@ -20,6 +20,8 @@
 
 #include "../generalParser.h"
 #include "permutationflowshop.h"
+
+using namespace emili::sa;
 namespace prs
 {
 //void emili_header();
