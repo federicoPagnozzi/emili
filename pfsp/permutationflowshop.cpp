@@ -241,7 +241,7 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
     // IT,CT for each l
     //alpha := Jobs ordered according to non-decreasing XI breaking ties in favor of jobs with lower IT'_j0;
    // std::vector< std::vector< int > > U(x,jobs);
-    std::vector< bsnode* > garbage;
+    std::vector< bsnode* > old_nodes;
     std::vector< bsnode* > nodes;
     for(int i = 0; i < x; i++ )//for l=1 to x do
     {
@@ -280,19 +280,19 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
 
     for(int k = 1; k < (njobs-1); k++)//for k= 1 to n — 1 do
     {
-        std::vector< bsnode* > new_nodes;
+        old_nodes = nodes;
+        nodes.clear();
+        //std::vector< bsnode* > new_nodes;
+        int childs = 0;
         for(int l = 0; l< x ; l++)  //for each l = 1 to x
         {
             int rj = njobs-k;
+            bsnode* father = old_nodes[l];
+
+            if(!(childs >= x) || !(father->F > nodes[0]->B))
             for(int j = 0; j< rj; j++) //and for each j = 1 to n — x;
             {
-                bsnode* nnode = new bsnode;//Candidate Nodes Creation
-                bsnode* father = nodes[l];
-                nnode->father = father;
-                nnode->k = k;
-                nnode->l = j;
                 int njob = father->U[j];
-                nnode->job = njob;
                 std::vector<int> cnn(nmac+1,0);
                 std::vector<int>& fct = father->C;
                 cnn[1] = fct[1] + ptimes[njob][1];
@@ -304,29 +304,55 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
                     float num = nmac * std::max(cnn[m-1]-fct[m],0);
                     ITujk = ITujk + (num/den);
                 }
-                nnode->IT = ITujk;
-                nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
-                //Candidate Nodes Evaluation
-                nnode->B = father->F + c * cnn[nmac] + ITujk * (njobs-(k+2));//B_jkl := F_kl + c * CT_jkl + IT_jkl
-                new_nodes.push_back(nnode);
+                float Bn = father->F + c * cnn[nmac] + ITujk * (njobs-(k+2));//B_jkl := F_kl + c * CT_jkl + IT_jkl
+                bool add = true;
+                if(childs >= x)
+                {
+                    if(Bn < nodes[0]->B)
+                    {
+                        std::pop_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
+                        delete nodes.back();
+                        nodes.pop_back();
+                    }
+                    else
+                    {
+                        add = false;
+                    }
+                }
+                if(add)
+                {
+                    bsnode* nnode = new bsnode;//Candidate Nodes Creation
+                    nnode->father = father;
+                    nnode->k = k;
+                    nnode->l = j;
+                    nnode->job = njob;
+                    nnode->IT = ITujk;
+                    nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
+                    //Candidate Nodes Evaluation
+                    nnode->B = Bn;
+                    nodes.push_back(nnode);
+                    std::push_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
+                    childs++;
+                }
                // std::cout << k<< l << " " << *nnode << std::endl;
             }
 
         }
         //Candidate Nodes Selection
         //Determination of the l'-th best candidate node according to non-decreasing B_jkl in iteration k.
-        garbage.insert(garbage.end(),nodes.begin(),nodes.end());
-        std::sort(new_nodes.begin(),new_nodes.end(),[](bsnode* i1,bsnode* i2)
-        {
-            return i1->B < i2->B;
-        });
-        nodes.clear();
-        nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+x);
+//        garbage.insert(garbage.end(),nodes.begin(),nodes.end());
+//        std::sort(new_nodes.begin(),new_nodes.end(),[](bsnode* i1,bsnode* i2)
+//        {
+//            return i1->B < i2->B;
+//        });
+//        assert(nodes.size() == new_nodes.size());
+//        nodes.clear();
+//        nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+x);
 //        std::cout << nodes.size() << std::endl;
 //        for(int i=0; i<x; i++)
 //            std::cout << *nodes[i] << std::endl;
 
-        garbage.insert(garbage.end(),new_nodes.begin()+x+1,new_nodes.end());
+//        garbage.insert(garbage.end(),new_nodes.begin()+x+1,new_nodes.end());
         //end
         //Forecasting Phase.        
         for(int l=0;l<x;l++)//Update of the Forecast Index for l=1 to x do
@@ -354,13 +380,14 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
           n.TCT = n.father->TCT+CTjkl;
         //Determination of for new selected node formed by the old se-lected node branch• with job job[l'].
         //Note that the processing times of the artificial job are equal to the average processing times of all unscheduled jobs (Uf-F1); • = V • (n, — k —2)1; SCT,u, = + • = a • SCT,Re + S
+          //delete garbage[l];
         }//end
-        int s = garbage.size();
-        for(int l=0;l<s;l++)
+//        int s = garbage.size();
+        for(int l=0;l<x;l++)
         {
-            delete garbage[l];
+            delete old_nodes[l];
         }
-        garbage.clear();
+//        garbage.clear();
     }//end
     //Final evaluation Evaluate the Iiowtime of the scheduled jobs of each selected node and return the least one.
     bsnode* best;
@@ -9201,11 +9228,12 @@ std::ostream &operator<<(std::ostream &os, bsnnode const &m) {
     std::ostringstream oss;
     if(m.father != nullptr)
     {
-        oss << " F " << m.father->job<<" ,";
+        oss << " ,F " << m.father->job;
     }
-    return os << "{" << oss.str() << "J " << m.job << " ,K " << m.k << " ,L " << m.l << " ,T "
+    int nmac = m.C.size();
+    return os << "{" << " K " << m.k << oss.str() << " ,J " << m.job << " ,L " << m.l << " ,T "
               << m.T << " ,E " << m.E << " ,TT " << m.TT <<  " ,F " << m.F << " ,IT "
-              << m.IT<< " ,L "  << m.L << " ,W " << m.W  << " ,G " << m.G <<" }";
+              << m.IT<< " ,C " << m.C[nmac-1] << " ,L "  << m.L << " ,W " << m.W  << " ,G " << m.G <<" }";
 }
 
 void inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob,std::vector< float >& xi)
@@ -9283,8 +9311,8 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
         base->TT = base->T; // Starting total tardiness
         base->TE = base->E; // Starting total earliness
         base->TIT = 0.0;    // starting total weighted idle time
-        base->F = base->TIT * (njobs-2)/njobs           + // starting F
-                  base->TE  * a * (2*njobs-2)/(2*njobs) +
+        base->F = base->TIT * (njobs-2)/(float)njobs           + // starting F
+                  base->TE  * a * (2*njobs-2)/(float)(2*njobs) +
                   base->TT  * b * 0.5;
         base->L = 0;
         base->G = 0;
@@ -9333,6 +9361,7 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
             {
                 int jj = rj*l+j;
                 bsnnode* nnode = new_nodes[jj];
+                nnode->W = W;
                 nnode->L = (njobs-k-1)*nnode->IT + c * nnode->E + W * e/(njobs-k+1);
                 nnode->G = father->F + nnode->L;
             }
@@ -9345,17 +9374,21 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
             return i1->G < i2->G;
         });
         nodes.clear();
-        nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+x);
+
+        xs = x>new_nodes.size()?new_nodes.size():x;
+        nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+xs);
 //        std::cout << nodes.size() << std::endl;
 //        for(int i=0; i<x; i++)
 //            std::cout << *nodes[i] << std::endl;
 
-        garbage.insert(garbage.end(),new_nodes.begin()+x+1,new_nodes.end());
+        garbage.insert(garbage.end(),new_nodes.begin()+xs+1,new_nodes.end());
         //end
         //Forecasting Phase.
-        for(int l=0;l<x;l++)//Update of the Forecast Index for l=1 to x do
+        xs = x>nodes.size()?nodes.size():x;
+        for(int l=0;l<xs;l++)//Update of the Forecast Index for l=1 to x do
         {
           bsnnode& n = *nodes[l];//Update S and U
+
           n.S = n.father->S;
           n.U = n.father->U;
           n.S.push_back(n.job);
