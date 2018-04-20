@@ -313,3 +313,15 @@ emili::Solution* SABoundedMetropolisAcceptance::accept(emili::Solution *current_
 
 }
 
+
+emili::Solution* SAAcceptanceAll::accept(emili::Solution *current_solution,
+                                         emili::Solution *new_solution) {
+
+    status->new_best_solution(new_solution,
+                              new_solution->getSolutionValue(),
+                              temperature);
+
+    return new_solution;
+
+}
+

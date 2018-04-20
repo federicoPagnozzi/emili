@@ -389,4 +389,15 @@ public:
 
 }; // SABoundedMetropolisAcceptance
 
+class SAAcceptanceAll: public SAAcceptance {
+public:
+    SAAcceptanceAll(void):
+                SAAcceptance(ALLACC,
+                             0) { }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+    
+}; // SAAcceptanceAll
+
 #endif

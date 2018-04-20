@@ -138,6 +138,8 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
     } if (tm.checkToken(BOUNDEDMETROPOLIS)) {
         double rd = tm.getDecimal();
         return new SABoundedMetropolisAcceptance(inittemp->get(), rd);
+    } else if (tm.checkToken(ALLACC)) {
+        return new SAAcceptanceAll();
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

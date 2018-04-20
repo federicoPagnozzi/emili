@@ -666,7 +666,7 @@ public:
             }
         }
 
-        it = it / (5 * n * m);
+        it = it / (dc * n * m);
 
         init_temp = value * it;        
         move_time = 0.001; // conventional...
