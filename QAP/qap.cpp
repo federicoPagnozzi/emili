@@ -1,14 +1,15 @@
 #include "qap.h"
 
+using namespace emili::qap;
 
-double qap::QAP::evaluateSolution(emili::Solution& solution) {
+double QAP::evaluateSolution(emili::Solution& solution) {
     QAPSolution& s = dynamic_cast<QAPSolution&> (solution);
     double p = this->getInstance()->computeObjectiveFunction(&s);
     solution.setSolutionValue(p);
     return p;
 }
 
-double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution) {
+double QAP::computeObjectiveFunction(std::vector< int > & partial_solution) {
     int i, j, n = this->getInstance()->getn();
     double value = 0.0;
 
@@ -27,11 +28,11 @@ double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution)
     return value;
 }
 
-double qap::QAP::computeObjectiveFunction(std::vector< int > & partial_solution, int size) {
+double QAP::computeObjectiveFunction(std::vector< int > & partial_solution, int size) {
     return this->computeObjectiveFunction(partial_solution);
 }
 
-double qap::QAP::calcObjectiveFunctionValue(emili::Solution& solution) {
+double QAP::calcObjectiveFunctionValue(emili::Solution& solution) {
     QAPSolution& s = dynamic_cast<QAPSolution&> (solution);
     return this->getInstance()->computeObjectiveFunction(&s);
 }

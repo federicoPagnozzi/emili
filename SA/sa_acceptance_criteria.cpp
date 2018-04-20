@@ -1,5 +1,5 @@
 #include "sa_acceptance_criteria.h"
-
+using namespace emili::sa;
 emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solution,
                                                 emili::Solution *new_solution) {
 
@@ -308,6 +308,18 @@ emili::Solution* SABoundedMetropolisAcceptance::accept(emili::Solution *current_
     } else if (ns < status->best_cost) {
         status->new_best_solution(new_solution, ns, temperature);
     }
+
+    return new_solution;
+
+}
+
+
+emili::Solution* SAAcceptanceAll::accept(emili::Solution *current_solution,
+                                         emili::Solution *new_solution) {
+
+    status->new_best_solution(new_solution,
+                              new_solution->getSolutionValue(),
+                              temperature);
 
     return new_solution;
 

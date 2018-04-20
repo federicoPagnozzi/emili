@@ -1,6 +1,6 @@
 #include "qapsolution.h"
 
-
+using namespace emili::qap;
 const void* QAPSolution::getRawData()const {
     return (void*)&solution;
 }

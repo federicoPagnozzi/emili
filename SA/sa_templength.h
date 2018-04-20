@@ -5,7 +5,8 @@
 
 #include "sa_constants.h"
 #include "../emilibase.h"
-
+namespace emili {
+namespace sa{
 
 class SATempLength {
 
@@ -15,6 +16,9 @@ protected:
     SAStatus* status;
 
 public:
+    SATempLength(std::string type):
+        type(type){}
+
     SATempLength(std::string type, int length):
         type(type),
         length(length) { }
@@ -36,6 +40,8 @@ public:
     }
 
     virtual bool isCoolingTime(int counter)=0;
+
+    virtual void setNeighborhoodSize(int neighborhood_size) {}
 
 }; // SATempLength
 
@@ -69,6 +75,10 @@ protected:
     float alpha;
 
 public:
+    NeighSizeTempLength(float alpha):
+        alpha(alpha),
+        SATempLength(NEIGHSIZETEMPLEN) { }
+
     NeighSizeTempLength(emili::Neighborhood* neigh,
                        float alpha):
         neigh(neigh),
@@ -80,6 +90,11 @@ public:
         if (counter >= length)
             return true;
         return false;
+    }
+
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        this->length = std::lrint(alpha * neighborhood_size);
     }
 
 }; // NeighSizeTempLength
@@ -156,6 +171,12 @@ protected:
     float alpha;
 
 public:
+    BurkardRendlNeighSizeTempLength(float alpha):
+        alpha(alpha),
+        SATempLength(BRNEIGHSIZETEMPLEN) {
+            // std::cout << "initial temp length: " << length << std::endl << std::endl;
+        }
+
     BurkardRendlNeighSizeTempLength(emili::Neighborhood* neigh,
                        float alpha):
         neigh(neigh),
@@ -171,6 +192,11 @@ public:
         return false;
     }
 
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        length = std::lrint(alpha * std::ceil(std::sqrt(neighborhood_size)) * std::ceil(std::sqrt(neighborhood_size)));
+    }
+
 }; // BurkardRendlNeighSizeTempLength
 
 
@@ -180,6 +206,10 @@ protected:
     float c;
 
 public:
+    BurkardRendlGeomTempLength(float _c):
+        c(_c),
+        SATempLength(BRGEOMTEMPLEN) { }
+
     BurkardRendlGeomTempLength(emili::Neighborhood* neigh, float _c):
         c(_c),
         SATempLength(BRGEOMTEMPLEN,
@@ -195,6 +225,12 @@ public:
         }
         return false;
     }
+
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        length = std::lrint(0.5 * std::ceil(std::sqrt(neighborhood_size)) * std::ceil(std::sqrt(neighborhood_size)));
+    }
+
 
 }; // BurkardRendlGeomTempLength
 
@@ -256,6 +292,11 @@ protected:
     long cap;
 
 public:
+    NeighSizeCappedMaxAcceptedTempLength(float alpha,long _cap):
+        alpha(alpha),
+        cap(_cap),
+        SATempLength(NEIGHCAPPEDMAXACCEPTEDTEMPLEN) { }
+
     NeighSizeCappedMaxAcceptedTempLength(emili::Neighborhood* neigh,
                        float alpha,
                        long _cap):
@@ -271,6 +312,12 @@ public:
             return true;
         }
         return false;
+    }
+
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        length = std::lrint(alpha * neighborhood_size);
+        cap = cap * length;
     }
 
 }; // NeighSizeCappedMaxAcceptedTempLength
@@ -390,6 +437,9 @@ public:
     }
 
 }; // NoTempLength
+
+}
+}
 
 
 #endif

@@ -11,7 +11,8 @@
 #include "qapinstance.h"
 #include "qapinitialsolution.h"
 #include "qap.h"
-
+namespace emili {
+namespace qap{
 
 /**
  * basic neighborhood for QAP
@@ -236,5 +237,8 @@ public:
 
 }; // QAPBest2optNeighborhood
 
+
+}
+}
 
 #endif

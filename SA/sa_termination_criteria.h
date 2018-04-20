@@ -11,7 +11,8 @@
 #include "sa_common.h"
 
 #include "../emilibase.h"
-
+namespace emili {
+namespace sa{
 
 class SATermination: public emili::Termination {
 
@@ -32,6 +33,10 @@ public:
     std::string getType() {
         return type;
     }
+
+    virtual void setMinTemp(double value) {}
+
+    virtual void setNeighborhoodsize(int neighborhood_size) {}
 
     virtual int getTenure(void) {
         return 0;
@@ -103,6 +108,12 @@ protected:
     long maxIterations;
 
 public:
+    SANeighSizeIterTermination(double _coeff):
+        neigh(nullptr),
+        coeff(_coeff),
+        maxIterations(coeff),
+        SATermination(NEIGHSIZEITERTERM) { }
+
     SANeighSizeIterTermination(emili::Neighborhood *nei, double _coeff):
         neigh(nei),
         coeff(_coeff),
@@ -124,6 +135,11 @@ public:
         // counter = 0;
     }
 
+    virtual void setNeighborhoodsize(int neighborhood_size)
+    {
+        maxIterations = coeff*neighborhood_size;
+    }
+
 }; // SANeighSizeIterTermination
 
 
@@ -136,6 +152,13 @@ protected:
     long maxIterations;
 
 public:
+    SASquaredNeighSizeIterTermination(double _coeff):
+        coeff(_coeff),
+        SATermination(SQUAREDNSITERTERM) {
+            double n = ceil(sqrt(2 * neigh->size()));
+            maxIterations = _coeff * n * n;
+        }
+
     SASquaredNeighSizeIterTermination(emili::Neighborhood *nei, double _coeff):
         neigh(nei),
         coeff(_coeff),
@@ -157,6 +180,12 @@ public:
     // does nothing
     virtual void reset() {
         // counter = 0;
+    }
+
+    virtual void setNeighborhoodsize(int neighborhood_size)
+    {
+        double n = ceil(sqrt(2 * neighborhood_size));
+        maxIterations = coeff * n * n;
     }
 
 }; // SASquaredNeighSizeIterTermination
@@ -333,8 +362,13 @@ class SANeighSizeLocalMinTermination: public SATermination {
 
 protected:
     int tenure;
-
+    float coeff;
 public:
+    SANeighSizeLocalMinTermination(float _coeff):
+        tenure(1),
+        coeff(_coeff),
+        SATermination(NEIGHSIZELOCALMINTERM) { }
+
     SANeighSizeLocalMinTermination(emili::Neighborhood *neigh, float _coeff):
         tenure((int)(_coeff * neigh->size())),
         SATermination(NEIGHSIZELOCALMINTERM) { }
@@ -353,6 +387,11 @@ public:
 
     virtual void reset() {
         // counter = 0;
+    }
+
+    virtual void setNeighborhoodsize(int neighborhood_size)
+    {
+        tenure = coeff*neighborhood_size;
     }
 
 }; // SANeighSizeLocalMinTermination
@@ -398,6 +437,10 @@ protected:
     double mintemp;
 
 public:
+    SAMinTempTermination():
+        mintemp(0),
+        SATermination(MINTEMPTERM) { }
+
     SAMinTempTermination(double _mt):
         mintemp(_mt),
         SATermination(MINTEMPTERM) { }
@@ -418,6 +461,14 @@ public:
         // counter = 0;
     }
 
+    virtual void setMinTemp(double value)
+    {
+        mintemp = value;
+    }
+
 }; // SAMinTempTermination
+
+}
+}
 
 #endif

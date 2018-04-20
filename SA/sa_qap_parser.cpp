@@ -34,7 +34,7 @@
 
 // char* problem_type;
 
-//using namespace prs;
+using namespace emili::qap;
 
 SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
                                   emili::InitialSolution *initsol,
@@ -138,6 +138,8 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
     } if (tm.checkToken(BOUNDEDMETROPOLIS)) {
         double rd = tm.getDecimal();
         return new SABoundedMetropolisAcceptance(inittemp->get(), rd);
+    } else if (tm.checkToken(ALLACC)) {
+        return new SAAcceptanceAll();
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -376,7 +378,7 @@ QAPNeighborhood* SAQAPParser::neigh(prs::TokenManager& tm)
 
 void SAQAPParser::problem(prs::TokenManager& tm) {
     tm.nextToken();
-    instance = new qap::QAP(tm.tokenAt(1));
+    instance = new QAP(tm.tokenAt(1));
     return;
 }
 

@@ -7,6 +7,8 @@
 
 #include "../emilibase.h"
 
+namespace emili {
+namespace qap{
 
 class QAPSolution: public emili::Solution {
 
@@ -54,4 +56,6 @@ public:
 }; // QAPSolution
 
 
+}
+}
 #endif

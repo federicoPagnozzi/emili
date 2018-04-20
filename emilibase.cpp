@@ -22,7 +22,6 @@
 
 #include <iostream>
 #include <assert.h>
-#include "pfsp/permutationflowshop.h"
 /**
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
@@ -95,7 +94,7 @@ std::string lastMessage;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
-emili::LocalSearch* localsearch;
+emili::LocalSearch* localsearch = nullptr;
 
 
 double emili::getCurrentExecutionTime()
@@ -430,11 +429,14 @@ emili::Solution* emili::LocalSearch::search()
 emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
 {
     neighbh->reset();
+    setTimer(time_seconds);
+    beginTime = clock();
+    localsearch = this;
     emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = timedSearch(time_seconds,current);
+    emili::Solution* sol = search(current);
     if(current!=sol)
         delete current;
-
+    stopTimer();
     return sol;
 }
 
@@ -480,18 +482,25 @@ emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *i
 emili::Solution* emili::LocalSearch::timedSearch()
 {
     neighbh->reset();
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
     emili::Solution* current = init->generateSolution();
-    emili::Solution* sol = timedSearch(seconds,current);
+    emili::Solution* sol = search(current);
     if(current!=sol)
         delete current;
-
+    stopTimer();
     return sol;
 }
 
 emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
 {
     neighbh->reset();
-    emili::Solution* sol = timedSearch(seconds,initial);
+    setTimer(seconds);
+    beginTime = clock();
+    localsearch = this;
+    emili::Solution* sol = search(initial);
+    stopTimer();
     return sol;
 }
 
@@ -512,6 +521,23 @@ void emili::LocalSearch::setSearchTime(float time)
     }
 #endif
     this->seconds = time;
+}
+
+emili::LocalSearch::~LocalSearch()
+ {
+    if(init != nullptr)
+    {
+        delete init;
+    }
+    if(termcriterion != nullptr)
+    {
+       delete termcriterion;
+    }
+    if(neighbh != nullptr)
+    {
+       delete neighbh;
+    }
+      delete bestSoFar;
 }
 
 emili::Termination& emili::LocalSearch::getTermination()
@@ -988,6 +1014,20 @@ emili::Solution* emili::VNRandomMovePerturbation::perturb(Solution *solution)
     return ret;
 }
 
+emili::Solution* emili::RandomPerturbationSet::perturb(Solution *solution)
+{
+    int p = emili::generateRandomNumber()%size;
+    return perturbations[p]->perturb(solution);
+}
+
+emili::Solution* emili::ComplexPerturbation::perturb(Solution *solution)
+{
+    Solution* div = p->perturb(solution);
+    Solution* inte = ls->search(div);
+    delete div;
+    return inte;
+}
+
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(acc==ACC_DIVERSIFICATION)
@@ -1096,7 +1136,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
     return bestSoFar->clone();
 }
 
-emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
+emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime)
 {
         termcriterion->reset();
         acc.reset();
@@ -1138,7 +1178,7 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::IteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime,emili::Solution* initial)
 {
         termcriterion->reset();
         acc.reset();
@@ -1241,7 +1281,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::search(emili::Solution* ini
     return bestSoFar->clone();
 }
 
-emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
+emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime)
 {
         termcriterion->reset();
         acc.reset();
@@ -1285,7 +1325,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime)
         return bestSoFar->clone();
 }
 
-emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(int maxTime,emili::Solution* initial)
+emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime,emili::Solution* initial)
 {
         termcriterion->reset();
         acc.reset();
@@ -1493,18 +1533,20 @@ void emili::MaxStepsTermination::reset()
 
 emili::Solution* emili::PipeSearch::search(Solution *initial)
 {
-    Solution* bestSoFar = init->generateEmptySolution();
-    bestSoFar->operator =(*initial);
-    Solution* ithSolution = bestSoFar;
+    Solution* current = init->generateEmptySolution();
+    *bestSoFar = *initial;
+    *current  = *initial;
     for(std::vector< emili::LocalSearch*>::iterator iter = lss.begin();iter!=lss.end();++iter)
     {
-        ithSolution = (*iter)->search(ithSolution);
-        if(ithSolution->operator <(*bestSoFar))
-        {
-            delete bestSoFar;
-            bestSoFar = ithSolution;
+        Solution* ithSolution = (*iter)->search(current);
+        *current = *ithSolution;
+        if(current->operator <(*bestSoFar))
+        {            
+            *bestSoFar = *ithSolution;
         }
+        delete ithSolution;
     }
+    delete current;
     return bestSoFar;
 }
 
@@ -1541,7 +1583,7 @@ emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, S
 {
     if(counter == interval && temperature > end_temp)
     {     
-        temperature = (alpha * temperature) - rate;        
+        temperature = (alpha * temperature) - beta;
         counter=0;
     }    
     counter++;
@@ -1567,51 +1609,121 @@ void emili::Metropolis::reset()
 
 /**  GVNS */
 
+emili::Solution* emili::LS_VND::search(emili::Solution *initial)
+{
+    int i = 0;
+    int k = neigh.size();
+    Solution* incumbent = neigh[i]->search(initial);
+    *bestSoFar = *incumbent;
+    do{
+
+        Solution* new_s = neigh[i]->search(incumbent);
+        if(*new_s < *incumbent)
+        {
+            delete incumbent;
+            incumbent = new_s;
+            if(incumbent->operator <(*bestSoFar))
+            {
+                *bestSoFar = *incumbent;
+            }
+            i = 0;
+        }
+        else
+        {
+            i = i+1;
+            delete new_s;
+        }
+    }while(i < k);
+    return bestSoFar->clone();
+}
+
+
+emili::Solution* emili::Shake::perturb(Solution *solution)
+{
+        return shake(solution,emili::generateRandomNumber()%Kmax);
+}
+
+emili::Solution* emili::PerShake::shake(Solution *s, int n)
+{
+    Perturbation* p = shakes[n];
+    return p->perturb(s);
+}
+
+emili::Solution* emili::NeighborhoodShake::shake(Solution *s, int n)
+{
+    Neighborhood* p = shakes[n];
+    return p->random(s);
+}
+
+emili::Solution* emili::NeighborhoodChange::accept(Solution *intensification_solution, Solution *diversification_solution)
+{
+        int n = 1;
+        return neighborhoodChange(intensification_solution,diversification_solution,n);
+}
+
+emili::Solution* emili::AccNeighborhoodChange::neighborhoodChange(emili::Solution *intensification_solution,emili::Solution *diversification_solution, int &n)
+{
+    Solution* accepted = acc->accept(intensification_solution,diversification_solution);
+    if(accepted == intensification_solution)
+    {
+        n++;
+    }
+    else
+    {
+        n=0;
+    }
+    return accepted;
+}
+
+
 emili::Solution* emili::GVNS::search(Solution* initial)
 {
         int k = 0;
-        int k_max = perturbations.size();
-        bestSoFar = initial;
-        ls.setBestSoFar(initial);
-        emili::Solution*  s = ls.search(bestSoFar);
-        *bestSoFar = *s ;
-
+        int k_max = shaker.getKmax();
+        termcriterion->reset();
+        changer.reset();
+        emili::Solution* s = this->init->generateEmptySolution();
+        *s = *initial;
+        *bestSoFar = *s;
         emili::Solution* s_s = nullptr;
+        emili::Solution* s_p = nullptr;
         //initialization done
         do{
-
-            //Perturbation step
-            emili::Solution* s_p = perturbations[k]->perturb(s);
-
-            //local search on s_p
-            if(s!=s_s && s_s != nullptr)
-                delete s_s;
-
-            //ls.setBestSoFar(bestSoFar);
-            s_s = ls.search(s_p);
-
-            //best solution
-            if(*s_s < *bestSoFar)
-            {
-                *bestSoFar = *s_s;
-                //ls.setBestSoFar(bestSoFar);
-            }
-
-            if(*s_s < *s_p)
-            {
-                s = s_s;
-                k = 0 ;
+            k = 0;
+            do{              
+                if(s_p != s && s_p != nullptr)
+                    delete s_p;
+                //Shake step
+               // std::cout << "pre shake"<< k << std::endl;
+                s_p = shaker.shake(s,k);
+                //std::cout << "post shake" << std::endl;
+                //local search on s_p
+                if(s!=s_s && s_s != nullptr)
+                    delete s_s;
+               // std::cout << "pre ls" << std::endl;
+                s_s = ls.search(s_p);
+               // std::cout << "post ls" << std::endl;
                 delete s_p;
-            }
-            else
-            {
-                delete s_p;
-                k++;
-            }
+                //best solution
+                if(*s_s < *bestSoFar)
+                {
+                    *bestSoFar = *s_s;
+                    printSolstats(bestSoFar);
+                    //s_time = clock();
+                }
+                //neighborhood change step
+                s_p = s;
+               // std::cout << "pre nc " << std::endl;
+                s = changer.neighborhoodChange(s_p,s_s,k);                
+                //std::cout << "post nc" << std::endl;
+            }while (k < k_max);
+        }while(!termcriterion->terminate(s_p,s));
+       // std::cout << "returning" << std::endl;
 
-        }while(k < k_max && keep_going);
+        delete s_p;
+        delete s_s;
+        return bestSoFar->clone();
 
-        return bestSoFar;
 }
 
 emili::Solution* emili::GVNS::getBestSoFar()

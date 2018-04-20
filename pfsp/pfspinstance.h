@@ -66,6 +66,11 @@ class PfspInstance{
         return priority;
     }
 
+    std::vector< std::vector < std::vector< int > > >& getSetUpTimes()
+    {
+        return setUpTimes;
+    }
+
     /**  Read Data from a file : */
     bool readDataFromFile(char * fileName);
 
@@ -81,6 +86,8 @@ class PfspInstance{
     long int computeWT (std::vector< int > & sol, int size);
     /**  Compute MakeSpan */
     long int computeMS (std::vector<int> & sol);
+    /**  Compute partial MakeSpan*/
+    long int computeMS(std::vector<int> &sol,int size);
     /**  Compute FlowTime*/
     long int computeFT(std::vector<int> & sol);
     long int computeFT(std::vector<int> &sol, int size);
@@ -88,8 +95,6 @@ class PfspInstance{
     long int computeWCT (std::vector< int > & sol);
     /** Compute partial weighted completion times*/
     long int computeWCT (std::vector< int > & sol, int size);
-    /**  Compute partial MakeSpan*/
-    long int computeMS(std::vector<int> &sol,int size);
     /** Compute weighted earliness*/
     long int computeWE (std::vector< int > & sol);
     /** Compute partial weighted earliness*/
@@ -98,6 +103,7 @@ class PfspInstance{
     long int computeT(std::vector< int > & sol);
     /** Compute partial tardiness*/
     long int computeT(std::vector< int > & sol, int size);
+    long int computeT(std::vector<int> &sol, std::vector<int>& makespans,int size);
     /** Compute earliness*/
     long int computeE (std::vector< int > & sol);
     /** Compute partial earliness*/
@@ -105,6 +111,7 @@ class PfspInstance{
     /** Compute total completion time*/
     long int computeTCT(std::vector< int > &sol);
     long int computeTCT(std::vector< int > &sol,int size);
+    long int computeTCT(std::vector<int> &sol, std::vector<int>& makespans,int size);
 
     /** Compute no wait make span*/
     long int computeNWMS(std::vector< int > & sol);
@@ -175,6 +182,9 @@ class PfspInstance{
     long int computeSDSTWCT(std::vector< int > &sol);
     long int computeSDSTWCT(std::vector< int > &sol,int size);
 
+    /** Compute Makespan LowerBound **/
+
+    long int computeMSLB();
 
     /**  Compute weighted tardines starting from an index*/
     long int computeWT(std::vector< int > & sol,std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
@@ -188,9 +198,12 @@ class PfspInstance{
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeTails(std::vector<int> &sol, std::vector < std::vector< std::vector< int > > >& tails);
-
+    void computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);
+    void computeHead(std::vector<int>& sol,std::vector< std::vector< int > >& head, int njobs);
+    //void updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
 

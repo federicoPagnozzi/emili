@@ -4,7 +4,8 @@
 
 #include "sa_init_temp.h"
 #include "sa_common.h"
-
+namespace emili {
+namespace sa{
 
 class SATempRestart {
 
@@ -29,6 +30,9 @@ public:
     virtual int getTenure(void) {
         return 0;
     }
+
+    virtual void setInitTemp(double initial_temperature) {}
+    virtual void setNeighborhoodSize(int neighborhood_size){}
 
 }; // SaTempRestart
 
@@ -56,6 +60,11 @@ protected:
     float init_temp;
 
 public:
+    SAMinRestart(float _value):
+        reset_threshold(_value),
+        init_temp(0),
+        SATempRestart(SAMINTEMPRESTART) { }
+
     SAMinRestart(SAInitTemp *it,
                  float _value):
         reset_threshold(_value),
@@ -71,6 +80,11 @@ public:
         return temp;
     }
 
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
 }; // SADeltaRestart
 
 
@@ -84,6 +98,11 @@ protected:
     float init_temp;
 
 public:
+    SAPercRestart(float _value):
+        reset_threshold(_value),
+        init_temp(0),
+        SATempRestart(SAPERCTEMPRESTART) { }
+
     SAPercRestart(SAInitTemp *it,
                   float _value):
         reset_threshold(_value * it->get() / 100.0),
@@ -99,6 +118,13 @@ public:
         return temp;
     }
 
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+        reset_threshold = reset_threshold* init_temp / 100.0;
+    }
+
+
 }; // SAPercRestart
 
 
@@ -110,6 +136,11 @@ protected:
     float init_temp;
 
 public:
+    SALowRateRestart(float _value):
+        rate_threshold(_value),
+        init_temp(0),
+        SATempRestart(SALOWRATERESTART) { }
+
     SALowRateRestart(SAInitTemp *it,
                      float _value):
         rate_threshold(_value),
@@ -124,6 +155,11 @@ public:
         }
         return temp;
     }
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
 
 }; // SALowRateRestart
 
@@ -135,6 +171,10 @@ protected:
     float init_temp;
 
 public:
+    SALowRateRestartToBest(float _value):
+        rate_threshold(_value),
+        SATempRestart(SALOWRATERESTARTBEST) { }
+
     SALowRateRestartToBest(SAInitTemp *it,
                            float _value):
         rate_threshold(_value),
@@ -149,6 +189,11 @@ public:
         }
         return temp;
     }
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
 
 }; // SALowRateRestartToBest
 
@@ -170,6 +215,13 @@ protected:
     }
 
 public:
+    SALastRateRestart(int _tenure,
+                      float _value):
+        tenure(_tenure),
+        rate_threshold(_value),
+        init_temp(0),
+        SATempRestart(SALASTRATERESTART) { }
+
     SALastRateRestart(SAInitTemp *it,
                       int _tenure,
                       float _value):
@@ -190,6 +242,10 @@ public:
     virtual int getTenure(void) {
         return tenure;
     }
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
 
 }; // SALastRateRestart
 
@@ -205,6 +261,12 @@ protected:
     float value;
 
 public:
+    SALowRateReheat(float threshold,
+                    float _value):
+        rate_threshold(threshold),
+        value(_value),
+        SATempRestart(SALOWRATEREHEAT) { }
+
     SALowRateReheat(SAInitTemp *it,
                     float threshold,
                     float _value):
@@ -245,6 +307,14 @@ protected:
     }
 
 public:
+    SALastRateReheat(int _tenure,
+                     float threshold,
+                     float _value):
+        tenure(_tenure),
+        rate_threshold(threshold),
+        value(_value),
+        SATempRestart(SALASTRATEREHEAT) { }
+
     SALastRateReheat(SAInitTemp *it,
                      int _tenure,
                      float threshold,
@@ -281,6 +351,12 @@ protected:
     float value;
 
 public:
+    SALocalMinReheat(int _tenure,
+                     float _value):
+        tenure(_tenure),
+        value(_value),
+        SATempRestart(SALOCALMINREHEAT) { }
+
     SALocalMinReheat(SAInitTemp *it,
                      int _tenure,
                      float _value):
@@ -311,6 +387,10 @@ protected:
     int tenure;
 
 public:
+    SALocalMinTempRestart(int _tenure):
+        tenure(_tenure),
+        SATempRestart(SALOCALMINRESTARTBEST) { }
+
     SALocalMinTempRestart(SAInitTemp *it,
                             int _tenure):
         tenure(_tenure),
@@ -338,6 +418,10 @@ protected:
     int tenure;
 
 public:
+    SALocalMinRestartToBest(int _tenure):
+        tenure(_tenure),
+        SATempRestart(SALOCALMINRESTARTBEST) { }
+
     SALocalMinRestartToBest(SAInitTemp *it,
                             int _tenure):
         tenure(_tenure),
@@ -373,6 +457,14 @@ protected:
     float epsilon;
 
 public:
+    SALocalMinEnhancedReheat(int _tenure,
+                             float _value,
+                             float _epsilon):
+        tenure(_tenure),
+        value(_value),
+        epsilon(_epsilon),
+        SATempRestart(SALOCALMINENHANCEDREHEAT) { }
+
     SALocalMinEnhancedReheat(SAInitTemp *it,
                              int _tenure,
                              float _value,
@@ -407,6 +499,11 @@ protected:
     float init_temp;
 
 public:
+    SAMaxItersTempRestart(int _tenure):
+        tenure(_tenure),
+        init_temp(0),
+        SATempRestart(SAMAXITERSTEMPRESTART) { }
+
     SAMaxItersTempRestart(SAInitTemp *it,
                           int _tenure):
         tenure(_tenure),
@@ -426,6 +523,12 @@ public:
         return tenure;
     }
 
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
+
 }; // SAMaxItersTempRestart
 
 
@@ -436,6 +539,11 @@ protected:
     float init_temp;
 
 public:
+    SANeighSizeMaxItersTempRestart(float _coeff):
+        tenure(_coeff),
+        init_temp(0),
+        SATempRestart(SANEIGHSIZEMAXITERSTEMPRESTART) { }
+
     SANeighSizeMaxItersTempRestart(SAInitTemp *it,
                                    emili::Neighborhood* neigh,
                                    float _coeff):
@@ -455,6 +563,16 @@ public:
     virtual int getTenure(void) {
         return tenure;
     }
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        tenure = tenure * neighborhood_size;
+    }
+
 
 }; // SANeighSizeMaxItersTempRestart
 
@@ -466,6 +584,11 @@ protected:
     float init_temp;
 
 public:
+    SASquaredNeighSizeMaxItersTempRestart(float _coeff):
+        tenure(_coeff),
+        init_temp(0),
+        SATempRestart(SASQUAREDNEIGHSIZEMAXITERSTEMPRESTART) {}
+
     SASquaredNeighSizeMaxItersTempRestart(SAInitTemp *it,
                                           emili::Neighborhood* neigh,
                                           float _coeff):
@@ -491,6 +614,17 @@ public:
     virtual int getTenure(void) {
         return tenure;
     }
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        //tenure = tenure * neighborhood_size;
+        double n = ceil(sqrt(2 * neighborhood_size));
+        tenure = (int)tenure * n * n;
+    }
 
 }; // SASquaredNeighSizeMaxItersTempRestart
 
@@ -502,6 +636,12 @@ protected:
     float alpha;
 
 public:
+    SAMaxItersReheat(int _tenure,
+                          float _alpha):
+        tenure(_tenure),
+        alpha(_alpha),
+        SATempRestart(SAMAXITERSREHEAT) { }
+
     SAMaxItersReheat(SAInitTemp *it,
                           int _tenure,
                           float _alpha):
@@ -532,6 +672,12 @@ protected:
     float alpha;
 
 public:
+    SANeighSizeMaxItersReheat(float _coeff,
+                              float _alpha):
+        tenure(_coeff),
+        alpha(_alpha),
+        SATempRestart(SANEIGHSIZEMAXITERSREHEAT) { }
+
     SANeighSizeMaxItersReheat(SAInitTemp *it,
                               emili::Neighborhood* neigh,
                               float _coeff,
@@ -553,6 +699,12 @@ public:
         return tenure;
     }
 
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        tenure = tenure * neighborhood_size;
+    }
+
+
 }; // SANeighSizeMaxItersReheat
 
 
@@ -563,6 +715,11 @@ protected:
     float init_temp;
 
 public:
+    SAMaxStepsTempRestart(int _tenure):
+        tenure(_tenure),
+        init_temp(0),
+        SATempRestart(SAMAXSTEPSTEMPRESTART) { }
+
     SAMaxStepsTempRestart(SAInitTemp *it,
                           int _tenure):
         tenure(_tenure),
@@ -582,6 +739,12 @@ public:
         return tenure;
     }
 
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
+
 }; // SAMaxStepsTempRestart
 
 
@@ -592,6 +755,11 @@ protected:
     float init_temp;
 
 public:
+    SANeighSizeMaxStepsTempRestart(float _coeff):
+        tenure(_coeff),
+        init_temp(0),
+        SATempRestart(SANEIGHSIZEMAXSTEPSTEMPRESTART) { }
+
     SANeighSizeMaxStepsTempRestart(SAInitTemp *it,
                                    emili::Neighborhood* neigh,
                                    float _coeff):
@@ -612,6 +780,17 @@ public:
         return tenure;
     }
 
+    virtual void setInitTemp(double initial_temperature)
+    {
+        init_temp = initial_temperature;
+    }
+
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        tenure = tenure * neighborhood_size;
+    }
+
+
 }; // SANeighSizeMaxStepsTempRestart
 
 
@@ -622,6 +801,12 @@ protected:
     float alpha;
 
 public:
+    SAMaxStepsReheat(int _tenure,
+                          float _alpha):
+        tenure(_tenure),
+        alpha(_alpha),
+        SATempRestart(SAMAXSTEPSREHEAT) { }
+
     SAMaxStepsReheat(SAInitTemp *it,
                           int _tenure,
                           float _alpha):
@@ -652,6 +837,12 @@ protected:
     float alpha;
 
 public:
+    SANeighSizeMaxStepsReheat(float _coeff,
+                              float _alpha):
+        tenure(_coeff),
+        alpha(_alpha),
+        SATempRestart(SANEIGHSIZEMAXSTEPSREHEAT) { }
+
     SANeighSizeMaxStepsReheat(SAInitTemp *it,
                               emili::Neighborhood* neigh,
                               float _coeff,
@@ -673,7 +864,16 @@ public:
         return tenure;
     }
 
+    virtual void setNeighborhoodSize(int neighborhood_size)
+    {
+        tenure = tenure * neighborhood_size;
+    }
+
+
 }; // SANeighSizeMaxStepsReheat
 
+
+}
+}
 
 #endif

@@ -16,6 +16,7 @@
 #include "pfsp/paramsparser.h"
 #else
 #include "pfsp/pfspBuilder.h"
+//#include "template/problem_builder.h"
 #endif
 #include "setup.h"
 #include <sys/types.h>
@@ -29,9 +30,7 @@
 
 #include "SA/sa_pfsp_parser.h"
 #include "SA/sa_qap_parser.h"
-#include "QAP/qapinitialsolution.h"
-#include "QAP/qapneighborhood.h"
-#include "QAP/qap.h"
+#include "QAP/qapBuilder.h"
 
 
 void g2c_info()
@@ -218,10 +217,14 @@ int main(int argc, char *argv[])
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    prs::QAPBuilder qap(ps,ps.getTokenManager());
+    //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
+    //ps.addBuilder(&px);
 #ifdef EM_LIB
     loadBuilders(ps);
 #else
+    ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
 #endif
     ls = ps.parseParams();

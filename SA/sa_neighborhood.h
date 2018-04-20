@@ -2,6 +2,8 @@
 #define SA_NEIGHBORHOOD_H
 
 #include "../emilibase.h"
+namespace emili {
+namespace sa {
 
 
 class SANeighborhood: public emili::Neighborhood {
@@ -11,4 +13,6 @@ public:
 
 }; // SANeighborhood
 
+}
+}
 #endif

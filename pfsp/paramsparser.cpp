@@ -95,10 +95,12 @@
 #define INITIAL_NEHEDD "nehedd"
 #define INITIAL_NEHFF "nehff"
 #define INITIAL_NEHLS "nehls"
+#define INITIAL_NEHEDDLS "neheddls"
 #define INITIAL_NEHFFLS "nehffls"
 #define INITIAL_RANDOM "random"
 #define INITIAL_RANDOM_ITERATED "irandom"
 #define INITIAL_SLACK "slack"
+#define INITIAL_SRZ "srz"
 #define INITIAL_LIT "lit"
 #define INITIAL_RZ "rz"
 #define INITIAL_NRZ "nrz"
@@ -170,6 +172,10 @@
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
 
+
+/* Sequence Dependent Setup times makespan*/
+#define NEIGHBORHOOD_SDSTTA_INSERT "sdsttainsert"
+
 /*
  * END Neighborhoods
  */
@@ -177,7 +183,7 @@
 
 /* permutation flowshop solution perturbations */
 #define PERTURBATION_RANDOM_MOVE "rndmv"
-#define PERTURBATION_VNRANDOM_MOVE "vnrmv"
+#define PERTURBATION_VNRANDOM_MOVE "vrndmv"
 #define PERTURBATION_NOPER "noper"
 #define PERTURBATION_RND "randpert"
 #define PERTURBATION_NRZ "nrzper"
@@ -209,7 +215,7 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
-
+#define ACCEPTANCE_KAR "karacc"
 char* problem_type;
 
 emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
@@ -541,8 +547,11 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
         emili::Solution* s = ini->generateSolution();
         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
         std::cout << "time : " << time_elapsed << std::endl;
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        std::cout << "Objective function value: " << s->getSolutionValue() << std::endl;
+        std::cout << "Found solution: ";
         std::cout << s->getSolutionRepresentation() << std::endl;
-        std::cout << s-> getSolutionValue() << std::endl;
+        std::cout << std::endl;
         std::cerr << s-> getSolutionValue() << std::endl;
         exit(123);
     }
@@ -817,12 +826,30 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         printTab(oss.str().c_str());
         acc = new  emili::MetropolisAcceptance(temp);
     }
+    else  if(tm.checkToken(ACCEPTANCE_KAR))
+    {
+        float n = tm.getDecimal();
+        int nj = instance->getNjobs();
+        int lb = instance->getInstance().computeMSLB();
+        std::vector<long>& dd = instance->getDueDates();
+        float temp = 0;
+        for(int i = 1; i<= nj; i++ )
+        {
+            temp += lb - dd[i];
+        }
+
+        temp = n*(temp/nj)/10;
+
+        oss.str(""); oss  << "metropolis like Kar2016 acceptance. temperature : "<<temp;
+        printTab(oss.str().c_str());
+        acc = new  emili::MetropolisAcceptance(temp);
+    }
     else  if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {
 
 
         emili::accept_candidates accc;
-        char* t1;
+        std::string t1;
         if(tm.checkToken(ACCEPTANCE_INTENSIFY))
         {
             accc = emili::ACC_INTENSIFICATION;
@@ -920,23 +947,7 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
 
 emili::LocalSearch* prs::ParamsParser::gvns(prs::TokenManager& tm)
 {
-    emili::InitialSolution* is = init(tm);
-    emili::Perturbation* p1 = per(tm);
-    emili::Perturbation* p2 = per(tm);
-    emili::pfsp::GVNS_innerloop* gvi = new emili::pfsp::GVNS_innerloop(*is);
-    emili::Perturbation* p3 = per(tm);
-    emili::Perturbation* p4 = per(tm);
-
-    std::vector< emili::Perturbation* > p;
-    p.push_back(p1);
-    p.push_back(p2);
-
-    std::vector< emili::Perturbation* > pl;
-    pl.push_back(p3);
-    pl.push_back(p4);
-
-    emili::GVNS* gg = new emili::GVNS(*gvi,p);
-    return new emili::GVNS(*gvi,pl);
+  return nullptr;
 }
 
 emili::BestTabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
@@ -1127,6 +1138,12 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
             //return new testIS(*istance);
             init = new emili::pfsp::NeRZ2Solution(*instance);
         }
+    else if(tm.checkToken(INITIAL_SRZ))
+        {
+            printTab( "srz intial solution generator");
+            //return new testIS(*istance);
+            init = new emili::pfsp::SRZSolution(*instance);
+        }
     else if(tm.checkToken(INITIAL_NRZ2FF))
         {
             printTab( "nehff rz initial solution without improvement phase");
@@ -1201,6 +1218,17 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
         this->instance = is;
         istances.push_back(pfse);
         init = new emili::pfsp::NEHls(*instance,ll);
+    }
+    else if(tm.checkToken(INITIAL_NEHEDDLS))
+    {
+        printTab( "NEHls initial solution");
+        PfspInstance pfs = instance->getInstance();
+        emili::pfsp::PermutationFlowShop * pfse = instantiateProblem(problem_type,pfs);
+        emili::pfsp::PermutationFlowShop* is = this->instance;
+        this->instance = pfse;
+        emili::LocalSearch* ll = search(tm);
+        this->instance = is;
+        init = new emili::pfsp::NEHeddLS(*instance,ll);
     }
     else if(tm.checkToken(INITIAL_FRB5))
     {
@@ -1471,6 +1499,11 @@ emili::Neighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bool checkEx
          emili::InitialSolution* in = init(tm);
          neigh = new emili::RandomConstructiveHeuristicNeighborhood(*in);
     }
+    else if(tm.checkToken(NEIGHBORHOOD_SDSTTA_INSERT))
+    {
+        printTab( "Taillard acceleration for Sequence dependent setup times");
+        neigh = new emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood(*instance);
+    }
     else
     {
         if(checkExist)
@@ -1531,10 +1564,17 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
         std::cout << info() << std::endl;
         exit(-1);
 }
-
+#include "pfspBuilder.h"
 
 emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
 {
+    /*tm.move(0);
+    prs::GeneralParserE  ps(tm);
+    prs::EmBaseBuilder emb(ps,ps.getTokenManager());
+    prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    ps.addBuilder(&emb);
+    ps.addBuilder(&pfspb);
+    emili::LocalSearch* local = ps.parseParams();*/
     problem(tm);  
     emili::LocalSearch* local = eparams(tm);
     std::cout << "------" << std::endl;
@@ -1772,6 +1812,8 @@ SAAcceptance* prs::ParamsParser::ACCEPTANCE(prs::TokenManager& tm,
     } else if (tm.checkToken(BOUNDEDMETROPOLIS)) {
         double rd = tm.getDecimal();
         return new SABoundedMetropolisAcceptance(inittemp->get(), rd);
+    } else if (tm.checkToken(ALLACC)) {
+        return new SAAcceptanceAll();
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
