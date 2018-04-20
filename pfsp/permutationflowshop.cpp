@@ -37,31 +37,433 @@ struct igioComp
 }igioc;
 #endif
 
-std::vector< float > inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob)
+std::vector<int> inline ff_index_function(emili::pfsp::PermutationFlowShop& prob, std::vector<int>& U,std::vector<float>& xi,std::vector<float>& ITjk, std::vector<int>& lastJobCT, std::vector<std::vector<int> >& newJobCTs, int k, float a, float b)
 {
-    std::vector< float > xi;
-    xi.push_back(0);
-    // pmat[ machine ][ job ]
-    const std::vector< std::vector < long int > > & pmat = prob.getProcessingTimesMatrix();
-    int njob = prob.getNjobs();
+    int njobs = prob.getNjobs();
     int nmac = prob.getNmachines();
-    float k = (njob-2)/(float)4;
-    for(int j = 1 ; j <= njob; j++)
+    const std::vector< std::vector < long int > > ptm = prob.getProcessingTimesMatrix();
+    //for each U_k
+    int nmk = njobs-k;
+    for(int j = 0; j<= nmk; j++ )
     {
-        float pi = pmat[1][j];
-        float wj = 0;
-
-        for( int i = 2; i <= nmac ; i++)
+        //for each  machine
+        //initialize Cmj and IT'_jk
+        int ujk = U[j];
+        ITjk[ujk] = 0;
+        std::vector<int>& newJobCT = newJobCTs[ujk];
+        newJobCT[1] = lastJobCT[1]+ptm[ujk][1];
+        // calc Cmj
+        //Determination of IT'_jk
+        for(int i = 2; i <= nmac; i++)
         {
-            wj = (nmac*pi)/(i-1);
-            pi += pmat[i][j];
-
+            newJobCT[i] = std::max(lastJobCT[i],newJobCT[i-1])+ptm[ujk][i];
+            float den = i-b+(k*(float)(nmac-i+b)/(float)(njobs-2));
+            float num = nmac * std::max(newJobCT[i-1]-lastJobCT[i],0);
+            ITjk[ujk] = ITjk[ujk] + (num/den);
         }
-        xi[j] = pi + k * wj;
+        //AT'_jk = C_mj
+        float ATjk = newJobCT[nmac];
+        //Determination of XI'_jk
+        float xi_p = (nmk-2)/a;
+        xi[ujk] = xi_p*ITjk[ujk] + ATjk;
+        //end
     }
-    return xi;
+    //order U based on xi
+    std::vector< int> orderedU = U;
+    std::sort(orderedU.begin(),orderedU.end(),[xi,ITjk](int i1,int i2)
+    {
+        if(xi[i1] == xi[i2])
+        {
+            return ITjk[i1] > ITjk[i2];
+        }
+        return xi[i1]< xi[i2];
+    });
+
+//    for(int i = 0; i < orderedU.size() ; i++)
+//        std::cout << " " << orderedU[i];
+//    std::cout << std::endl;
+
+//    for(int i = 0; i < orderedU.size() ; i++)
+//        std::cout << " " << xi[orderedU[i]];
+//    std::cout << std::endl;
+
+//    for(int i = 0; i < orderedU.size() ; i++)
+//        std::cout << " " << ITjk[orderedU[i]];
+//    std::cout << std::endl;
+
+
+
+    return orderedU;
 }
 
+std::vector<int> inline ff_heuristic(int x,float a, float b,emili::pfsp::PermutationFlowShop& prob,long& value)
+{
+    int njobs = prob.getNjobs();
+    int nmac  = prob.getNmachines();
+    std::vector<int> jobs;
+    for( int i = 1; i<=njobs;i++)
+        jobs.push_back(i);
+
+    std::vector< float > xi(njobs+1,0);
+    std::vector< float > ITjk(njobs+1,0);
+    std::vector< int > ljct(nmac+1,0);
+    std::vector< std::vector< int > > njcts(njobs+1,std::vector< int >(nmac+1,0));
+    std::vector< int> U = ff_index_function(prob,jobs,xi,ITjk,ljct,njcts,1,a,b);
+    std::vector< int > Pi = {0, U[x]};
+    ljct= njcts[U[x]];
+    U.erase(U.begin()+x);
+    for( int k = 2; k< njobs; k++)
+    {
+        std::vector< int > U2 = ff_index_function(prob,U,xi,ITjk,ljct,njcts,k,a,b);
+        Pi.push_back(U2[0]);
+        ljct= njcts[U2[0]];
+        U = std::vector<int>(U2.begin()+1,U2.end());
+    }
+    Pi.push_back(U[0]);
+    value = prob.computeObjectiveFunction(Pi);
+    return Pi;
+}
+
+std::vector<int> inline ff_heuristic2(int x,float a, float b,emili::pfsp::PermutationFlowShop& prob,long& value)
+{
+    int njobs = prob.getNjobs();
+    int nmac  = prob.getNmachines();
+    std::vector<int> jobs;
+    for( int i = 1; i<=njobs;i++)
+        jobs.push_back(i);
+
+    std::vector< float > xi(njobs+1,0);
+    std::vector< float > ITjk(njobs+1,0);
+    std::vector< std::vector< int > > ljct(x, std::vector<int>(nmac+1,0));
+    std::vector< std::vector< int > > njcts(njobs+1,std::vector< int >(nmac+1,0));
+    std::vector< int> Up = ff_index_function(prob,jobs,xi,ITjk,ljct[0],njcts,1,a,b);
+    std::vector< std::vector< int > > U(x,Up);
+    std::vector< std::vector< int > > Pi(x,{0});
+    for(int i=0;i<x;i++)
+    {
+        Pi[i].push_back(Up[i]);
+        U[i].erase(U[i].begin()+i);
+        ljct[i] = njcts[Up[i]];
+    }
+
+    for( int k = 2; k< njobs; k++)
+    {
+        for(int i=0;i<x;i++)
+        {
+            std::vector< int > U2 = ff_index_function(prob,U[i],xi,ITjk,ljct[i],njcts,k,a,b);
+            Pi[i].push_back(U2[0]);
+            ljct[i]= njcts[U2[0]];
+            U[i] = std::vector<int>(U2.begin()+1,U2.end());
+        }
+    }
+    Pi[0].push_back(U[0][0]);
+    long best_value = prob.computeObjectiveFunction(Pi[0]);
+    std::vector<int> best = Pi[0];
+    for(int i=1;i<x;i++)
+    {
+
+        Pi[i].push_back(U[i][0]);
+        long temp = prob.computeObjectiveFunction(Pi[i]);
+        if(temp < best_value)
+        {
+            best = Pi[i];
+            best_value = temp;
+        }
+    }
+
+    value = best_value;
+    return best;
+}
+
+
+typedef struct bsch_node bsnode;
+
+struct bsch_node{
+    std::vector<float> PT;//influence from remaining job
+    float IT=0;//weighted idle time due to job
+    float TCT=0;//total completion time
+    std::vector<int> C; // completion times of job
+    int k; // level
+    int job; // job to insert
+    int l; // branch
+    float B=0; // node value
+    float F=0; // node F value
+    float SIT=0; // node SIT value
+    float SCT=0; // node SCT value
+    std::vector<int> S;
+    std::vector<int> U;
+    bsnode* father;
+};
+
+std::ostream &operator<<(std::ostream &os, bsnode const &m) {
+    std::ostringstream oss;
+    if(m.father != nullptr)
+    {
+        oss << " F " << m.father->job<<" ,";
+    }
+    return os << "{" << oss.str() << "J " << m.job << " ,K " << m.k << " ,L " << m.l << " ,T "
+              << m.TCT << " ,SI " << m.SIT << " ,SC " << m.SCT <<  " ,F " << m.F << " ,IT "
+              << m.IT << " ,B " << m.B <<" }";
+}
+template< typename T>
+void print_vector(std::vector<T>& vec)
+{
+    int size=vec.size();
+    for(int i=0;i<size;i++)
+    {
+        std::cout << ", " << vec[i] ;
+    }
+    std::cout << std::endl;
+}
+
+void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::PermutationFlowShop& prob,emili::pfsp::PermutationFlowShopSolution* s)
+{
+    int njobs = prob.getNjobs();
+    int nmac = prob.getNmachines();
+    const std::vector< std::vector< long int >>& ptimes = prob.getProcessingTimesMatrix();
+    std::vector< int > CTG0(nmac+1,0);
+    std::vector<int> jobs;
+    for( int i = 1; i<=njobs;i++)
+    {
+        jobs.push_back(i);
+        for( int j = 1; j<= nmac; j++)
+        {
+            CTG0[j] = CTG0[j] + ptimes[i][j];
+        }
+    }
+    //Initial Order
+    std::vector< float > xi(njobs+1,0);
+    std::vector< float > ITjk(njobs+1,0);
+    std::vector< int > ljct( nmac+1,0);
+    std::vector< std::vector< int > > njcts(njobs+1,std::vector< int >(nmac+1,0));
+    std::vector< int> alpha = ff_index_function(prob,jobs,xi,ITjk,ljct,njcts,1,4,1);
+    //Determination of IT'_j0 CT'_j0 and XI'_j0
+    // IT,CT for each l
+    //alpha := Jobs ordered according to non-decreasing XI breaking ties in favor of jobs with lower IT'_j0;
+   // std::vector< std::vector< int > > U(x,jobs);
+    std::vector< bsnode* > old_nodes;
+    std::vector< bsnode* > nodes;
+    for(int i = 0; i < x; i++ )//for l=1 to x do
+    {
+        bsnode* base = new bsch_node;
+        std::vector<int>& s = base->S;
+        base->U = jobs;
+        //Update S_1l (S_11l = alpha_l) for each l and U_1l with the remaining jobs.
+        s.push_back(0);
+        s.push_back(alpha[i]);
+        int index = alpha[i]-1;
+        base->U.erase(base->U.begin()+index);
+        base->father = nullptr;
+        base->k = 1;
+        base->job = alpha[i];
+        base->l = i;
+        base->C = njcts[alpha[i]];
+        base->TCT = base->C[nmac];
+        base->B = 0;
+        base->PT = std::vector<float>(nmac+1,0);
+        //Determination of CT_gamma0,l for each l.
+        float CTG=0;
+        base->PT[1] = (CTG0[1]-ptimes[alpha[i]][1]);
+        CTG = base->C[1]+base->PT[1]/(njobs-1);
+        for(int m=2;m<=nmac;m++)
+        {
+            base->PT[m] = (CTG0[m]-ptimes[alpha[i]][m]); // Average processing time of the remaining jobs
+            CTG=std::max((float)base->C[m],CTG) + base->PT[m]/(njobs-1);
+        }
+        nodes.push_back(base);
+        //Initialization of F, SIT and SCT
+        base->SIT = (njobs-b)/(float)njobs * ITjk[alpha[i]]*(njobs-2);//SIT_1l = (n-b)/n * (IT_alpha[l],0,l * (n — 0 — 2));
+        base->SCT = base->C[nmac] + CTG;//SCT_1l = CT_alpha[l],0,l + CT_gamma,o,l;
+        base->F = a*base->SCT+base->SIT;//F1,l = a  * SCT_1,l + SIT_1,l;
+       // std::cout << *base << std::endl;
+    }//end
+
+    for(int k = 1; k < (njobs-1); k++)//for k= 1 to n — 1 do
+    {
+        old_nodes = nodes;
+        nodes.clear();
+        //std::vector< bsnode* > new_nodes;
+        int childs = 0;
+        for(int l = 0; l< x ; l++)  //for each l = 1 to x
+        {
+            int rj = njobs-k;
+            bsnode* father = old_nodes[l];
+
+            if(!(childs >= x) || !(father->F > nodes[0]->B))
+            for(int j = 0; j< rj; j++) //and for each j = 1 to n — x;
+            {
+                int njob = father->U[j];
+                std::vector<int> cnn(nmac+1,0);
+                std::vector<int>& fct = father->C;
+                cnn[1] = fct[1] + ptimes[njob][1];
+                float ITujk = 0.0;
+                for(int m=2;m<=nmac;m++)
+                {
+                    cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
+                    float den = m-1+(k*(float)(nmac-m+1)/(float)(njobs-2));
+                    float num = nmac * std::max(cnn[m-1]-fct[m],0);
+                    ITujk = ITujk + (num/den);
+                }
+                float Bn = father->F + c * cnn[nmac] + ITujk * (njobs-(k+2));//B_jkl := F_kl + c * CT_jkl + IT_jkl
+                bool add = true;
+                if(childs >= x)
+                {
+                    if(Bn < nodes[0]->B)
+                    {
+                        std::pop_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
+                        delete nodes.back();
+                        nodes.pop_back();
+                    }
+                    else
+                    {
+                        add = false;
+                    }
+                }
+                if(add)
+                {
+                    bsnode* nnode = new bsnode;//Candidate Nodes Creation
+                    nnode->father = father;
+                    nnode->k = k;
+                    nnode->l = j;
+                    nnode->job = njob;
+                    nnode->IT = ITujk;
+                    nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
+                    //Candidate Nodes Evaluation
+                    nnode->B = Bn;
+                    nodes.push_back(nnode);
+                    std::push_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
+                    childs++;
+                }
+               // std::cout << k<< l << " " << *nnode << std::endl;
+            }
+
+        }
+        //Candidate Nodes Selection
+        //Determination of the l'-th best candidate node according to non-decreasing B_jkl in iteration k.
+//        garbage.insert(garbage.end(),nodes.begin(),nodes.end());
+//        std::sort(new_nodes.begin(),new_nodes.end(),[](bsnode* i1,bsnode* i2)
+//        {
+//            return i1->B < i2->B;
+//        });
+//        assert(nodes.size() == new_nodes.size());
+//        nodes.clear();
+//        nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+x);
+//        std::cout << nodes.size() << std::endl;
+//        for(int i=0; i<x; i++)
+//            std::cout << *nodes[i] << std::endl;
+
+//        garbage.insert(garbage.end(),new_nodes.begin()+x+1,new_nodes.end());
+        //end
+        //Forecasting Phase.        
+        for(int l=0;l<x;l++)//Update of the Forecast Index for l=1 to x do
+        {
+          bsnode& n = *nodes[l];//Update S and U
+          n.S = n.father->S;
+          n.U = n.father->U;
+          n.S.push_back(n.job);
+          //assert(n.job == n.U[n.l]);
+          n.U.erase(n.U.begin()+n.l);
+          n.l = l;
+          float CTG=0;
+          n.PT = n.father->PT;
+          n.PT[1] = (n.PT[1]-ptimes[n.job][1]);
+          CTG = n.C[1]+n.PT[1]/(njobs-(k+1));
+          for(int m=2;m<=nmac;m++)
+          {
+              n.PT[m] = (n.PT[m]-ptimes[n.job][m]); // Average processing time of the remaining jobs
+              CTG=std::max((float)n.C[m],CTG) + n.PT[m]/(njobs-(k+1));
+          }
+          int CTjkl = n.C[nmac];
+          n.SIT = (njobs-b)/(float)njobs *( n.father->SIT + n.IT*(njobs-(k+2)));//SIT_1l = (n-b)/n * (IT_alpha[l],0,l * (n — 0 — 2));
+          n.SCT = n.father->SCT + CTjkl + CTG;//SCT_1l = CT_alpha[l],0,l + CT_gamma,o,l;
+          n.F = a*n.SCT+n.SIT;//F1,l = a  * SCT_1,l + SIT_1,l;
+          n.TCT = n.father->TCT+CTjkl;
+        //Determination of for new selected node formed by the old se-lected node branch• with job job[l'].
+        //Note that the processing times of the artificial job are equal to the average processing times of all unscheduled jobs (Uf-F1); • = V • (n, — k —2)1; SCT,u, = + • = a • SCT,Re + S
+          //delete garbage[l];
+        }//end
+//        int s = garbage.size();
+        for(int l=0;l<x;l++)
+        {
+            delete old_nodes[l];
+        }
+//        garbage.clear();
+    }//end
+    //Final evaluation Evaluate the Iiowtime of the scheduled jobs of each selected node and return the least one.
+    bsnode* best;
+    for(int l=0; l<x; l++)
+    {
+        bsnode* nnode = nodes[l];//Candidate Nodes Creation
+        std::vector<int> cnn(nmac+1,0);
+        std::vector<int>& fct = nnode->C;
+        int njob = nnode->U[0];
+        nnode->S.push_back(njob);
+        cnn[1] = fct[1] + ptimes[njob][1];
+        for(int m=2;m<=nmac;m++)
+        {
+            cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
+        }
+        //Determination of IT_jkl, CT_jkl;
+        //Candidate Nodes Evaluation
+        nnode->TCT = nnode->TCT+cnn[nmac];
+         //std::cout << "F " << *nnode << std::endl;
+        if(l==0)
+        {
+            best = nnode;
+        }
+        else if(best->TCT > nnode->TCT)
+        {
+            delete best;
+            best = nnode;
+        }
+        else
+        {
+            delete nnode;
+        }
+    }
+  // assert(best->TCT == prob.computeObjectiveFunction(best->S));
+    s->setSolutionValue(best->TCT);
+    s->setJobSchedule(best->S);
+    delete best;
+  //  delete[] garbage;
+  //  delete[] nodes;
+}
+
+emili::Solution* emili::pfsp::FFheuristic::generate()
+{
+
+    long best_value = 0;
+//    std::vector<int> best = ff_heuristic(0,a,b,pis,best_value);
+    std::vector<int> best = ff_heuristic2(x,a,b,pis,best_value);
+    //bsch_procedure(x,1,0,1,pis,nullptr);
+    return new emili::pfsp::PermutationFlowShopSolution(best_value,best);
+//    for(int i = 0; i < best.size() ; i++)
+//        std::cout << " " << best[i];
+//    std::cout << " -> " << best_value << std::endl;
+//    for(int i=1; i<x;i++)
+//    {
+//        long temp;
+//        std::vector<int> news = ff_heuristic(i,a,b,pis,temp);
+//        for(int i = 0; i < news.size() ; i++)
+//            std::cout << " " << news[i];
+//        std::cout << " -> " << temp << std::endl;
+//        if(temp < best_value)
+//        {
+//            best_value = temp;
+//            best = news;
+//        }
+//    }
+
+//    return new emili::pfsp::PermutationFlowShopSolution(best_value,best);
+
+}
+
+emili::Solution* emili::pfsp::BSCH::generate()
+{
+    emili::pfsp::PermutationFlowShopSolution* s =(emili::pfsp::PermutationFlowShopSolution*) generateEmptySolution();
+    bsch_procedure(x,ap,bp,cp,pis,s);
+    return s;
+}
 
 
 std::vector< int > inline std_start_sequence(emili::pfsp::PermutationFlowShop& prob)
@@ -1169,7 +1571,6 @@ void emili::pfsp::PermutationFlowShopSolution::setRawData(const void *data)
 
 
 }
-
 
 emili::Solution* emili::pfsp::PermutationFlowShopSolution::clone()
 {
@@ -6619,11 +7020,56 @@ void emili::pfsp::PfspTwoInsertNeighborhood::reverseLastMove(Solution *step)
     newsol.insert(newsol.begin()+start_position,sol_i);
 }
 
+emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());    
+    int njobs = pis.getNjobs();    
+    std::vector < int > indexes;
+    std::vector < int > kn(njobs+1,0);
+    if(size >= njobs)
+    {
+        size = njobs-1;
+    }
+
+    int k=0;
+    while(k <= size)
+    {
+        int ind = (emili::generateRandomNumber()%njobs)+1;
+        if(kn[ind] == 0)
+        {
+            kn[ind] = 1;
+            indexes.push_back(ind);
+            k++;
+        }
+    }
+    int i = 0;
+    for(; i < size; i+=2)
+    {
+        int sol_i = newsol[indexes[i]];
+        newsol.erase(newsol.begin()+indexes[i]);
+        newsol.insert(newsol.begin()+indexes[i+1],sol_i);
+    }
+    i++;
+    if(i < size)
+    {
+        int sol_i = newsol[indexes[i]];
+        newsol.erase(newsol.begin()+indexes[i]);
+        newsol.insert(newsol.begin()+indexes[0],sol_i);
+    }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
+}
+
 emili::Solution* emili::pfsp::PfspInsertNeighborhood::random(Solution *currentSolution)
 {
 
     std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
     int njobs = pis.getNjobs();
+
     int best_i = (emili::generateRandomNumber()%njobs)+1;
     int best_j = (emili::generateRandomNumber()%njobs)+1;
     int sol_i = newsol[best_i];
@@ -7223,6 +7669,46 @@ emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *current
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
 }
 
+emili::Solution* emili::pfsp::PfspExchangeNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+    std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+    int njobs = pis.getNjobs();
+    std::vector < int > indexes;
+    std::vector < int > kn(njobs+1,0);
+    if(size >= njobs)
+    {
+        size = njobs-1;
+    }
+
+    int k=0;
+    while(k <= size)
+    {
+        int ind = (emili::generateRandomNumber()%njobs)+1;
+        if(kn[ind] == 0)
+        {
+            kn[ind] = 1;
+            indexes.push_back(ind);
+            k++;
+        }
+    }
+    int i = 0;
+    for(; i < size; i+=2)
+    {
+        std::swap(newsol[indexes[i]],newsol[indexes[i+1]]);
+    }
+    i++;
+    if(i < size)
+    {
+       std::swap(newsol[indexes[i]],newsol[indexes[0]]);
+    }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
+}
+
 
 void emili::pfsp::PfspExchangeNeighborhood::reset()
 {    
@@ -7305,6 +7791,41 @@ emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *curren
     std::swap(newsol[best_i],newsol[best_i+1]);
     long int value = pis.computeObjectiveFunction(newsol);
     return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+}
+
+emili::Solution* emili::pfsp::PfspTransposeNeighborhood::random(Solution *currentSolution,int size)
+{
+    if(size > 0)
+    {
+        std::vector < int > newsol(((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule());
+        int njobs = pis.getNjobs()-1;
+        std::vector < int > indexes;
+        std::vector < int > kn(njobs+1,0);
+        if(size >= njobs)
+        {
+            size = njobs-2;
+        }
+
+        int k=0;
+        while(k < size)
+        {
+            int ind = (emili::generateRandomNumber()%njobs)+1;
+            if(kn[ind] == 0)
+            {
+                kn[ind] = 1;
+                indexes.push_back(ind);
+                k++;
+            }
+        }
+        int i = 0;
+        for(; i < size; i++)
+        {
+            std::swap(newsol[indexes[i]],newsol[indexes[i]+1]);
+        }
+        long int value = pis.computeObjectiveFunction(newsol);
+        return new emili::pfsp::PermutationFlowShopSolution(value,newsol);
+    }
+    return currentSolution->clone();
 }
 
 void emili::pfsp::PfspTransposeNeighborhood::reset()
@@ -7623,7 +8144,7 @@ bool emili::pfsp::PfspMovesMemory::tabu_check(std::pair< int,int > value)
 
 void emili::pfsp::PfspMovesMemory::forbid(Solution *solution)
 {
-
+    //std::cout << lastMove.first << " <-> " << lastMove.second << std::endl;
     if(tabu_check(lastMove))
     {
         if(tt_index < this->tabutenure){
@@ -7641,6 +8162,14 @@ void emili::pfsp::PfspMovesMemory::forbid(Solution *solution)
 void emili::pfsp::PfspMovesMemory::registerMove(emili::Solution* base,emili::Solution* solution)
 {
     lastMove = neigh->lastMove();
+}
+
+void emili::pfsp::PfspMovesMemory2::registerMove(emili::Solution* base,emili::Solution* solution)
+{
+    std::pair<int,int> lm = neigh->lastMove();
+
+    int job = ((emili::pfsp::PermutationFlowShopSolution*) base)->getJobSchedule()[lm.second];
+    lastMove = std::pair<int,int>(job,lm.first);
 }
 
 void emili::pfsp::PfspMovesMemory::reset()
@@ -7682,8 +8211,7 @@ void emili::pfsp::TSABtestMemory::forbid(Solution *solution)
 {
     std::pair< int , int > fmove;
     int k = lastMove.first;
-    int l = lastMove.second;
-
+    int l = lastMove.second;    
     if(k<l)
     {
         fmove = std::pair< int, int > (k,k+1);
@@ -7854,6 +8382,11 @@ void emili::pfsp::GVNS_RIS_Neighborhood::reset()
 }
 
 emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution)
+{
+    return currentSolution;
+}
+
+emili::Solution* emili::pfsp::GVNS_RIS_Neighborhood::random(emili::Solution* currentSolution,int size)
 {
     return currentSolution;
 }
@@ -8072,7 +8605,7 @@ emili::Solution* emili::pfsp::RIS::search(Solution *initial)
     emili::Solution* best = bestSoFar;
     if(ls!=nullptr)
     {
-        emili::Solution* best = ls->getBestSoFar();
+        best = ls->getBestSoFar();
     }
     std::vector<int> pi_r = ((emili::pfsp::PermutationFlowShopSolution*)best)->getJobSchedule();
     int pi_value = initial->getSolutionValue();
@@ -8238,4 +8771,732 @@ emili::Solution* emili::pfsp::NoIdleIGper::perturb(Solution *solution)
     return s;
 }
 
+int emili::pfsp::NoWait_RIS::neh_ig(std::vector<int>& solPartial, int x)
+{
+   /* the jobs around the one to insert
+      [1,2,....,jmo,j,jpo,...njob]*/
 
+   int j = solPartial[x];
+   int jpo = solPartial[(x+1)%(njob+1)];
+   int jmo = solPartial[x-1];
+   // The value of the makespan without j
+   long int base_value = pis.computeNWMS(solPartial)
+                        + distance[jmo][jpo]
+                        - distance[jmo][j]
+                        - distance[j][jpo];
+
+   solPartial.erase(solPartial.begin()+x);
+   int tmp=0,ind=1;
+   int min = std::numeric_limits<int>::max();
+   int sops = njob+1;
+   std::vector< int > solTMP(sops,0);
+
+   for(int r=1; r<sops; r++){
+    emili::iteration_increment();
+       for(int h=1; h<r; h++)
+           solTMP[h]=solPartial[h];
+       solTMP[r]=j;
+       for(int h=r+1; h<=sops; h++)
+           solTMP[h]=solPartial[h-1];
+
+      // tmp = instance.computeObjectiveFunction(solTMP,njob);
+       /*Here I take the job before and after j*/
+       int k = solPartial[r%njob];
+       int kmo = solPartial[r-1];
+       int delta = distance[kmo][j] + distance[j][k] - distance[kmo][k] ;
+       int c_max = base_value + delta;
+
+       //assert(c_max == tmp);
+       tmp = c_max;
+       if(tmp<min){
+           min=tmp;
+           ind=r;
+       }
+
+   }
+   ni_position = ind;
+   solPartial.insert(solPartial.begin()+ind,j);
+   return min;
+}
+
+emili::Solution* emili::pfsp::RandomNoWait_RIS::search(Solution *initial)
+{
+    *bestSoFar = *initial;
+    Solution* random = nullptr;
+    int h = 1;
+    int i = 1;
+    std::vector<int> pi = ((emili::pfsp::PermutationFlowShopSolution*)initial)->getJobSchedule();
+    emili::LocalSearch* ls = emili::getAlgo();
+    emili::Solution* best = bestSoFar;
+    if(ls!=nullptr)
+    {
+        best = ls->getBestSoFar();
+    }
+    std::vector<int> pi_r = ((emili::pfsp::PermutationFlowShopSolution*)best)->getJobSchedule();
+    if(cmax == initial->getSolutionValue())
+    {
+        random = rand.generateSolution();
+        pi_r = ((emili::pfsp::PermutationFlowShopSolution*)random)->getJobSchedule();
+    }
+
+    int pi_value = initial->getSolutionValue();
+    int initial_value = pi_value;
+    std::vector<int> pi_i(njob+1,0);
+    invertPerturbation(pi,pi_i);
+    while(i < njob+1)
+    {
+        h = h%njob+1;
+        int job = pi_r[h];
+        int k = pi_i[job];
+        int value = neh_ig(pi,k);
+        if(value < pi_value)
+        {
+            pi_value = value;
+            i = 1;
+            invertPerturbation(pi,pi_i);
+        }
+        else
+        {
+            h++;
+            i++;
+            pi.erase(pi.begin()+ni_position);
+            pi.insert(pi.begin()+k,job);
+        }
+
+    }
+    if(random !=nullptr)
+    {
+        delete random;
+    }
+    if(initial_value==pi_value)
+    {
+        cmax = initial_value;
+        return bestSoFar->clone();
+    }
+    else
+    {
+        emili::Solution* last = new PermutationFlowShopSolution(pi_value,pi);
+        cmax = pi_value;
+        *bestSoFar = *last;
+        return last;
+    }
+}
+
+void emili::pfsp::BeamSearchHeuristic::buildXi()
+{
+    double wprod = (njobs-2.0)/4.0;
+    std::vector<double> wj(njobs+1,0.0);
+    for(int j=1; j<=njobs ; j++ )
+    {
+
+        double pij = pi[j][1];
+        for(int i = 2; i<=nmacs ; i++)
+        {
+            pij = pij + pi[j][i];
+            double wjprime = 0;
+            for(int ip = 1; ip < i ; ip++ )
+            {
+                wjprime += pi[j][ip];
+            }
+            wjprime = (wjprime*nmacs)/(i-1);
+            wj[j] = wj[j] + wjprime;
+        }
+
+        wj[j] = wj[j]*wprod;
+        xi[j] = pij+wj[j];
+        xi_order.push_back(j);
+    }
+    std::vector<double>& xil = xi;
+
+    std::sort(xi_order.begin(),xi_order.end(),[xil,wj](int i1,int i2){
+                                                            if(xil[i1]==xil[i2] && i2!=0)
+                                                                return wj[i1]<wj[i2];
+                                                            else
+                                                               return xil[i1] < xil[i2];
+    });
+/*
+    for(int i = 0; i<=njobs; i++)
+        std::cout << " " << xi[i];
+    std::cout << "\n";
+
+    for(int i = 0; i<=njobs; i++)
+        std::cout << " " << xi_order[i];
+    std::cout << "\n";
+
+    for(int i=1; i<=njobs; i++)
+    {
+        std::cout << i << ": ";
+        for(int k = 1; k<=nmacs; k++)
+             std::cout << pi[i][k] << " ";
+
+        std::cout << std::endl;
+    }
+*/
+}
+std::vector<double>& emili::pfsp::BeamSearchHeuristic::getXi()
+{
+    return xi;
+}
+
+std::vector<int>& emili::pfsp::BeamSearchHeuristic::getXi_order()
+{
+    return xi_order;
+}
+
+emili::Solution* emili::pfsp::BeamSearchHeuristic::generate()
+{
+
+
+    //start.buildChildren();
+
+    int k = 1;
+
+    std::vector<bs_node*> current_iteration;
+    int g = _gamma<njobs?_gamma:njobs;
+   // for(int x=0;x<g;x++)
+    //{
+       bs_node* start = new bs_node(*this,0);
+      current_iteration.push_back(start);
+    //}
+
+    //std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+
+    do{
+       // std::cout << "#child " << current_iteration.size() << std::endl;
+        //current_iteration[0]->buildChildren();
+        //std::vector<bs_node*> next_iteration = current_iteration[0]->getChildren();
+        std::vector<bs_node*> next_iteration;
+        int size = current_iteration.size();
+
+        size = _gamma<size?_gamma:size;
+
+        //for(int i=1;i < size; i++)
+        //std::cout << k << " " << k << std::endl;
+        for(int i=0;i < size; i++)
+        {
+           // std::cout << " ITERATION " << i <<"/" << size << std::endl;
+         //   std::cout << "Node value " << current_iteration[i]->g_value << std::endl;
+            //current_iteration[i]->buildChildren();
+            //std::vector<bs_node*> ccc = current_iteration[i]->getChildren();
+            //next_iteration.insert(next_iteration.end(),ccc.begin(),ccc.end());
+            int csize = njobs-k;
+            double W = 0.0;
+            for(int c=0;c < csize; c++)
+            {
+                bs_node* b = new bs_node(*current_iteration[i],c);
+                W += b->TT;
+                next_iteration.push_back(b);
+            }
+
+            for(int c=0;c < csize; c++)
+            {
+                int node = i*csize+c;
+                next_iteration[node]->calcG(W);
+            }
+
+        }
+
+  //      std::vector< bs_node* >::iterator iter = next_iteration.begin();
+    //    for(;iter!=next_iteration.end();++iter)
+      //      (*iter)->calcG(W);
+        std::vector< bs_node* >::iterator iter = current_iteration.begin();
+            for(;iter!=current_iteration.end();++iter)
+            {
+                delete *iter;
+            }
+         current_iteration = next_iteration;
+         std::sort(current_iteration.begin(),current_iteration.end(),[](bs_node* i1,bs_node* i2){return *i1<*i2;});
+
+       /*  std::cout << k << ": ";
+         for(;iter!=current_iteration.end();++iter)
+         {
+             //std::cout << "K " << (*iter)->k << " J " << (*iter)->kjob << " TE " << (*iter)->TE << " TT " << (*iter)->TT << " TI " << (*iter)->TI << " G " <<  (*iter)->g_value << std::endl;
+             std::cout << "( " << (*iter)->kjob << "," << (*iter)->g_value << ") ";
+         }
+         std::cout << std::endl;*/
+         k++;
+    }while(k<(njobs));
+    /*std::vector< bs_node* >::iterator iter = current_iteration.begin();
+      for(;iter!=current_iteration.end();++iter)
+    {
+    std::vector<int> seq = (*iter)->getPermutation();
+    double res = pis.computeObjectiveFunction(seq);
+    std::cout << "K " << (*iter)->k << " G "<< (*iter)->g_value << " V " << res << std::endl;
+     }*/
+    std::vector<int> seq = current_iteration[0]->getPermutation();
+    double res = current_iteration[0]->g_value;
+    std::vector< bs_node* >::iterator iter = current_iteration.begin();
+        for(;iter!=current_iteration.end();++iter)
+        {
+            delete *iter;
+        }
+    //pis.computeObjectiveFunction(seq);
+//    std::cout << "sol " << seq.size() << " children " <<  std::endl;
+
+    return new emili::pfsp::PermutationFlowShopSolution(res,seq);
+}
+
+/*
+void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
+{
+
+    completionTimes[1] = father->completionTimes[1]+init.pi[kjob][1];
+    double I = 0.0;
+    //tpj[1] = tpj[1] - init.pi[kjob][1];
+    double W = father->completionTimes[1]+tpj[1];
+    for(int i=2;i<=m;i++)
+    {
+        completionTimes[i] = std::max(father->completionTimes[i],completionTimes[i-1])+init.pi[kjob][i];
+      //  tpj[i] = tpj[i] - init.pi[kjob][i];
+        W = std::max((double)father->completionTimes[i],W)+tpj[i];
+        double iden = i-1+((k-1)*(m-i+1)/(n-2));
+        I = I + (m * std::max(completionTimes[i-1]-father->completionTimes[i],0))/iden;
+    }
+    //tpd = tpd - init.dueDates[kjob];
+
+    //W =  W - tpd;
+    //W = std::max(W,0.0);
+
+    double E = std::max((int)init.dueDates[kjob]-completionTimes[m],0);
+    double T = std::max(completionTimes[m]-(int)init.dueDates[kjob],0);
+    TE = TE + E;
+    TT = TT + T;
+    TI = TI + I;
+
+    //std::cout << "K " << k << " TE " << TE << " TT " << TT << " TI " << TI << " W " << W << " TPD " <<  tpd << std::endl;
+    double F = TI * (n-k-1)/n
+             + init._a * TE * (2*n-k-1)/(2*n)
+             + init._b * TT * (k-1+n)/(2*n);
+
+    double L = I * (n - k - 1)
+             + init._c*E
+             + (init._e)/(n-k+1)*W;
+
+    g_value = F + L;
+}*/
+
+double emili::pfsp::BeamSearchHeuristic::bs_node::calcW()
+{
+    std::vector<int>::iterator iter = unscheduled.begin();
+    std::vector<int> ctimes(completionTimes);
+    double W = TT;
+    for(;iter!=unscheduled.end();++iter)
+    {
+        int cj = *iter;
+        ctimes[1] += init.pi[cj][1];
+        for(int i=2;i<=m;i++)
+        {
+            ctimes[i] = std::max(ctimes[i],ctimes[i-1])+init.pi[cj][i];
+        }
+        //ctimes[m] = ctimes[m]+init.pi[cj][m];
+        W = W + std::max(ctimes[m]-(int)init.dueDates[cj],0);
+    }
+    //std::vector< int > asd = scheduled;
+    //asd.insert(asd.end(),unscheduled.begin(),unscheduled.end());
+    //assert(W == init.pis.computeObjectiveFunction(asd));
+    return W;
+}
+
+void emili::pfsp::BeamSearchHeuristic::bs_node::evaluateNode()
+{
+
+    completionTimes[1] += init.pi[kjob][1];
+
+    double I = 0.0;
+    double km = k;
+    double nd = n;
+    double md = m;
+    for(int i=2;i<=m;i++)
+    {
+        double iden = md / (i-1+(km-1)*(md-i+1)/(nd-2));
+        double idletime = std::max(completionTimes[i-1]-completionTimes[i],0);
+        I = I + idletime*iden;
+        completionTimes[i] = std::max(completionTimes[i],completionTimes[i-1])+init.pi[kjob][i];
+    }    
+    T = std::max(completionTimes[m]-(int)init.dueDates[kjob],0);
+    TT = TT + T;
+
+    if(k == (n-1))
+    {
+        g_value = TT;
+
+    }
+    else
+    {
+        double E = std::max((int)init.dueDates[kjob]-completionTimes[m],0);
+        TE = TE + E;
+        TI = TI + I;
+       // std::cout << "K " << k << " F " << father->kjob << " J " << kjob << " I " << I << " E " << E << std::endl;
+        double F = TI * (nd-km-1)/nd
+                + init._a * TE * (2*nd-km-1)/(2*nd)
+                + init._b * TT * (km-1+nd)/(2*nd);
+
+        //double W = calcW();
+        L = I * (nd - km - 1) + E*init._c;// + ((init._e)/(n-k+1))*W;
+        g_value = F ;//+ L ;
+        //if(k < 4)
+
+    }
+}
+
+double emili::pfsp::BeamSearchHeuristic::bs_node::calcG(double W)
+{
+   // double F = g_value;
+    if(k< (n-1))
+    {
+        //L = L + (init._e)/(n-k+1)*W;
+        double nd = n-k;
+        L = L + (init._e)/(nd+1)*W;
+        g_value = g_value+L;
+    }
+
+    //std::cout << "K " << k << " F "<< father->kjob << " J " << kjob << " TE " << TE << " TT " << TT << " TI " << TI
+    //        << " W " << W << " L " <<  L << " G " << g_value << " F "<< F << std::endl;
+
+    return g_value;
+}
+
+/*
+void emili::pfsp::BeamSearchHeuristic::bs_node::buildTree()
+{
+    std::vector< bs_node* > offspring;
+
+    int size = n-k;
+    for(int i=0;i < size; i++)
+    {
+        bs_node* b = new bs_node(*this,i);
+        offspring.push_back(b);
+    }
+
+    int childnum = std::min(size,init._gamma);
+    for(int i=0; i < childnum ; i++)
+    {
+        double best = offspring[0]->g_value;
+        int b = 0;
+        for(int j=0; j < size; j++)
+        {
+            if(best > offspring[j]->g_value)
+            {
+                b = j;
+                best = offspring[j]->g_value;
+            }
+        }
+        children.push_back(offspring[b]);
+        offspring.erase(offspring.begin()+b);
+        size--;
+    }
+    int remaining_nodes = offspring.size();
+    for(int i=0;i < remaining_nodes;i++)
+    {
+        delete offspring[i];
+    }
+}*/
+
+void emili::pfsp::BeamSearchHeuristic::bs_node::buildChildren()
+{
+    int size = n-k;
+    for(int i=0;i < size; i++)
+    {
+        bs_node* b = new bs_node(*this,i);
+        children.push_back(b);
+    }
+}
+
+typedef struct bs_node bsnnode;
+
+struct bs_node{
+    std::vector<int> C; // completion times of job
+    float IT=0;//weighted idle time due to job
+    float TT=0;// node Total Tardiness
+    float TIT=0; // node Total it
+    float TE=0; // node Total Earliness
+    float E=0;
+    float T=0;
+    float W=0; //node W
+    int k; // level
+    int job; // job to insert
+    int l; // branch
+    float G=0; // node value
+    float F=0; // node F value
+    float L=0; // node L value
+    std::vector<int> S;
+    std::vector<int> U;
+    bsnnode* father;
+};
+
+std::ostream &operator<<(std::ostream &os, bsnnode const &m) {
+    std::ostringstream oss;
+    if(m.father != nullptr)
+    {
+        oss << " ,F " << m.father->job;
+    }
+    int nmac = m.C.size();
+    return os << "{" << " K " << m.k << oss.str() << " ,J " << m.job << " ,L " << m.l << " ,T "
+              << m.T << " ,E " << m.E << " ,TT " << m.TT <<  " ,F " << m.F << " ,IT "
+              << m.IT<< " ,C " << m.C[nmac-1] << " ,L "  << m.L << " ,W " << m.W  << " ,G " << m.G <<" }";
+}
+
+void inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob,std::vector< float >& xi)
+{
+    //xi.push_back(0);
+    // pmat[ machine ][ job ]
+    const std::vector< std::vector < long int > > & pmat = prob.getProcessingTimesMatrix();
+    int njob = prob.getNjobs();
+    int nmac = prob.getNmachines();
+    float k = (njob-2)/(float)4;
+    for(int j = 1 ; j <= njob; j++)
+    {
+        float pi = pmat[j][1];
+        float wj = 0;
+
+        for( int i = 2; i <= nmac ; i++)
+        {
+            wj = (nmac*pi)/(i-1);
+            pi += pmat[j][i];
+
+        }
+        xi[j] = pi + k * wj;
+    }
+
+}
+
+void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::PermutationFlowShop& prob,emili::pfsp::PermutationFlowShopSolution* s)
+{
+    int njobs = prob.getNjobs();
+    int nmac = prob.getNmachines();
+    const std::vector< std::vector< long int >>& ptimes = prob.getProcessingTimesMatrix();
+    const std::vector< long >& dd = prob.getDueDates();
+    std::vector<int> jobs;
+    for( int i = 1; i<=njobs;i++)
+    {
+        jobs.push_back(i);
+    }
+    //Initial Order
+    std::vector< float > xi(njobs+1,0);
+    bs_start_sequence(prob,xi);
+    std::vector< int> alpha = jobs;
+    std::sort(alpha.begin(),alpha.end(),[xi](int i1,int i2)
+    {
+        return xi[i1] < xi[i2];
+    });
+    //Determination of IT'_j0 CT'_j0 and XI'_j0
+    // INITIALIZATION
+    std::vector< bsnnode* > garbage;
+    std::vector< bsnnode* > nodes;
+   // for(int i = 0; i < 1; i++ )//for l=1 to x do
+   // {
+        bsnnode* base = new bs_node;
+        std::vector<int>& s1 = base->S;
+        base->U = jobs;
+        //Update S_1l (S_11l = alpha_l) for each l and U_1l with the remaining jobs.
+        s1.push_back(0);
+        s1.push_back(alpha[0]);
+        int index = alpha[0]-1;
+        base->U.erase(base->U.begin()+index);
+        base->father = nullptr;
+        base->k = 1;
+        base->job = alpha[0];
+        base->l = 0;
+        base->C = std::vector<int>(nmac+1,0);
+        base->IT = 0.0;
+        //Calculate I and C
+        base->C[1] = ptimes[base->job][1];
+        for(int i=2;i<=nmac;i++)
+        {
+            base->C[i] = base->C[i-1]+ptimes[base->job][i];
+        }
+
+        base->T = std::max(base->C[nmac]-(int)dd[base->job],0); // starting tardiness
+        base->E = std::max((int)dd[base->job]-base->C[nmac],0); // starting earliness
+        base->TT = base->T; // Starting total tardiness
+        base->TE = base->E; // Starting total earliness
+        base->TIT = 0.0;    // starting total weighted idle time
+        base->F = base->TIT * (njobs-2)/(float)njobs           + // starting F
+                  base->TE  * a * (2*njobs-2)/(float)(2*njobs) +
+                  base->TT  * b * 0.5;
+        base->L = 0;
+        base->G = 0;
+        nodes.push_back(base);
+       // std::cout << *base << std::endl;
+   // }//end
+
+    for(int k = 1; k < (njobs-1); k++)//for k= 1 to n — 1 do
+    {
+        std::vector< bsnnode* > new_nodes;
+        int xs = x>nodes.size()?nodes.size():x;
+        for(int l = 0; l< xs ; l++)  //for each l = 1 to x
+        {
+            int rj = njobs-k;
+            bsnnode* father = nodes[l];
+            float W=0.0;//father->TT; //total tardiness of all the jobs in the branch
+            for(int j = 0; j< rj; j++) //and for each j = 1 to n — x;
+            {
+                bsnnode* nnode = new bsnnode;//Candidate Nodes Creation
+                nnode->father = father;
+                nnode->k = k;
+                nnode->l = j;
+                int njob = father->U[j];
+                nnode->job = njob;
+                std::vector<int> cnn(nmac+1,0);
+                std::vector<int>& fct = father->C;
+                cnn[1] = fct[1] + ptimes[njob][1];
+                float ITujk = 0.0;
+                for(int m=2;m<=nmac;m++)
+                {
+                    cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
+                    float den = m-1+((k-1)*(float)(nmac-m+1)/(float)(njobs-2));
+                    float num = nmac * std::max(cnn[m-1]-fct[m],0);
+                    ITujk = ITujk + (num/den);
+                }
+                nnode->IT = ITujk;
+                nnode->T = std::max(cnn[nmac]-(int)dd[njob],0);
+                nnode->E = std::max((int)dd[njob]-cnn[nmac],0);
+                nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
+                W += nnode->T;
+                //Candidate Nodes Evaluation
+                new_nodes.push_back(nnode);
+               // std::cout << k<< l << " " << *nnode << std::endl;
+            }
+            for(int j = 0; j<rj;j++)
+            {
+                int jj = rj*l+j;
+                bsnnode* nnode = new_nodes[jj];
+                nnode->W = W;
+                nnode->L = (njobs-k-1)*nnode->IT + c * nnode->E + W * e/(njobs-k+1);
+                nnode->G = father->F + nnode->L;
+            }
+        }
+        //Candidate Nodes Selection
+        //Determination of the l'-th best candidate node according to non-decreasing B_jkl in iteration k.
+        garbage.insert(garbage.end(),nodes.begin(),nodes.end());
+        std::sort(new_nodes.begin(),new_nodes.end(),[](bsnnode* i1,bsnnode* i2)
+        {
+            return i1->G < i2->G;
+        });
+        nodes.clear();
+
+        xs = x>new_nodes.size()?new_nodes.size():x;
+        nodes.insert(nodes.end(),new_nodes.begin(),new_nodes.begin()+xs);
+//        std::cout << nodes.size() << std::endl;
+//        for(int i=0; i<x; i++)
+//            std::cout << *nodes[i] << std::endl;
+
+        garbage.insert(garbage.end(),new_nodes.begin()+xs+1,new_nodes.end());
+        //end
+        //Forecasting Phase.
+        xs = x>nodes.size()?nodes.size():x;
+        for(int l=0;l<xs;l++)//Update of the Forecast Index for l=1 to x do
+        {
+          bsnnode& n = *nodes[l];//Update S and U
+
+          n.S = n.father->S;
+          n.U = n.father->U;
+          n.S.push_back(n.job);
+          n.U.erase(n.U.begin()+n.l);
+          n.l = l;
+          n.TIT = n.father->TIT + n.IT;
+          n.TT = n.father->TT + n.T;
+          n.TE = n.father->TE + n.E;
+
+          n.F = (njobs-k-1)/(float)njobs * n.TIT +
+                c * (2*njobs - k -1)/(float)(2*njobs) *n.TE +
+                b * (k-1+njobs)/(float)(2*njobs) * n.TT;
+        }//end
+        int s = garbage.size();
+        for(int l=0;l<s;l++)
+        {
+            delete garbage[l];
+        }
+        garbage.clear();
+    }//end
+    //Final evaluation Evaluate the Iiowtime of the scheduled jobs of each selected node and return the least one.
+    bsnnode* best;
+    for(int l=0; l<x; l++)
+    {
+        bsnnode* nnode = nodes[l];//Candidate Nodes Creation
+        std::vector<int> cnn(nmac+1,0);
+        std::vector<int>& fct = nnode->C;
+        int njob = nnode->U[0];
+        nnode->S.push_back(njob);
+        cnn[1] = fct[1] + ptimes[njob][1];
+        for(int m=2;m<=nmac;m++)
+        {
+            cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
+        }
+        //Determination of IT_jkl, CT_jkl;
+        //Candidate Nodes Evaluation
+        nnode->TT = nnode->TT+std::max(cnn[nmac]-(int)dd[njob],0);
+         //std::cout << "F " << *nnode << std::endl;
+        if(l==0)
+        {
+            best = nnode;
+        }
+        else if(best->TT > nnode->TT)
+        {
+            delete best;
+            best = nnode;
+        }
+        else
+        {
+            delete nnode;
+        }
+    }
+   // std::cout << " best->TT " << best->TT << "  --  " << prob.computeObjectiveFunction(best->S) << std::endl;
+   // print_vector(best->S);
+    //assert(best->TT == prob.computeObjectiveFunction(best->S));
+    s->setSolutionValue(best->TT);
+    s->setJobSchedule(best->S);
+    delete best;
+ }
+
+emili::Solution* emili::pfsp::BSheuristic::generate()
+{
+    emili::pfsp::PermutationFlowShopSolution* s =(emili::pfsp::PermutationFlowShopSolution*) generateEmptySolution();
+    bs_procedure(x,ap,bp,cp,ep,pis,s);
+    return s;
+}
+
+/*emili::pfsp::BeamSearchHeuristic::bs_node* emili::pfsp::BeamSearchHeuristic::bs_node::generateSequence()
+{
+    count++;
+    emili::pfsp::BeamSearchHeuristic::bs_node* best = this;
+    if((n-k-1) == 0)
+    {
+/
+        std::cout << "K: " << k << " L: " << kjob << " G: "
+                  << g_value << " un: "<< unscheduled.size()
+                  << " sc: " << scheduled.size() << " this " << (long)this  << std::endl;
+        what++;
+        if(what>1)
+        std::cout << "what! " << what << std::endl;
+        /
+        scheduled.push_back(unscheduled[0]);
+        this->g_value = init.pis.computeObjectiveFunction(scheduled);
+    }
+    else
+    {
+        buildTree();
+        if(k==n-2)
+        {
+            kc++;
+        }
+        best = (children[0])->generateSequence();
+        int size = children.size();
+        for(int i = 1 ;i<size;i++)
+        {
+            emili::pfsp::BeamSearchHeuristic::bs_node* current = (children[i])->generateSequence();
+            if(*current < *best)
+            {
+                delete best;
+                best = current;
+            }
+            else
+            {
+               if(best!=current)
+                 delete current;
+            }
+        }
+    }
+    return best;
+}
+*/

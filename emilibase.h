@@ -74,7 +74,7 @@ void iteration_counter_zero();
  * @return
  * returns iterations counter that is used in the neighborhoods to keep track of how many solutions are generated
  */
-int iteration_counter();
+unsigned long iteration_counter();
 /**
  * @brief iteration_increment
  * adds 1 to the iterations counter
@@ -169,12 +169,25 @@ public:
      */
     virtual double evaluateSolution(Solution & solution)=0;
     /**
+     * @brief solutionDistance
+     * In several problems, the objective function value of a solution can
+     * be calculated more efficiently by calcuting the "distance" with another
+     * solution. The default behaviour of this method is to return the difference
+     * in objective function value, but it should be overwritten when the solution
+     * representation and the problem type allow thi kind of speedup.
+     * @param solution1
+     * @param solution2
+     * @return
+     * the distance as a double
+     */
+    virtual double solutionDistance(Solution& solution1, Solution& solution2);
+    /**
      * @brief problemSize
      * @return
      *  if overloaded this function should return the problem size as an integer number
      *  This value is used by some Termination criterion and by the -ro running option
-     */
-    virtual int problemSize() {return 1;}
+     */    
+    virtual int problemSize();
 };
 
 /**
@@ -699,9 +712,23 @@ public:
      * This method shoudl return a new solution.
      */
     virtual Solution* random(Solution* currentSolution) = 0;
+    /**
+     * @brief random
+     * When implementing metaheuristics like ILS or VNS it is usefull to
+     * have a method that executes a random step in a given neighborhood of
+     * a given size.
+     * @param currentSolution
+     * the base solution for the random step
+     * @param size
+     * the size of the step
+     * @return
+     * A new solution that is size-neighbor of currentSolution
+     */
+    virtual Solution* random(Solution *currentSolution, int size){return currentSolution;}
+
     /** @brief size
      * This method returns the size of the neighborhood
-    */
+    */    
     virtual int size()=0;
     virtual ~Neighborhood() {}
 };
@@ -859,7 +886,7 @@ public:
      * Maximum amount of time, in seconds, for the local search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())    {    }
+    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -1024,7 +1051,7 @@ class Perturbation
      * @param solution
      * The solution to perturb
      * @return
-     * perturbed solution
+     * A new solution representing the perturbed solution
      */
     virtual Solution* perturb(Solution* solution)=0;
 
@@ -1168,6 +1195,21 @@ protected:
     int plateau_threshold;
 public:
     AcceptPlateau(int maxNonImprovingSteps,int threshold):max_plateau_steps(maxNonImprovingSteps),plateau_threshold(threshold),current_step(0),threshold_status(0) { }
+    virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+};
+/**
+ * @brief The AcceptExplore class
+ * This acceptance criterion accepts always new solution for at least k
+ * search steps, if no improvement is found after k steps it will make
+ * the search go back to the best solution.
+ */
+class AcceptExplore : public emili::Acceptance
+{
+protected:
+    int k;
+    int iteration;
+public:
+    AcceptExplore(int steps):k(steps),iteration(0) {}
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
 };
 
@@ -1372,9 +1414,10 @@ public:
 class NeighborhoodShake: public Shake
 {
 protected:
-    std::vector< Neighborhood* > shakes;
+    int n_num;
+    std::vector< Neighborhood* > shakes;    
 public:
-    NeighborhoodShake(std::vector<Neighborhood*> nes):shakes(nes),Shake(nes.size()) { }
+    NeighborhoodShake(std::vector<Neighborhood*> nes, int max_size):shakes(nes),n_num(nes.size()),Shake(nes.size()*max_size) { }
     virtual Solution* shake(Solution *s, int n);
 };
 
@@ -1384,9 +1427,12 @@ public:
  */
 class NeighborhoodChange: public Acceptance
 {
+protected:
+    int kmax;
 public:
-    virtual Solution* neighborhoodChange(Solution *intensification_solution,Solution* diversification_solution,int& n)=0;
+    virtual Solution* neighborhoodChange(Solution *intensification_solution,Solution* diversification_solution,int& k)=0;
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
+    virtual void setKmax(int kmax){ this->kmax = kmax;}
 };
 /**
  * @brief The AccNeighborhoodChange class allows the use of acceptance criteria as neighborhood
@@ -1468,6 +1514,18 @@ public:
     Metropolis(float initial_temperature, float final_temperature, float descending_ratio, int iterations, float alpha):temperature(initial_temperature),start_temp(initial_temperature),end_temp(final_temperature),beta(descending_ratio),interval(iterations),counter(0),alpha(alpha) { }
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
     virtual void reset();
+};
+
+class ComposedInitialSolution: public emili::InitialSolution
+{
+protected:
+    InitialSolution& is;
+    LocalSearch& ls;
+public:
+    ComposedInitialSolution(InitialSolution& initial, LocalSearch& local):InitialSolution(initial.getProblem()),is(initial),ls(local){}
+    virtual Solution* generateEmptySolution();
+    virtual Solution* generateSolution();
+    virtual ~ComposedInitialSolution() { delete &is; delete &ls;}
 };
 
 /**

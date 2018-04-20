@@ -245,10 +245,12 @@ int main(int argc, char *argv[])
         {
             solution = ls->getBestSoFar();
             double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+            double solval = solution->getSolutionValue();
             std::cout << "time : " << time_elapsed << std::endl;
             std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            std::cerr << solution->getSolutionValue() << std::endl;
-            std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+          //  std::cerr << solution->getSolutionValue() << std::endl;            
+            std::cout << "Objective function value: "<< std::fixed << solval << std::endl;
+            std::cerr << std::fixed << solval << std::endl;
             std::cout << "Found solution: ";
             std::cout << solution->getSolutionRepresentation() << std::endl;
             std::cout << std::endl;

@@ -9,6 +9,7 @@
 #include "pfspinstance.h"
 #include <iostream>
 #include <cstdlib>
+#include <limits>
 
 /**
  *
@@ -810,6 +811,7 @@ public:
     virtual void setNjobs(int num_of_jobs) {njobs=num_of_jobs;}
     virtual void reset();
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(0,0); }
+    virtual Solution* random(Solution *currentSolution,int size) = 0;
     virtual int size();
 };
 
@@ -831,6 +833,7 @@ public:
     PfspInsertNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);    
 };
@@ -1198,7 +1201,8 @@ public:
     PfspExchangeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),end_position(0),sp_iterations(1),ep_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
-    virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }
+    virtual Solution* random(Solution *currentSolution,int size);
+    virtual std::pair<int,int> lastMove() { return std::pair<int,int>(end_position,start_position); }    
     virtual NeighborhoodIterator begin(Solution *base);
 };
 
@@ -1253,6 +1257,7 @@ public:
     PfspTransposeNeighborhood(PermutationFlowShop& problem):PfspNeighborhood(problem),start_position(0),sp_iterations(1){}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(start_position+1,start_position); }
     virtual NeighborhoodIterator begin(Solution *base);
     virtual int size();
@@ -1411,6 +1416,19 @@ protected:
       virtual void setNeighborhood(Neighborhood *neighborhood) {neigh = (emili::pfsp::PfspNeighborhood*)neighborhood;}
 };
 
+class PfspMovesMemory2: public PfspMovesMemory
+{
+  public:
+      PfspMovesMemory2(int tabtenure,emili::pfsp::PfspNeighborhood* n):PfspMovesMemory(tabtenure,n) { }
+      PfspMovesMemory2(emili::pfsp::PfspNeighborhood* n):PfspMovesMemory(n) { }
+      PfspMovesMemory2(int tabtenure):PfspMovesMemory(tabtenure) { }
+      /**
+       * this method should return true if the solution is not tabu and false in the other case,
+       */
+      virtual void registerMove(emili::Solution* base,emili::Solution* solution);
+};
+
+
 class TSABtestMemory: public emili::pfsp::PfspMovesMemory
 {
 
@@ -1477,6 +1495,7 @@ public:
     void setReference(emili::Solution* ref) {this->reference = ref;}
     virtual void reset();
     virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
     virtual std::pair<int,int> lastMove() { return std::pair<int,int>(index,index); }
     virtual NeighborhoodIterator begin(Solution *base);
 };
@@ -1533,6 +1552,7 @@ public:
     CompoundPerturbation(emili::pfsp::PermutationFlowShop& problem):pis(problem),ins(problem),tra(problem),nbj(problem.getNjobs()),omega(30),d(3),pc(0.2) {}
     CompoundPerturbation(emili::pfsp::PermutationFlowShop& problem,int phy_size,int number_of_perturbations, float perturbation_probability):pis(problem),ins(problem),tra(problem),nbj(problem.getNjobs()),omega(phy_size),d(number_of_perturbations),pc(perturbation_probability) {}
     virtual Solution* perturb(Solution *solution);
+
 
 };
 
@@ -1612,6 +1632,269 @@ class NoIdleIGper : public RSPerturbation
 public:
     NoIdleIGper(int d, emili::pfsp::PermutationFlowShop& problem):RSPerturbation(d,problem) {}
     virtual emili::Solution* perturb(Solution *solution);
+};
+
+class NoWait_RIS : public RIS
+{
+protected:
+    const std::vector < std::vector < long int > >& pmatrix;
+    const std::vector<std::vector < int > >& distance;
+    const int nmac;
+    PfspInstance& pis;
+    virtual int neh_ig(std::vector<int> &pi, int k);
+public:
+    NoWait_RIS(NWPFSP_MS& problem, emili::InitialSolution& is):
+        emili::pfsp::RIS(problem,is),
+        distance(problem.getDistances()),
+        nmac(problem.getNmachines()),
+        pmatrix(problem.getProcessingTimesMatrix()),
+        pis(problem.getInstance())
+    { }
+    const std::vector<std::vector < int > >& getDistance() { return distance;}
+};
+
+class RandomNoWait_RIS : public NoWait_RIS
+{
+protected:
+    long cmax;
+    emili::pfsp::PfspRandomInitialSolution rand;
+public:
+    RandomNoWait_RIS(NWPFSP_MS& problem, emili::InitialSolution& is):
+        emili::pfsp::NoWait_RIS(problem,is),
+        cmax(std::numeric_limits<long>::max()),
+        rand(problem)
+        { }
+    virtual emili::Solution* search(Solution *initial);
+};
+
+class BeamSearchHeuristic : public PfspInitialSolution
+{
+protected:
+    int _gamma;
+    double _a;
+    double _b;
+    double _c;
+    double _e;
+    std::vector<double> xi;
+    std::vector<int> xi_order;
+    const std::vector< std::vector< long > >& pi;
+    const std::vector<long>& dueDates;
+    void buildXi();
+    int njobs;
+    int nmacs;
+    virtual emili::Solution* generate();
+public:
+    BeamSearchHeuristic(PermutationFlowShop& problem, int gamma, double a, double b,double c,double e):
+        emili::pfsp::PfspInitialSolution(problem),
+        _gamma(gamma),
+        _a(a),
+        _b(b),
+        _c(c),
+        _e(e),
+        pi(problem.getProcessingTimesMatrix()),
+        xi(problem.getNjobs()+1,0),
+        njobs(problem.getNjobs()),
+        nmacs(problem.getNmachines()),
+        dueDates(problem.getDueDates())
+    {
+        buildXi();        
+    }
+
+    class bs_node{
+    protected:
+        std::vector<int> scheduled;
+        std::vector<int> unscheduled;
+        std::vector< int > completionTimes;
+       //std::vector< float > tpj;
+       //double tpd;
+        bs_node* father;
+
+        std::vector< bs_node* > children;
+        BeamSearchHeuristic& init;
+        int m;
+        int n;
+        void evaluateNode();
+        double calcW();
+    public:
+        int k;
+        int kjob;
+        double g_value;
+        double TE;
+        double TI;
+        double TT;
+        double T;
+        double L;        
+        bs_node(BeamSearchHeuristic& bs):
+            father(nullptr),
+            init(bs),
+            completionTimes(bs.nmacs+1,0),            
+            m(bs.nmacs),
+            n(bs.njobs),
+            g_value(0),
+            k(0),
+            L(0.0),
+            T(0)
+        {
+            scheduled.push_back(0);
+            std::vector<int>& xi = init.getXi_order();
+            kjob = xi[0];
+            scheduled.push_back(kjob);
+            unscheduled = xi;
+            unscheduled.erase(unscheduled.begin());
+            for(int i=1;i<=m;i++)
+                completionTimes[i] = completionTimes[i-1]+bs.pi[kjob][i];
+
+            TE = std::max(((int)bs.dueDates[kjob])-completionTimes[m],0);
+            TT = std::max(completionTimes[m]-((int)bs.dueDates[kjob]),0);
+            TI = 0;
+        }
+
+        bs_node(BeamSearchHeuristic& bs,int start):
+            father(nullptr),
+            init(bs),
+            completionTimes(bs.nmacs+1,0),
+            m(bs.nmacs),
+            n(bs.njobs),
+            g_value(0),
+            k(0),
+            L(0.0),
+            T(0)
+        {
+            scheduled.push_back(0);
+            std::vector<int>& xi = init.getXi_order();
+
+            kjob = xi[start];
+            scheduled.push_back(kjob);
+            unscheduled = xi;
+            unscheduled.erase(unscheduled.begin()+start);
+            for(int i=1;i<=m;i++)
+                completionTimes[i] = completionTimes[i-1]+bs.pi[kjob][i];
+
+            TE = std::max(((int)bs.dueDates[kjob])-completionTimes[m],0);
+            TT = std::max(completionTimes[m]-((int)bs.dueDates[kjob]),0);
+            TI = 0;
+        }
+
+        bs_node(bs_node& fat,int i):
+            father(&fat),
+            init(fat.init),
+            m(fat.m),
+            n(fat.n),
+            completionTimes(fat.completionTimes),
+            k(fat.k+1),
+            TE(fat.TE),
+            TT(fat.TT),
+            TI(fat.TI),
+            L(0.0),
+            T(0)
+        {
+            scheduled = fat.scheduled;
+            std::vector<int>& xi = fat.unscheduled;
+            kjob = xi[i];           
+            scheduled.push_back(kjob);
+            unscheduled = xi;
+            unscheduled.erase(unscheduled.begin()+i);
+            evaluateNode();
+        }
+
+        bs_node(bs_node& node):
+            father(node.father),
+            init(node.init),
+            m(node.m),
+            n(node.n),
+            completionTimes(node.completionTimes),           
+            k(node.k),
+            kjob(node.kjob),
+            TE(node.TE),
+            TT(node.TT),
+            TI(node.TI),
+            scheduled(node.scheduled),
+            unscheduled(node.unscheduled),
+            g_value(node.g_value),
+            children(node.children)
+            {         }
+       void buildChildren();
+      // bs_node* generateSequence();
+
+       virtual bool operator < (bs_node& a)
+       {
+           return g_value < a.g_value;
+       }
+
+       virtual std::vector<int>& getPermutation()
+       {
+           return scheduled;
+       }
+       std::vector< bs_node* >& getChildren()
+       {
+           return this->children;
+       }
+
+      double calcG(double W);
+
+       ~bs_node()
+       {
+          /*  std::vector<bs_node*>::iterator iter = children.begin();
+            for(;iter!=children.end();++iter)
+            {
+                delete *iter;
+            }*/
+       }
+
+    };
+
+    virtual std::vector<double>& getXi();
+    virtual std::vector<int>& getXi_order();
+};
+
+class FFheuristic : public PfspInitialSolution{
+protected:
+    int x;
+    float a;
+    float b;
+    virtual Solution* generate();
+public:
+    FFheuristic(PermutationFlowShop& problem_instance, int num_sols, float a_opt, float b_opt):
+        emili::pfsp::PfspInitialSolution(problem_instance),
+        a(a_opt),
+        b(b_opt),
+        x(num_sols) { }
+
+
+};
+
+class BSCH : public PfspInitialSolution{
+protected:
+    int x;
+    float ap;
+    float bp;
+    float cp;
+    virtual Solution* generate();
+public:
+    BSCH(PermutationFlowShop& instance,int l,float a,float b,float c):
+        emili::pfsp::PfspInitialSolution(instance),
+        x(l),
+        ap(a),
+        bp(b),
+        cp(c){ }
+};
+
+class BSheuristic : public PfspInitialSolution{
+protected:
+    int x;
+    float ap;
+    float bp;
+    float cp;
+    float ep;
+    virtual Solution* generate();
+public:
+    BSheuristic(PermutationFlowShop& instance,int l,float a,float b,float c,float e):
+        emili::pfsp::PfspInitialSolution(instance),
+        x(l),
+        ap(a),
+        bp(b),
+        cp(c),
+        ep(e){ }
 };
 
 }

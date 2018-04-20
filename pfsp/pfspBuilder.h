@@ -26,7 +26,7 @@ public:
     virtual emili::Perturbation* buildPerturbation();
     virtual emili::Acceptance* buildAcceptance();
     virtual emili::TabuMemory* buildTabuTenure();
-    virtual emili::Problem* buildProblem();
+    virtual emili::Problem* buildProblem();    
 };
 }
 #endif //  PFSPBUILDER_H
