@@ -469,7 +469,6 @@ public:
 
 }; // SABoundedMetropolisAcceptance
 
-<<<<<<< HEAD
 class SAAcceptanceAll: public SAAcceptance {
 public:
     SAAcceptanceAll(void):
@@ -481,9 +480,5 @@ public:
     
 }; // SAAcceptanceAll
 
-=======
-}
 
-}
->>>>>>> e3ed595ae99c15157b74fd01563484f23d654675
 #endif
