@@ -747,6 +747,7 @@ public:
      *   true
      */
     virtual bool isCompatibleWith(char *problem_definition) { return true;}
+    virtual emili::InitialSolution* buildInitialSolution();
     /**
      * @brief buildAlgo
      * This method will load emili::IteratedLocalSearch, emili::LocalSearch,

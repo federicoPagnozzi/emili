@@ -17,9 +17,12 @@
 #define CH6_LS "ch6"
 #define RIS_LS "ris"
 #define NI_RIS_LS "niris"
+#define NW_RIS_LS "nwris"
+#define RNW_RIS_LS "rnwris"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
+#define TABU_MEMORY_MOVES2 "move2"
 #define TABU_MEMORY_HASHES "hash"
 #define TABU_MEMORY_SOLUTIONS "solution"
 #define TABU_MEMORY_TSAB "tsabm"
@@ -94,6 +97,16 @@
 #define INITIAL_FRB5 "frb5"
 #define INITIAL_CSFRB5 "csfrb5"
 #define INITIAL_FRB5_GENERAL "gfrb5"
+#define INITIAL_BS "bs"
+#define INITIAL_BS2 "bs2"
+#define INITIAL_BS2N "bs2n"
+#define INITIAL_BSNN "bsnn"
+#define INITIAL_FF "ff"
+#define INITIAL_FFN "ffn"
+#define INITIAL_BSCHO "bscho"
+#define INITIAL_BSCHR "bschr"
+#define INITIAL_BSCH "bsch"
+
 
 /* Termination criteria*/
 #define TERMINATION_ITERA "iteration"
@@ -262,6 +275,20 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         ls = new emili::pfsp::NoIdle_RIS(*instance,*in);
+    }
+    else if(tm.checkToken(NW_RIS_LS))
+    {
+        printTab("NoWait RIS");
+        emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::NoWait_RIS(*instance,*in);
+    }
+    else if(tm.checkToken(RNW_RIS_LS))
+    {
+        printTab("Random NoWait RIS");
+        emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        ls = new emili::pfsp::RandomNoWait_RIS(*instance,*in);
     }
 
     prs::decrementTabLevel();
@@ -562,9 +589,9 @@ emili::Acceptance* prs::PfspBuilder::buildAcceptance()
             }
         }
 
-        temp = n*(temp/(nj*nm))/10;
+        temp = n*(temp/(nj*nm))/10.0;
 
-        oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : "<<temp;
+        oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : " << temp;
         printTab(oss.str().c_str());
         acc = new  emili::MetropolisAcceptance(temp);
     }
@@ -617,54 +644,61 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
     prs::incrementTabLevel();
     std::ostringstream oss;
     emili::TabuMemory* tmem = nullptr;
-    printTab(oss.str().c_str());
-
+    //printTab(oss.str().c_str());
     if(tm.checkToken(TABU_MEMORY_MOVES))
     {
         oss.str(""); oss << "USING MOVES\n\t";
-        printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspMovesMemory(ts);
+    }
+    else if(tm.checkToken(TABU_MEMORY_MOVES2))
+    {
+        oss.str(""); oss << "USING MOVES2\n\t";
+        int ts = tm.getInteger();
+        oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
+        tmem = new  emili::pfsp::PfspMovesMemory2(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_HASHES))
     {
         oss.str(""); oss << "USING HASHES\n\t";
-        printTab(oss.str().c_str());
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspTabuHashMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_SOLUTIONS))
     {
-        oss.str(""); oss << "USING FULL SOLUtiON\n\t";
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING FULL SOLUtiON\n\t";        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspFullSolutionMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB))
     {
-        oss.str(""); oss << "USING TSAB\n\t";
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING TSAB\n\t";        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::TSABMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB_TEST))
     {
-        oss.str(""); oss << "USING TSAB\n\t";
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING TSAB\n\t";        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::TSABtestMemory(ts);
     }
     else if(tm.checkToken(TABU_MEMORY_VALUE))
     {
-        oss.str(""); oss << "USING VALUE\n\t" ;
-        printTab(oss.str().c_str());
+        oss.str(""); oss << "USING VALUE\n\t" ;        
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
+        printTab(oss.str().c_str());
         tmem = new  emili::pfsp::PfspTabuValueMemory(ts);
     }
 
@@ -864,6 +898,140 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         gp.setInstance(instance);
         init = new emili::pfsp::NEHffls(*instance,ll);
+    }
+    else if(tm.checkToken(INITIAL_BS))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = tm.getInteger();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BSNN))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = instance->getNjobs()/10;
+        if(gamma==0)
+            gamma = instance->getNjobs();
+        printTabPlusOne("gamma",gamma);        
+        init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BS2))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = tm.getInteger();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BS2N))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        double e = tm.getDecimal();
+        printTabPlusOne("e",e);
+        int gamma = instance->getNjobs()*tm.getDecimal();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_FF))
+    {
+        printTab(" FF initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        int x = tm.getInteger();
+        printTabPlusOne("x",x);
+        init = new emili::pfsp::FFheuristic(*instance,x,a,b);
+    }
+    else if(tm.checkToken(INITIAL_FFN))
+    {
+        printTab(" FF initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        int x = instance->getNjobs();
+        printTabPlusOne("x",x);
+        init = new emili::pfsp::FFheuristic(*instance,x,a,b);
+    }
+    else if(tm.checkToken(INITIAL_BSCHO))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        int gamma = tm.getInteger();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("x",gamma);
+        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+    }
+    else if(tm.checkToken(INITIAL_BSCHR))
+    {
+        printTab(" BS based initial solution");
+        double a = tm.getDecimal();
+        printTabPlusOne("a",a);
+        double b = tm.getDecimal();
+        printTabPlusOne("b",b);
+        double c = tm.getDecimal();
+        printTabPlusOne("c",c);
+        int gamma = instance->getNjobs()*tm.getDecimal();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("x",gamma);
+        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+    }
+    else if(tm.checkToken(INITIAL_BSCH))
+    {
+        printTab(" BS based initial solution");
+        double a = 9;
+        printTabPlusOne("a",a);
+        double b = 3;
+        printTabPlusOne("b",b);
+        double c = 7;
+        printTabPlusOne("c",c);
+        float r = tm.getDecimal();
+        int gamma = instance->getNjobs()*r;
+        if(gamma==0 || gamma > instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("x",gamma);
+        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
     }
 
 

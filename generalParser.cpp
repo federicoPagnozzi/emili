@@ -20,7 +20,9 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "819d5828b0fbb5cb9ef6b06e1cfe3b4ab7849ed5"
+#define GIT_COMMIT_NUMBER "a35ec05b9afd1981a27cc76e20f41f1a40c1356d"
+/*Base Initials*/
+#define COMPOSED_INITIAL "cinit"
 /*Base Algos */
 #define IG "ig"
 #define ILS "ils"
@@ -65,10 +67,12 @@
 #define ACCEPTANCE_IMPROVE "improve"
 #define ACCEPTANCE_SA_METRO "sa_metropolis"
 #define ACCEPTANCE_SA "saacc"
+#define ACCEPTANCE_EXPLORE "explore"
 /*base neighborhoods*/
 #define NEIGHBORHOOD_RANDCONHE "rch"
 /*SHAKE*/
 #define SHAKE_PERSHAKE "pershake"
+#define SHAKE_NEIGHBORHOOD "nshake"
 /*NEIGHBORHOOD_CHANGE*/
 #define NEIGHBORHOOD_CHANGE_ACC "accng"
 
@@ -575,6 +579,8 @@ std::string prs::GeneralParserE::typeName(int type)
     case COMPONENT_NEIGHBORHOOD_OR_EMPTY: return std::string("Neighborhood or empty");
     case COMPONENT_PERTURBATION: return std::string("Perturbation");
     case COMPONENT_ACCEPTANCE: return std::string("Acceptance");
+    case COMPONENT_SHAKE: return std::string("Shake");
+    case COMPONENT_NEIGHBORHOOD_CHANGE: return std::string("Neighborhood change");
     }
     /*TODO - if Gp does not have a name for the component it should ask the builders*/
     for(std::vector<Builder*>::iterator iter = activeBuilders.begin(); iter != activeBuilders.end();iter++)
@@ -591,7 +597,19 @@ std::string prs::GeneralParserE::typeName(int type)
     return oss.str();
 }
 
-
+emili::InitialSolution* prs::EmBaseBuilder::buildInitialSolution()
+{
+    prs::incrementTabLevel();
+    emili::InitialSolution* init= nullptr;
+    if(tm.checkToken(COMPOSED_INITIAL))
+    {
+        printTab("Composed InitialSolution");
+        emili::InitialSolution* i = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::LocalSearch* ls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        init = new emili::ComposedInitialSolution(*i,*ls);
+    }
+    return init;
+}
 
 emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
 {
@@ -744,11 +762,11 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
         std::cout << "time : " << time_elapsed << std::endl;
         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-        std::cout << "Objective function value: " << s->getSolutionValue() << std::endl;
+        std::cout << "Objective function value: " << std::fixed << s->getSolutionValue() << std::endl;
         std::cout << "Found solution: ";
         std::cout << s->getSolutionRepresentation() << std::endl;
         std::cout << std::endl;
-        std::cerr << s-> getSolutionValue() << std::endl;
+        std::cerr << std::fixed << s-> getSolutionValue() << std::endl;
         exit(123);
     }
     else if(tm.checkToken(EMPTY_LOCAL))
@@ -1015,6 +1033,13 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         printTab(oss.str().c_str());
         acc = new  emili::AcceptPlateau(plateau_steps,threshold);
     }
+    else if(tm.checkToken(ACCEPTANCE_EXPLORE))
+    {
+        printTab("Explore acceptance");
+        int steps = tm.getInteger();
+        printTabPlusOne("steps",steps);
+        acc = new emili::AcceptExplore(steps);
+    }
 
 
     prs::decrementTabLevel();
@@ -1030,6 +1055,14 @@ emili::Shake* prs::EmBaseBuilder::buildShake()
         printTab("PerShake Shake operator ");
         std::vector<emili::Perturbation*> nes = buildComponentVector<emili::Perturbation>(COMPONENT_PERTURBATION);
         sh = new emili::PerShake(nes);
+    }
+    else if(tm.checkToken(SHAKE_NEIGHBORHOOD))
+    {
+        printTab("Neighborhood shake");
+        std::vector<emili::Neighborhood*> nes = buildComponentVector<emili::Neighborhood>(COMPONENT_NEIGHBORHOOD);
+        int size = tm.getInteger();
+        printTabPlusOne("Max size",size);
+        sh = new emili::NeighborhoodShake(nes,size);
     }
     prs::decrementTabLevel();
     return sh;
