@@ -138,7 +138,7 @@ std::vector<int> inline ff_heuristic2(int x,float a, float b,emili::pfsp::Permut
     std::vector< std::vector< int > > njcts(njobs+1,std::vector< int >(nmac+1,0));
     std::vector< int> Up = ff_index_function(prob,jobs,xi,ITjk,ljct[0],njcts,1,a,b);
     std::vector< std::vector< int > > U(x,Up);
-    std::vector< std::vector< int > > Pi(x,{0});
+    std::vector< std::vector< int > > Pi(x,std::vector<int>(1,0));
     for(int i=0;i<x;i++)
     {
         Pi[i].push_back(Up[i]);
