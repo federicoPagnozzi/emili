@@ -479,6 +479,7 @@ public:
                                     emili::Solution *new_solution);
     
 }; // SAAcceptanceAll
-
+}//end namespace sa
+}//end namespace emili
 
 #endif
