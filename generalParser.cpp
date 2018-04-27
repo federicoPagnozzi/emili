@@ -35,6 +35,7 @@
 #define FEASIBLE_BEST "fbest"
 #define TB_BEST "tbest"
 #define VND "vnd"
+#define ALS "als"
 //#define GVNS_ILS "gvns"
 #define TEST_INIT "stin"
 #define EMPTY_LOCAL "nols"
@@ -724,6 +725,14 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         emili::Problem* p = retrieveComponent(COMPONENT_PROBLEM).get<emili::Problem>();
         ls =  new emili::TieBrakingBestImprovementSearch(*in,*te,*ne,*p);
+    }
+    else if(tm.checkToken(ALS))
+    {
+        printTab("Alternate LS");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get< emili::LocalSearch>();
+        emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get< emili::LocalSearch>();
+        ls = new emili::AlternateLocalSearch(*in,ls1,ls2);
     }
     else if(tm.checkToken(VND))
     {

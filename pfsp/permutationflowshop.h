@@ -1897,6 +1897,27 @@ public:
         ep(e){ }
 };
 
+class SwapIncLocalSearch: public emili::LocalSearch
+{
+protected:
+    int _r;
+    emili::pfsp::PermutationFlowShop& p;
+    int njobs;
+public:
+    SwapIncLocalSearch(int r,InitialSolution& is):
+      emili::LocalSearch(),
+      _r(r),
+      p((PermutationFlowShop&)is.getProblem())
+    {
+        this->init = &is;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = is.generateEmptySolution();
+        this->njobs = p.getNjobs();
+    }
+    emili::Solution* search(emili::Solution* initial);
+};
+
 }
 }
 

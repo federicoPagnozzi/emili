@@ -1527,6 +1527,29 @@ public:
     virtual ~ComposedInitialSolution() { delete &is; delete &ls;}
 };
 
+class AlternateLocalSearch: public emili::LocalSearch
+{
+protected:
+    emili::LocalSearch* ls1;
+    emili::LocalSearch* ls2;
+    bool turn;
+public:
+    AlternateLocalSearch(InitialSolution& is,emili::LocalSearch* localsearch1, emili::LocalSearch* localsearch2 ):
+        emili::LocalSearch(),
+        ls1(localsearch1),
+        ls2(localsearch2)
+    {
+        this->init = &is;
+        this->neighbh = new EmptyNeighBorHood();
+        this->termcriterion = new LocalMinimaTermination();
+        turn = true;
+    }
+
+    emili::Solution* search(emili::Solution* );
+    emili::Solution* getBestSoFar();
+
+};
+
 /**
 class SimulatedAnnealing : public emili::LocalSearch
 {

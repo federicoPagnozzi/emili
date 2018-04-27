@@ -19,6 +19,7 @@
 #define NI_RIS_LS "niris"
 #define NW_RIS_LS "nwris"
 #define RNW_RIS_LS "rnwris"
+#define SWP_INC_LS "swpinc"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -289,6 +290,14 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         ls = new emili::pfsp::RandomNoWait_RIS(*instance,*in);
+    }
+    else if(tm.checkToken(SWP_INC_LS))
+    {
+        printTab("SwapInc local search");
+        emili::pfsp::PermutationFlowShop* instance = (emili::pfsp::PermutationFlowShop*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        int r = 3;
+        ls = new emili::pfsp::SwapIncLocalSearch(r,*in);
     }
 
     prs::decrementTabLevel();

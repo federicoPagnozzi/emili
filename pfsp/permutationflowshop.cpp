@@ -9458,6 +9458,46 @@ emili::Solution* emili::pfsp::BSheuristic::generate()
     return s;
 }
 
+emili::Solution* emili::pfsp::SwapIncLocalSearch::search(emili::Solution *initial)
+{
+    int d = 1;
+    int it = 0;
+    int max_it = _r*njobs*njobs;
+    std::vector<int> best = ((PermutationFlowShopSolution*)initial)->getJobSchedule();
+    double value = initial->getSolutionValue();
+    double current_value = std::numeric_limits<int>::max();
+    std::vector<int> current = best;
+    while(d <= njobs && it < max_it)
+    {
+        it++;
+        for(int j = 1; j<= (njobs-d); j++)
+        {
+            std::swap(current[j],current[j+d]);
+            double cv = p.computeObjectiveFunction(current);
+            if(cv < current_value)
+            {
+                current_value = cv; // improvement update objfunction
+            }
+            else
+            {
+                std::swap(current[j],current[j+d]); //no improvement swap back
+            }
+        }
+        if(current_value < value)
+        {
+            best = current;
+            value = current_value;
+            d = 1;
+        }
+        else
+        {
+            d++;
+        }
+    }
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(value,best);
+    return s;
+}
+
 /*emili::pfsp::BeamSearchHeuristic::bs_node* emili::pfsp::BeamSearchHeuristic::bs_node::generateSequence()
 {
     count++;

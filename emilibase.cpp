@@ -1799,4 +1799,34 @@ emili::Solution* emili::ComposedInitialSolution::generateSolution()
     return ss;
 }
 
+emili::Solution* emili::AlternateLocalSearch::search(emili::Solution * solution)
+{
+    emili::Solution* s = nullptr;
+    if(turn)
+    {
+          s = ls1->search(solution);
+    }
+    else
+    {
+        s = ls2->search(solution);
+    }
+    turn = !turn;
+    return s;
+}
+
+emili::Solution* emili::AlternateLocalSearch::getBestSoFar()
+{
+    emili::Solution* best = ls1->getBestSoFar();
+    emili::Solution* best2 = ls2->getBestSoFar();
+
+    if(*best < *best2)
+    {
+        return best;
+    }
+    else
+    {
+        return best2;
+    }
+
+}
 
