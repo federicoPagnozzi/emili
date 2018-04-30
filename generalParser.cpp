@@ -45,6 +45,7 @@
 /*Base Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
+#define TERMINATION_MAXSTEPS_NOIMPROV "msnoimp"
 #define TERMINATION_TIME "time"
 #define TERMINATION_TIMERO "timero"
 #define TERMINATION_LOCMIN "locmin"
@@ -859,7 +860,13 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         printTab(oss.str().c_str());
         term = new emili::MaxStepsOrLocmin(steps);
     }
-
+    else if(tm.checkToken(TERMINATION_MAXSTEPS_NOIMPROV))
+    {
+        int steps = tm.getInteger();
+        printTab("Termination: Max steps without improvements");
+        printTabPlusOne("steps",steps);
+        term = new emili::MaxStepsNoImprov(steps);
+    }
 
     prs::decrementTabLevel();
     return term;

@@ -1830,3 +1830,24 @@ emili::Solution* emili::AlternateLocalSearch::getBestSoFar()
 
 }
 
+bool emili::MaxStepsNoImprov::terminate(Solution *currentSolution, Solution *newSolution)
+{
+    if(*newSolution < *currentSolution)
+    {
+        h = 0;
+    }
+    else
+    {
+        h++;
+        if(h <= max_h)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void emili::MaxStepsNoImprov::reset()
+{
+    h= 0;
+}

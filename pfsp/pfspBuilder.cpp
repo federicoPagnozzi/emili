@@ -113,6 +113,7 @@
 #define TERMINATION_ITERA "iteration"
 #define TERMINATION_SOA "soater"
 #define TERMINATION_KAR "karter"
+#define TERMINATION_MAXSTEPS_WITHNOIMPROV "msnoimprov"
 
 /*
  *  permutation flowshop neighborhoods
@@ -147,6 +148,7 @@
 #define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
+#define NEIGHBORHOOD_CS_INSERT "csinsert"
 
 /* Total Completion Time*/
 #define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
@@ -1080,6 +1082,12 @@ emili::Termination* prs::PfspBuilder::buildTermination()
         printTab("Kar termination");
         term =  new emili::pfsp::KarTermination(ti);
     }
+    if(tm.checkToken(TERMINATION_MAXSTEPS_WITHNOIMPROV))
+    {
+        int n = instance->getNjobs();
+        printTab("Termination that stops after n not improving steps");
+        term = new emili::MaxStepsNoImprov(n);
+    }
 
 
     prs::decrementTabLevel();
@@ -1277,6 +1285,12 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
         printTab("No wait delta evaluation transpose");
         neigh = new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
     }
+    else if(tm.checkToken(NEIGHBORHOOD_CS_INSERT))
+    {
+        printTab("Insert Neighborhood that returns only the best insertion");
+        neigh = new emili::pfsp::CSInsertNeighborhood(*instance);
+    }
+
     prs::decrementTabLevel();
     return neigh;
 }

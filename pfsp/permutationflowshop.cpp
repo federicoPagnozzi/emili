@@ -4370,6 +4370,57 @@ emili::Solution* emili::pfsp::CSTaillardAcceleratedInsertNeighborhood::computeSt
     }
 }
 
+emili::Solution* emili::pfsp::CSInsertNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+
+        int best_inspos = 1;
+        int best_cmax = std::numeric_limits<int>::max();
+        end_position = 1;
+        start_position = ((start_position)%njobs)+1;
+        int sol_i = newsol[start_position];
+        newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+        computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
+        computeTAmatrices(newsol);
+
+#endif
+
+        for(int k=1; k<=njobs; k++)
+        {
+
+            if(k != start_position)
+            {
+                newsol.insert(newsol.begin()+k,sol_i);
+                int c_max = pis.computeObjectiveFunctionFromHead(newsol,k,head,njobs-1);
+                if(c_max < best_cmax)
+                {
+                    best_cmax = c_max;
+                    best_inspos = k;
+                }
+                newsol.erase(newsol.begin()+k);
+            }
+
+        }
+        //long int old_v  = pis.computeObjectiveFunction(newsol);
+        //std::cout << c_max << " - " << old_v << std::endl;
+        //assert(c_max == old_v);
+        end_position = best_inspos;
+        newsol.insert(newsol.begin()+best_inspos,sol_i);
+        value->setSolutionValue(best_cmax);
+        sp_iterations++;
+        return value;
+    }
+}
+
 emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeStep(emili::Solution *value)
 {
     emili::iteration_increment();

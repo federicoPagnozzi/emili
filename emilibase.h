@@ -1550,6 +1550,20 @@ public:
 
 };
 
+class MaxStepsNoImprov : public Termination
+{
+protected:
+    int h;
+    int max_h;
+public:
+    MaxStepsNoImprov(int max_steps):
+        emili::Termination(),
+        max_h(max_steps) { }
+
+    bool terminate(Solution *currentSolution, Solution *newSolution);
+    void reset();
+};
+
 /**
 class SimulatedAnnealing : public emili::LocalSearch
 {

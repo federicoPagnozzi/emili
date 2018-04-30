@@ -868,6 +868,18 @@ public:
 };
 
 /**
+ * Insert neighborhood
+ * that does a full scan each iteration
+ */
+class CSInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    CSInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem){ }
+};
+
+/**
  * Insert neighborhood with Taillard's acceleration
  * that changes the base solution after each improvement
  */
