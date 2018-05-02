@@ -296,7 +296,6 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
     else if(tm.checkToken(SWP_INC_LS))
     {
         printTab("SwapInc local search");
-        emili::pfsp::PermutationFlowShop* instance = (emili::pfsp::PermutationFlowShop*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         int r = 3;
         ls = new emili::pfsp::SwapIncLocalSearch(r,*in);

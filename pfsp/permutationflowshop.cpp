@@ -4400,7 +4400,8 @@ emili::Solution* emili::pfsp::CSInsertNeighborhood::computeStep(emili::Solution 
             if(k != start_position)
             {
                 newsol.insert(newsol.begin()+k,sol_i);
-                int c_max = pis.computeObjectiveFunctionFromHead(newsol,k,head,njobs-1);
+                int c_max = pis.computeObjectiveFunctionFromHead(newsol,k,head,njobs);
+                //assert(pis.computeObjectiveFunction(newsol)==c_max);
                 if(c_max < best_cmax)
                 {
                     best_cmax = c_max;
