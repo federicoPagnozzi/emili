@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 #include "../emilibase.h"
 #include "sa_common.h"
@@ -177,6 +178,66 @@ public:
 
 }; // SAFirstBestOfKExploration
 
+
+/**
+ * Modified simulated annealing algorithms for the flow shop sequencing problem
+ * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
+ */
+class SANSBestOfKExploration: public SAExploration {
+
+long k;
+
+public:
+    SANSBestOfKExploration(long _k):
+        k(_k),
+        SAExploration(SANSBESTOFKEXPLORATION) { }
+
+    SANSBestOfKExploration(emili::Neighborhood* _neigh,
+                         SAAcceptance* _acceptance,
+                         SACooling* _cooling,
+                         SATermination* _term,
+                         double _k):
+        k(round(_k * _neigh->size())),
+        SAExploration(_neigh,
+                      _acceptance,
+                      _cooling,
+                      _term,
+                      SANSBESTOFKEXPLORATION) { }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                          SAStatus& status);
+
+}; // SANSBestOfKExploration
+
+/**
+ * Modified simulated annealing algorithms for the flow shop sequencing problem
+ * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
+ */
+class SANSFirstBestOfKExploration: public SAExploration {
+
+long k;
+
+public:
+    SANSFirstBestOfKExploration(long _k):
+            k(_k),
+            SAExploration(SANSFIRSTBESTOFKEXPLORATION) { }
+
+    SANSFirstBestOfKExploration(emili::Neighborhood* _neigh,
+                              SAAcceptance* _acceptance,
+                              SACooling* _cooling,
+                              SATermination* _term,
+                              double _k):
+        k(round(_k * _neigh->size())),
+        SAExploration(_neigh,
+                      _acceptance,
+                      _cooling,
+                      _term,
+                      SANSFIRSTBESTOFKEXPLORATION) { }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                          SAStatus& status);
+
+}; // SANSFirstBestOfKExploration
 
 class SAFirstImprovementExploration: public SAExploration {
 

@@ -75,7 +75,8 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
                                      term,
                                      templ,
                                      explo,
-                                     nei);
+                                     nei,
+                                     NULL);
    }
    prs::decrementTabLevel();
    return ls;

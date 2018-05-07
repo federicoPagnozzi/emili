@@ -701,7 +701,8 @@ emili::LocalSearch* SAPFSPParser::buildAlgo(prs::TokenManager& tm) {
                                   term,
                                   templ,
                                   explo,
-                                  nei);
+                                  nei,
+                                  NULL);
 
 }
 

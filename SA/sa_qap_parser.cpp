@@ -398,6 +398,12 @@ SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
     } else if (tm.checkToken(SAFIRSTBESTOFKEXPLORATION)) {
         long k = tm.getInteger();
         return new SAFirstBestOfKExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SANSBESTOFKEXPLORATION)) {
+        double k = tm.getDecimal();
+        return new SANSBestOfKExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SANSFIRSTBESTOFKEXPLORATION)) {
+        double k = tm.getDecimal();
+        return new SANSFirstBestOfKExploration(neigh, acc, cool, term, k);
     } else {
         std::cerr << "SAExploration expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -516,7 +522,8 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
                                   term,
                                   templ,
                                   explo,
-                                  nei);
+                                  nei,
+                                  NULL);
 
 }
 
