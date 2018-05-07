@@ -102,7 +102,8 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
 
 
 SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
-                                      SAInitTemp *inittemp) {
+                                      SAInitTemp *inittemp,
+                                      emili::Neighborhood *nei) {
 
     if (tm.checkToken(METROPOLIS)) {
         return new SAMetropolisAcceptance(inittemp->get());
@@ -129,6 +130,9 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
     } else if (tm.checkToken(LAHCACC)) {
         int te = tm.getInteger();
         return new LAHCAcceptance(te);
+    } else if (tm.checkToken(LAHCNSACC)) {
+        double te = tm.getDecimal();
+        return new LAHCNSAcceptance(te, nei);
     } else if (tm.checkToken(PRECOMPUTEDMETROPOLIS)) {
         int te = tm.getInteger();
         return new SAPrecomputedMetropolisAcceptance(inittemp->get(), te);
@@ -505,7 +509,7 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     emili::InitialSolution* initsol    = init(tm);
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
-    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
+    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp, nei);
     SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);

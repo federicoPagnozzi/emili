@@ -82,7 +82,8 @@ public:
      * @return    SAAcceptance object
      */
     SAAcceptance*    ACCEPTANCE(prs::TokenManager& tm,
-                                SAInitTemp *inittemp);
+                                SAInitTemp *inittemp,
+                                 emili::Neighborhood *nei);
 
     /**
      * identify termination criterion

@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <cfloat>
+#include <cmath>
 
 #include "sa_constants.h"
 #include "sa_common.h"
@@ -430,6 +431,38 @@ public:
     }
 
 };  // LAHCAcceptance
+
+/**
+ * Burke-Bykov, late acceptance Hill climbing
+ */
+class LAHCNSAcceptance: public SAAcceptance {
+
+protected:
+    int    tenure;
+    float *cost_list;
+    emili::Neighborhood* neigh;
+
+public:
+    LAHCNSAcceptance(double _tenure,
+                     emili::Neighborhood* _neigh):
+        tenure(round(_tenure * _neigh->size())),
+        neigh(_neigh),
+        SAAcceptance(LAHCNSACC,
+                     0) {
+            cost_list = (float *)malloc(sizeof(float) * tenure);
+            for (int i = 0 ; i < tenure ; i++) {
+                cost_list[i] = FLT_MAX;
+            }
+        }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+    ~LAHCNSAcceptance(void) {
+        free(cost_list);
+    }
+
+};  // LAHCNSAcceptance
 
 
 // chen hsies - an exchange local search heuristic based scheme for PFSP

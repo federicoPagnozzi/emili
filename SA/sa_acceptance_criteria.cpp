@@ -289,6 +289,26 @@ emili::Solution* LAHCAcceptance::accept(emili::Solution *current_solution,
 
 }
 
+emili::Solution* LAHCNSAcceptance::accept(emili::Solution *current_solution,
+                                        emili::Solution *new_solution) {
+
+    double cs = current_solution->getSolutionValue();
+    double ns = new_solution->getSolutionValue();
+
+    int v = status->total_counter % tenure;
+
+    if (ns > cs && ns > cost_list[v]) {
+        return current_solution;
+    } else if (ns < status->best_cost) {
+        status->new_best_solution(new_solution, ns, temperature);
+    }
+
+    cost_list[v] = ns;
+
+    return new_solution;
+
+}
+
 
 emili::Solution* SABoundedMetropolisAcceptance::accept(emili::Solution *current_solution,
                                                        emili::Solution *new_solution) {

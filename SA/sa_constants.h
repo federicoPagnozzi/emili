@@ -29,6 +29,7 @@
 #define GEOMACC           "GEOMACC"
 #define DETERMINISTICACC  "DETERMINISTICACC"
 #define LAHCACC           "LAHCACC"
+#define LAHCNSACC           "LAHCNSACC"
 #define GDAACC            "GDAACC"
 #define RTRACC            "RTRACC"
 #define APPROXEXPACC      "APPROXEXPACC"
