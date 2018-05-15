@@ -456,7 +456,7 @@ spostare          */
             emili::InitialSolution* initsol    = init(tm);
     emili::Neighborhood*    nei        = neigh(tm, true);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei, instance);
-    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp, nei);
+    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp, nei, instance);
     SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
@@ -1778,7 +1778,8 @@ SAInitTemp* prs::ParamsParser::INITTEMP(prs::TokenManager& tm,
 
 SAAcceptance* prs::ParamsParser::ACCEPTANCE(prs::TokenManager& tm,
                                       SAInitTemp *inittemp,
-                                 emili::Neighborhood *nei) {
+                                 emili::Neighborhood *nei,
+                                 emili::Problem* instance) {
 
     if (tm.checkToken(METROPOLIS)) {
         return new SAMetropolisAcceptance(inittemp->get());

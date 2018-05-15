@@ -465,6 +465,39 @@ public:
 };  // LAHCNSAcceptance
 
 
+/**
+ * Burke-Bykov, late acceptance Hill climbing
+ */
+class LAHCPSAcceptance: public SAAcceptance {
+
+protected:
+    int    tenure;
+    float *cost_list;
+    emili::Problem* prob;
+
+public:
+    LAHCPSAcceptance(double _tenure,
+                     emili::Problem* _prob):
+        tenure((int)std::fmax(round(_tenure * _prob->problemSize()), 2)),
+        prob(_prob),
+        SAAcceptance(LAHCPSACC,
+                     0) {
+            cost_list = (float *)malloc(sizeof(float) * tenure);
+            for (int i = 0 ; i < tenure ; i++) {
+                cost_list[i] = FLT_MAX;
+            }
+        }
+
+    virtual emili::Solution* accept(emili::Solution *current_solution,
+                                    emili::Solution *new_solution);
+
+    ~LAHCPSAcceptance(void) {
+        free(cost_list);
+    }
+
+};  // LAHCPSAcceptance
+
+
 // chen hsies - an exchange local search heuristic based scheme for PFSP
 class SABoundedMetropolisAcceptance: public SAAcceptance {
 protected:

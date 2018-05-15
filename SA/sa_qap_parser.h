@@ -52,7 +52,8 @@ protected:
      */
     SAAcceptance*    ACCEPTANCE(prs::TokenManager& tm,
                                 SAInitTemp *inittemp,
-                                 emili::Neighborhood *nei);
+                                emili::Neighborhood *nei,
+                                emili::Problem* instance);
 
     /**
      * identify termination criterion
