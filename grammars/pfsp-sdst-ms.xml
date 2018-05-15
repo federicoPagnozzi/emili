@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
-     17/06/2015
+     15/05/2018
 
-     Grammar for PFSP Total Completion Time
+     Grammar for PFSP SDST Makespan 
      without time related termination and optimized for simple algorithms
      
-     16/04/2018
-
-     Removed slack and random and added bsch.
-     
-     30/04/2018
-
-     Added csinsert neighborhood, msnoimprov and swpinc and als local searches
  -->
 
 <gr:grammar xmlns:gr="grammar">
@@ -49,10 +42,6 @@
    <![CDATA[nwslack ]]>
    <or/>
    <![CDATA[nehedd ]]>-->
-   <![CDATA[bsch 1 ]]>
-   <or/>
-   <![CDATA[bsch 0.1 ]]>
-   <or/>
    <![CDATA[nrz ]]>
   <or/>
   <![CDATA[nrz2 ]]>
@@ -86,15 +75,13 @@
 	<or/>
 	   <![CDATA[transpose ]]>
 	<or/>
-	   <![CDATA[ntctinsert ]]>
+	   <![CDATA[insert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
 	   <![CDATA[binsert ]]>
 	<or/>
 	  <![CDATA[tinsert ]]>
-	<or/>
-	   <![CDATA[nrztctinsert ]]>
 	<or/>
 	   <![CDATA[csinsert ]]>
 	</pfsp:neighborhood>
