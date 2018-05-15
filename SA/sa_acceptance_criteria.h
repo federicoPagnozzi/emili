@@ -445,7 +445,7 @@ protected:
 public:
     LAHCNSAcceptance(double _tenure,
                      emili::Neighborhood* _neigh):
-        tenure(max(round(_tenure * _neigh->size()), 2)),
+        tenure((int)std::fmax(round(_tenure * _neigh->size()), 2)),
         neigh(_neigh),
         SAAcceptance(LAHCNSACC,
                      0) {
