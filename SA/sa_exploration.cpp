@@ -113,6 +113,67 @@ emili::Solution* SABestOfKExploration::nextSolution(emili::Solution *startingSol
 
 }
 
+emili::Solution* SABestOfKSequentialExploration::nextSolution(emili::Solution *startingSolution,
+                                                    SAStatus& status) {
+
+    double ci, cg;
+
+    long i = 1;
+
+    emili::Solution* incumbent = startingSolution->clone();
+    emili::Solution* accepted;
+    emili::Solution* generated;
+    emili::Solution* candidate = incumbent;
+
+    ci = incumbent->getSolutionValue();
+
+    emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
+    generated = *iter;
+
+    bool noneaccepted = true;
+
+    for(;
+        iter!=neigh->end() && i < k;
+        ++iter) {
+
+        status.increment_counters();
+
+        cg = generated->getSolutionValue();
+
+        if (cg < ci) {
+            candidate = generated;
+            ci = cg;
+        }
+        
+        i++;
+
+    } 
+
+    accepted = acceptance->accept(incumbent,
+                                  candidate);
+    status.temp = cooling->update_cooling(status.temp);
+    acceptance->setCurrentTemp(status.temp);
+
+
+    if (accepted == incumbent) {
+        status.not_accepted_sol();
+    } else {
+        delete startingSolution;
+        *accepted = *candidate;
+        status.accepted_sol(accepted->getSolutionValue());
+        noneaccepted = false;
+    }
+
+    delete incumbent;
+    
+    if (noneaccepted) {
+        return startingSolution;
+    }
+    
+    return accepted;
+
+}
+
 
 emili::Solution* SAFirstBestOfKExploration::nextSolution(emili::Solution *startingSolution,
                                                          SAStatus& status) {
