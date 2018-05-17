@@ -209,7 +209,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     bool noneaccepted = true;
 
     for(;
-        //iter!=neigh->end() &&
+        iter!=neigh->end() &&
         i < neighsize;
         ++iter) {
 
@@ -236,6 +236,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         if (gap > maxgap) maxgap = gap;
         gap_sum += gap;
         //
+        //printf("%ld %f\n", i, cg);
         
         i++;
 
