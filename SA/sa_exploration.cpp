@@ -174,6 +174,117 @@ emili::Solution* SABestOfKSequentialExploration::nextSolution(emili::Solution *s
 
 }
 
+emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution *startingSolution,
+                                                    SAStatus& status) {
+
+    double ci, cg;
+    long i = 0;
+    
+    // stats
+    double orig_ci; // original cost of initial solution 
+    // number of improving, worsening, neutral moves
+    long num_better = 0,
+         num_worse = 0,
+         num_equal = 0;
+    double gap;
+    double gap_sum = 0; // gap sum
+    double gaps[neighsize]; // all the gaps
+    double maxgap, mingap; // max gap, min gap, ça va sans dire
+
+
+    emili::Solution* incumbent = startingSolution->clone();
+    emili::Solution* accepted;
+    emili::Solution* generated;
+    emili::Solution* candidate = incumbent;
+
+    ci = incumbent->getSolutionValue();
+
+    orig_ci = ci;
+    maxgap = 0;
+    mingap = ci;
+
+    emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
+    generated = *iter;
+
+    bool noneaccepted = true;
+
+    for(;
+        iter!=neigh->end() && i < k;
+        ++iter) {
+
+        status.increment_counters();
+
+        cg = generated->getSolutionValue();
+
+        if (cg < ci) {
+            candidate = generated;
+            ci = cg;
+        }
+
+        //stats
+        if (cg < orig_ci) {
+            num_better++;
+        } else if (cg == orig_ci) {
+            num_equal++;
+        } else {
+            num_worse++;
+        }
+        gap = abs(cg - orig_ci);
+        gaps[i] = gap;
+        if (gap < mingap) mingap = gap;
+        if (gap > maxgap) maxgap = gap;
+        gap_sum += gap;
+        //
+        
+        i++;
+
+    } 
+
+    if (status.total_counter % 100 == 1) {
+        // print:
+        // orig_ci, final_ci, %better, %equal, %worse, mingap, avggap, maxgap, stddevgap, 
+        double avggap = gap_sum / neighsize;
+        double stddevgap = 0, tmpstd;
+        for (long j = 0 ; j < neighsize ; j++) {
+            tmpstd = gaps[i] - avggap;
+            stddevgap = stddevgap + tmpstd * tmpstd;
+        }
+        stddevgap = sqrt(stddevgap / (neighsize - 1));
+        fprintf(stdout, "STATS %f %f %f %f %f %f %f %f %f\n",
+            orig_ci, ci,
+            (num_better * 1.0) / neighsize,
+            (num_equal * 1.0) / neighsize,
+            (num_worse * 1.0) / neighsize,
+            mingap, avggap, maxgap, stddevgap
+            );
+        fflush(stdout);
+    }
+
+    accepted = acceptance->accept(incumbent,
+                                  candidate);
+    status.temp = cooling->update_cooling(status.temp);
+    acceptance->setCurrentTemp(status.temp);
+
+
+    if (accepted == incumbent) {
+        status.not_accepted_sol();
+    } else {
+        delete startingSolution;
+        *accepted = *candidate;
+        status.accepted_sol(accepted->getSolutionValue());
+        noneaccepted = false;
+    }
+
+    delete incumbent;
+    
+    if (noneaccepted) {
+        return startingSolution;
+    }
+    
+    return accepted;
+
+}
+
 
 emili::Solution* SAFirstBestOfKExploration::nextSolution(emili::Solution *startingSolution,
                                                          SAStatus& status) {

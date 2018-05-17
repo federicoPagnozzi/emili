@@ -2026,6 +2026,9 @@ SAExploration* prs::ParamsParser::EXPLORATION(prs::TokenManager& tm,
     } else if (tm.checkToken(SABESTOFKSEQUENTIALEXPLORATION)) {
         long k = tm.getInteger();
         return new SABestOfKSequentialExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SANSBESTOFKSEQUENTIALEXPLORATION)) {
+        double k = tm.getInteger();
+        return new SANSBestOfKSequentialExploration(neigh, acc, cool, term, k);
     } else if (tm.checkToken(SAFIRSTBESTOFKEXPLORATION)) {
         long k = tm.getInteger();
         return new SAFirstBestOfKExploration(neigh, acc, cool, term, k);

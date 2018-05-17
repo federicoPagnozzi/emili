@@ -182,6 +182,39 @@ public:
  * Modified simulated annealing algorithms for the flow shop sequencing problem
  * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
  */
+class SANSBestOfKSequentialExploration: public SAExploration {
+
+long k;
+
+long neighsize;
+
+public:
+    SANSBestOfKSequentialExploration(long _k):
+        k(_k),
+        SAExploration(SANSBESTOFKSEQUENTIALEXPLORATION) { }
+
+    SANSBestOfKSequentialExploration(emili::Neighborhood* _neigh,
+                         SAAcceptance* _acceptance,
+                         SACooling* _cooling,
+                         SATermination* _term,
+                         double _k):
+        k(round(_k * _neigh->size())),
+        neighsize(_neigh->size()),
+        SAExploration(_neigh,
+                      _acceptance,
+                      _cooling,
+                      _term,
+                      SABESTOFKSEQUENTIALEXPLORATION) { }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                          SAStatus& status);
+
+}; // SANSBestOfKSequentialExploration
+
+/**
+ * Modified simulated annealing algorithms for the flow shop sequencing problem
+ * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
+ */
 class SAFirstBestOfKExploration: public SAExploration {
 
 long k;
