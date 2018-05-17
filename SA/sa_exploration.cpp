@@ -252,9 +252,9 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         stddevgap = sqrt(stddevgap / (neighsize - 1));
         fprintf(stdout, "RUNTIMESTATS %f %f %f %f %f %f %f %f %f\n",
             orig_ci, ci,
-            (num_better * 1.0) / neighsize,
-            (num_equal * 1.0) / neighsize,
-            (num_worse * 1.0) / neighsize,
+            (num_better * 1.0),// / neighsize,
+            (num_equal * 1.0),// / neighsize,
+            (num_worse * 1.0),// / neighsize,
             mingap, avggap, maxgap, stddevgap
             );
         fflush(stdout);
