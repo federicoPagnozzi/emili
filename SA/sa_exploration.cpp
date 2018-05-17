@@ -231,7 +231,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         }
         gap = abs(cg - orig_ci);
         gaps[i] = gap;
-        if (gap < mingap) mingap = gap;
+        if (gap < mingap && gap > 0) mingap = gap;
         if (gap > maxgap) maxgap = gap;
         gap_sum += gap;
         //
@@ -260,8 +260,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         fflush(stdout);
     }
 
-    accepted = acceptance->accept(incumbent,
-                                  candidate);
+    accepted = acceptance->neigh->random(startingSolution);
     status.temp = cooling->update_cooling(status.temp);
     acceptance->setCurrentTemp(status.temp);
 
