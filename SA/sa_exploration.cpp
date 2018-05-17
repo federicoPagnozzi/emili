@@ -209,7 +209,8 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     bool noneaccepted = true;
 
     for(;
-        iter!=neigh->end() && i < neighsize;
+        //iter!=neigh->end() &&
+        i < neighsize;
         ++iter) {
 
         status.increment_counters();
