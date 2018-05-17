@@ -2032,7 +2032,7 @@ SAExploration* prs::ParamsParser::EXPLORATION(prs::TokenManager& tm,
         long k = tm.getInteger();
         return new SABestOfKSequentialExploration(neigh, acc, cool, term, k);
     } else if (tm.checkToken(SANSBESTOFKSEQUENTIALEXPLORATION)) {
-        double k = tm.getInteger();
+        double k = tm.getDecimal();
         return new SANSBestOfKSequentialExploration(neigh, acc, cool, term, k);
     } else if (tm.checkToken(SAFIRSTBESTOFKEXPLORATION)) {
         long k = tm.getInteger();
