@@ -1767,6 +1767,11 @@ SAInitTemp* prs::ParamsParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new OsmanPottsInitTemp(initsol, nei, instance, dc, tf);
         init_temp->set(coeff);
         return init_temp;
+    } else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
+        int length = tm.getInteger();
+        SAInitTemp* init_temp = new RandomWalkStatsInitTemp(initsol, nei, length);
+        init_temp->set(1);
+        return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;

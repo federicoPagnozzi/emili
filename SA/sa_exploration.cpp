@@ -187,7 +187,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
          num_worse = 0,
          num_equal = 0;
     double gap;
-    double gap_sum = 0; // gap sum
+    double gap_sum = 0.0; // gap sum
     double gaps[neighsize]; // all the gaps
     double maxgap, mingap; // max gap, min gap, ça va sans dire
 
@@ -200,7 +200,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     ci = incumbent->getSolutionValue();
 
     orig_ci = ci;
-    maxgap = 0;
+    maxgap = 0.0;
     mingap = ci;
 
     emili::Neighborhood::NeighborhoodIterator iter = neigh->begin(incumbent);
@@ -244,7 +244,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         // print:
         // orig_ci, final_ci, %better, %equal, %worse, mingap, avggap, maxgap, stddevgap, 
         double avggap = gap_sum / neighsize;
-        double stddevgap = 0, tmpstd;
+        double stddevgap = 0.0, tmpstd;
         for (long j = 0 ; j < neighsize ; j++) {
             tmpstd = gaps[i] - avggap;
             stddevgap = stddevgap + tmpstd * tmpstd;
