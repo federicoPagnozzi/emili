@@ -193,7 +193,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
 
 
     emili::Solution* incumbent = startingSolution->clone();
-    emili::Solution* accepted;
+    emili::Solution* accepted = incumbent;
     emili::Solution* generated;
     emili::Solution* candidate = incumbent;
 
@@ -209,7 +209,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     bool noneaccepted = true;
 
     for(;
-        iter!=neigh->end() && i < k;
+        iter!=neigh->end() && i < neighsize;
         ++iter) {
 
         status.increment_counters();
@@ -246,7 +246,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         double avggap = gap_sum / neighsize;
         double stddevgap = 0.0, tmpstd;
         for (long j = 0 ; j < neighsize ; j++) {
-            tmpstd = gaps[i] - avggap;
+            tmpstd = gaps[j] - avggap;
             stddevgap = stddevgap + tmpstd * tmpstd;
         }
         stddevgap = sqrt(stddevgap / (neighsize - 1));
@@ -260,7 +260,9 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         fflush(stdout);
     }
 
-    accepted = neigh->random(startingSolution);
+    for (long j = 0 ; j < 100 ; j++) {
+        accepted = neigh->random(accepted);
+    }
     status.temp = cooling->update_cooling(status.temp);
     acceptance->setCurrentTemp(status.temp);
 
