@@ -209,7 +209,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     bool noneaccepted = true;
 
     for(;
-        iter!=neigh->end();
+        iter!=neigh->end() && i < k;
         ++iter) {
 
         status.increment_counters();
@@ -240,7 +240,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
 
     } 
 
-    if (status.total_counter % 100 == 1) {
+    if (1 || status.total_counter % 100 == 1) {
         // print:
         // orig_ci, final_ci, %better, %equal, %worse, mingap, avggap, maxgap, stddevgap, 
         double avggap = gap_sum / neighsize;
