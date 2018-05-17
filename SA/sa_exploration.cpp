@@ -260,7 +260,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         fflush(stdout);
     }
 
-    accepted = acceptance->neigh->random(startingSolution);
+    accepted = neigh->random(startingSolution);
     status.temp = cooling->update_cooling(status.temp);
     acceptance->setCurrentTemp(status.temp);
 
