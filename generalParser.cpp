@@ -371,6 +371,7 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
             {
                 emili::set_print(false);
             }
+            emili::setRootAlgorithm(ls);
             return ls;
         }
     }
@@ -533,7 +534,8 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
             fatalError(cls.getType(),COMPONENT_ALGORITHM);
         }
         emili::LocalSearch* ls = cls.get<emili::LocalSearch>();
-        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
+        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+        emili::setRootAlgorithm(ls);
         if(tm.seek(PRINT_SOLUTION)>0)
         {
             emili::set_print(true);

@@ -15,7 +15,8 @@ void info();
 class PfspBuilder: public Builder
 {
 public:
-    PfspBuilder(GeneralParserE& generalParser,TokenManager& tokenManager):Builder(generalParser,tokenManager) { }
+    PfspBuilder(GeneralParserE& generalParser,TokenManager& tokenManager):
+        Builder(generalParser,tokenManager) { }
     virtual bool isCompatibleWith(char* problem_definition);
     virtual bool canOpenInstance(char* problem_definition);
     virtual emili::Problem* openInstance();

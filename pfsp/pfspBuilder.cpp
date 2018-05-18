@@ -149,6 +149,7 @@
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_CS_INSERT "csinsert"
+#define NEIGHBORHOOD_SDST_CS_INSERT "sdstcsinsert"
 
 /* Total Completion Time*/
 #define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
@@ -203,6 +204,11 @@
 #define PERTURBATION_MPTLM "mptlm"
 #define PERTURBATION_RESTART "restart"
 #define PERTURBATION_RESTART_LS "restartls"
+#define PERTURBATION_IG_SDST "sdstigo"
+#define PERTURBATION_IGLS_SDST "sdstigols"
+
+
+
 
 /* acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
@@ -523,6 +529,37 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
         per = new emili::pfsp::RSIOPerturbation(n,*instance);
+    }
+    else if(tm.checkToken(PERTURBATION_IG_SDST))
+    {
+        int nj = instance->getNjobs();
+        int n = tm.getInteger();
+        n = n<nj?n:nj-1;
+
+        oss.str(""); oss  << "SDST IG perturbation with general optimization. d= " << n <<".\n\t";
+        printTab(oss.str().c_str());
+        per = new emili::pfsp::SDSTIGOPerturbation(n,*instance);
+    }
+    else if(tm.checkToken(PERTURBATION_IGLS_SDST))
+    {
+        int nj = instance->getNjobs()-2;
+        int k = tm.getInteger();
+        int n = k<nj?k:nj-1;
+        oss.str(""); oss  << "SDST IG perturbation with local search applied on the partial solution. d = "<<n;
+        printTab(oss.str().c_str());
+        if(n > 0)
+        {
+            PfspInstance pfs = instance->getInstance();
+            pfs.setNbJob(pfs.getNbJob()-n);
+            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            gp.setInstance(pfse);
+            emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+            gp.setInstance(instance);
+            //instances.push_back(pfse);
+            per = new emili::pfsp::SDSTIGOLsPerturbation(n,*instance,ll);
+        } else {
+             per = new emili::pfsp::SDSTIGOPerturbation(1,*instance);
+        }
     }
     else if(tm.checkToken(PERTURBATION_RESTART))
     {
@@ -1288,6 +1325,11 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     {
         printTab("Insert Neighborhood that returns only the best insertion");
         neigh = new emili::pfsp::CSInsertNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_SDST_CS_INSERT))
+    {
+        printTab("SDST Insert Neighborhood that returns only the best insertion");
+        neigh = new emili::pfsp::SDSTCSInsertNeighborhood(*instance);
     }
 
     prs::decrementTabLevel();

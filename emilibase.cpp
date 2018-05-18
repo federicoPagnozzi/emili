@@ -107,6 +107,14 @@ emili::LocalSearch* emili::getAlgo()
     return localsearch;
 }
 
+void emili::setRootAlgorithm(emili::LocalSearch *ls)
+{
+    if(ls != nullptr)
+    {
+        localsearch = ls;
+    }
+}
+
 static void finalise (int _)
 {
     keep_going = false;
@@ -441,8 +449,7 @@ emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
 {
     neighbh->reset();
     setTimer(time_seconds);
-    beginTime = clock();
-    localsearch = this;
+    beginTime = clock();    
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
     if(current!=sol)
@@ -478,8 +485,7 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
 emili::Solution* emili::LocalSearch::timedSearch(float time_seconds, Solution *initial)
 {   
     setTimer(time_seconds);
-    beginTime = clock();
-    localsearch = this;
+    beginTime = clock();    
     emili::Solution* s = search(initial);
     stopTimer();
     return s;
@@ -489,7 +495,6 @@ emili::Solution* emili::LocalSearch::timedSearch()
 {
     setTimer(seconds);
     beginTime = clock();
-    localsearch = this;
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
     if(current!=sol)
@@ -501,8 +506,7 @@ emili::Solution* emili::LocalSearch::timedSearch()
 emili::Solution* emili::LocalSearch::timedSearch(Solution *initial)
 {
     setTimer(seconds);
-    beginTime = clock();
-    localsearch = this;
+    beginTime = clock();    
     emili::Solution* sol = search(initial);
     stopTimer();
     return sol;
@@ -571,8 +575,7 @@ emili::Solution* emili::EmptyLocalSearch::search()
 emili::Solution* emili::EmptyLocalSearch::timedSearch(int seconds)
 {
     setTimer(seconds);
-    beginTime = clock();
-    localsearch = this;
+    beginTime = clock();    
     bestSoFar = init->generateSolution();
     stopTimer();
     return bestSoFar;
@@ -1184,7 +1187,6 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime)
 {
         termcriterion->reset();
         acc.reset();
-        localsearch = this;
         setTimer(maxTime);
         /**
             search start
@@ -1227,7 +1229,6 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime,emili::So
         termcriterion->reset();
         acc.reset();
         setTimer(maxTime);
-        localsearch = this;
         /**
             search start
         */
@@ -1329,7 +1330,6 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime)
 {
         termcriterion->reset();
         acc.reset();
-        localsearch = this;
         setTimer(maxTime);
         /**
             search start
@@ -1374,7 +1374,6 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime,e
         termcriterion->reset();
         acc.reset();
         setTimer(maxTime);
-        localsearch = this;
         /**
             search start
         */

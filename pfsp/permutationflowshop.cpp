@@ -1537,6 +1537,18 @@ void emili::pfsp::PermutationFlowShop::computeTAmatrices(std::vector<int> &sol,s
     instance.computeTAmatrices(sol,head,tail,size);
 }
 
+void emili::pfsp::PermutationFlowShop::computeHead(std::vector<int> &sol, std::vector<std::vector<int> > &head, int njobs)
+{
+    #ifdef ENABLE_SSE
+        //std::cout << "pre head" << "\n";
+        const std::vector < std::vector < long int > >& pmatrix =  instance.getProcessingTimesMatrix();
+        computeHEAD(sol,head,pmatrix,njobs-1,instance.getNbMac());
+        //std::cout << "post head" << "\n";
+    #else
+        instance.computeHead(sol,head,njobs);
+    #endif
+}
+
 void emili::pfsp::PermutationFlowShop::computeNoIdleTAmatrices(std::vector<int> &sol, std::vector<std::vector<int> > &head, std::vector<std::vector<int> > &tail)
 {
     instance.computeNoIdleTAmatrices(sol,head,tail);
@@ -1891,6 +1903,58 @@ int emili::pfsp::SDSTFSP_MS::computeObjectiveFunction(std::vector<int> &partial_
     return instance.computeSDSTMS(partial_solution,size);
 }
 
+int emili::pfsp::SDSTFSP_MS::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+    return makespans[size];
+}
+
+long int emili::pfsp::SDSTFSP_MS::computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector<std::vector<int> > &head, int njobs)
+{
+    int nmac = this->getNmachines();
+    std::vector< int > makespans = head[nmac];
+    std::vector< std::vector < std::vector< int > > >& setUpTimes = instance.getSetUpTimes();
+    const std::vector < std::vector < long int > >& pmatrix = this->getProcessingTimesMatrix();
+    int sol_i = solution[starting_point];
+    int ins_pos[nmac+1];
+    int kp1 = solution[starting_point-1];
+    long int c_cur = head[1][starting_point-1]+pmatrix[sol_i][1]+setUpTimes[1][kp1][sol_i];
+    ins_pos[1] = c_cur;
+    for (int i = 2; i <= nmac; ++i) {
+        int c_pm = head[i][starting_point-1]+setUpTimes[i][kp1][sol_i];
+        if(c_pm < c_cur)
+        {
+            c_cur = c_cur + pmatrix[sol_i][i];
+        }
+        else
+        {
+            c_cur = c_pm + pmatrix[sol_i][i];
+        }
+        ins_pos[i] =  c_cur;
+    }
+
+    makespans[starting_point] = c_cur;
+    kp1 = sol_i;
+    for(int k=starting_point+1; k<= njobs; k++)
+    {
+        int job = solution[k];
+        c_cur = ins_pos[1] + pmatrix[job][1]+setUpTimes[1][kp1][job];
+        ins_pos[1] = c_cur;
+        for(int m=2; m <= nmac ; m++)
+        {
+            int c_pm = ins_pos[m]+setUpTimes[m][kp1][job];;
+            if(c_pm > c_cur)
+            {
+                c_cur = c_pm;
+            }
+            c_cur += pmatrix[job][m];
+            ins_pos[m] = c_cur;
+        }
+        makespans[k] = c_cur;
+        kp1 = job;
+    }
+    return computeObjectiveFunction(solution,makespans,njobs);
+}
+
 int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeSDSTWT(partial_solution);
@@ -1899,6 +1963,12 @@ int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_
 int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
     return instance.computeSDSTWT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_WT::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+
+    return instance.computeWT(solution,makespans,size);
 }
 
 int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &partial_solution)
@@ -1911,6 +1981,12 @@ int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &partial_
     return instance.computeSDSTWE(partial_solution,size);
 }
 
+int emili::pfsp::SDSTFSP_WE::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+
+    return instance.computeWE(solution,makespans,size);
+}
+
 int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeSDSTT(partial_solution);
@@ -1919,6 +1995,12 @@ int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_s
 int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
     return instance.computeSDSTT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_T::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+
+    return instance.computeT(solution,makespans,size);
 }
 
 int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &partial_solution)
@@ -1931,6 +2013,12 @@ int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &partial_s
     return instance.computeSDSTE(partial_solution,size);
 }
 
+int emili::pfsp::SDSTFSP_E::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+
+    return instance.computeE(solution,makespans,size);
+}
+
 int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeSDSTTCT(partial_solution);
@@ -1941,6 +2029,12 @@ int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &partial
     return instance.computeSDSTTCT(partial_solution,size);
 }
 
+int emili::pfsp::SDSTFSP_TCT::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+
+    return instance.computeTCT(solution,makespans,size);
+}
+
 int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeSDSTWCT(partial_solution);
@@ -1949,6 +2043,12 @@ int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial
 int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
     return instance.computeSDSTWCT(partial_solution,size);
+}
+
+int emili::pfsp::SDSTFSP_WCT::computeObjectiveFunction(std::vector<int> &solution, std::vector<int> &makespans, int size)
+{
+
+    return instance.computeWCT(solution,makespans,size);
 }
 
 emili::Solution* emili::pfsp::PfspInitialSolution::generateEmptySolution()
@@ -2886,6 +2986,53 @@ emili::Solution* emili::pfsp::IGOPerturbation::perturb(Solution *solution)
     return s;
 }
 
+emili::Solution* emili::pfsp::SDSTIGOPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        int k=removed[l];
+        min = std::numeric_limits<int>::max();
+        instance.getInstance().computeSDSThead(solPartial,head,sops);
+
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+            //int tmp1 = instance.computeObjectiveFunction(solTMP,sops);
+            int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
+            // std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
+            //assert(tmp==tmp1);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+    //assert(min == instance.computeObjectiveFunction(solPartial));
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    return s;
+}
+
 void emili::pfsp::IGIOPerturbation::updateWeights()
 {
     const std::vector < std::vector < long > >& pmat = instance.getProcessingTimesMatrix();
@@ -3422,6 +3569,80 @@ emili::Solution* emili::pfsp::IGOLsPerturbation::perturb(Solution *solution)
 #else
     instance.getInstance().computeHead(solPartial,head,sops);
 #endif
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+//            int tmp = instance.computeObjectiveFunction(solTMP,sops);
+            int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
+//            std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
+//            assert(tmp==tmp1);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+
+    //assert(min == instance.computeObjectiveFunction(solPartial));
+    //emili::pfsp::PermutationFlowShopSolution* ns = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    //return ns;
+    // delete s;
+     s_n->setJobSchedule(solPartial);
+
+    // instance.evaluateSolution(*s_n);
+     //assert(min==s_n->getSolutionValue());
+     s_n->setSolutionValue(min);
+     return s_n;
+}
+
+emili::Solution* emili::pfsp::SDSTIGOLsPerturbation::perturb(Solution *solution)
+{
+    int index;
+    int min;
+    int ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+
+    //
+    // Local search on partial
+    //
+    emili::pfsp::PermutationFlowShopSolution s(solPartial);
+    s.setSolutionValue(instance.computeObjectiveFunction(solPartial,sops));
+#ifdef WITH_STATS
+    bool print_state = get_print();
+    set_print(false);
+#endif
+    emili::pfsp::PermutationFlowShopSolution* s_n =(emili::pfsp::PermutationFlowShopSolution*) ls->search(&s);
+#ifdef WITH_STATS
+    set_print(print_state);
+#endif
+
+
+    solPartial = s_n->getJobSchedule();
+
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        int k=removed[l];
+        min = std::numeric_limits<int>::max();
+
+        instance.getInstance().computeSDSThead(solPartial,head,sops);
+
         for(int r=1; r<sops; r++){
 
             for(int h=1; h<r; h++)
@@ -4393,6 +4614,53 @@ emili::Solution* emili::pfsp::CSInsertNeighborhood::computeStep(emili::Solution 
         computeTAmatrices(newsol);
 
 #endif
+
+        for(int k=1; k<=njobs; k++)
+        {
+
+            if(k != start_position)
+            {
+                newsol.insert(newsol.begin()+k,sol_i);
+                int c_max = pis.computeObjectiveFunctionFromHead(newsol,k,head,njobs);
+                //assert(pis.computeObjectiveFunction(newsol)==c_max);
+                if(c_max < best_cmax)
+                {
+                    best_cmax = c_max;
+                    best_inspos = k;
+                }
+                newsol.erase(newsol.begin()+k);
+            }
+
+        }
+        //long int old_v  = pis.computeObjectiveFunction(newsol);
+        //std::cout << c_max << " - " << old_v << std::endl;
+        //assert(c_max == old_v);
+        end_position = best_inspos;
+        newsol.insert(newsol.begin()+best_inspos,sol_i);
+        value->setSolutionValue(best_cmax);
+        sp_iterations++;
+        return value;
+    }
+}
+
+emili::Solution* emili::pfsp::SDSTCSInsertNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+
+        int best_inspos = 1;
+        int best_cmax = std::numeric_limits<int>::max();
+        end_position = 1;
+        start_position = ((start_position)%njobs)+1;
+        int sol_i = newsol[start_position];
+        newsol.erase(newsol.begin()+start_position);
+        pis.getInstance().computeSDSThead(newsol,head,njobs-1);
 
         for(int k=1; k<=njobs; k++)
         {
@@ -6419,9 +6687,9 @@ emili::Solution* emili::pfsp::NoIdleAcceleratedInsertNeighborhood::computeStep(e
         return value;
     }
 }
-/*
+/**
   Sequence Dependent Setup Times Taillard Acceleration
-*/
+**/
 
 emili::Neighborhood::NeighborhoodIterator emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood::begin(Solution *base)
 {

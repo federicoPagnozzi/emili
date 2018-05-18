@@ -814,7 +814,6 @@ public:
     virtual ~RandomConstructiveHeuristicNeighborhood() { delete heuristic;}
 };
 
-
 /** @brief The LocalSearch class
 * This class models a very general local search.
 */
@@ -1579,5 +1578,6 @@ virtual ~SimulatedAnnealing() { delete acceptance;}
 
 /**  Kind of a reflection thing...*/
 emili::LocalSearch* getAlgo();
+void setRootAlgorithm(emili::LocalSearch* ls);
 }
 #endif // EMILIBASE_H
