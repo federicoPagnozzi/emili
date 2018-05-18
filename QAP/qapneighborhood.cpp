@@ -166,25 +166,31 @@ double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< int >& x) {
 
 
 emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
+    //printf("before increment\n");
     emili::iteration_increment();
 
+    //printf("%d %d %d %d %d || ", sp_iterations, ep_iterations, start_position, end_position, first_iter);
+
     if(!first_iter && sp_iterations == 0 && ep_iterations == 1)
+    //if(!first_iter && start_position == 0 && end_position == 1)
     {        
         return nullptr;
     }
-    if(ep_iterations < n){
+    if(ep_iterations < n-1){
         ep_iterations++;
     }
     else
     {
-        sp_iterations++;
-        ep_iterations = sp_iterations+1;
-        start_position = (start_position + 1) % n;
+        sp_iterations = (sp_iterations + 1) % (n-1);
+        ep_iterations = (sp_iterations + 1) % n;
+        start_position = (start_position + 1) % (n-1);
         end_position = start_position;
     }
-    end_position = (end_position % n)+1;
+    end_position = (end_position + 1) % n;
 
-    /*end_position = (end_position + 1) % n;
+    //printf("%d %d swap( %d , %d ) %d\n", sp_iterations, ep_iterations, start_position, end_position, first_iter);
+
+    /** /end_position = (end_position + 1) % n;
     if (end_position == 0) {
         start_position = (start_position + 1) % n;
         end_position = (start_position + 1) % n;
@@ -194,7 +200,7 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
 
     / * if we returned to (0, 0), then we have explored all of the neighborhood * /
     if (!first_iter && start_position == 0 && end_position == 1) {
-      sp_iteration = 0;
+      //sp_iterations = 0;
       return nullptr;
     }*/
 
@@ -203,11 +209,14 @@ emili::Solution* QAPExchangeNeighborhood::computeStep(emili::Solution* value) {
     QAPSolution* _value = (QAPSolution *)value;
     vector< int >& x = _value->getSolution();
 
+    //printf("compute delta\n");
     double newcost = value->getSolutionValue() + computeDelta(start_position, end_position, x);
 
+    //printf("before swap\n");
     int c = x[start_position];
     x[start_position] = x[end_position];
     x[end_position] = c;
+    //printf("after swap\n");
 
     /*_value->setSolutionValue(_value->getSolutionValue() +
                                computeDelta(start_position,

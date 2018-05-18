@@ -94,8 +94,9 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
         return init_temp;
     } else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
         int length = tm.getInteger();
+        double value = tm.getDecimal();
         SAInitTemp* init_temp = new RandomWalkStatsInitTemp(initsol, nei, length);
-        init_temp->set(1);
+        init_temp->set(value);
         return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;

@@ -197,6 +197,8 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     emili::Solution* generated;
     emili::Solution* candidate = incumbent;
 
+    //printf("COST OF STARTING: %f\n", startingSolution->getSolutionValue());
+
     ci = incumbent->getSolutionValue();
 
     orig_ci = ci;
@@ -210,7 +212,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
 
     for(;
         iter!=neigh->end();// &&
-        //i < neighsize;
+        //i < neighsize/100;
         ++iter) {
 
         status.increment_counters();
@@ -235,7 +237,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         if (gap < mingap && gap > 0) mingap = gap;
         if (gap > maxgap) maxgap = gap;
         gap_sum += gap;
-        //
+        
         //printf("%ld %f\n", i, cg);
         
         i++;
@@ -262,9 +264,12 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         fflush(stdout);
     }
 
-    for (long j = 0 ; j < 100 ; j++) {
-        accepted = neigh->random(accepted);
-    }
+    //for (long j = 0 ; j < 100 ; j++) {
+        //printf("COST OF WTF: %f\n", accepted->getSolutionValue());
+        //accepted = neigh->random(accepted);
+        accepted = acceptance->accept(candidate,
+                                      neigh->random(accepted));
+    //}
     status.temp = cooling->update_cooling(status.temp);
     acceptance->setCurrentTemp(status.temp);
 
@@ -273,7 +278,7 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         status.not_accepted_sol();
     } else {
         delete startingSolution;
-        *accepted = *candidate;
+        //*accepted = *candidate;
         status.accepted_sol(accepted->getSolutionValue());
         noneaccepted = false;
     }
@@ -283,7 +288,9 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     if (noneaccepted) {
         return startingSolution;
     }
-    
+
+    //printf("COST OF ACCEPTED: %f\n", accepted->getSolutionValue());    
+
     return accepted;
 
 }
