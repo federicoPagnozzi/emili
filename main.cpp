@@ -28,6 +28,10 @@
 #define A_LIB ".a"
 #endif
 
+#include "SA/sa_pfsp_parser.h"
+#include "SA/sa_qap_parser.h"
+#include "QAP/qapBuilder.h"
+
 
 void g2c_info()
 {
@@ -70,7 +74,13 @@ prs::emili_header();
     emili::LocalSearch* ls;
 #include "algorithm.h"
 #ifndef GRAMMAR2CODE
+//<<<<<<< HEAD
+//    std::cout << "searching..." << std::endl;
+ //   SAPFSPParser p;
+    //SAQAPParser p;
+// =======
     prs::ParamsParser p;
+// >>>>>>> master
     prs::GeneralParser ps(argv,argc);
     ps.registerBuilder(&p);
     ls = ps.parseParams();
@@ -105,21 +115,38 @@ prs::emili_header();
     long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
     int njobs = problem.getNjobs();
 #endif
-    if(!emili::get_print())
-    {
-        solution = ls->getBestSoFar();
-        double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-        std::cout << "time : " << time_elapsed << std::endl;
-        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-        std::cerr << solution->getSolutionValue() << std::endl;
-        //cerr << time_elapsed << " ";
-        std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
-        std::cout << "Found solution: ";
-        std::cout << solution->getSolutionRepresentation() << std::endl;
-        std::cout << std::endl;
-    }
-    delete ls;
-    //delete solution;
+//<<<<<<< HEAD
+    solution = ls->getBestSoFar();    
+    double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+    std::cout << "time : " << time_elapsed << std::endl;
+    std::cout << "iteration counter : " << std::fixed << emili::iteration_counter()<< std::endl;
+    std::cerr << std::fixed << solution->getSolutionValue() << std::endl;
+    //cerr << time_elapsed << " ";    
+    std::cout << "Objective function value: " << std::fixed << solution->getSolutionValue() << std::endl;
+    std::cout << "Found solution: ";
+    std::cout << std::fixed << solution->getSolutionRepresentation() << std::endl;
+    std::cout << std::endl;
+
+    // std::cerr << std::fixed << solution->getSolutionValue() << endl;
+    
+    return 0;
+// =======
+//     if(!emili::get_print())
+//     {
+//         solution = ls->getBestSoFar();
+//         double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+//         std::cout << "time : " << time_elapsed << std::endl;
+//         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+//         std::cerr << solution->getSolutionValue() << std::endl;
+//         //cerr << time_elapsed << " ";
+//         std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
+//         std::cout << "Found solution: ";
+//         std::cout << solution->getSolutionRepresentation() << std::endl;
+//         std::cout << std::endl;
+//     }
+//     delete ls;
+//     //delete solution;
+// >>>>>>> master
 }
 #else
 #ifdef EM_LIB
@@ -190,12 +217,14 @@ int main(int argc, char *argv[])
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    prs::QAPBuilder qap(ps,ps.getTokenManager());
     //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
     //ps.addBuilder(&px);
 #ifdef EM_LIB
     loadBuilders(ps);
 #else
+    ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
 #endif
     ls = ps.parseParams();
@@ -230,3 +259,4 @@ int main(int argc, char *argv[])
     }
 }
 #endif
+

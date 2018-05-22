@@ -1,8 +1,11 @@
 project(emili)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
-aux_source_directory(./pfsp SRC_LIST)
-#aux_source_directory(./template SRC_LIST)
+
+aux_source_directory(./SA SA_SRC_LIST)
+aux_source_directory(./QAP QAP_SRC_LIST)
+aux_source_directory(./pfsp PFSP_SRC_LIST)
+
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)
 option(USE_NEW_MAIN "Use new loading paradigm" ON)
@@ -94,7 +97,7 @@ else ()
     #message(FATAL_ERROR "Your C++ compiler does not support C++11.")
 endif ()
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${PFSP_SRC_LIST} ${SA_SRC_LIST} ${QAP_SRC_LIST})
 if(WRITE_COMMIT_ID)
     add_dependencies(${PROJECT_NAME} GNUM)
     add_dependencies(CGNUM GNUM)

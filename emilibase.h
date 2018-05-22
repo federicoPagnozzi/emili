@@ -63,6 +63,7 @@ class nullptr_t
  * emili enclose all the components of the EMILI framework.
  */
 namespace emili{
+
 /**
  * @brief iteration_counter_zero
  * reset the iterations counter

@@ -11,7 +11,6 @@
 #include <vector>
 
 
-
 class PfspInstance{
   private:
     int nbJob;

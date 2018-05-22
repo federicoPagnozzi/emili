@@ -123,8 +123,11 @@ static void finalise (int _)
     if(s_cap != nullptr)
     {
         double sol_val = s_cap->getSolutionValue();
-        if(print)
+        //std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        //std::cout << std::fixed << sol_val << std::endl;
+        if (print)
         {
+
             messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
             messages << "objective function value : "<< std::fixed << sol_val << std::endl;

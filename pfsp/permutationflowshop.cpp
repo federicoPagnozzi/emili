@@ -1442,7 +1442,7 @@ int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> 
     return instance.computeWT(sol,prevJob,job,previousMachineEndTime);
 }
 
-int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> &sol, std::vector<std::vector<int> > &previousMachineEndTimeMatrix, int start_i, int end_i)
+int emili::pfsp::PermutationFlowShop::computeObjectiveFunction(std::vector<int> &sol,std::vector<std::vector<int> > &previousMachineEndTimeMatrix, int start_i, int end_i)
 {
     return instance.computeWT(sol,previousMachineEndTimeMatrix,start_i,end_i);
 }
@@ -2076,7 +2076,7 @@ emili::Solution* emili::pfsp::PfspNEHwslackInitialSolution::generate()
             }
         }
         partial[var+1] = minJ; // updates the partial solution inserting at the end the job with the minimum earliness
-        assigned[minJ] = true; // updates the assigned vector
+        assigned[minJ] = true; // updates the assignedstd::vector
     }
     //int partial_w = pis.computeWT(partial);
     sol = neh2(partial,nbJobs,pis);
