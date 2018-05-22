@@ -198,7 +198,7 @@ public:
                          SACooling* _cooling,
                          SATermination* _term,
                          double _k):
-        k(round(_k * _neigh->size())),
+        k(ceil(_k * _neigh->size())),
         neighsize(_neigh->size()),
         SAExploration(_neigh,
                       _acceptance,
