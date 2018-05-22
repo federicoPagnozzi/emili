@@ -193,9 +193,9 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
 
 
     emili::Solution* incumbent = startingSolution->clone();
-    emili::Solution* accepted = incumbent;
+    emili::Solution* accepted;
     emili::Solution* generated;
-    emili::Solution* candidate = incumbent;
+    emili::Solution* candidate = startingSolution->clone();
 
     //printf("COST OF STARTING: %f\n", startingSolution->getSolutionValue());
 
@@ -220,7 +220,8 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
         cg = generated->getSolutionValue();
 
         if (cg < ci) {
-            candidate = generated;
+            delete candidate;
+            candidate = generated->clone();
             ci = cg;
         }
 
@@ -267,8 +268,10 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
     //for (long j = 0 ; j < 100 ; j++) {
         //printf("COST OF WTF: %f\n", accepted->getSolutionValue());
         //accepted = neigh->random(accepted);
-        accepted = acceptance->accept(candidate,
-                                      neigh->random(accepted));
+        /*accepted = acceptance->accept(candidate,
+                                      neigh->random(incumbent));*/
+    /**/accepted = acceptance->accept(incumbent,
+                                  candidate);/**/
     //}
     status.temp = cooling->update_cooling(status.temp);
     acceptance->setCurrentTemp(status.temp);
