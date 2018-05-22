@@ -306,6 +306,9 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
 
     double ci, cg;
     long i = 0;
+
+    // k CANNOT EXCEED THE NEIGHBOURHOOD SIZE!!!
+    k = std::min(k, neighsize);
     
     // stats
     double orig_ci; // original cost of initial solution 
@@ -315,7 +318,7 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
          num_equal = 0;
     double gap;
     double gap_sum = 0.0; // gap sum
-    double gaps[neighsize]; // all the gaps
+    double gaps[k]; // all the gaps
     double maxgap, mingap; // max gap, min gap, ça va sans dire
 
 
@@ -338,8 +341,8 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
     bool noneaccepted = true;
 
     for(;
-        iter!=neigh->end();// &&
-        //i < neighsize/100;
+        iter!=neigh->end() &&
+        i < k;
         ++iter) {
 
         status.increment_counters();
@@ -375,18 +378,18 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
     if (1 || status.total_counter % 100 == 1) {
         // print:
         // orig_ci, final_ci, %better, %equal, %worse, mingap, avggap, maxgap, stddevgap, 
-        double avggap = gap_sum / neighsize;
+        double avggap = gap_sum / k;
         double stddevgap = 0.0, tmpstd;
-        for (long j = 0 ; j < neighsize ; j++) {
+        for (long j = 0 ; j < k ; j++) {
             tmpstd = gaps[j] - avggap;
             stddevgap = stddevgap + tmpstd * tmpstd;
         }
-        stddevgap = sqrt(stddevgap / (neighsize - 1));
+        stddevgap = sqrt(stddevgap / (k - 1));
         fprintf(stdout, "RUNTIMESTATS %f %f %f %f %f %f %f %f %f\n",
             orig_ci, ci,
-            (num_better * 1.0) / neighsize,
-            (num_equal * 1.0) / neighsize,
-            (num_worse * 1.0) / neighsize,
+            (num_better * 1.0) / k,
+            (num_equal * 1.0) / k,
+            (num_worse * 1.0) / k,
             mingap, avggap, maxgap, stddevgap
             );
         fflush(stdout);
