@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+     14/02/2018
+ 	Grammar for QAP using embase components
+	
+ -->
+
+<gr:grammar xmlns:gr="grammar">
+    <gr:derivations xmlns:pfsp="pfsp_automatic_generation">
+		
+	 <pfsp:iteration_number type="int" min="1" max="1000" stepIfEnumerated="1"/>
+	 <pfsp:time type="real" min="0.1" max="1" stepIfEnumerated="0.01"/>
+	 <pfsp:steps type="int" min="1" max="100" stepIfEnumerated="1"/>
+	 <pfsp:sp_impact type="int" min="1" max="10" stepIfEnumerated="1"/>
+	 <pfsp:s_acc_temp type="real" min="0.1" max="5" stepIfEnumerated="0.0001"/>
+	 <pfsp:metrotemp type="real" min="0.1" max="30" stepIfEnumerated="0.0001"/>
+	 <pfsp:random_moves type="int" min="1" max="10" stepIfEnumerated="1"/>
+	 <pfsp:start_temp type="real" min="1" max="5.0" stepIfEnumerated="0.0001"/>
+	 <pfsp:end_temp type="real" min="0" max="1.0" stepIfEnumerated="0.0001"/>
+       	 <pfsp:temp_ratio type="real" min="0.01" max="0.1" stepIfEnumerated="0.0001"/>
+       	 <pfsp:metro_alpha type="real" min="0.1" max="1" stepIfEnumeraterd="0.0001"/>
+ <pfsp:tempiterations type="int" min="1" max="500" stepIfEnumerated="1"/>	
+ <pfsp:tmiig_tabu_size type="int" min="0" max="20" stepIfEnumerated="1" />
+
+<pfsp:always_acc_param>
+	<![CDATA[intensify ]]>
+    <or/> 
+   <![CDATA[diversify ]]>
+</pfsp:always_acc_param>
+	
+<pfsp:initial_solution>
+   <![CDATA[random ]]>
+</pfsp:initial_solution>
+
+<pfsp:termination>
+   <![CDATA[locmin ]]>
+   <or/>
+    <![CDATA[msorlocmin ]]><pfsp:steps/><![CDATA[ ]]>
+</pfsp:termination>
+
+
+<pfsp:ilstermination>
+   <![CDATA[locmin ]]>
+   <or/>
+    <![CDATA[maxstep ]]><pfsp:steps/><![CDATA[ ]]>
+</pfsp:ilstermination>
+
+<pfsp:neighborhood>
+	   <![CDATA[exchange ]]>
+	</pfsp:neighborhood>
+	
+	<pfsp:pertubation>
+		<![CDATA[rndmv ]]><pfsp:neighborhood/><pfsp:random_moves/><![CDATA[ ]]>
+		<or/>
+		<![CDATA[noper ]]>
+	</pfsp:pertubation>
+
+	<pfsp:acceptance>
+		<![CDATA[improve ]]>
+		<or/>
+		<![CDATA[always ]]><pfsp:always_acc_param/>
+		<or/>
+		<![CDATA[pmetro ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]><pfsp:tempiterations/><![CDATA[ ]]>
+		<or/>
+		<![CDATA[saacc ]]><pfsp:start_temp/><![CDATA[ ]]><pfsp:end_temp/><![CDATA[ ]]><pfsp:temp_ratio/><![CDATA[ ]]><pfsp:tempiterations/><![CDATA[ ]]><pfsp:metro_alpha/><![CDATA[ ]]>
+	</pfsp:acceptance>	
+
+	<pfsp:nols>
+		<![CDATA[nols ]]>
+		<pfsp:initial_solution/>
+	</pfsp:nols>
+
+	<pfsp:first>
+           <![CDATA[first ]]>
+		  <pfsp:initial_solution/>
+          	  <pfsp:termination/>
+  		  <pfsp:neighborhood/>
+	</pfsp:first>
+
+	<pfsp:best>
+           <![CDATA[best ]]>
+           <pfsp:initial_solution/>
+           <pfsp:termination/>
+	   <pfsp:neighborhood/>
+	</pfsp:best>
+
+	<pfsp:ils>
+		<![CDATA[ils ]]>
+		<pfsp:ilsalgos/>
+		<pfsp:ilstermination/>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+	</pfsp:ils>
+	
+	<pfsp:ails>
+		<![CDATA[ils ]]>
+		<pfsp:ilsalgos/>
+	        <![CDATA[true ]]>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+	</pfsp:ails>
+        
+	<pfsp:gls>
+           <![CDATA[ils ]]>
+		<pfsp:ils/>
+	        <![CDATA[true ]]>
+		<pfsp:pertubation/>
+		<pfsp:acceptance/>
+	</pfsp:gls>
+
+	<pfsp:vnd>
+           <![CDATA[vnd ]]>
+		<pfsp:vnds/>
+		<pfsp:initial_solution/>
+		<pfsp:termination/>
+		<pfsp:neighborhood/>
+		<pfsp:neighborhood/>
+		<pfsp:neighborhood/>
+	</pfsp:vnd>
+
+	<pfsp:vnds>
+		<![CDATA[first ]]>
+		<or/>
+		<![CDATA[best ]]>
+	</pfsp:vnds>
+
+	<pfsp:ilsalgos>
+		<pfsp:first/>
+		<or/>
+		<pfsp:best/>
+		<or/>
+		<pfsp:ils/>
+		<or/>
+		<pfsp:vnd/>
+		<or/>
+                <pfsp:nols/>
+	</pfsp:ilsalgos>
+	
+	<pfsp:algos>
+		<pfsp:ails/>
+		<or/>
+		<pfsp:gls/>
+	</pfsp:algos>
+
+	<pfsp:main>
+		<pfsp:algos/>
+	</pfsp:main>
+
+        <pfsp:main_algorithm output="params">
+                <![CDATA[QAP ]]>
+        	<pfsp:main/>     
+        </pfsp:main_algorithm>
+
+    </gr:derivations>
+</gr:grammar>

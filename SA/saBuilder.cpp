@@ -22,6 +22,7 @@ prs::Component prs::SABuilder::buildComponent(int type)
     case COMPONENT_TEMP_LENGTH: raw_pointer =  buildTempLength();break;
     case COMPONENT_EXPLORATION: raw_pointer = buildExploration();break;
     case COMPONENT_INIT_TEMP: raw_pointer = buildInitTemp();break;
+    case COMPONENT_ACCEPTANCE: raw_pointer = buildAcceptance();break;
     }
 
     if(raw_pointer != nullptr)
@@ -74,7 +75,8 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
                                      term,
                                      templ,
                                      explo,
-                                     nei);
+                                     nei,
+                                     NULL);
    }
    prs::decrementTabLevel();
    return ls;
@@ -213,11 +215,14 @@ emili::Acceptance* prs::SABuilder::buildAcceptance()
         int te = tm.getInteger();
         printTabPlusOne("te",te);
         acc = new emili::sa::SAPrecomputedMetropolisWithForcedAcceptance( te);
-    } if (tm.checkToken(BOUNDEDMETROPOLIS)) {
+    } else if (tm.checkToken(BOUNDEDMETROPOLIS)) {
         printTab("SABoundedMetropolisAcceptance");
         double rd = tm.getDecimal();
         printTabPlusOne("rd",rd);
         acc = new emili::sa::SABoundedMetropolisAcceptance(rd);
+    } else if (tm.checkToken(ALLACC)) {
+        printTab("SAAcceptanceAll");
+        acc = new emili::sa::SAAcceptanceAll();
     }
     prs::decrementTabLevel();
     return acc;

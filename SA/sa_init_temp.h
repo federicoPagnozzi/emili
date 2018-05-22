@@ -812,7 +812,7 @@ public:
             }
         }
 
-        it = it / (5 * n * m);
+        it = it / (dc * n * m);
 
         init_temp = value * it;        
         move_time = 0.001; // conventional...
@@ -828,6 +828,116 @@ public:
     }
 
  }; // OsmanPottsInitTemp
+
+
+/**
+ * Do a random walk and take the (absolute value of the) highest gap
+ * as initial temperature
+ * Minimum temperature is the smallest non-zero gap.
+ */
+class RandomWalkStatsInitTemp: public SAInitTemp {
+protected:
+    emili::InitialSolution *is;
+    emili::Neighborhood *nei;
+    int length;
+
+public:    
+    RandomWalkStatsInitTemp(int _length):
+        SAInitTemp(),
+        is(nullptr),
+        nei(nullptr),
+        length(_length) { }
+
+    RandomWalkStatsInitTemp(emili::InitialSolution* _is,
+                       emili::Neighborhood *_nei,
+                       int _length):
+        is(_is),
+        nei(_nei),
+        length(_length) { }
+
+    virtual double set(double value) {
+        int i;
+        clock_t ti = clock(), tf;
+
+        emili::Solution *s1;
+        emili::Solution *s2 = is->generateSolution();
+        
+        double c1,
+               c2 = s2->getSolutionValue();
+        double bestcost = c2;
+        double bestsolcost = c2, worstsolcost = c2;
+
+        maxdelta = 0;
+        mindelta = c2;
+        double avgdelta = 0.0;
+
+        for (i = 0 ; i < length ; i++) {
+            s1 = s2;
+            s2 = nei->random(s1); //is->generateSolution();
+            c1 = c2;
+            c2 = s2->getSolutionValue();
+
+            if (abs(c2 - c1) > maxdelta) {
+                maxdelta = abs(c2 - c1);
+            } else if (abs(c2 - c1) > 0 && abs(c2 - c1) < mindelta) {
+                mindelta = abs(c2 - c1);
+            }
+            avgdelta += abs(c2 - c1);
+
+            if (c2 < bestsolcost) {
+                bestsolcost = c2;
+            } else if (c2 > worstsolcost) {
+                worstsolcost = c2;
+            }
+
+            delete s1;
+        }
+
+        delete s2;
+
+        tf = clock();
+
+        avgdelta = avgdelta / length;
+
+        move_time = ((float)(tf - ti)) / (CLOCKS_PER_SEC * length); 
+
+        init_temp = value * maxdelta;
+
+        // stats
+        // bestsolcost, worstsolcost, mingap, avgdap, maxgap, maxgap/worstsolcost
+        fprintf(stdout, "INITSTATS %f %f %f %f %f\n",
+            bestsolcost, worstsolcost,
+            mindelta, avgdelta, maxdelta,
+            maxdelta/worstsolcost
+            );
+        fflush(stdout);
+
+        return init_temp;
+    }
+
+    virtual double getMinTemp(void) {
+        return mindelta;
+    }
+
+    virtual double getMinTemp(double value) {
+        return value * mindelta;
+    }
+
+    virtual double getInit_prob(void) {
+        return std::exp(-maxdelta / init_temp);
+    }
+
+    virtual void setInitialSolution(emili::InitialSolution *initial_solution)
+    {
+        this->is = initial_solution;
+    }
+
+    virtual void setNeighborhood(emili::Neighborhood* neigh)
+    {
+        nei = neigh;
+    }
+
+}; // RandomWalkStatsInitTemp
 
 
 }

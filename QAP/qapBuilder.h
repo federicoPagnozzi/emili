@@ -6,6 +6,8 @@
 #include "qapinitialsolution.h"
 #include "qapneighborhood.h"
 
+#include <cstring>
+
 #define QAPPROBLEMNAME "QAP"
 namespace prs {
 

@@ -92,6 +92,12 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
         init_temp->set(1);
         return init_temp;
+    } else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        SAInitTemp* init_temp = new RandomWalkStatsInitTemp(initsol, nei, length);
+        init_temp->set(value);
+        return init_temp;
     } else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -102,7 +108,9 @@ SAInitTemp* SAQAPParser::INITTEMP(prs::TokenManager& tm,
 
 
 SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
-                                      SAInitTemp *inittemp) {
+                                      SAInitTemp *inittemp,
+                                      emili::Neighborhood *nei,
+                                      emili::Problem* instance) {
 
     if (tm.checkToken(METROPOLIS)) {
         return new SAMetropolisAcceptance(inittemp->get());
@@ -129,15 +137,23 @@ SAAcceptance* SAQAPParser::ACCEPTANCE(prs::TokenManager& tm,
     } else if (tm.checkToken(LAHCACC)) {
         int te = tm.getInteger();
         return new LAHCAcceptance(te);
+    } else if (tm.checkToken(LAHCNSACC)) {
+        double te = tm.getDecimal();
+        return new LAHCNSAcceptance(te, nei);
+    } else if (tm.checkToken(LAHCPSACC)) {
+        double te = tm.getDecimal();
+        return new LAHCPSAcceptance(te, instance);
     } else if (tm.checkToken(PRECOMPUTEDMETROPOLIS)) {
         int te = tm.getInteger();
         return new SAPrecomputedMetropolisAcceptance(inittemp->get(), te);
     } else if (tm.checkToken(PRECOMPUTEDMETROPOLISWFORCED)) {
         int te = tm.getInteger();
         return new SAPrecomputedMetropolisWithForcedAcceptance(inittemp->get(), te);
-    } if (tm.checkToken(BOUNDEDMETROPOLIS)) {
+    } else if (tm.checkToken(BOUNDEDMETROPOLIS)) {
         double rd = tm.getDecimal();
         return new SABoundedMetropolisAcceptance(inittemp->get(), rd);
+    } else if (tm.checkToken(ALLACC)) {
+        return new SAAcceptanceAll();
     } else {
         std::cerr << "SAAcceptance expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -393,9 +409,21 @@ SAExploration* SAQAPParser::EXPLORATION(prs::TokenManager& tm,
     } else if (tm.checkToken(SABESTOFKEXPLORATION)) {
         long k = tm.getInteger();
         return new SABestOfKExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SABESTOFKSEQUENTIALEXPLORATION)) {
+        long k = tm.getInteger();
+        return new SABestOfKSequentialExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SANSBESTOFKSEQUENTIALEXPLORATION)) {
+        double k = tm.getDecimal();
+        return new SANSBestOfKSequentialExploration(neigh, acc, cool, term, k);
     } else if (tm.checkToken(SAFIRSTBESTOFKEXPLORATION)) {
         long k = tm.getInteger();
         return new SAFirstBestOfKExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SANSBESTOFKEXPLORATION)) {
+        double k = tm.getDecimal();
+        return new SANSBestOfKExploration(neigh, acc, cool, term, k);
+    } else if (tm.checkToken(SANSFIRSTBESTOFKEXPLORATION)) {
+        double k = tm.getDecimal();
+        return new SANSFirstBestOfKExploration(neigh, acc, cool, term, k);
     } else {
         std::cerr << "SAExploration expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
@@ -497,7 +525,7 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
     emili::InitialSolution* initsol    = init(tm);
     emili::Neighborhood*    nei        = neigh(tm);
     SAInitTemp*      inittemp   = INITTEMP(tm, initsol, nei);
-    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp);
+    SAAcceptance*    acceptance = ACCEPTANCE(tm, inittemp, nei, instance);
     SACooling*       cooling    = COOL(tm, inittemp, nei, instance);
     SATempRestart*   temprestart = TEMPRESTART(tm, inittemp, nei);
     cooling->setTempRestart(temprestart);
@@ -514,7 +542,8 @@ emili::LocalSearch* SAQAPParser::buildAlgo(prs::TokenManager& tm) {
                                   term,
                                   templ,
                                   explo,
-                                  nei);
+                                  nei,
+                                  NULL);
 
 }
 

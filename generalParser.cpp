@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "e5dffeb8ea6a4577658872eac6ae82376edd42e5"
+#define GIT_COMMIT_NUMBER "b9fd46eff4788f5a3d3544ab58e0c5752e628738"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
