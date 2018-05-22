@@ -398,7 +398,7 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
     //for (long j = 0 ; j < 100 ; j++) {
         //printf("COST OF WTF: %f\n", accepted->getSolutionValue());
         //accepted = neigh->random(accepted);
-        /**/accepted = acceptance->accept(candidate,
+        /**/accepted = acceptance->accept(incumbent,
                                       neigh->random(incumbent));/**/
     /** /accepted = acceptance->accept(incumbent,
                                   candidate);/ **/
