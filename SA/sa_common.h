@@ -9,12 +9,11 @@
 
 #define nullptr NULL
 
-
-class SAStatus {
+// a reference to SearchStatus sstatus can be changed to SAStatus like this
+// SAStatus& ss = dynamic_cast<SAStatus&> (sstatus);
+class SAStatus : public emili::SearchStatus{
 
 public:
-    long   counter;
-    long   total_counter;
     long   temp_counter;
     long   accepted;
     long   curr_accepted;
@@ -27,11 +26,8 @@ public:
 
     long   neigh_size;
 
-    long   not_improved;
-
     double move_time;
 
-    emili::Solution *best;
     double best_cost;
     double best_temp;
 
@@ -49,23 +45,19 @@ public:
     std::string tl_type; // temperature length
     std::string tr_type; // temperature restart
 
-    SAStatus(void) {
-        counter = 0; // from last accepted
-        total_counter = 0;
+    SAStatus(void):emili::SearchStatus() {
         temp_counter = 0;
         accepted = 0;
         curr_accepted = 0;
         index = 0;
         rate = 1.;
-        tenure = 0;
-        not_improved = 0;
+        tenure = 0;        
         step = 0;
         best_temp = 0;
         neigh_size = 0;
         temp_restarts = 0;
         init_prob = 1.0;
         move_time = 0.0;
-
         keep_last = false;
         force_accept = false;
     }
@@ -90,7 +82,7 @@ public:
     }
 
 
-    void increment_counters(void) {
+    virtual void increment_counters(void) {
         counter += 1;
         total_counter += 1;
         temp_counter += 1;
@@ -99,8 +91,7 @@ public:
 
 
     void new_best_solution(emili::Solution* sol, double cost, double temp) {
-        delete best;
-        best = sol->clone();
+        newBestSolution(sol);
         best_cost = cost;
         best_temp = temp;
         //std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
@@ -117,7 +108,6 @@ public:
         std::cout << emili::getCurrentExecutionTime();
         std::cout << std::endl;
         std::cout << std::flush;*/
-        not_improved = 0;
         counter = 0;
     }
 

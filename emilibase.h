@@ -868,6 +868,8 @@ protected:
 public:
     SearchAlgorithm():ss() { }
     SearchAlgorithm(SearchStatus& status):ss(status) {}
+    virtual SearchStatus& getSearchStatus(){ return ss;}
+    virtual void reset() {}
 };
 
 /** @brief The LocalSearch class
@@ -914,6 +916,7 @@ public:
      * The Neighborhood relation used by the Local Search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
+        SearchAlgorithm(),
         init(&initialSolutionGenerator),
         termcriterion(&terminationcriterion),
         neighbh(&neighborh),
@@ -931,7 +934,12 @@ public:
      * Maximum amount of time, in seconds, for the local search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution())   {    }
+        SearchAlgorithm(),
+        init(&initialSolutionGenerator),
+        termcriterion(&terminationcriterion),
+        neighbh(&neighborh),
+        seconds(time),
+        bestSoFar(initialSolutionGenerator.generateEmptySolution())   {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
      * to generate the first solution for the local search
