@@ -212,6 +212,40 @@ public:
 }; // SANSBestOfKSequentialExploration
 
 /**
+ * As SANSBestOfKSequentialExploration, but adter having scanned
+ * the neighbourhood and computed the statistics, chooses one random
+ * solution to evaluate
+ */
+class SANSBestOfKRandomExploration: public SAExploration {
+
+long k;
+
+long neighsize;
+
+public:
+    SANSBestOfKRandomExploration(long _k):
+        k(_k),
+        SAExploration(SANSBESTOFKRANDOMEXPLORATION) { }
+
+    SANSBestOfKRandomExploration(emili::Neighborhood* _neigh,
+                         SAAcceptance* _acceptance,
+                         SACooling* _cooling,
+                         SATermination* _term,
+                         double _k):
+        k(ceil(_k * _neigh->size())),
+        neighsize(_neigh->size()),
+        SAExploration(_neigh,
+                      _acceptance,
+                      _cooling,
+                      _term,
+                      SANSBESTOFKRANDOMEXPLORATION) { }
+
+    virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
+                                          SAStatus& status);
+
+}; // SANSBestOfKRandomExploration
+
+/**
  * Modified simulated annealing algorithms for the flow shop sequencing problem
  * Ishibuchi, Hisao and Misaki, Shinta and Tanaka, Hideo
  */
