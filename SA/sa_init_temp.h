@@ -63,7 +63,7 @@ public:
      * @return       initial temperature
      */
     virtual double set(double value)=0;
-    virtual double setup() { return set(start_value);}
+    //virtual double setup() { return set(start_value);}
     virtual double getMinTemp(void)=0;
 
     virtual double get(void) {
