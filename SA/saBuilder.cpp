@@ -49,7 +49,7 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
        inittemp->setInitialSolution(initsol);
        inittemp->setNeighborhood(nei);
        inittemp->setInstance(gp.getInstance());
-       inittemp->setup();
+       //inittemp->setup();
        emili::sa::SAAcceptance* acceptance = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::sa::SAAcceptance>();
        acceptance->setStartTemperature(inittemp->get());
        emili::sa::SACooling* cooling = retrieveComponent(COMPONENT_COOLING).get< emili::sa::SACooling>();
