@@ -143,6 +143,7 @@ float generateRealRandomNumber();
 double getCurrentExecutionTime();
 
 class Solution;
+class SearchStatus;
 /**
  * @brief The Problem class
  * The istance of the problem to solve.
@@ -329,6 +330,7 @@ public:
  * @param sol
  */
 inline void printSolstats(emili::Solution* sol);
+inline void printSearchstats(emili::SearchStatus* status);
 
 /**
  * @brief The InitialSolution class
@@ -814,12 +816,66 @@ public:
     virtual int size(){ return -1; }
     virtual ~RandomConstructiveHeuristicNeighborhood() { delete heuristic;}
 };
+/**
+ * @brief The SearchStatus class
+ * This class keeps track of the algorithm execution status
+ * by holding counters and the best solution.
+ */
+class SearchStatus
+{
+protected:    
+    Solution* best;
+    Solution* feasible_best;
+public:
+    long counter;
+    long total_counter;
+    long not_improved;
+    SearchStatus():
+        counter(0),
+        total_counter(0),
+        not_improved(0),
+        best(nullptr),
+        feasible_best(nullptr) { }
 
+    SearchStatus(SearchStatus& status):
+        counter(status.counter),
+        total_counter(status.total_counter),
+        not_improved(status.not_improved),
+        best(status.getBestSolution()),
+        feasible_best(status.getFeasibleBestSolution()){ }
+
+    virtual void incrementCounters();
+
+    virtual void newBestSolution(Solution* new_best);
+
+    virtual Solution* getBestSolution();
+
+    virtual Solution* getFeasibleBestSolution();
+
+    virtual void resetCounters();
+
+};
+
+class SearchAlgorithm
+{
+protected:
+    SearchStatus* status;
+    /**
+     * @brief setBest
+     * @param nBest
+     */
+    inline void setBest(Solution* nBest);
+public:
+    SearchAlgorithm():status() { }
+    SearchAlgorithm(SearchStatus& _status):status(&_status) {}
+    virtual SearchStatus& getSearchStatus(){ return *status;}
+    virtual void reset() {}
+};
 
 /** @brief The LocalSearch class
 * This class models a very general local search.
 */
-class LocalSearch
+class LocalSearch : public SearchAlgorithm
 {
 protected:
     /**
@@ -838,30 +894,17 @@ Termination* termcriterion;
  */
 Neighborhood* neighbh;
 /**
- * @brief bestSoFar
- * the best solution found so far
- */
-Solution* bestSoFar;
-/**
- * @brief feasibleBest
- */
-Solution* feasibleBest;
-/**
- * @brief setBest
- * @param nBest
- */
-inline void setBest(Solution* nBest);
-/**
  * @brief seconds
  * Maximum amount of time, in seconds, for the local search
  */
 float seconds;
+Solution* bestSoFar;
 /**
      * @brief LocalSearch
      * the empty constructor is declared protected so that an extending class can not
      * use a public one
      */
-    LocalSearch():bestSoFar(nullptr),feasibleBest(nullptr) { }
+    LocalSearch():SearchAlgorithm(){ }
 public:
     /**
      * @brief LocalSearch
@@ -873,7 +916,12 @@ public:
      * The Neighborhood relation used by the Local Search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
+        SearchAlgorithm(),
+        init(&initialSolutionGenerator),
+        termcriterion(&terminationcriterion),
+        neighbh(&neighborh),
+        seconds(0),
+        bestSoFar(initialSolutionGenerator.generateEmptySolution()) { }
     /**
      * @brief LocalSearch
      * @param initialSolutionGenerator
@@ -886,7 +934,12 @@ public:
      * Maximum amount of time, in seconds, for the local search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
+        SearchAlgorithm(),
+        init(&initialSolutionGenerator),
+        termcriterion(&terminationcriterion),
+        neighbh(&neighborh),
+        seconds(time),
+        bestSoFar(initialSolutionGenerator.generateEmptySolution())   {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -1528,6 +1581,43 @@ public:
     virtual ~ComposedInitialSolution() { delete &is; delete &ls;}
 };
 
+class AlternateLocalSearch: public emili::LocalSearch
+{
+protected:
+    emili::LocalSearch* ls1;
+    emili::LocalSearch* ls2;
+    bool turn;
+public:
+    AlternateLocalSearch(InitialSolution& is,emili::LocalSearch* localsearch1, emili::LocalSearch* localsearch2 ):
+        emili::LocalSearch(),
+        ls1(localsearch1),
+        ls2(localsearch2)
+    {
+        this->init = &is;
+        this->neighbh = new EmptyNeighBorHood();
+        this->termcriterion = new LocalMinimaTermination();
+        turn = true;
+    }
+
+    emili::Solution* search(emili::Solution* );
+    emili::Solution* getBestSoFar();
+
+};
+
+class MaxStepsNoImprov : public Termination
+{
+protected:
+    int h;
+    int max_h;
+public:
+    MaxStepsNoImprov(int max_steps):
+        emili::Termination(),
+        max_h(max_steps) { }
+
+    bool terminate(Solution *currentSolution, Solution *newSolution);
+    void reset();
+};
+
 /**
 class SimulatedAnnealing : public emili::LocalSearch
 {
@@ -1543,5 +1633,6 @@ virtual ~SimulatedAnnealing() { delete acceptance;}
 
 /**  Kind of a reflection thing...*/
 emili::LocalSearch* getAlgo();
+void setRootAlgorithm(emili::LocalSearch* ls);
 }
 #endif // EMILIBASE_H

@@ -19,6 +19,7 @@
 #define NI_RIS_LS "niris"
 #define NW_RIS_LS "nwris"
 #define RNW_RIS_LS "rnwris"
+#define SWP_INC_LS "swpinc"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -112,6 +113,7 @@
 #define TERMINATION_ITERA "iteration"
 #define TERMINATION_SOA "soater"
 #define TERMINATION_KAR "karter"
+#define TERMINATION_MAXSTEPS_WITHNOIMPROV "msnoimprov"
 
 /*
  *  permutation flowshop neighborhoods
@@ -146,6 +148,7 @@
 #define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
+#define NEIGHBORHOOD_CS_INSERT "csinsert"
 
 /* Total Completion Time*/
 #define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
@@ -289,6 +292,13 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         ls = new emili::pfsp::RandomNoWait_RIS(*instance,*in);
+    }
+    else if(tm.checkToken(SWP_INC_LS))
+    {
+        printTab("SwapInc local search");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        int r = 3;
+        ls = new emili::pfsp::SwapIncLocalSearch(r,*in);
     }
 
     prs::decrementTabLevel();
@@ -1071,6 +1081,12 @@ emili::Termination* prs::PfspBuilder::buildTermination()
         printTab("Kar termination");
         term =  new emili::pfsp::KarTermination(ti);
     }
+    if(tm.checkToken(TERMINATION_MAXSTEPS_WITHNOIMPROV))
+    {
+        int n = instance->getNjobs();
+        printTab("Termination that stops after n not improving steps");
+        term = new emili::MaxStepsNoImprov(n);
+    }
 
 
     prs::decrementTabLevel();
@@ -1268,6 +1284,12 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
         printTab("No wait delta evaluation transpose");
         neigh = new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
     }
+    else if(tm.checkToken(NEIGHBORHOOD_CS_INSERT))
+    {
+        printTab("Insert Neighborhood that returns only the best insertion");
+        neigh = new emili::pfsp::CSInsertNeighborhood(*instance);
+    }
+
     prs::decrementTabLevel();
     return neigh;
 }

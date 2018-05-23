@@ -44,7 +44,7 @@ QAPInstance::QAPInstance(string QAPLibFile) {
             }
         }
     } else {
-        std::cout << "file missing or corrupted, cannot open, exiting" << std::endl;
+        std::cout << QAPLibFile << "file missing or corrupted, cannot open, exiting" << std::endl;
         exit(1);
     } // end if (infile)
 

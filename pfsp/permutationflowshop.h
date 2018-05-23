@@ -868,6 +868,18 @@ public:
 };
 
 /**
+ * Insert neighborhood
+ * that does a full scan each iteration
+ */
+class CSInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    CSInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem){ }
+};
+
+/**
  * Insert neighborhood with Taillard's acceleration
  * that changes the base solution after each improvement
  */
@@ -1895,6 +1907,27 @@ public:
         bp(b),
         cp(c),
         ep(e){ }
+};
+
+class SwapIncLocalSearch: public emili::LocalSearch
+{
+protected:
+    int _r;
+    emili::pfsp::PermutationFlowShop& p;
+    int njobs;
+public:
+    SwapIncLocalSearch(int r,InitialSolution& is):
+      emili::LocalSearch(),
+      _r(r),
+      p((PermutationFlowShop&)is.getProblem())
+    {
+        this->init = &is;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = is.generateEmptySolution();
+        this->njobs = p.getNjobs();
+    }
+    emili::Solution* search(emili::Solution* initial);
 };
 
 }

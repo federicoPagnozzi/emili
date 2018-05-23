@@ -35,6 +35,7 @@
 #define FEASIBLE_BEST "fbest"
 #define TB_BEST "tbest"
 #define VND "vnd"
+#define ALS "als"
 //#define GVNS_ILS "gvns"
 #define TEST_INIT "stin"
 #define EMPTY_LOCAL "nols"
@@ -44,6 +45,7 @@
 /*Base Termination criteria*/
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_MAXSTEPS_OR_LOCMIN "msorlocmin"
+#define TERMINATION_MAXSTEPS_NOIMPROV "msnoimp"
 #define TERMINATION_TIME "time"
 #define TERMINATION_TIMERO "timero"
 #define TERMINATION_LOCMIN "locmin"
@@ -369,6 +371,7 @@ emili::LocalSearch* prs::GeneralParser::parseParams()
             {
                 emili::set_print(false);
             }
+            emili::setRootAlgorithm(ls);
             return ls;
         }
     }
@@ -531,7 +534,8 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
             fatalError(cls.getType(),COMPONENT_ALGORITHM);
         }
         emili::LocalSearch* ls = cls.get<emili::LocalSearch>();
-        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));        
+        ls->setSearchTime(getTime(tm,ls->getInitialSolution().getProblem().problemSize()));
+        emili::setRootAlgorithm(ls);
         if(tm.seek(PRINT_SOLUTION)>0)
         {
             emili::set_print(true);
@@ -725,6 +729,14 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Problem* p = retrieveComponent(COMPONENT_PROBLEM).get<emili::Problem>();
         ls =  new emili::TieBrakingBestImprovementSearch(*in,*te,*ne,*p);
     }
+    else if(tm.checkToken(ALS))
+    {
+        printTab("Alternate LS");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get< emili::LocalSearch>();
+        emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get< emili::LocalSearch>();
+        ls = new emili::AlternateLocalSearch(*in,ls1,ls2);
+    }
     else if(tm.checkToken(VND))
     {
         //printTab("VND SEARCH");
@@ -850,7 +862,13 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         printTab(oss.str().c_str());
         term = new emili::MaxStepsOrLocmin(steps);
     }
-
+    else if(tm.checkToken(TERMINATION_MAXSTEPS_NOIMPROV))
+    {
+        int steps = tm.getInteger();
+        printTab("Termination: Max steps without improvements");
+        printTabPlusOne("steps",steps);
+        term = new emili::MaxStepsNoImprov(steps);
+    }
 
     prs::decrementTabLevel();
     return term;

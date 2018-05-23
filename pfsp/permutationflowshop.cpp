@@ -283,60 +283,62 @@ void inline bsch_procedure(int x,float a, float b, float c, emili::pfsp::Permuta
         old_nodes = nodes;
         nodes.clear();
         //std::vector< bsnode* > new_nodes;
-        int childs = 0;
+        int children = 0;
         for(int l = 0; l< x ; l++)  //for each l = 1 to x
         {
             int rj = njobs-k;
             bsnode* father = old_nodes[l];
 
-            if(!(childs >= x) || !(father->F > nodes[0]->B))
-            for(int j = 0; j< rj; j++) //and for each j = 1 to n — x;
+            if(!(children >= x) || !(father->F > nodes[0]->B))
             {
-                int njob = father->U[j];
-                std::vector<int> cnn(nmac+1,0);
                 std::vector<int>& fct = father->C;
-                cnn[1] = fct[1] + ptimes[njob][1];
-                float ITujk = 0.0;
-                for(int m=2;m<=nmac;m++)
-                {
-                    cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
-                    float den = m-1+(k*(float)(nmac-m+1)/(float)(njobs-2));
-                    float num = nmac * std::max(cnn[m-1]-fct[m],0);
-                    ITujk = ITujk + (num/den);
-                }
-                float Bn = father->F + c * cnn[nmac] + ITujk * (njobs-(k+2));//B_jkl := F_kl + c * CT_jkl + IT_jkl
-                bool add = true;
-                if(childs >= x)
-                {
-                    if(Bn < nodes[0]->B)
-                    {
-                        std::pop_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
-                        delete nodes.back();
-                        nodes.pop_back();
-                    }
-                    else
-                    {
-                        add = false;
-                    }
-                }
-                if(add)
-                {
-                    bsnode* nnode = new bsnode;//Candidate Nodes Creation
-                    nnode->father = father;
-                    nnode->k = k;
-                    nnode->l = j;
-                    nnode->job = njob;
-                    nnode->IT = ITujk;
-                    nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
-                    //Candidate Nodes Evaluation
-                    nnode->B = Bn;
-                    nodes.push_back(nnode);
-                    std::push_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
-                    childs++;
-                }
-               // std::cout << k<< l << " " << *nnode << std::endl;
-            }
 
+                for(int j = 0; j< rj; j++) //and for each j = 1 to n — x;
+                {
+                    int njob = father->U[j];
+                    std::vector<int> cnn(nmac+1,0);
+                    cnn[1] = fct[1] + ptimes[njob][1];
+                    float ITujk = 0.0;
+                    for(int m=2;m<=nmac;m++)
+                    {
+                        cnn[m] = std::max(fct[m],cnn[m-1])+ptimes[njob][m];
+                        float den = m-1+(k*(float)(nmac-m+1)/(float)(njobs-2));
+                        float num = nmac * std::max(cnn[m-1]-fct[m],0);
+                        ITujk = ITujk + (num/den);
+                    }
+                    float Bn = father->F + c * cnn[nmac] + ITujk * (njobs-(k+2));//B_jkl := F_kl + c * CT_jkl + IT_jkl
+                    bool add = true;
+                    if(children >= x)
+                    {
+                        if(Bn < nodes[0]->B)
+                        {
+                            std::pop_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
+                            delete nodes.back();
+                            nodes.pop_back();
+                        }
+                        else
+                        {
+                            add = false;
+                        }
+                    }
+                    if(add)
+                    {
+                        bsnode* nnode = new bsnode;//Candidate Nodes Creation
+                        nnode->father = father;
+                        nnode->k = k;
+                        nnode->l = j;
+                        nnode->job = njob;
+                        nnode->IT = ITujk;
+                        nnode->C = cnn;  //Determination of IT_jkl, CT_jkl;
+                        //Candidate Nodes Evaluation
+                        nnode->B = Bn;
+                        nodes.push_back(nnode);
+                        std::push_heap(nodes.begin(),nodes.end(),[](bsnode* n1,bsnode* n2){return n1->B < n2->B;});
+                        children++;
+                    }
+                    // std::cout << k<< l << " " << *nnode << std::endl;
+                }
+            }
         }
         //Candidate Nodes Selection
         //Determination of the l'-th best candidate node according to non-decreasing B_jkl in iteration k.
@@ -1630,7 +1632,7 @@ int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector< int > & partial
 
 int emili::pfsp::PFSP_TCT::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
 {
-    return instance.computeT(solution,makespans,size);
+    return instance.computeTCT(solution,makespans,size);
 }
 
 int emili::pfsp::PFSP_WE::computeObjectiveFunction(std::vector< int > & partial_solution)
@@ -2866,10 +2868,10 @@ emili::Solution* emili::pfsp::IGOPerturbation::perturb(Solution *solution)
             for(int h=r+1; h<=sops; h++)
                 solTMP[h]=solPartial[h-1];
 
-//            int tmp = instance.computeObjectiveFunction(solTMP,sops);
+            //int tmp1 = instance.computeObjectiveFunction(solTMP,sops);
             int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
-//            std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
-//            assert(tmp==tmp1);
+            // std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
+            //assert(tmp==tmp1);
             if(tmp<min){
                 min=tmp;
                 ind=r;
@@ -4354,6 +4356,58 @@ emili::Solution* emili::pfsp::CSTaillardAcceleratedInsertNeighborhood::computeSt
 
                 }
 
+            }
+
+        }
+        //long int old_v  = pis.computeObjectiveFunction(newsol);
+        //std::cout << c_max << " - " << old_v << std::endl;
+        //assert(c_max == old_v);
+        end_position = best_inspos;
+        newsol.insert(newsol.begin()+best_inspos,sol_i);
+        value->setSolutionValue(best_cmax);
+        sp_iterations++;
+        return value;
+    }
+}
+
+emili::Solution* emili::pfsp::CSInsertNeighborhood::computeStep(emili::Solution *value)
+{
+    emili::iteration_increment();
+    if(sp_iterations > njobs)
+    {
+        return nullptr;
+    }
+    else
+    {
+        std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
+
+        int best_inspos = 1;
+        int best_cmax = std::numeric_limits<int>::max();
+        end_position = 1;
+        start_position = ((start_position)%njobs)+1;
+        int sol_i = newsol[start_position];
+        newsol.erase(newsol.begin()+start_position);
+#ifdef ENABLE_SSE
+        computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#else
+        computeTAmatrices(newsol);
+
+#endif
+
+        for(int k=1; k<=njobs; k++)
+        {
+
+            if(k != start_position)
+            {
+                newsol.insert(newsol.begin()+k,sol_i);
+                int c_max = pis.computeObjectiveFunctionFromHead(newsol,k,head,njobs);
+                //assert(pis.computeObjectiveFunction(newsol)==c_max);
+                if(c_max < best_cmax)
+                {
+                    best_cmax = c_max;
+                    best_inspos = k;
+                }
+                newsol.erase(newsol.begin()+k);
             }
 
         }
@@ -9453,6 +9507,46 @@ emili::Solution* emili::pfsp::BSheuristic::generate()
 {
     emili::pfsp::PermutationFlowShopSolution* s =(emili::pfsp::PermutationFlowShopSolution*) generateEmptySolution();
     bs_procedure(x,ap,bp,cp,ep,pis,s);
+    return s;
+}
+
+emili::Solution* emili::pfsp::SwapIncLocalSearch::search(emili::Solution *initial)
+{
+    int d = 1;
+    int it = 0;
+    int max_it = _r*njobs*njobs;
+    std::vector<int> best = ((PermutationFlowShopSolution*)initial)->getJobSchedule();
+    double value = initial->getSolutionValue();
+    double current_value = std::numeric_limits<int>::max();
+    std::vector<int> current = best;
+    while(d <= njobs && it < max_it)
+    {
+        it++;
+        for(int j = 1; j<= (njobs-d); j++)
+        {
+            std::swap(current[j],current[j+d]);
+            double cv = p.computeObjectiveFunction(current);
+            if(cv < current_value)
+            {
+                current_value = cv; // improvement update objfunction
+            }
+            else
+            {
+                std::swap(current[j],current[j+d]); //no improvement swap back
+            }
+        }
+        if(current_value < value)
+        {
+            best = current;
+            value = current_value;
+            d = 1;
+        }
+        else
+        {
+            d++;
+        }
+    }
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(value,best);
     return s;
 }
 

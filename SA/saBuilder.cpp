@@ -78,6 +78,12 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
                                      nei,
                                      NULL);
    }
+  /* else if(tm.checkToken(ALT_LS))
+   {
+       emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch*>();
+       emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch*>();
+
+   }*/
    prs::decrementTabLevel();
    return ls;
 }

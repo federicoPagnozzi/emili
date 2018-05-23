@@ -61,5 +61,5 @@ int maino(int argc, char *argv[]) {
 		std::cout << "FLOWSHOP INSTANCE GENERATOR" << std::endl;
 		std::cout << "Usage:\n\tgenerator #jobs #machines random_seed [ T_factor DD_range ]" <<std::endl;	
 	}
-	
+    return 0;
 }
