@@ -24,8 +24,6 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
     neigh->reset();
 
-    status->new_best_solution(initial, status->best_cost, status->temp);
-
     do {
 
         bestSoFar = exploration->nextSolution(bestSoFar, *sastatus);
