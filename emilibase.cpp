@@ -496,7 +496,7 @@ void emili::SearchStatus::resetCounters()
 
 void emili::SearchAlgorithm::setBest(Solution* newbest)
 {
-    ss.newBestSolution(newbest);
+    status->newBestSolution(newbest);
 }
 
 
@@ -663,7 +663,7 @@ emili::Solution* emili::EmptyLocalSearch::timedSearch()
 
 emili::Solution* emili::LocalSearch::getBestSoFar()
 {   
-    return this->ss.getBestSolution();
+    return status->getBestSolution();
 }
 
 void emili::LocalSearch::setBestSoFar(Solution *newBest)
@@ -1466,7 +1466,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime,e
 emili::Solution* emili::FeasibleIteratedLocalSearch::getBestSoFar()
 {
     emili::Solution* bestOfInnerLocal = IteratedLocalSearch::getBestSoFar();
-    emili::Solution* feasibleBest = ss.getFeasibleBestSolution();
+    emili::Solution* feasibleBest = status->getFeasibleBestSolution();
     if(feasibleBest != nullptr )
     {
         if(bestOfInnerLocal->isFeasible() && bestOfInnerLocal->operator <(*feasibleBest))

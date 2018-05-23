@@ -859,16 +859,16 @@ public:
 class SearchAlgorithm
 {
 protected:
-    SearchStatus ss;
+    SearchStatus* status;
     /**
      * @brief setBest
      * @param nBest
      */
     inline void setBest(Solution* nBest);
 public:
-    SearchAlgorithm():ss() { }
-    SearchAlgorithm(SearchStatus& status):ss(status) {}
-    virtual SearchStatus& getSearchStatus(){ return ss;}
+    SearchAlgorithm():status() { }
+    SearchAlgorithm(SearchStatus& _status):status(&_status) {}
+    virtual SearchStatus& getSearchStatus(){ return *status;}
     virtual void reset() {}
 };
 

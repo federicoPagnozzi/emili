@@ -30,6 +30,7 @@
 
 //#include "SA/sa_pfsp_parser.h"
 #include "SA/sa_qap_parser.h"
+#include "SA/SABuilder.h"
 #include "QAP/qapBuilder.h"
 
 
@@ -218,6 +219,7 @@ int main(int argc, char *argv[])
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
     prs::QAPBuilder qap(ps,ps.getTokenManager());
+    prs::SABuilder sab(ps,ps.getTokenManager());
     //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
     //ps.addBuilder(&px);
@@ -226,6 +228,7 @@ int main(int argc, char *argv[])
 #else
     ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
+    ps.addBuilder(&sab);
 #endif
     ls = ps.parseParams();
     if(ls!=nullptr)

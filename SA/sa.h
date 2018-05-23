@@ -37,7 +37,7 @@ protected:
     SATempLength     *tempLength;
     SAExploration    *exploration;
     emili::Neighborhood *neigh;
-    SAStatus         *status;
+    SAStatus         *sastatus;
 
 
 public:
@@ -51,84 +51,83 @@ public:
                        SAExploration    *exploration,
                        emili::Neighborhood     *neighborhood,
                        SAStatus*         _status):
-                      initialTemperature(initialTemperature),
-                      acceptanceCriterion(acceptanceCriterion),
-                      coolingScheme(coolingScheme),
-                      temprestart(temprestart),
-                      terminationCriterion(terminationCriterion),
-                      exploration(exploration),
-                      tempLength(tempLength),
-                      status(_status),
-                      emili::LocalSearch(*initialSolutionGenerator,
-                                         *terminationCriterion,
-                                         *neighborhood) {
+        initialTemperature(initialTemperature),
+        acceptanceCriterion(acceptanceCriterion),
+        coolingScheme(coolingScheme),
+        temprestart(temprestart),
+        terminationCriterion(terminationCriterion),
+        exploration(exploration),
+        tempLength(tempLength),
+        emili::LocalSearch(*initialSolutionGenerator,
+                           *terminationCriterion,
+                           *neighborhood) {
 
-                        neigh = neighborhood;
+        status = _status;
+        if (status == NULL) {
+            status = new SAStatus();
+          }
+        sastatus = (SAStatus*) status;
+            neigh = neighborhood;
 
-                        init_temp = initialTemperature->get();
-                        temp = init_temp;
+            init_temp = initialTemperature->get();
+            temp = init_temp;
 
-                        if (status == NULL) {
-                          status = new SAStatus();
 
-                          status->set_types(terminationCriterion->getType(),
-                                            acceptanceCriterion->getType(),
-                                            tempLength->getType(),
-                                            temprestart->getType());
-                          status->init_temp = init_temp;
-                          status->final_temp = initialTemperature->getMinTemp();
-                          status->temp = init_temp;
-                          acceptanceCriterion->setCurrentTemp(status->temp);
-                          
 
-                          /**
+            sastatus->set_types(terminationCriterion->getType(),
+                              acceptanceCriterion->getType(),
+                              tempLength->getType(),
+                              temprestart->getType());
+            sastatus->init_temp = init_temp;
+            sastatus->final_temp = initialTemperature->getMinTemp();
+            sastatus->temp = init_temp;
+            acceptanceCriterion->setCurrentTemp(sastatus->temp);
+            /**
                            * initialization of attribute depends on termination criteria
                            * but in sa_termination_criteria.h I have to include sa_common.h
                            * therefore it sucks a bit but I have to initialize this here.
                            */
-                          status->tenure = 1;
+            sastatus->tenure = 1;
 
-                          if (status->tc_type == LASTACCRATETERM) {
-                            status->tenure = terminationCriterion->getTenure();
-                          } else if (status->tr_type == SALASTRATERESTART        ||
-                                     status->tr_type == SALASTRATEREHEAT         ||
-                                     status->tr_type == SALOCALMINENHANCEDREHEAT   ) {
-                            status->tenure = temprestart->getTenure();
-                          }
+            if (sastatus->tc_type == LASTACCRATETERM) {
+                sastatus->tenure = terminationCriterion->getTenure();
+            } else if (sastatus->tr_type == SALASTRATERESTART        ||
+                       sastatus->tr_type == SALASTRATEREHEAT         ||
+                       sastatus->tr_type == SALOCALMINENHANCEDREHEAT   ) {
+                sastatus->tenure = temprestart->getTenure();
+            }
 
-                          status->last_accepted = (short *)
-                              malloc(status->tenure * sizeof(short));
+            sastatus->last_accepted = (short *)
+                    malloc(sastatus->tenure * sizeof(short));
 
-                          // try at least status->tenure solutions
-                          // otherwise it will terminate immediately
-                          for (int i = 0 ; i < status->tenure ; i++) {
-                            status->last_accepted[i] = 1;
-                          }
+            // try at least status->tenure solutions
+            // otherwise it will terminate immediately
+            for (int i = 0 ; i < sastatus->tenure ; i++) {
+                sastatus->last_accepted[i] = 1;
+            }
 
-                          status->final_temp = initialTemperature->getMinTemp();
-                          status->init_prob = initialTemperature->getInit_prob();
-                          status->neigh_size = neighborhood->size();
+            sastatus->final_temp = initialTemperature->getMinTemp();
+            sastatus->init_prob = initialTemperature->getInit_prob();
+            sastatus->neigh_size = neighborhood->size();
 
-                          acceptanceCriterion->set_status(status);
-                          temprestart->set_status(status);
-                          tempLength->set_status(status);
-                          coolingScheme->set_status(status);
-                          initialTemperature->set_status(status);
+            acceptanceCriterion->set_status(sastatus);
+            temprestart->set_status(sastatus);
+            tempLength->set_status(sastatus);
+            coolingScheme->set_status(sastatus);
+            initialTemperature->set_status(sastatus);
 
-                          status->print();
-                        }
-                      }
+            sastatus->print();
+
+    }
 
     virtual emili::Solution* search(emili::Solution* initial);
     virtual emili::Solution* search();
     
     virtual void setSearchTime(int time);
 
-    void set_status(SAStatus* _status);
-
     virtual void reset();
 
-    virtual emili::Solution* getBestSoFar() { return status->best;}
+    virtual emili::Solution* getBestSoFar() { return status->getBestSolution();}
 
     virtual ~SimulatedAnnealing() {
       delete initialTemperature;
@@ -138,7 +137,7 @@ public:
       delete exploration;
       delete tempLength;
       if (status != NULL) {
-        free(status->last_accepted);
+        free(((SAStatus*)status)->last_accepted);
         delete (status);
       }
     }
