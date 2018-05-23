@@ -1760,20 +1760,20 @@ SAInitTemp* prs::ParamsParser::INITTEMP(prs::TokenManager& tm,
         SAInitTemp* init_temp = new SimplifiedMiseviciusInitTemp(initsol, nei, length, l1, l2);
         init_temp->set(1);
         return init_temp;
-    } else if (tm.checkToken(OSMANPOTTSINITTEMP)) {
+    } /*else if (tm.checkToken(OSMANPOTTSINITTEMP)) {
         float dc = tm.getDecimal();
         float tf = tm.getDecimal();
         float coeff = tm.getDecimal();
         SAInitTemp* init_temp = new OsmanPottsInitTemp(initsol, nei, instance, dc, tf);
         init_temp->set(coeff);
         return init_temp;
-    } else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
+    }  else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
         int length = tm.getInteger();
         double value = tm.getDecimal();
         SAInitTemp* init_temp = new RandomWalkStatsInitTemp(initsol, nei, length);
         init_temp->set(value);
         return init_temp;
-    } else {
+    } */ else {
         std::cerr << "SAInitTemp expected, not found : " << std::endl;
         std::cerr << tm.peek() << std::endl;
         exit(1);

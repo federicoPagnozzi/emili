@@ -1,4 +1,4 @@
-#ifndef SAPFSPPARSER_H
+/*#ifndef SAPFSPPARSER_H
 #define SAPFSPPARSER_H
 
 #include "sa.h"
@@ -17,7 +17,7 @@
 #include "../generalParser.h"
 #include "../pfsp/permutationflowshop.h"
 
-/* Permutation flowshop*/
+/* Permutation flowshop * /
 #define PROBLEM_PFS_WT "PFSP_WT"
 #define PROBLEM_PFS_WE "PFSP_WE"
 #define PROBLEM_PFS_TCT "PFSP_TCT"
@@ -26,7 +26,7 @@
 #define PROBLEM_PFS_WCT "PFSP_WCT"
 #define PROBLEM_PFS_MS "PFSP_MS"
 
-/* no wait permutation flowshop*/
+/* no wait permutation flowshop * /
 #define PROBLEM_NWPFS_MS "NWPFSP_MS"
 #define PROBLEM_NWPFS_WT "NWPFSP_WT"
 #define PROBLEM_NWPFS_WE "NWPFSP_WE"
@@ -34,7 +34,7 @@
 #define PROBLEM_NWPFS_T "NWPFSP_T"
 #define PROBLEM_NWPFS_E "NWPFSP_E"
 
-/* no idle permutation flowshop*/
+/* no idle permutation flowshop* /
 #define PROBLEM_NIPFS_MS "NIPFSP_MS"
 #define PROBLEM_NIPFS_WT "NIPFSP_WT"
 #define PROBLEM_NIPFS_WE "NIPFSP_WE"
@@ -42,11 +42,11 @@
 #define PROBLEM_NIPFS_T "NIPFSP_T"
 #define PROBLEM_NIPFS_E "NIPFSP_E"
 
-/* Sequence dependent setup times */
+/* Sequence dependent setup times * /
 #define PROBLEM_SDSTPFS_MS "SDSTPFS_MS"
 
 
-/* initial solution heuristics */
+/* initial solution heuristics * /
 #define INITIAL_RANDOM "random"
 #define INITIAL_SLACK "slack"
 #define INITIAL_LIT "lit"
@@ -58,7 +58,7 @@
 #define INITIAL_MNEH "mneh"
 #define INITIAL_WNSLACK "nwslack"
 
-/* Termination criteria*/
+/* Termination criteria* /
 #define TERMINATION_MAXSTEPS "maxstep"
 #define TERMINATION_TIME "time"
 #define TERMINATION_LOCMIN "locmin"
@@ -66,7 +66,7 @@
 #define TERMINATION_WTRUE "true"
 #define TERMINATION_SOA "soater"
 
-/* permutation flowshop neighborhoods*/
+/* permutation flowshop neighborhoods* /
 #define NEIGHBORHOOD_INSERT "insert"
 #define NEIGHBORHOOD_BACK_INSERT "binsert"
 #define NEIGHBORHOOD_FORW_INSERT "finsert"
@@ -90,14 +90,14 @@ protected:
 
     /**
      * an instance of PFS problem
-     */
+     * /
     emili::pfsp::PermutationFlowShop* instance;
 
     /**
      * identify cooling scheme
      * @param  tm TokenManager
      * @return    SACooling object
-     */
+     * /
     SACooling*       COOL(prs::TokenManager& tm,
                               SAInitTemp *it,
                               emili::Neighborhood *nei,
@@ -107,7 +107,7 @@ protected:
      * identify acceptance criterion
      * @param  tm TokenManager
      * @return    SAAcceptance object
-     */
+     * /
     SAAcceptance*    ACCEPTANCE(prs::TokenManager& tm,
                                 SAInitTemp *inittemp);
 
@@ -115,7 +115,7 @@ protected:
      * identify termination criterion
      * @param  tm TokenManager
      * @return    SATermination object
-     */
+     * /
     SATermination*   TERMINATION(prs::TokenManager& tm,
                                  emili::Neighborhood *nei);
 
@@ -123,7 +123,7 @@ protected:
      * identify Neighborhood
      * @param  tm TokenManager
      * @return    Neighborhood object
-     */
+     * /
     emili::Neighborhood*  NEIGH(prs::TokenManager& tm);
 
     /**
@@ -131,7 +131,7 @@ protected:
      * @param  tm      TokenManager
      * @param  initsol initial solution
      * @return         InitTemp object
-     */
+     * /
     SAInitTemp*      INITTEMP(prs::TokenManager&      tm,
                               emili::InitialSolution* initsol,
                               emili::Neighborhood *nei,
@@ -141,7 +141,7 @@ protected:
      * identify initial solution builder
      * @param  tm TokenManager
      * @return    InitialSolution object
-     */
+     * /
     emili::InitialSolution* INITSOL(prs::TokenManager& tm);
 
 
@@ -166,7 +166,7 @@ protected:
     /**
      * load the instance
      * @param tm token manager
-     */
+     * /
     void problem(prs::TokenManager& tm);
 
 
@@ -176,7 +176,7 @@ public:
      * algorithm builder, according to grammar
      * @param  tm TokenManager
      * @return    assembled algorithm
-     */
+     * /
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);
 
     virtual bool isParsable(std::string& problem) ;
@@ -186,3 +186,4 @@ public:
 }; // class SAPFSPParser
 
 #endif
+*/

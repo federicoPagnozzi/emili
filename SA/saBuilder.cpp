@@ -48,6 +48,7 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
        emili::sa::SAInitTemp* inittemp = retrieveComponent(COMPONENT_INIT_TEMP).get<emili::sa::SAInitTemp>();
        inittemp->setInitialSolution(initsol);
        inittemp->setNeighborhood(nei);
+       inittemp->setInstance(gp.getInstance());
        inittemp->setup();
        emili::sa::SAAcceptance* acceptance = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::sa::SAAcceptance>();
        acceptance->setStartTemperature(inittemp->get());
@@ -67,6 +68,7 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
        explo->setCooling(cooling);
        explo->setTermination(term);
        explo->setAcceptance(acceptance);
+       explo->setTenure();
        ls = new emili::sa::SimulatedAnnealing(initsol,
                                      inittemp,
                                      acceptance,
@@ -330,7 +332,7 @@ emili::sa::SACooling* prs::SABuilder::buildCooling()
         co =  new emili::sa::OldBachelor2(M, delta, d);
     }else if (tm.checkToken(OSMANPOTTSPFSPCOOLING)) {
         printTab("OsmanPottsPFSPCooling");
-        return new emili::sa::OsmanPottsPFSPCooling(instance);
+        co = new emili::sa::OsmanPottsPFSPCooling(instance);
     }
     prs::decrementTabLevel();
     return co;
@@ -575,11 +577,31 @@ emili::sa::SAExploration* prs::SABuilder::buildExploration()
         long k = tm.getInteger();
         printTabPlusOne("k",k);
         sae = new emili::sa::SABestOfKExploration(k);
+    } else if (tm.checkToken(SABESTOFKSEQUENTIALEXPLORATION)) {
+        printTab("SABestOfKSequentialExploration");
+        long k = tm.getInteger();
+        printTabPlusOne("k",k);
+        sae = new emili::sa::SABestOfKSequentialExploration(k);
+    } else if (tm.checkToken(SANSBESTOFKSEQUENTIALEXPLORATION)) {
+        printTab("SANSBestOfKSequentialExploration");
+        double k = tm.getDecimal();
+        printTabPlusOne("k",k);
+        sae = new emili::sa::SANSBestOfKSequentialExploration(k);
+    } else if (tm.checkToken(SANSBESTOFKRANDOMEXPLORATION)) {
+        printTab("SANSBestOfKRandomExploration");
+        double k = tm.getDecimal();
+        printTabPlusOne("k",k);
+        sae = new emili::sa::SANSBestOfKRandomExploration(k);
     } else if (tm.checkToken(SAFIRSTBESTOFKEXPLORATION)) {
         printTab("SAFirstBestOfKExploration");
         long k = tm.getInteger();
         printTabPlusOne("k",k);
         sae = new emili::sa::SAFirstBestOfKExploration(k);
+    } else if (tm.checkToken(SANSFIRSTBESTOFKEXPLORATION)) {
+        printTab("SANSFirstBestOfKExploration");
+        double k = tm.getDecimal();
+        printTabPlusOne("k",k);
+        sae = new emili::sa::SANSFirstBestOfKExploration(k);
     }
     prs::decrementTabLevel();
     return sae;
@@ -594,13 +616,13 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
         it = new emili::sa::FixedInitTemp();
-        it->setStartValue(value);
+        it->set(value);
     } else if (tm.checkToken(INITFROMSOL)) {
         printTab("Set the initial temperature starting from an initial solution");
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
         it = new emili::sa::InitTempFromSolution();
-        it->setStartValue(value);
+        it->set(value);
     } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
         printTab("Do a random walk and take the highest gap as initial temperature");
         int length = tm.getInteger();
@@ -608,7 +630,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
         it = new emili::sa::RandomWalkInitTemp(length);
-        it->setStartValue(value);
+        it->set(value);
     } else if (tm.checkToken(CONNOLLYRWIT)){
         printTab("ConnollyRandomWalkInitTemp");
         int length = tm.getInteger();
@@ -616,7 +638,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
         it = new emili::sa::ConnollyRandomWalkInitTemp(length);
-        it->setStartValue(value);
+        it->set(value);
     } else if (tm.checkToken(RANDOMWALKAVGINITTEMP)) {
         printTab("RandomWalkAvgInitTemp");
         int length = tm.getInteger();
@@ -624,7 +646,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
         it = new emili::sa::RandomWalkAvgInitTemp(length);
-        it->setStartValue(value);
+        it->set(value);
     } else if (tm.checkToken(RANDOMWALKINITPROB)) {
         printTab("RandomWalkInitProb");
         float ip = tm.getDecimal();
@@ -633,7 +655,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
         it = new emili::sa::RandomWalkInitProb(ip, length);
-        it->setStartValue(value);
+        it->set(value);
     } else if (tm.checkToken(MISEVICIUSINITTEMP)) {
         printTab("MiseviciusInitTemp");
         int length = tm.getInteger();
@@ -656,6 +678,24 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("l1 : ", l1);
         printTabPlusOne("l2 : ", l2);
         it = new emili::sa::SimplifiedMiseviciusInitTemp(length, l1, l2);
+    } else if (tm.checkToken(OSMANPOTTSINITTEMP)) {
+        printTab("OsmanPottsInitTemp");
+        float dc = tm.getDecimal();
+        float tf = tm.getDecimal();
+        float coeff = tm.getDecimal();
+        printTabPlusOne("dc : ", dc);
+        printTabPlusOne("tf : ", tf);
+        printTabPlusOne("coeff : ", coeff);
+        it = new emili::sa::OsmanPottsInitTemp(dc, tf);
+        it->set(coeff);
+    } else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
+        printTab("RandomWalkStatsInitTemp");
+        int length = tm.getInteger();
+        double value = tm.getDecimal();
+        printTabPlusOne("length : ", length);
+        printTabPlusOne("value : ", value);
+        it = new emili::sa::RandomWalkStatsInitTemp(length);
+        it->set(value);
     }
 
     prs::decrementTabLevel();

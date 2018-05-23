@@ -26,9 +26,10 @@ namespace sa {
 class SAInitTemp {
 
 protected:
-    emili::Solution  *solution;
+    emili::Problem*   instance;
+    emili::Solution*  solution;
     double            init_temp;
-    SAStatus         *status;
+    SAStatus*         status;
     double            maxdelta,
                       mindelta;
 
@@ -89,6 +90,8 @@ public:
     virtual double getInit_prob(void) {
         return 1;
     }
+
+    virtual void setInstance(emili::Problem* _instance) {}
 
 }; // class SAInitTemp
 
@@ -730,6 +733,7 @@ public:
     }
 
 
+
 }; // SimplifiedMiseviciusInitTemp
 
 
@@ -784,27 +788,23 @@ public:
  */
  class OsmanPottsInitTemp: public SAInitTemp {
 protected:
-emili::pfsp::PermutationFlowShop *instance;
+emili::pfsp::PermutationFlowShop *pfspinstance;
 float dc;
 float tf;
 
 public:
-    OsmanPottsInitTemp(emili::InitialSolution* _is,
-                       emili::Neighborhood *_nei,
-                       emili::pfsp::PermutationFlowShop *_instance,
-                       float _dc,
+    OsmanPottsInitTemp(float _dc,
                        float _tf):
-        instance(_instance),
         dc(_dc),
         tf(_tf) { }
         
     virtual double set(double value) {
         int i, j;
         double it = 0;
-        long n = instance->getNjobs();
-        long m = instance->getNmachines();
+        long n = pfspinstance->getNjobs();
+        long m = pfspinstance->getNmachines();
 
-        std::vector< std::vector <long int> > ptmat = instance->getProcessingTimesMatrix();
+        std::vector< std::vector <long int> > ptmat = pfspinstance->getProcessingTimesMatrix();
 
         for (i = 0 ; i < n ; i++){
             for (j = 0 ; j < m ; j++) {
@@ -826,6 +826,12 @@ public:
     virtual double getMinTemp(double value) {
         return value * tf;
     }
+
+
+    virtual void setInstance(emili::Problem* _instance) {
+        pfspinstance = (emili::pfsp::PermutationFlowShop*)_instance;
+    }
+
 
  }; // OsmanPottsInitTemp
 

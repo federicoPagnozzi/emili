@@ -29,7 +29,7 @@
 #endif
 
 //#include "SA/sa_pfsp_parser.h"
-#include "SA/sa_qap_parser.h"
+//#include "SA/sa_qap_parser.h"
 #include "SA/SABuilder.h"
 #include "QAP/qapBuilder.h"
 
@@ -78,7 +78,7 @@ prs::emili_header();
 //<<<<<<< HEAD
 //    std::cout << "searching..." << std::endl;
  //   SAPFSPParser p;
-    SAQAPParser p;
+//    SAQAPParser p;
 // =======
 //    prs::ParamsParser p;
 // >>>>>>> master

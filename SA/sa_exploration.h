@@ -71,6 +71,8 @@ public:
         tc_type = term->getType();
     }
 
+    virtual void setTenure() {}
+
 }; // SAExploration
 
 
@@ -184,13 +186,14 @@ public:
  */
 class SANSBestOfKSequentialExploration: public SAExploration {
 
+double _k;
 long k;
 
 long neighsize;
 
 public:
-    SANSBestOfKSequentialExploration(long _k):
-        k(_k),
+    SANSBestOfKSequentialExploration(double _k):
+        _k(_k),
         SAExploration(SANSBESTOFKSEQUENTIALEXPLORATION) { }
 
     SANSBestOfKSequentialExploration(emili::Neighborhood* _neigh,
@@ -209,6 +212,10 @@ public:
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
                                           SAStatus& status);
 
+    virtual void setTenure() {
+        k = ceil(_k * neigh->size());
+    }
+
 }; // SANSBestOfKSequentialExploration
 
 /**
@@ -218,13 +225,14 @@ public:
  */
 class SANSBestOfKRandomExploration: public SAExploration {
 
+double _k;
 long k;
 
 long neighsize;
 
 public:
-    SANSBestOfKRandomExploration(long _k):
-        k(_k),
+    SANSBestOfKRandomExploration(double _k):
+        _k(_k),
         SAExploration(SANSBESTOFKRANDOMEXPLORATION) { }
 
     SANSBestOfKRandomExploration(emili::Neighborhood* _neigh,
@@ -242,6 +250,10 @@ public:
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
                                           SAStatus& status);
+
+    virtual void setTenure() {
+        k = ceil(_k * neigh->size());
+    }
 
 }; // SANSBestOfKRandomExploration
 
@@ -282,11 +294,12 @@ public:
  */
 class SANSBestOfKExploration: public SAExploration {
 
+double _k;
 long k;
 
 public:
-    SANSBestOfKExploration(long _k):
-        k(_k),
+    SANSBestOfKExploration(double _k):
+        _k(_k),
         SAExploration(SANSBESTOFKEXPLORATION) { }
 
     SANSBestOfKExploration(emili::Neighborhood* _neigh,
@@ -294,7 +307,7 @@ public:
                          SACooling* _cooling,
                          SATermination* _term,
                          double _k):
-        k(round(_k * _neigh->size())),
+        k(ceil(_k * _neigh->size())),
         SAExploration(_neigh,
                       _acceptance,
                       _cooling,
@@ -304,6 +317,10 @@ public:
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
                                           SAStatus& status);
 
+    virtual void setTenure() {
+        k = ceil(_k * neigh->size());
+    }
+
 }; // SANSBestOfKExploration
 
 /**
@@ -312,11 +329,12 @@ public:
  */
 class SANSFirstBestOfKExploration: public SAExploration {
 
+double _k;
 long k;
 
 public:
-    SANSFirstBestOfKExploration(long _k):
-            k(_k),
+    SANSFirstBestOfKExploration(double _k):
+            _k(_k),
             SAExploration(SANSFIRSTBESTOFKEXPLORATION) { }
 
     SANSFirstBestOfKExploration(emili::Neighborhood* _neigh,
@@ -324,7 +342,7 @@ public:
                               SACooling* _cooling,
                               SATermination* _term,
                               double _k):
-        k(round(_k * _neigh->size())),
+        k(ceil(_k * _neigh->size())),
         SAExploration(_neigh,
                       _acceptance,
                       _cooling,
@@ -333,6 +351,10 @@ public:
 
     virtual emili::Solution* nextSolution(emili::Solution *startingSolution,
                                           SAStatus& status);
+
+    virtual void setTenure() {
+        k = ceil(_k * neigh->size());
+    }
 
 }; // SANSFirstBestOfKExploration
 
