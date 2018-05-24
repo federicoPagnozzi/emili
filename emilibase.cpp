@@ -461,7 +461,7 @@ void emili::SearchStatus::incrementCounters()
 void emili::SearchStatus::newBestSolution(Solution* new_best)
 {
     not_improved = 0;
-    delete best;
+    //delete best;
     best = new_best;
     if(new_best->isFeasible())
     {

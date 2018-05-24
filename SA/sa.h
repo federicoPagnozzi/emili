@@ -115,6 +115,7 @@ public:
             tempLength->set_status(sastatus);
             coolingScheme->set_status(sastatus);
             initialTemperature->set_status(sastatus);
+            exploration->set_status(sastatus);
 
             sastatus->print();
 

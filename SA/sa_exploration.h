@@ -25,6 +25,7 @@ protected:
     SAAcceptance* acceptance;
     SACooling* cooling;
     SATermination* term;
+    SAStatus* status;
     std::string tc_type;
 
 public:
@@ -72,6 +73,11 @@ public:
     }
 
     virtual void setTenure() {}
+
+    virtual void set_status(SAStatus * _status) {
+      status = _status;
+
+    }
 
 }; // SAExploration
 

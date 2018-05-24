@@ -43,32 +43,42 @@ emili::LocalSearch* prs::SABuilder::buildAlgo()
    if(tm.checkToken(ALBERTOSA))
    {
        printTab("Alberto's handmade Simulated Annealing! ");
+
        emili::InitialSolution* initsol = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+
        emili::Neighborhood* nei = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
+
        emili::sa::SAInitTemp* inittemp = retrieveComponent(COMPONENT_INIT_TEMP).get<emili::sa::SAInitTemp>();
        inittemp->setInitialSolution(initsol);
        inittemp->setNeighborhood(nei);
        inittemp->setInstance(gp.getInstance());
-       //inittemp->setup();
+       inittemp->setup();
+
        emili::sa::SAAcceptance* acceptance = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::sa::SAAcceptance>();
        acceptance->setStartTemperature(inittemp->get());
+
        emili::sa::SACooling* cooling = retrieveComponent(COMPONENT_COOLING).get< emili::sa::SACooling>();
        cooling->setInitTemp(inittemp->get());
        cooling->setNeighborhood(nei->size());
+
        emili::sa::SATempRestart* temprestart = retrieveComponent(COMPONENT_TEMP_RESTART).get<emili::sa::SATempRestart>();
        temprestart->setInitTemp(inittemp->get());
        temprestart->setNeighborhoodSize(nei->size());
+
        emili::sa::SATermination* term = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::sa::SATermination>();
        term->setMinTemp(inittemp->get());
        term->setNeighborhoodsize(nei->size());
+
        emili::sa::SATempLength* templ = retrieveComponent(COMPONENT_TEMP_LENGTH).get<emili::sa::SATempLength>();
        templ->setNeighborhoodSize(nei->size());
+
        emili::sa::SAExploration* explo = retrieveComponent(COMPONENT_EXPLORATION).get<emili::sa::SAExploration>();
        explo->setNeighborhood(nei);
        explo->setCooling(cooling);
        explo->setTermination(term);
        explo->setAcceptance(acceptance);
        explo->setTenure();
+
        ls = new emili::sa::SimulatedAnnealing(initsol,
                                      inittemp,
                                      acceptance,
@@ -615,38 +625,33 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTab("Set the initial temperature at a fixed value");
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
-        it = new emili::sa::FixedInitTemp();
-        it->set(value);
+        it = new emili::sa::FixedInitTemp(value);
     } else if (tm.checkToken(INITFROMSOL)) {
         printTab("Set the initial temperature starting from an initial solution");
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
-        it = new emili::sa::InitTempFromSolution();
-        it->set(value);
+        it = new emili::sa::InitTempFromSolution(value);
     } else if (tm.checkToken(RANDOMWALKINITTEMP)) {
         printTab("Do a random walk and take the highest gap as initial temperature");
         int length = tm.getInteger();
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
-        it = new emili::sa::RandomWalkInitTemp(length);
-        it->set(value);
+        it = new emili::sa::RandomWalkInitTemp(length, value);
     } else if (tm.checkToken(CONNOLLYRWIT)){
         printTab("ConnollyRandomWalkInitTemp");
         int length = tm.getInteger();
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
-        it = new emili::sa::ConnollyRandomWalkInitTemp(length);
-        it->set(value);
+        it = new emili::sa::ConnollyRandomWalkInitTemp(length,value);
     } else if (tm.checkToken(RANDOMWALKAVGINITTEMP)) {
         printTab("RandomWalkAvgInitTemp");
         int length = tm.getInteger();
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
-        it = new emili::sa::RandomWalkAvgInitTemp(length);
-        it->set(value);
+        it = new emili::sa::RandomWalkAvgInitTemp(length,value);
     } else if (tm.checkToken(RANDOMWALKINITPROB)) {
         printTab("RandomWalkInitProb");
         float ip = tm.getDecimal();
@@ -654,8 +659,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         double value = tm.getDecimal();
         printTabPlusOne("start value : ", value);
         printTabPlusOne("length : ", length);
-        it = new emili::sa::RandomWalkInitProb(ip, length);
-        it->set(value);
+        it = new emili::sa::RandomWalkInitProb(ip, length, value);
     } else if (tm.checkToken(MISEVICIUSINITTEMP)) {
         printTab("MiseviciusInitTemp");
         int length = tm.getInteger();
@@ -668,7 +672,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("l12 : ", l12);
         printTabPlusOne("l21 : ", l21);
         printTabPlusOne("l22 : ", l22);
-        it = new emili::sa::MiseviciusInitTemp(length, l11, l12, l21, l22);
+        it = new emili::sa::MiseviciusInitTemp(length, l11, l12, l21, l22, 1);
     } else if (tm.checkToken(SIMPLEMISEVICIUSINITTEMP)) {
         printTab("SimplifiedMiseviciusInitTemp");
         int length = tm.getInteger();
@@ -677,7 +681,7 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("length : ", length);
         printTabPlusOne("l1 : ", l1);
         printTabPlusOne("l2 : ", l2);
-        it = new emili::sa::SimplifiedMiseviciusInitTemp(length, l1, l2);
+        it = new emili::sa::SimplifiedMiseviciusInitTemp(length, l1, l2, 1);
     } else if (tm.checkToken(OSMANPOTTSINITTEMP)) {
         printTab("OsmanPottsInitTemp");
         float dc = tm.getDecimal();
@@ -686,16 +690,14 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         printTabPlusOne("dc : ", dc);
         printTabPlusOne("tf : ", tf);
         printTabPlusOne("coeff : ", coeff);
-        it = new emili::sa::OsmanPottsInitTemp(dc, tf);
-        it->set(coeff);
+        it = new emili::sa::OsmanPottsInitTemp(dc, tf, coeff);
     } else if (tm.checkToken(RANDOMWALKSTATSINITTEMP)) {
         printTab("RandomWalkStatsInitTemp");
         int length = tm.getInteger();
         double value = tm.getDecimal();
         printTabPlusOne("length : ", length);
         printTabPlusOne("value : ", value);
-        it = new emili::sa::RandomWalkStatsInitTemp(length);
-        it->set(value);
+        it = new emili::sa::RandomWalkStatsInitTemp(length, value);
     }
 
     prs::decrementTabLevel();

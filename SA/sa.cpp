@@ -3,8 +3,8 @@ using namespace emili::sa;
 emili::Solution* SimulatedAnnealing::search() {
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = SimulatedAnnealing::search(current);
-    if(current!=sol)
-    delete current;
+    //if(current!=sol)
+    //delete current;
 
     return sol;
 } // end search
@@ -14,17 +14,18 @@ emili::Solution* SimulatedAnnealing::search() {
 emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     emili::Solution* incumbent = init->generateEmptySolution();
     // emili::Solution* accepted;
-    *incumbent = *initial;
+    incumbent = initial;
     bestSoFar  = incumbent;
 
 
-    sastatus->best_cost = incumbent->getSolutionValue();
-    sastatus->new_best_solution(incumbent->clone(),sastatus->best_cost,sastatus->temp);
+    //sastatus->best_cost = incumbent->getSolutionValue();
+    sastatus->new_best_solution(incumbent->clone(), incumbent->getSolutionValue(), sastatus->temp);
     acceptanceCriterion->setCurrentTemp(sastatus->temp);
 
     neigh->reset();
 
     do {
+
 
         bestSoFar = exploration->nextSolution(bestSoFar, *sastatus);
         //status->temp = coolingScheme->update_cooling(status->temp);
@@ -32,7 +33,7 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
     } while(!terminationCriterion->terminate(*sastatus));
 
-    delete bestSoFar;
+    //delete bestSoFar;
 
     return sastatus->getBestSolution();
 } // end search

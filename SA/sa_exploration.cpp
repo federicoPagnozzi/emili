@@ -3,6 +3,8 @@ using namespace emili::sa;
 emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolution,
                                                    SAStatus& status) {
 
+    bool noneaccepted = true;
+
     status.increment_counters();
 
     emili::Solution* incumbent = neigh->random(startingSolution);
@@ -17,11 +19,21 @@ emili::Solution* SARandomExploration::nextSolution(emili::Solution *startingSolu
     } else {
         delete startingSolution;
         status.accepted_sol(accepted->getSolutionValue());
+        noneaccepted = false;
     }
-    startingSolution = accepted;
+    //startingSolution = accepted;
 
-    return startingSolution;
+    //return startingSolution;
+    
+    //delete incumbent;
 
+    if (noneaccepted) {
+        return startingSolution;
+    }
+
+    return accepted;
+
+    //return accepted;
 }
 
 
@@ -303,7 +315,6 @@ emili::Solution* SANSBestOfKSequentialExploration::nextSolution(emili::Solution 
 
 emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *startingSolution,
                                                     SAStatus& status) {
-
     double ci, cg;
     long i = 0;
 
@@ -320,7 +331,6 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
     double gap_sum = 0.0; // gap sum
     double gaps[k]; // all the gaps
     double maxgap, mingap; // max gap, min gap, ça va sans dire
-
 
     emili::Solution* incumbent = startingSolution->clone();
     emili::Solution* accepted;
@@ -369,8 +379,6 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
         if (gap > maxgap) maxgap = gap;
         gap_sum += gap;
         
-        //printf("%ld %f\n", i, cg);
-        
         i++;
 
     } 
@@ -398,16 +406,15 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
     //for (long j = 0 ; j < 100 ; j++) {
         //printf("COST OF WTF: %f\n", accepted->getSolutionValue());
         //accepted = neigh->random(accepted);
-        /**/accepted = acceptance->accept(incumbent,
-                                      neigh->random(incumbent));/**/
+        /**/accepted = acceptance->accept(startingSolution,
+                                      neigh->random(startingSolution));/**/
     /** /accepted = acceptance->accept(incumbent,
                                   candidate);/ **/
     //}
     status.temp = cooling->update_cooling(status.temp);
     acceptance->setCurrentTemp(status.temp);
 
-
-    if (accepted == incumbent) {
+    if (accepted == startingSolution) {
         status.not_accepted_sol();
     } else {
         delete startingSolution;
@@ -417,7 +424,7 @@ emili::Solution* SANSBestOfKRandomExploration::nextSolution(emili::Solution *sta
     }
 
     delete incumbent;
-    
+
     if (noneaccepted) {
         return startingSolution;
     }
