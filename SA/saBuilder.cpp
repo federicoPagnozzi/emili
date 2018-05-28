@@ -710,3 +710,43 @@ emili::sa::SAInitTemp* prs::SABuilder::buildInitTemp()
         oss << "number of max iterations "<< ti;
         printTabPlusOne(oss.str().c_str());
  */
+
+
+
+emili::LocalSearch* prs::MABuilder::buildAlgo()
+{
+   prs::incrementTabLevel();
+   emili::LocalSearch* ls = nullptr;
+   if(tm.checkToken(METROPOLISALGO))
+   {
+       printTab("Metropolis Algorithm ");
+
+       emili::InitialSolution* initsol = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+
+       emili::sa::SAAcceptance* acceptance = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::sa::SAAcceptance>();
+       acceptance->setStartTemperature(inittemp->get());
+
+       emili::sa::SATermination* term = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::sa::SATermination>();
+       term->setMinTemp(inittemp->get());
+       term->setNeighborhoodsize(nei->size());
+
+       emili::sa::SAStatus* sastatus = new SAStatus();
+
+       emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch*>();
+       emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch*>();
+
+       ls1->setSearchStatus(sastatus);
+       ls2->setSearchStatus(sastatus);
+
+       ls = new emili::metropolis::MetropolisAlgorithm(initsol,
+                                     ls1,
+                                     ls2,
+                                     acceptance,
+                                     term);
+
+       ls->setSearchStatus(sastatus);
+   }
+   prs::decrementTabLevel();
+   return ls;
+}
+

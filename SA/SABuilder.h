@@ -41,5 +41,17 @@ public:
     virtual emili::sa::SAInitTemp* buildInitTemp();
 };
 
+class MABuilder: public prs::Builder
+{
+public:
+    MABuilder(GeneralParserE& generalParser,TokenManager& tokenManager):Builder(generalParser,tokenManager) { }
+    virtual bool isCompatibleWith(char* problem_definition);
+    virtual emili::LocalSearch* buildAlgo();
+    virtual emili::Termination* buildTermination();
+    virtual emili::Acceptance* buildAcceptance();
+};
+
+
+
 }
 #endif

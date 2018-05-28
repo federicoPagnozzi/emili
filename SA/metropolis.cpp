@@ -1,42 +1,38 @@
-// #include "metropolis.h"
-// using namespace emili::sa;
-// emili::Solution* Metropolis::search() {
-//     emili::Solution* current = init->generateSolution();
-//     emili::Solution* sol = Metropolis::search(current);
-//     if(current!=sol)
-//     delete current;
+#include "metropolis.h"
 
-//     return sol;
-// } // end search
+using namespace emili::sa;
+using namespace emili::metropolis;
 
-
-
-// emili::Solution* Metropolis::search(emili::Solution* initial) {
-//     emili::Solution* incumbent = init->generateEmptySolution();
-//     emili::Solution* tmpSol;
-//     *incumbent = *initial;
-//     bestSoFar  = incumbent;
-
-//     do {
-//         tmpSol = ftsa->search(bestSoFar);
-//         bestSoFar = dsa->search(tmpSol);
-//     } while(!terminationCriterion->terminate(*status));
-
-//     delete bestSoFar;
-//     delete tmpSol;
-
-//     return status->best;
-// } // end search
-
-// void Metropolis::reset(void) {
-//     status->temp = status->init_temp;
-// }
+emili::Solution* MetropolisAlgorithm::search() {
+    emili::Solution* current = this->init->generateSolution();
+    emili::Solution* sol = MetropolisAlgorithm::search(current);
+    return sol;
+} // end search
 
 
-// void Metropolis::setSearchTime(int _time) {
-//     if (status->tc_type == NEVERTERM)
-//         coolingScheme->set_search_time(_time);
+emili::Solution* MetropolisAlgorithm::search(emili::Solution* initial) {
+  emili::Solution* incumbent = this->init->generateEmptySolution();
+  emili::Solution* tmpSol1;
+  emili::Solution* tmpSol2;
+  emili::Solution* accepted;
+  *incumbent = *initial;
+  bestSoFar  = incumbent;
 
-//     this->seconds = _time;
+  do {
+    tmpSol1 = this->ls1->search(bestSoFar);
+    tmpSol2 = this->ls2->search(tmpSol1);
+    accepted = acceptance->accept(bestSoFar, tmpSol2);
 
-// }
+    if (accepted == bestSoFar) {
+      delete tmpSol2;
+    } else {
+      delete bestSoFar;
+      bestSoFar = accepted;
+    }
+
+    delete tmpSol1;
+  } while(!terminationCondition->terminate((SAStatus *)status));
+
+  return this->getBestSoFar();
+} // end search
+
