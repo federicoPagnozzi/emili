@@ -46,10 +46,8 @@ class MABuilder: public prs::Builder
 {
 public:
     MABuilder(GeneralParserE& generalParser,TokenManager& tokenManager):Builder(generalParser,tokenManager) { }
-    virtual bool isCompatibleWith(char* problem_definition);
+    virtual bool isCompatibleWith(char* problem_definition) { return true; }
     virtual emili::LocalSearch* buildAlgo();
-    virtual emili::Termination* buildTermination();
-    virtual emili::Acceptance* buildAcceptance();
 };
 
 

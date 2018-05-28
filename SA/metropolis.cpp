@@ -19,19 +19,25 @@ emili::Solution* MetropolisAlgorithm::search(emili::Solution* initial) {
   bestSoFar  = incumbent;
 
   do {
+    //printf("VAFFANCULOOOOOOO before ls1\n");
     tmpSol1 = this->ls1->search(bestSoFar);
+    //((SAStatus *)status)->print();
+    //((SAStatus &)this->ls2->getSearchStatus()).print();
     tmpSol2 = this->ls2->search(tmpSol1);
-    accepted = acceptance->accept(bestSoFar, tmpSol2);
+    //((SAStatus &)this->ls2->getSearchStatus()).print();
+    //accepted = acceptance->accept(bestSoFar, tmpSol2);
+    //((SAStatus &)this->ls2->getSearchStatus()).print();
 
-    if (accepted == bestSoFar) {
-      delete tmpSol2;
+    /*if (accepted == bestSoFar) {
+      //delete tmpSol2;
     } else {
-      delete bestSoFar;
+      //delete bestSoFar;
       bestSoFar = accepted;
-    }
+    }*/
+    bestSoFar = tmpSol2;
 
-    delete tmpSol1;
-  } while(!terminationCondition->terminate((SAStatus *)status));
+    //delete tmpSol1;
+  } while(!terminationCondition->terminate(*((SAStatus*)status)));
 
   return this->getBestSoFar();
 } // end search

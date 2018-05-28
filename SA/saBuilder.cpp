@@ -724,21 +724,24 @@ emili::LocalSearch* prs::MABuilder::buildAlgo()
        emili::InitialSolution* initsol = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
 
        emili::sa::SAAcceptance* acceptance = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::sa::SAAcceptance>();
-       acceptance->setStartTemperature(inittemp->get());
+       //acceptance->setStartTemperature(inittemp->get());
 
        emili::sa::SATermination* term = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::sa::SATermination>();
-       term->setMinTemp(inittemp->get());
-       term->setNeighborhoodsize(nei->size());
+       //termination->setMinTemp(0);
+       //term->setNeighborhoodsize(nei->size());
+       // Initial temperature for acceptance, minimum temperature and neighbourhood size for termination are not
+       // considered here, to not go crazy...
 
-       emili::sa::SAStatus* sastatus = new SAStatus();
+       SAStatus* sastatus = new SAStatus();
 
-       emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch*>();
-       emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch*>();
+       emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+       emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
 
        ls1->setSearchStatus(sastatus);
        ls2->setSearchStatus(sastatus);
+       acceptance->set_status(sastatus);
 
-       ls = new emili::metropolis::MetropolisAlgorithm(initsol,
+       ls = new emili::metropolis::MetropolisAlgorithm(*initsol,
                                      ls1,
                                      ls2,
                                      acceptance,

@@ -5,8 +5,7 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
 
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
-
-    
+  
     // std::cout << std::fixed << cs << " " << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
     
     if (ns > cs) {
@@ -358,11 +357,13 @@ emili::Solution* SAAcceptanceAll::accept(emili::Solution *current_solution,
                                          emili::Solution *new_solution) {
 
     double ns = new_solution->getSolutionValue();
+        printf("status->best_cost: %f\n", status->best_cost);
 
     if (ns < status->best_cost) {
       status->new_best_solution(new_solution,
                                 new_solution->getSolutionValue(),
                                 temperature);
+      status->print();
     }
 
     return new_solution;

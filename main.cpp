@@ -220,6 +220,7 @@ int main(int argc, char *argv[])
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
     prs::QAPBuilder qap(ps,ps.getTokenManager());
     prs::SABuilder sab(ps,ps.getTokenManager());
+    prs::MABuilder mab(ps,ps.getTokenManager());
     //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
     //ps.addBuilder(&px);
@@ -229,6 +230,7 @@ int main(int argc, char *argv[])
     ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
     ps.addBuilder(&sab);
+    ps.addBuilder(&mab);
 #endif
     ls = ps.parseParams();
     if(ls!=nullptr)

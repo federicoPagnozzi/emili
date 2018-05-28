@@ -133,12 +133,12 @@ public:
     virtual void setSearchStatus(emili::SearchStatus* _status) {
       sastatus = (SAStatus*) _status;
       status = _status;
-/*      acceptanceCriterion->set_status(sastatus);
+/**/      acceptanceCriterion->set_status(sastatus);
       temprestart->set_status(sastatus);
       tempLength->set_status(sastatus);
       coolingScheme->set_status(sastatus);
       initialTemperature->set_status(sastatus);
-      exploration->set_status(sastatus);*/
+      exploration->set_status(sastatus);/**/
     }
     virtual SAStatus* getStatus(void) {
       return sastatus;
