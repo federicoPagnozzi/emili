@@ -2,6 +2,7 @@
 #define SABUILDER_H
 
 #include "sa.h"
+#include "metropolis.h"
 
 #include "sa_constants.h"
 #include "sa_init_temp.h"

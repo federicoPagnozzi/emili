@@ -869,6 +869,7 @@ public:
     SearchAlgorithm():status() { }
     SearchAlgorithm(SearchStatus& _status):status(&_status) {}
     virtual SearchStatus& getSearchStatus(){ return *status;}
+    virtual void setSearchStatus(emili::SearchStatus* _status) { status = _status; }
     virtual void reset() {}
 };
 
