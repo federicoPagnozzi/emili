@@ -5,6 +5,10 @@
 #define ALBERTOSA "SA"
 #endif
 
+#ifndef METROPOLISALGO
+#define METROPOLISALGO "METROPOLISALGO"
+#endif
+
 
 /**
  * initial temperature
