@@ -10,4 +10,5 @@ CMakeLists.txt.user.3.3-pre1
 scaffolding
 generalParser.cppold
 statbuild
+debug
 *.swp
