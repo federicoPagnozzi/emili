@@ -1895,6 +1895,7 @@ int emili::pfsp::NI_A_PFSP_MS::computeObjectiveFunction(std::vector<int> &partia
 
 int emili::pfsp::SDSTFSP_MS::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
+
     return instance.computeSDSTMS(partial_solution);
 }
 
@@ -1951,7 +1952,7 @@ long int emili::pfsp::SDSTFSP_MS::computeObjectiveFunctionFromHead(std::vector<i
         }
         makespans[k] = c_cur;
         kp1 = job;
-    }
+    }    
     return computeObjectiveFunction(solution,makespans,njobs);
 }
 
@@ -4643,6 +4644,16 @@ emili::Solution* emili::pfsp::CSInsertNeighborhood::computeStep(emili::Solution 
     }
 }
 
+emili::Neighborhood::NeighborhoodIterator emili::pfsp::SDSTCSInsertNeighborhood::begin(emili::Solution *base)
+{
+    ep_iterations = 1;
+    sp_iterations = 1;
+    //std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
+    //sol.erase(sol.begin()+start_position);
+    //pis.getInstance().computeSDSThead(sol,head,njobs-1);
+    return emili::Neighborhood::NeighborhoodIterator(this,base);
+}
+
 emili::Solution* emili::pfsp::SDSTCSInsertNeighborhood::computeStep(emili::Solution *value)
 {
     emili::iteration_increment();
@@ -4660,7 +4671,7 @@ emili::Solution* emili::pfsp::SDSTCSInsertNeighborhood::computeStep(emili::Solut
         start_position = ((start_position)%njobs)+1;
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
-        pis.getInstance().computeSDSThead(newsol,head,njobs-1);
+        pis.getInstance().computeSDSThead(newsol,head,njobs);
 
         for(int k=1; k<=njobs; k++)
         {
@@ -4669,6 +4680,8 @@ emili::Solution* emili::pfsp::SDSTCSInsertNeighborhood::computeStep(emili::Solut
             {
                 newsol.insert(newsol.begin()+k,sol_i);
                 int c_max = pis.computeObjectiveFunctionFromHead(newsol,k,head,njobs);
+              //  long int old_v  = pis.computeObjectiveFunction(newsol);
+               // assert(c_max == old_v);
                 //assert(pis.computeObjectiveFunction(newsol)==c_max);
                 if(c_max < best_cmax)
                 {
@@ -4680,8 +4693,8 @@ emili::Solution* emili::pfsp::SDSTCSInsertNeighborhood::computeStep(emili::Solut
 
         }
         //long int old_v  = pis.computeObjectiveFunction(newsol);
-        //std::cout << c_max << " - " << old_v << std::endl;
-        //assert(c_max == old_v);
+        //std::cout << best_cmax << " - " << old_v << std::endl;
+        //assert(best_cmax == old_v);
         end_position = best_inspos;
         newsol.insert(newsol.begin()+best_inspos,sol_i);
         value->setSolutionValue(best_cmax);

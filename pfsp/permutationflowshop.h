@@ -764,9 +764,7 @@ public:
 };
 
 class SDSTIGOLsPerturbation: public emili::pfsp::IGOLsPerturbation
-{
-protected:
-    emili::LocalSearch* ls;
+{    
 public:
     SDSTIGOLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):emili::pfsp::IGOLsPerturbation(d_parameter, problem,ls) { }
     virtual emili::Solution* perturb(Solution *solution);
@@ -915,6 +913,7 @@ protected:
     virtual Solution* computeStep(Solution *value);
 public:
     SDSTCSInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::CSInsertNeighborhood(problem){ }
+     virtual NeighborhoodIterator begin(Solution *base);
 };
 
 /**

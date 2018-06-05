@@ -149,7 +149,7 @@
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
 #define NEIGHBORHOOD_CS_INSERT "csinsert"
-#define NEIGHBORHOOD_SDST_CS_INSERT "sdstcsinsert"
+
 
 /* Total Completion Time*/
 #define NEIGHBORHOOD_NATA_TCT_INSERT "ntctinsert"
@@ -174,6 +174,7 @@
 
 /* Sequence Dependent Setup times makespan*/
 #define NEIGHBORHOOD_SDSTTA_INSERT "sdsttainsert"
+#define NEIGHBORHOOD_SDST_CS_INSERT "sdstcsinsert"
 
 /*
  * END Neighborhoods
