@@ -1870,6 +1870,11 @@ emili::Solution* emili::AlternateLocalSearch::getBestSoFar()
     emili::Solution* best = ls1->getBestSoFar();
     emili::Solution* best2 = ls2->getBestSoFar();
 
+    printf("best: %f\n", best->getSolutionValue());
+    if ( best2 == nullptr)
+      printf("oh fuck\n");
+    printf("best2: %f\n", best2->getSolutionValue());
+
     if(*best < *best2)
     {
         return best;

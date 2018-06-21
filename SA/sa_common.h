@@ -14,6 +14,11 @@
 class SAStatus : public emili::SearchStatus{
 
 public:
+    /*emili::Solution* best;
+    long counter;
+    long total_counter;
+    long not_improved;*/
+    long   local_counter;
     long   temp_counter;
     long   accepted;
     long   curr_accepted;
@@ -45,7 +50,11 @@ public:
     std::string tl_type; // temperature length
     std::string tr_type; // temperature restart
 
-    SAStatus(void):emili::SearchStatus() {
+    SAStatus(void) :emili::SearchStatus() {
+        local_counter = 0;
+        counter = 0;
+        total_counter = 0;
+        not_improved = 0;
         temp_counter = 0;
         accepted = 0;
         curr_accepted = 0;
@@ -87,11 +96,34 @@ public:
         total_counter += 1;
         temp_counter += 1;
         not_improved += 1;
+        local_counter += 1;
     }
 
+    void new_best_solution_silent(emili::Solution* sol, double cost, double temp) {
+        best = sol->clone();
+        newBestSolution(best);
+        best_cost = cost;
+        best_temp = temp;
+        //std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
+        //std::cout << std::fixed << "of cost " << cost << " at iteration " << total_counter << std::endl;
+        //fprintf(stdout, "NEWBEST %f %ld %f %f\n", cost, total_counter, temp, emili::getCurrentExecutionTime());
+        //fflush(stdout);
+        /*std::cout << std::fixed;
+        std::cout << cost;
+        std::cout << " ";
+        std::cout << total_counter;
+        std::cout << " ";
+        std::cout << temp;
+        std::cout << " ";
+        std::cout << emili::getCurrentExecutionTime();
+        std::cout << std::endl;
+        std::cout << std::flush;*/
+        //counter = 0;
+    }
 
     void new_best_solution(emili::Solution* sol, double cost, double temp) {
-        newBestSolution(sol);
+        best = sol->clone();
+        newBestSolution(best);
         best_cost = cost;
         best_temp = temp;
         //std::cout << std::fixed << "New best solution found: " << best->getSolutionRepresentation();
@@ -144,6 +176,31 @@ public:
                   << "  neighbourhood size :  " << neigh_size << "\n\n"
                   << "  best cost :           " << best_cost << "\n"
                   << "  best solution temp :  " << best_temp << "\n" << std::endl;
+    }
+
+    virtual void resetCounters() {
+      accepted = 0;
+      curr_accepted = 0;
+      counter = 0;
+      total_counter = 0;
+      local_counter = 0;
+      not_improved = 0;
+      temp_counter = 0;
+      temp_restarts = 0;
+      if (last_accepted != nullptr) {
+        free(last_accepted);
+      }
+      step = 0;
+      index = 0;
+      last_accepted = (short *)malloc(tenure * sizeof(short));      
+      for (int i = 0 ; i < tenure ; i++) {
+        last_accepted[i] = 1;
+      }
+    }
+
+    void resetCounters(long _total_c) {
+      this->resetCounters();
+      total_counter = _total_c;
     }
 
 }; // SAStatus;

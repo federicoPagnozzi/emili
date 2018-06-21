@@ -128,7 +128,7 @@ emili::Solution* QAPExchangeNeighborhood::random(emili::Solution *currentSolutio
 
 
 double QAPExchangeNeighborhood::computeDelta(int u, int v, vector< int >& x) {
-    double delta = 0;
+    double delta = 0.0;
 
     if (!symmetric) {
         /**

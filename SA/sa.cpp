@@ -15,11 +15,17 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     emili::Solution* incumbent = init->generateEmptySolution();
     // emili::Solution* accepted;
     incumbent = initial;
-    bestSoFar  = incumbent;
+    bestSoFar = incumbent;
 
 
-    //sastatus->best_cost = incumbent->getSolutionValue();
-    sastatus->new_best_solution(incumbent->clone(), incumbent->getSolutionValue(), sastatus->temp);
+    sastatus->best_cost = incumbent->getSolutionValue();
+    /**/if (sastatus->best == nullptr ||
+       initial->getSolutionValue() < sastatus->best_cost) {
+      printf("\n\n\nFIRST time %f\n", incumbent->getSolutionValue());
+      sastatus->new_best_solution(initial->clone(), initial->getSolutionValue(), sastatus->temp);
+    } else {
+      //printf("best is %f, incumbent is %f\n", sastatus->best_cost,  incumbent->getSolutionValue());
+    }/**/
     acceptanceCriterion->setCurrentTemp(sastatus->temp);
 
     neigh->reset();
@@ -28,14 +34,24 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
 
 
         bestSoFar = exploration->nextSolution(bestSoFar, *sastatus);
+      /*  printf("%s\n", sastatus->best->getSolutionRepresentation().c_str());
+        printf("%f\n", sastatus->best_cost);
+        printf("%f\n", bestSoFar->getSolutionValue());*/
+        //printf("%f \n", sastatus->getBestSolution()->getSolutionValue());
+        //printf("%f \n", getSearchStatus().getBestSolution()->getSolutionValue());
         //status->temp = coolingScheme->update_cooling(status->temp);
         //acceptanceCriterion->setCurrentTemp(status->temp);
 
     } while(!terminationCriterion->terminate(*sastatus));
+      /*  printf("%f\n", bestSoFar->getSolutionValue());
+        printf("%s\n", sastatus->best->getSolutionRepresentation().c_str());
+        printf("%f\n", sastatus->best_cost);*/
 
     //delete bestSoFar;
+    //sastatus->print();
+//    printf("returning from SA %f\n",  sastatus->best_cost);
 
-    return sastatus->getBestSolution();
+    return sastatus->best;
 } // end search
 
 void SimulatedAnnealing::reset(void) {

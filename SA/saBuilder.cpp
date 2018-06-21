@@ -114,6 +114,11 @@ emili::Termination* prs::SABuilder::buildTermination()
         int    mi = tm.getInteger();
         printTabPlusOne("mi",mi);
         term = new emili::sa::SAMaxIterTermination(mi);
+    } else if (tm.checkToken(MAXLOCALITERS)) {
+        prs::printTab("SAMaxLocalIterTermination");
+        int    mi = tm.getInteger();
+        printTabPlusOne("mi",mi);
+        term = new emili::sa::SAMaxLocalIterTermination(mi);
     } else if (tm.checkToken(NEVERTERM)) {
         prs::printTab("SAWhileTrueTermination");
         term = new emili::sa::SAWhileTrueTermination();
@@ -737,8 +742,8 @@ emili::LocalSearch* prs::MABuilder::buildAlgo()
        emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
        emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
 
-       ls1->setSearchStatus(sastatus);
-       ls2->setSearchStatus(sastatus);
+       //ls1->setSearchStatus(sastatus);
+       //ls2->setSearchStatus(sastatus);
        acceptance->set_status(sastatus);
 
        ls = new emili::metropolis::MetropolisAlgorithm(*initsol,

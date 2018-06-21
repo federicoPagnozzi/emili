@@ -72,6 +72,7 @@ public:
 }; // SAMaxBadIterTermination
 
 
+
 class SAMaxIterTermination: public SATermination {
 
 protected:
@@ -98,6 +99,36 @@ public:
     }
 
 }; // SAMaxIterTermination
+
+
+class SAMaxLocalIterTermination: public SATermination {
+
+protected:
+    long maxIterations;
+
+public:
+    SAMaxLocalIterTermination(int maxIterations):
+        maxIterations(maxIterations),
+        SATermination(MAXLOCALITERS) { }
+
+    virtual bool terminate(emili::Solution* currentSolution,
+                           emili::Solution* newSolution) {
+        return true;
+    }
+
+    virtual bool terminate(SAStatus& status) {
+        if (status.local_counter >= maxIterations) return true;
+        return false;
+    }
+
+    // does nothing
+    virtual void reset() {
+        // counter = 0;
+    }
+
+}; // SAMaxIterTermination
+
+
 
 
 class SANeighSizeIterTermination: public SATermination {

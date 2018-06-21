@@ -357,13 +357,13 @@ emili::Solution* SAAcceptanceAll::accept(emili::Solution *current_solution,
                                          emili::Solution *new_solution) {
 
     double ns = new_solution->getSolutionValue();
-        printf("status->best_cost: %f\n", status->best_cost);
+        //printf(" %f status->best_cost: %f\n", ns, status->best_cost);
 
     if (ns < status->best_cost) {
       status->new_best_solution(new_solution,
                                 new_solution->getSolutionValue(),
                                 temperature);
-      status->print();
+      //status->print();
     }
 
     return new_solution;

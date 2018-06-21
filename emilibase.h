@@ -824,9 +824,9 @@ public:
 class SearchStatus
 {
 protected:    
-    Solution* best;
     Solution* feasible_best;
 public:
+    Solution* best;
     long counter;
     long total_counter;
     long not_improved;
@@ -868,7 +868,7 @@ protected:
 public:
     SearchAlgorithm():status() { }
     SearchAlgorithm(SearchStatus& _status):status(&_status) {}
-    virtual SearchStatus& getSearchStatus(){ return *status;}
+    virtual SearchStatus* getSearchStatus(){ return status;}
     virtual void setSearchStatus(emili::SearchStatus* _status) { status = _status; }
     virtual void reset() {}
 };
@@ -1602,6 +1602,8 @@ public:
 
     emili::Solution* search(emili::Solution* );
     emili::Solution* getBestSoFar();
+
+    virtual void changeTurn(void) { turn = !turn; }
 
 };
 

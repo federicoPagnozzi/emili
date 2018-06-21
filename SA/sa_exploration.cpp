@@ -116,7 +116,7 @@ emili::Solution* SABestOfKExploration::nextSolution(emili::Solution *startingSol
         delete incumbent;
         status.not_accepted_sol();
     } else {
-        delete startingSolution;
+        //delete startingSolution;
         status.accepted_sol(accepted->getSolutionValue());
     }
     startingSolution = accepted;
@@ -170,7 +170,7 @@ emili::Solution* SABestOfKSequentialExploration::nextSolution(emili::Solution *s
     if (accepted == incumbent) {
         status.not_accepted_sol();
     } else {
-        delete startingSolution;
+        //delete startingSolution;
         *accepted = *candidate;
         status.accepted_sol(accepted->getSolutionValue());
         noneaccepted = false;
@@ -448,7 +448,7 @@ emili::Solution* SAFirstBestOfKExploration::nextSolution(emili::Solution *starti
         status.increment_counters();
 
         if (ci < cs) {
-            delete startingSolution;
+            //delete startingSolution;
             status.accepted_sol(incumbent->getSolutionValue());
             return incumbent;
         }
@@ -474,7 +474,7 @@ emili::Solution* SAFirstBestOfKExploration::nextSolution(emili::Solution *starti
         delete incumbent;
         status.not_accepted_sol();
     } else {
-        delete startingSolution;
+        //delete startingSolution;
         status.accepted_sol(accepted->getSolutionValue());
     }
     startingSolution = accepted;
@@ -516,7 +516,7 @@ emili::Solution* SANSBestOfKExploration::nextSolution(emili::Solution *startingS
         delete incumbent;
         status.not_accepted_sol();
     } else {
-        delete startingSolution;
+        //delete startingSolution;
         status.accepted_sol(accepted->getSolutionValue());
     }
     startingSolution = accepted;

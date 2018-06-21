@@ -37,10 +37,11 @@ protected:
     SATempLength     *tempLength;
     SAExploration    *exploration;
     emili::Neighborhood *neigh;
-    SAStatus         *sastatus;
 
 
 public:
+    SAStatus         *sastatus;
+
     SimulatedAnnealing(emili::InitialSolution  *initialSolutionGenerator,
                        SAInitTemp       *initialTemperature,
                        SAAcceptance     *acceptanceCriterion,
@@ -131,7 +132,7 @@ public:
     virtual emili::Solution* getBestSoFar() { return sastatus->getBestSolution();}
 
     virtual void setSearchStatus(emili::SearchStatus* _status) {
-      sastatus = (SAStatus*) _status;
+      sastatus = (SAStatus *)_status;
       status = _status;
 /**/      acceptanceCriterion->set_status(sastatus);
       temprestart->set_status(sastatus);
@@ -141,6 +142,9 @@ public:
       exploration->set_status(sastatus);/**/
     }
     virtual SAStatus* getStatus(void) {
+      return sastatus;
+    }
+    virtual SearchStatus* getSearchStatus(void) {
       return sastatus;
     }
 

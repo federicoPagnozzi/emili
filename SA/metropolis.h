@@ -31,6 +31,8 @@ public:
     emili::Solution* search();
     emili::Solution* search(emili::Solution* );
 
+    virtual emili::Solution* getBestSoFar() { return status->getBestSolution();}
+
 };
 
 }
