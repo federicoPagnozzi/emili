@@ -33,7 +33,14 @@ emili::Solution* SimulatedAnnealing::search(emili::Solution* initial) {
     do {
 
 
-        bestSoFar = exploration->nextSolution(bestSoFar, *sastatus);
+        emili::Solution* tempSolSA = exploration->nextSolution(bestSoFar, *sastatus);
+        if (tempSolSA != bestSoFar) {
+          delete bestSoFar;
+          bestSoFar = tempSolSA;
+          /*std::cout << bestSoFar << std::endl;
+          std::cout << std::fixed << bestSoFar->getSolutionValue() << std::endl;*/
+        } else {
+        }
       /*  printf("%s\n", sastatus->best->getSolutionRepresentation().c_str());
         printf("%f\n", sastatus->best_cost);
         printf("%f\n", bestSoFar->getSolutionValue());*/

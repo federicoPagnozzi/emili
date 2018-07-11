@@ -21,7 +21,7 @@ protected:
 
 public:
     QAPSolution(std::vector< int >& solution):
-        emili::Solution(1e9),
+        emili::Solution(1e19),
         solution(solution) { }
 
     virtual double getSolutionValue(void) {

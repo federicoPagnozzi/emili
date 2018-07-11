@@ -14,8 +14,8 @@
 class SAStatus : public emili::SearchStatus{
 
 public:
-    /*emili::Solution* best;
-    long counter;
+    emili::Solution* best;
+    /*long counter;
     long total_counter;
     long not_improved;*/
     long   local_counter;
@@ -118,7 +118,7 @@ public:
         std::cout << emili::getCurrentExecutionTime();
         std::cout << std::endl;
         std::cout << std::flush;*/
-        //counter = 0;
+        counter = 0;
     }
 
     void new_best_solution(emili::Solution* sol, double cost, double temp) {

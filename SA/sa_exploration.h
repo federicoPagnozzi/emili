@@ -219,7 +219,8 @@ public:
                                           SAStatus& status);
 
     virtual void setTenure() {
-        k = ceil(_k * neigh->size());
+        neighsize =  neigh->size();
+        k = std::max((int)ceil(_k * neigh->size()),1);
     }
 
 }; // SANSBestOfKSequentialExploration
@@ -239,6 +240,7 @@ long neighsize;
 public:
     SANSBestOfKRandomExploration(double _k):
         _k(_k),
+        //k(_k),
         SAExploration(SANSBESTOFKRANDOMEXPLORATION) { }
 
     SANSBestOfKRandomExploration(emili::Neighborhood* _neigh,
@@ -246,8 +248,9 @@ public:
                          SACooling* _cooling,
                          SATermination* _term,
                          double _k):
-        k(ceil(_k * _neigh->size())),
-        neighsize(_neigh->size()),
+        _k(_k),
+        k(std::max((int)ceil(_k * _neigh->size()),1)),
+        neighsize((long)_neigh->size()),
         SAExploration(_neigh,
                       _acceptance,
                       _cooling,
@@ -258,7 +261,8 @@ public:
                                           SAStatus& status);
 
     virtual void setTenure() {
-        k = ceil(_k * neigh->size());
+        neighsize = neigh->size();
+        k = std::max((int)ceil(_k * neigh->size()), 1);
     }
 
 }; // SANSBestOfKRandomExploration
