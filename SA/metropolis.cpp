@@ -57,11 +57,11 @@ emili::Solution* MetropolisAlgorithm::search(emili::Solution* initial) {
     //printf("\n\n\n ls1 to ls2\n");
 
     ((emili::sa::SimulatedAnnealing *)this->ls2)->sastatus->best_cost = ((emili::sa::SimulatedAnnealing *)this->ls1)->sastatus->best_cost;
-    //status->best = ((emili::sa::SimulatedAnnealing *)this->ls1)->sastatus->best->clone();
+    status->best = ((emili::sa::SimulatedAnnealing *)this->ls1)->sastatus->best->clone();
 
     //((emili::sa::SimulatedAnnealing *)this->ls2)->sastatus->best = tmpSol1;
     //((emili::sa::SimulatedAnnealing *)this->ls2)->sastatus->best_cost = tmpSol1->getSolutionValue();
-    ((emili::sa::SimulatedAnnealing *)this->ls2)->sastatus->new_best_solution_silent(tmpSol1, tmpSol1->getSolutionValue(), 0);
+    ((emili::sa::SimulatedAnnealing *)this->ls2)->sastatus->new_best_solution_silent(status->best, status->best->getSolutionValue(), 0);
 
     bestSoFar = this->ls2->search(tmpSol1);
 
