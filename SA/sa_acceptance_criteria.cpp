@@ -8,8 +8,8 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
   
     // std::cout << std::fixed << cs << " " << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
     
-    if (ns > cs) {
-        double prob = std::exp((cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
+    if (new_solution > current_solution) {
+        double prob = std::exp(-std::abs(cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
         
         //std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
 
@@ -25,7 +25,8 @@ emili::Solution* SAMetropolisAcceptance::accept(emili::Solution *current_solutio
         }
 
 
-    } else if (ns < status->best_cost) {
+    //} else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
     
@@ -50,17 +51,19 @@ emili::Solution* SAPrecomputedMetropolisAcceptance::accept(emili::Solution *curr
     double ns = new_solution->getSolutionValue();
 
 
-    double ratio = (cs - ns) / temperature;
+    double ratio = -std::abs((cs - ns) / temperature);
 
-    if (ratio < -5.3) {
-        return current_solution;
-    } else if (ratio < 0) {
-        double prob = probs[(int)(ratio / delta)];
-
-        if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+    if (new_solution > current_solution) {
+        if (ratio < -5.3) {
             return current_solution;
+        } else if (ratio < 0) {
+            double prob = probs[(int)(ratio / delta)];
+
+            if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+                return current_solution;
+            }
         }
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -76,20 +79,21 @@ emili::Solution* SAPrecomputedMetropolisWithForcedAcceptance::accept(emili::Solu
     double ns = new_solution->getSolutionValue();
 
 
-    double ratio = 1.0 * (cs - ns) / temperature;
+    double ratio = -1.0 * std::abs((cs - ns) / temperature);
 
-    if (!status->force_accept && ratio < -5.3) {
-        return current_solution;
-    } else if (!status->force_accept && ratio < 0) {
-        double prob = probs[(int)( -ratio / delta)];
-
-        if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+    if (new_solution > current_solution) {
+        if (!status->force_accept && ratio < -5.3) {
             return current_solution;
-        }
+        } else if (!status->force_accept && ratio < 0) {
+            double prob = probs[(int)( -ratio / delta)];
+
+            if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
+                return current_solution;
+            }
 
     // std::cout << std::fixed << ns << " " << status->total_counter << " " << temperature <<  " " << emili::getCurrentExecutionTime() << " " << prob << std::endl;
-
-    } else if (ns < status->best_cost) {
+      }
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -105,8 +109,8 @@ emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *curre
     double ns = new_solution->getSolutionValue();
     
     // std::cout << cs << " " << ns << " " << " " << std::exp((cs-ns) / temperature) << std::endl;
-    if (!status->force_accept && ns > cs) {
-        double prob = std::exp((cs-ns) / temperature);
+    if (!status->force_accept && new_solution > current_solution) {
+        double prob = std::exp(-std::abs(cs-ns) / temperature);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             /** /acc_tracker[acc_pointer] = 0;
@@ -118,7 +122,7 @@ emili::Solution* SAMetropolisWithForcedAcceptance::accept(emili::Solution *curre
             }/ **/
             return current_solution;
         }
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
     
@@ -143,13 +147,13 @@ emili::Solution* SAApproxExpAcceptance::accept(emili::Solution *current_solution
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > cs) {
-        double prob = 1 - ((cs-ns) / temperature);
+    if (new_solution > current_solution) {
+        double prob = 1 - (-std::abs(cs-ns) / temperature);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -164,13 +168,13 @@ emili::Solution* GeneralizedSAAcceptance::accept(emili::Solution *current_soluti
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > cs) {
-        double prob = std::exp(beta * std::pow(std::abs(cs), g) * (cs-ns) / temperature);
+    if (new_solution > current_solution) {
+        double prob = std::exp(beta * std::pow(std::abs(cs), g) * (-1)*std::abs(cs-ns) / temperature);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -185,9 +189,9 @@ emili::Solution* SABasicAcceptance::accept(emili::Solution *current_solution,
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > cs) {
+    if (new_solution > current_solution) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -202,13 +206,13 @@ emili::Solution* SAGeometricAcceptance::accept(emili::Solution *current_solution
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > cs) {
+    if (new_solution > current_solution) {
         double prob = status->init_prob * std::pow(rate, status->step - 1);
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob) {
             return current_solution;
         }
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -223,9 +227,21 @@ emili::Solution* SADeterministicAcceptance::accept(emili::Solution *current_solu
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > cs + temperature) {
+    bool reject = true;
+    if (new_solution > current_solution && ns > cs) {
+      // minimization problem, worsening move
+      reject = ns > cs + temperature;
+    } else if (new_solution > current_solution && ns < cs) {
+      // maximization problem, worsening move
+      reject = ns < cs - temperature;
+    } else {
+      // whatever problem, it's an improving move
+      reject = false;
+    }
+
+    if (reject) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -239,10 +255,24 @@ emili::Solution* GreatDelugeAcceptance::accept(emili::Solution *current_solution
 
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
-    
-    if (ns > temperature) {
+   
+    bool reject = true;
+    if (new_solution > current_solution && ns > cs) {
+      // minimization problem, worsening move
+      reject = ns > temperature;
+    } else if (new_solution > current_solution && ns < cs) {
+      // maximization problem, worsening move
+      // pretty sure it will be impossible to make this work in practice...
+      reject = 1.0/ns < 1.0/temperature;
+    } else {
+      // whatever problem, it's an improving move
+      reject = false;
+    }
+
+ 
+    if (reject) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -257,9 +287,21 @@ emili::Solution* RecordToRecordAcceptance::accept(emili::Solution *current_solut
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
     
-    if (ns > status->best_cost * (1 + deviation/100.0)) {
+    bool reject = true;
+    if (new_solution > current_solution && ns > cs) {
+      // minimization problem, worsening move
+      reject = ns > status->best_cost * (1 + deviation/100.0);
+    } else if (new_solution > current_solution && ns < cs) {
+      // maximization problem, worsening move
+      reject = ns < status->best_cost * (1 - deviation/100.0);
+    } else {
+      // whatever problem, it's an improving move
+      reject = false;
+    }
+
+    if (reject) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -276,9 +318,21 @@ emili::Solution* LAHCAcceptance::accept(emili::Solution *current_solution,
 
     int v = status->total_counter % tenure;
 
-    if (ns > cs && ns > cost_list[v]) {
+    bool reject = true;
+    if (new_solution > current_solution && ns > cs) {
+      // minimization problem, worsening move
+      reject = ns > cs && ns > cost_list[v];
+    } else if (new_solution > current_solution && ns < cs) {
+      // maximization problem, worsening move
+      reject = ns < cs && ns < cost_list[v];
+    } else {
+      // whatever problem, it's an improving move
+      reject = false;
+    }
+
+    if (reject) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -296,9 +350,21 @@ emili::Solution* LAHCNSAcceptance::accept(emili::Solution *current_solution,
 
     int v = status->total_counter % tenure;
 
-    if (ns > cs && ns > cost_list[v]) {
+    bool reject = true;
+    if (new_solution > current_solution && ns > cs) { 
+      // minimization problem, worsening move
+      reject = ns > cs && ns > cost_list[v];
+    } else if (new_solution > current_solution && ns < cs) {
+      // maximization problem, worsening move
+      reject = ns < cs && ns < cost_list[v];
+    } else {
+      // whatever problem, it's an improving move
+      reject = false;
+    }
+
+    if (reject) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -316,9 +382,21 @@ emili::Solution* LAHCPSAcceptance::accept(emili::Solution *current_solution,
 
     int v = status->total_counter % tenure;
 
-    if (ns > cs && ns > cost_list[v]) {
+    bool reject = true;
+    if (new_solution > current_solution && ns > cs) { 
+      // minimization problem, worsening move
+      reject = ns > cs && ns > cost_list[v];
+    } else if (new_solution > current_solution && ns < cs) {
+      // maximization problem, worsening move
+      reject = ns < cs && ns < cost_list[v];
+    } else {
+      // whatever problem, it's an improving move
+      reject = false;
+    }
+
+    if (reject) {
         return current_solution;
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -335,16 +413,23 @@ emili::Solution* SABoundedMetropolisAcceptance::accept(emili::Solution *current_
     double cs = current_solution->getSolutionValue();
     double ns = new_solution->getSolutionValue();
 
-    if (ns > cs) {
-        double prob = std::exp((cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
-        double rd = (ns - cs) / cs - 1;
+    if (new_solution > current_solution) {
+        double prob = std::exp(-std::abs(cs-ns) / temperature); // (1.3806503e-23 * temperature) ?
+        double rd = 0.0;
+        if (ns > cs) {
+            // minimization problem
+            rd = (ns - cs) / cs - 1;
+        } else {
+            // maximization problem
+            rd = (cs - ns) / ns - 1;
+        }
 
         if (prob < 1.0 && emili::generateRealRandomNumber() > prob && rd < reldelta) {
             return current_solution;
         }
 
 
-    } else if (ns < status->best_cost) {
+    } else if (new_solution < status->best) {
         status->new_best_solution(new_solution, ns, temperature);
     }
 
@@ -359,7 +444,7 @@ emili::Solution* SAAcceptanceAll::accept(emili::Solution *current_solution,
     double ns = new_solution->getSolutionValue();
         //printf(" %f status->best_cost: %f\n", ns, status->best_cost);
 
-    if (ns < status->best_cost) {
+    if (new_solution < status->best) {
       status->new_best_solution(new_solution,
                                 new_solution->getSolutionValue(),
                                 temperature);
