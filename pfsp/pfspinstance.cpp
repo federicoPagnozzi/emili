@@ -271,6 +271,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
             for(int i=1; i< nbMac+1 ; i++)
             {
                 fileIn >> str; // this is not read
+                //std::cout << "M" << i << std::endl;
                 for(int j=1;j<nbJob+1;j++)
                 {
                     for(int k=1;k<nbJob+1;k++)
@@ -278,7 +279,9 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
                         fileIn >> readValue; // -1
                         //fileIn >> readValue;
                         setUpTimes[i][j][k] = readValue;
+                      //  std::cout << " " << readValue ;
                     }
+                    //std::cout << "\n" ;
                 }
             }
 

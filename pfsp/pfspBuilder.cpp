@@ -130,6 +130,7 @@
 #define NEIGHBORHOOD_EXCHANGE "exchange"
 #define NEIGHBORHOOD_ADAPTIVE_INSERT "adpinsert"
 #define NEIGHBORHOOD_KAR "karnghb"
+#define NEIGHBORHOOD_CS_INSERT "csinsert"
 
 /* Weighted Tardiness*/
 #define NEIGHBORHOOD_ATX_EXCHANGE "atxexchange"
@@ -148,7 +149,7 @@
 #define NEIGHBORHOOD_SATAx_INSERT "satxinsert"
 #define NEIGHBORHOOD_EATAx_INSERT "eatxinsert"
 #define NEIGHBORHOOD_TATAx_INSERT "tatxinsert"
-#define NEIGHBORHOOD_CS_INSERT "csinsert"
+
 
 
 /* Total Completion Time*/

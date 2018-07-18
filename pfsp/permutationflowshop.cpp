@@ -1591,6 +1591,24 @@ emili::Solution* emili::pfsp::PermutationFlowShopSolution::clone()
     return new emili::pfsp::PermutationFlowShopSolution(this->solution_value,this->solution);
 }
 
+bool emili::pfsp::PermutationFlowShopSolution::operator==(Solution& a)
+{
+    bool ret = this->solution_value == a.getSolutionValue();
+    if(ret)
+    {
+        emili::pfsp::PermutationFlowShopSolution* ap = (emili::pfsp::PermutationFlowShopSolution*) &a;
+        std::vector<int>& ap_jobs = ap->getJobSchedule();
+        for(int i = 1; i < solution.size(); i++)
+        {
+            if(solution[i] != ap_jobs[i])
+            {
+                return false;
+            }
+        }
+    }
+    return ret;
+}
+
 std::vector< int > & emili::pfsp::PermutationFlowShopSolution::getJobSchedule()
 {
     return this->solution;
@@ -8892,7 +8910,9 @@ emili::Solution* emili::pfsp::CompoundPerturbation::perturb(emili::Solution *sol
 
 }
 
-
+//This method could be faster if implemented using the
+//delta evaluation speedup
+//TODO - Implement DeltaEvaluation speedup
 int emili::pfsp::RIS::neh_ig(std::vector<int>& solPartial, int x)
 {
    int k = solPartial[x];

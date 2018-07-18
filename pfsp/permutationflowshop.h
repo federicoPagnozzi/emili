@@ -414,6 +414,9 @@ public:
     virtual std::string getSolutionRepresentation();
     /** Implements the clone method of emili::Solution*/
     virtual emili::Solution* clone();
+    /** Overrides the default == operator of Solution class*/
+    virtual bool operator==(Solution& a);
+    /** Destructor of the class*/
     virtual ~PermutationFlowShopSolution();
 };
 

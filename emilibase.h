@@ -1142,6 +1142,29 @@ public:
     virtual Solution* perturb(Solution *solution);
     ~ComplexPerturbation() {delete p; delete ls;}
 };
+/**
+ * @brief The MRSILSPerturbation class
+ * implements the multi restart perturbation scheme described
+ * in DonCheHuaNow2013
+ */
+class MRSILSPerturbation : public emili::Perturbation
+{
+protected:
+    emili::Perturbation* p;
+    std::vector< emili::Solution* > solution_pool;
+    int pool_size;
+    int worst;
+public:
+    MRSILSPerturbation(emili::Perturbation* perturbation,int poolSize):
+                       p(perturbation),
+                       pool_size(poolSize),
+                       worst(0)
+    { }
+
+    virtual Solution* perturb(Solution *solution);
+    ~MRSILSPerturbation() {delete p;}
+
+};
 
 /**
  * @brief The Acceptance class

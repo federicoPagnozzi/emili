@@ -1056,6 +1056,63 @@ emili::Solution* emili::ComplexPerturbation::perturb(Solution *solution)
     return inte;
 }
 
+emili::Solution* emili::MRSILSPerturbation::perturb(Solution *solution)
+{
+    emili::Solution* toper = solution;
+    int psize = solution_pool.size();
+    bool toinsert = true;
+    //Check if solution is already present in solution_pool
+    for(int i = 0; i< psize; i++)
+    {
+        if(*solution_pool[i] == *solution)
+        {
+            toinsert = false;
+            //if already in pool stop loop
+            break;
+        }
+    }
+    if(toinsert)
+    {
+        //add solution to solution_poll
+        solution_pool.push_back(solution->clone());
+        //update worst solution
+        if(*solution_pool[worst] < *solution)
+        {
+            worst = psize;
+        }
+        //check if pool is full
+        if(psize == pool_size)
+        {
+            //Delete the worst
+            std::swap(solution_pool[worst],solution_pool[psize]);
+            //Free Solution memory
+            delete solution_pool[psize];
+            //Clean solution_pool
+            solution_pool.pop_back();
+            //Update worst
+            for(int i = 0; i< psize; i++)
+            {
+                if(*solution_pool[i] > *solution_pool[worst])
+                {
+                    worst = i;
+                }
+            }
+        }
+        else
+        {
+            psize++;
+        }
+    }
+    if(psize >= pool_size)
+    {
+        //Take a random solution from the pool for the perturbation
+        int k = emili::generateRandomNumber()%psize;
+        toper = solution_pool[k];
+    }
+
+    return p->perturb(toper);
+}
+
 emili::Solution* emili::AlwaysAccept::accept(Solution *intensification_solution, Solution *diversification_solution)
 {
     if(acc==ACC_DIVERSIFICATION)

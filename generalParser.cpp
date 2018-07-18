@@ -58,6 +58,7 @@
 #define PERTURBATION_NOPER "noper"
 #define PERTURBATION_RANDOM_PERTURBATION_SET "perset"
 #define PERTURBATION_COMPLEX_PERTURBATION "cper"
+#define PERTURBATION_MRSILS_PERTURBATION "mrsilsp"
 /*base acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
@@ -134,7 +135,7 @@ void prs::info()
 {
     std::cout << "Usage:" << std::endl;
     std::cout << std::endl;
-    std::cout << "EMILI INSTANCE_FILE_PATH PROBLEM <PROBLEM OPTIONS> [-it|-ro time] [rnds seed] [ps]" << std::endl;
+    std::cout << "EMILI INSTANCE_FILE_PATH PROBLEM <ALGORITHM DESCRIPTION> [-it|-ro time] [rnds seed] [ps]" << std::endl;
     std::cout << std::endl;
 }
 
@@ -921,6 +922,13 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
         emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         per = new emili::ComplexPerturbation(prsp,lls);
+    }
+    else if(tm.checkToken(PERTURBATION_MRSILS_PERTURBATION))
+    {
+        printTab("MRSILS Perturbation");
+        int poolsize = tm.getInteger();
+        emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        per = new emili::MRSILSPerturbation(prsp,poolsize);
     }
     prs::decrementTabLevel();
     return per;
