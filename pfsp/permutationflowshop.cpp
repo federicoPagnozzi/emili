@@ -9591,7 +9591,7 @@ std::ostream &operator<<(std::ostream &os, bsnnode const &m) {
               << m.IT<< " ,C " << m.C[nmac-1] << " ,L "  << m.L << " ,W " << m.W  << " ,G " << m.G <<" }";
 }
 
-void inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob,std::vector< float >& xi)
+void inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob,std::vector< float >& xi,std::vector<float>& wjvec)
 {
     //xi.push_back(0);
     // pmat[ machine ][ job ]
@@ -9610,6 +9610,7 @@ void inline bs_start_sequence(emili::pfsp::PermutationFlowShop& prob,std::vector
             pi += pmat[j][i];
 
         }
+        wjvec[j] = k * wj;
         xi[j] = pi + k * wj;
     }
 
@@ -9628,12 +9629,24 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
     }
     //Initial Order
     std::vector< float > xi(njobs+1,0);
-    bs_start_sequence(prob,xi);
+    std::vector< float > wj(njobs+1,0);
+    bs_start_sequence(prob,xi,wj);
     std::vector< int> alpha = jobs;
-    std::sort(alpha.begin(),alpha.end(),[xi](int i1,int i2)
-    {
+
+    std::sort(alpha.begin(),alpha.end(),[xi,wj](int i1,int i2)
+    {        
+        if(i1 != i2 && xi[i1] == xi[i2])
+        {
+
+            if(wj[i1] == wj[i2])
+            {
+                return i1 > i2;
+            }
+            return wj[i1] < wj[i2];
+        }
         return xi[i1] < xi[i2];
     });
+
     //Determination of IT'_j0 CT'_j0 and XI'_j0
     // INITIALIZATION
     std::vector< bsnnode* > garbage;
@@ -9726,6 +9739,12 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
         garbage.insert(garbage.end(),nodes.begin(),nodes.end());
         std::sort(new_nodes.begin(),new_nodes.end(),[](bsnnode* i1,bsnnode* i2)
         {
+            if(i1->G == i2->G && i1->job != i2->job )
+            {
+                //std::cerr << i1->job << " <:> "<< i2->job << " EHM! " << i1->L << " <-> "<< i2->L << std::endl;
+                return i1->L > i2->L;
+            }
+
             return i1->G < i2->G;
         });
         nodes.clear();
@@ -9752,10 +9771,12 @@ void inline bs_procedure(int x,float a, float b, float c, float e, emili::pfsp::
           n.TIT = n.father->TIT + n.IT;
           n.TT = n.father->TT + n.T;
           n.TE = n.father->TE + n.E;
-
-          n.F = (njobs-k-1)/(float)njobs * n.TIT +
-                c * (2*njobs - k -1)/(float)(2*njobs) *n.TE +
-                b * (k-1+njobs)/(float)(2*njobs) * n.TT;
+          float tit = (njobs-k-1)/(float)njobs;
+          float te = (2*njobs - k -1)/(float)(2*njobs);
+          float tt = (k-1+njobs)/(float)(2*njobs);
+          n.F = tit * n.TIT +
+                a * te *n.TE +
+                b * tt * n.TT;
         }//end
         int s = garbage.size();
         for(int l=0;l<s;l++)

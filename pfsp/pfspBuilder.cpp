@@ -102,6 +102,7 @@
 #define INITIAL_BS2 "bs2"
 #define INITIAL_BS2N "bs2n"
 #define INITIAL_BSNN "bsnn"
+#define INITIAL_BS2NF "bs2nf"
 #define INITIAL_FF "ff"
 #define INITIAL_FFN "ffn"
 #define INITIAL_BSCHO "bscho"
@@ -1009,6 +1010,23 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         double e = tm.getDecimal();
         printTabPlusOne("e",e);
         int gamma = instance->getNjobs()*tm.getDecimal();
+        if(gamma==0 || gamma> instance->getNjobs())
+            gamma = instance->getNjobs();
+        printTabPlusOne("gamma",gamma);
+        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+    }
+    else if(tm.checkToken(INITIAL_BS2NF))
+    {
+        printTab(" BS based initial solution tuned by Irace");
+        double a = 0.5662;
+        printTabPlusOne("a",a);
+        double b = 2.4326;
+        printTabPlusOne("b",b);
+        double c = 52.8383;
+        printTabPlusOne("c",c);
+        double e = 46.9122;
+        printTabPlusOne("e",e);
+        int gamma = instance->getNjobs()*0.1;
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);
