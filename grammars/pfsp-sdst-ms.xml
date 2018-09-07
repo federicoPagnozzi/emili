@@ -35,13 +35,6 @@
 </pfsp:always_acc_param>
 	
 <pfsp:initial_solution>
-   <!--<![CDATA[random ]]>
-   <or/>
-   <![CDATA[slack ]]>
-   <or/>
-   <![CDATA[nwslack ]]>
-   <or/>
-   <![CDATA[nehedd ]]>-->
    <![CDATA[nrz ]]>
   <or/>
   <![CDATA[nrz2 ]]>
@@ -53,6 +46,8 @@
   <![CDATA[nehff ]]>
   <or/>
   <![CDATA[lrnm ]]>
+  <or/>
+  <![CDATA[gfrb5 ]]>
 </pfsp:initial_solution>
 
 <pfsp:termination>
@@ -75,7 +70,7 @@
 	<or/>
 	   <![CDATA[transpose ]]>
 	<or/>
-	   <![CDATA[insert ]]>
+	   <![CDATA[sdsttainsert ]]>
 	<or/>
 	   <![CDATA[finsert ]]>
 	<or/>
@@ -83,7 +78,7 @@
 	<or/>
 	  <![CDATA[tinsert ]]>
 	<or/>
-	   <![CDATA[csinsert ]]>
+	   <![CDATA[sdstcsinsert ]]>
 	</pfsp:neighborhood>
 	
 	<pfsp:pertubation>
@@ -91,7 +86,7 @@
 	  	<or/>
 		<!-- <![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	  	<or/> -->
-		<![CDATA[igoper ]]><pfsp:sp_impact/><![CDATA[ ]]>
+		<![CDATA[sdstigo ]]><pfsp:sp_impact/><![CDATA[ ]]>
 		<!--	![CDATA[testper ]]> --> 
 		<or/>
 		<!--<![CDATA[soaper ]]><pfsp:sp_impact/><![CDATA[ ]]>-->
@@ -105,7 +100,7 @@
 		<![CDATA[igls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>-->
 		<![CDATA[tmiigper ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:tmiig_tabu_size/><![CDATA[ ]]>
 		<or/>
-		<![CDATA[igols ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
+		<![CDATA[sdstigols ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 	<!--	<or/>
 		<![CDATA[rsls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 		<or/>
@@ -310,7 +305,7 @@
 			#define GRAMMAR2CODE
 		]]>
 	-->
-                <![CDATA[PFSP_TCT ]]>
+                <![CDATA[SDSTPFS_MS ]]>
         	<pfsp:main/>     
            <!--<![CDATA[
                 /*emili::LocalSearch* ls = new emili::FirstImprovementSearch(*in, *te, *ne);

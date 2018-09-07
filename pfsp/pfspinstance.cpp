@@ -271,6 +271,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
             for(int i=1; i< nbMac+1 ; i++)
             {
                 fileIn >> str; // this is not read
+                //std::cout << "M" << i << std::endl;
                 for(int j=1;j<nbJob+1;j++)
                 {
                     for(int k=1;k<nbJob+1;k++)
@@ -278,7 +279,9 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
                         fileIn >> readValue; // -1
                         //fileIn >> readValue;
                         setUpTimes[i][j][k] = readValue;
+                      //  std::cout << " " << readValue ;
                     }
+                    //std::cout << "\n" ;
                 }
             }
 
@@ -2227,7 +2230,7 @@ void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< st
 
 }
 
-void PfspInstance::computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
+void PfspInstance:: computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
 {
     int j,m;
 
@@ -2293,6 +2296,41 @@ void PfspInstance::computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std:
     }
 }
 
+void PfspInstance::computeSDSThead(std::vector<int> &sol,std::vector< std::vector < int > >& head, int size)
+{
+    int j,m;
+    int jobNumber;
+    int end_i = size;
+    int prevj = 0;
+    for(j=1;j<size;j++)
+    {
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1]+ setUpTimes[1][sol[j-1]][jobNumber];
+        head[1][j] = prevj;
+    }
+
+    for ( j = 1; j < end_i; ++j )
+    {
+
+        long int previousJobEndTime = head[1][j];
+        jobNumber = sol[j];
+
+        for ( m = 2; m <= nbMac; ++m )
+        {
+            long stpluspme = setUpTimes[m][sol[j-1]][jobNumber] + head[m][j-1];
+            if ( previousJobEndTime > stpluspme )
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+
+            }
+            else
+            {
+                head[m][j] = stpluspme + processingTimesMatrix[jobNumber][m];
+            }
+            previousJobEndTime = head[m][j];
+        }
+    }
+}
 
 
 void inline computeTailss(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail,std::vector< std::vector< long> >& processingTimesMatrix,int nbMac)
@@ -2426,6 +2464,19 @@ long int PfspInstance::computeWT(std::vector<int> &sol,std::vector<int>& prevJob
     wt = 0;
     for ( j = 1; j<= nbJob; ++j )
         wt += (std::max(previousMachineEndTime[j] - dueDates[sol[j]], 0L) * priority[sol[j]]);
+
+    return wt;
+}
+
+long int PfspInstance::computeWT(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
+
+    for ( j = 1; j<= size; ++j ){
+
+        wt += (std::max( makespans[j] - dueDates[sol[j]] , 0L) * priority[sol[j]]);
+    }
 
     return wt;
 }
@@ -2572,6 +2623,19 @@ long int PfspInstance::computeWCT(std::vector<int> &sol, int size)
 
 }
 
+long int PfspInstance::computeWCT(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
+
+    for ( j = 1; j<= size; ++j ){
+
+        wt +=  makespans[j] * priority[sol[j]];
+    }
+
+    return wt;
+}
+
 /**  total completion time*/
 long int PfspInstance::computeTCT(std::vector< int > &sol)
 {
@@ -2665,6 +2729,19 @@ long int PfspInstance::computeWE(std::vector<int> &sol, int size)
 
 }
 
+long int PfspInstance::computeWE(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
+
+    for ( j = 1; j<= size; ++j ){
+
+        wt += (std::max(dueDates[sol[j]] - makespans[j] , 0L) * priority[sol[j]]);
+    }
+
+    return wt;
+}
+
 /**  Compute the weighted tardiness of a given solution */
 long int PfspInstance::computeT(std::vector< int > & sol)
 {
@@ -2754,6 +2831,20 @@ long int PfspInstance::computeE(std::vector<int> &sol, int size)
 
     return wt;
 
+}
+
+
+long int PfspInstance::computeE(std::vector<int> &sol, std::vector<int>& makespans,int size)
+{
+    int j;
+    long int wt=0;
+
+    for ( j = 1; j<= size; ++j ){
+
+        wt += (std::max(dueDates[sol[j]]-makespans[j], 0L) );//**  priority[sol[j]]);
+    }
+
+    return wt;
 }
 
 /** No wait permutation flowshop*/

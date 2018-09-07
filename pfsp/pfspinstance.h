@@ -84,6 +84,7 @@ class PfspInstance{
     long int computeWT (std::vector< int > & sol);
     /** Compute partial weighted tardiness*/
     long int computeWT (std::vector< int > & sol, int size);
+    long int computeWT(std::vector<int> &sol, std::vector<int>& makespans,int size);
     /**  Compute MakeSpan */
     long int computeMS (std::vector<int> & sol);
     /**  Compute partial MakeSpan*/
@@ -92,13 +93,15 @@ class PfspInstance{
     long int computeFT(std::vector<int> & sol);
     long int computeFT(std::vector<int> &sol, int size);
     /** Compute weighted completion times*/
-    long int computeWCT (std::vector< int > & sol);
     /** Compute partial weighted completion times*/
+    long int computeWCT (std::vector< int > & sol);    
     long int computeWCT (std::vector< int > & sol, int size);
+    long int computeWCT(std::vector<int> &sol, std::vector<int>& makespans,int size);
     /** Compute weighted earliness*/
-    long int computeWE (std::vector< int > & sol);
     /** Compute partial weighted earliness*/
+    long int computeWE (std::vector< int > & sol);   
     long int computeWE (std::vector< int > & sol, int size);
+    long int computeWE(std::vector<int> &sol, std::vector<int>& makespans,int size);
     /** Compute tardiness*/
     long int computeT(std::vector< int > & sol);
     /** Compute partial tardiness*/
@@ -108,6 +111,7 @@ class PfspInstance{
     long int computeE (std::vector< int > & sol);
     /** Compute partial earliness*/
     long int computeE (std::vector< int > & sol, int size);
+    long int computeE(std::vector<int> &sol, std::vector<int>& makespans,int size);
     /** Compute total completion time*/
     long int computeTCT(std::vector< int > &sol);
     long int computeTCT(std::vector< int > &sol,int size);
@@ -166,21 +170,27 @@ class PfspInstance{
     /** Compute sequence depedent setup times weighted earliness*/
     long int computeSDSTWT(std::vector<int> &sol);
     long int computeSDSTWT(std::vector<int> &sol,int size);
+
     /** Compute sequence depedent setup times weighted earliness*/
     long int computeSDSTWE(std::vector<int> &sol);
     long int computeSDSTWE(std::vector<int> &sol,int size);
+
     /** Compute sequence depedent setup times earliness*/
     long int computeSDSTE(std::vector<int> &sol);
     long int computeSDSTE(std::vector<int> &sol,int size);
+
     /** Compute sequence depedent setup times tardiness*/
     long int computeSDSTT(std::vector<int> &sol);
     long int computeSDSTT(std::vector<int> &sol,int size);
+
     /** Compute sequence depedent setup times total completion time*/
     long int computeSDSTTCT(std::vector< int > &sol);
     long int computeSDSTTCT(std::vector< int > &sol,int size);
+
     /** Compute sequence depedent setup times weighted completion time*/
     long int computeSDSTWCT(std::vector< int > &sol);
     long int computeSDSTWCT(std::vector< int > &sol,int size);
+
 
     /** Compute Makespan LowerBound **/
 
@@ -199,15 +209,14 @@ class PfspInstance{
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeTails(std::vector<int> &sol, std::vector < std::vector< std::vector< int > > >& tails);
     void computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
+    void computeSDSThead(std::vector<int> &sol,std::vector< std::vector < int > >& head, int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);
     void computeHead(std::vector<int>& sol,std::vector< std::vector< int > >& head, int njobs);
     //void updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans);
 
-    const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
-
-
+    const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }   
 
 };
 

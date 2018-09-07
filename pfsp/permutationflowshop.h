@@ -81,7 +81,7 @@ public:
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
-
+    void computeHead(std::vector<int> &sol,std::vector< std::vector< int > >& head, int njobs) ;
     /** Old methods used by some particular and exceptional speed-ups*/
     int computeObjectiveFunction(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
     int computeObjectiveFunction(std::vector< int > & sol,std::vector<std::vector<int > >& previousMachineEndTimeMatrix, int start_i, int end_i);
@@ -322,60 +322,68 @@ public:
     SDSTFSP_MS(char* instance_path):PermutationFlowShop(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
+    virtual long int computeObjectiveFunctionFromHead(std::vector<int> &solution, int starting_point, std::vector<std::vector<int> > &head, int njobs);
 };
 /** Weighted Tardiness*/
-class SDSTFSP_WT: public PermutationFlowShop
+class SDSTFSP_WT: public SDSTFSP_MS
 {
 public:
-    SDSTFSP_WT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
-    SDSTFSP_WT(char* instance_path):PermutationFlowShop(instance_path) { }
+    SDSTFSP_WT(PfspInstance& problem_instance):SDSTFSP_MS(problem_instance) { }
+    SDSTFSP_WT(char* instance_path):SDSTFSP_MS(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Weighted Earliness*/
-class SDSTFSP_WE: public PermutationFlowShop
+class SDSTFSP_WE: public SDSTFSP_MS
 {
 public:
-    SDSTFSP_WE(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
-    SDSTFSP_WE(char* instance_path):PermutationFlowShop(instance_path) { }
+    SDSTFSP_WE(PfspInstance& problem_instance):SDSTFSP_MS(problem_instance) { }
+    SDSTFSP_WE(char* instance_path):SDSTFSP_MS(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Tardiness*/
-class SDSTFSP_T: public PermutationFlowShop
+class SDSTFSP_T: public SDSTFSP_MS
 {
 public:
-    SDSTFSP_T(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
-    SDSTFSP_T(char* instance_path):PermutationFlowShop(instance_path) { }
+    SDSTFSP_T(PfspInstance& problem_instance):SDSTFSP_MS(problem_instance) { }
+    SDSTFSP_T(char* instance_path):SDSTFSP_MS(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Earliness*/
-class SDSTFSP_E: public PermutationFlowShop
+class SDSTFSP_E: public SDSTFSP_MS
 {
 public:
-    SDSTFSP_E(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
-    SDSTFSP_E(char* instance_path):PermutationFlowShop(instance_path) { }
+    SDSTFSP_E(PfspInstance& problem_instance):SDSTFSP_MS(problem_instance) { }
+    SDSTFSP_E(char* instance_path):SDSTFSP_MS(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Total completion time*/
-class SDSTFSP_TCT: public PermutationFlowShop
+class SDSTFSP_TCT: public SDSTFSP_MS
 {
 public:
-    SDSTFSP_TCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
-    SDSTFSP_TCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    SDSTFSP_TCT(PfspInstance& problem_instance):SDSTFSP_MS(problem_instance) { }
+    SDSTFSP_TCT(char* instance_path):SDSTFSP_MS(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 /** Weighted completion time*/
-class SDSTFSP_WCT: public PermutationFlowShop
+class SDSTFSP_WCT: public SDSTFSP_MS
 {
 public:
-    SDSTFSP_WCT(PfspInstance& problem_instance):PermutationFlowShop(problem_instance) { }
-    SDSTFSP_WCT(char* instance_path):PermutationFlowShop(instance_path) { }
+    SDSTFSP_WCT(PfspInstance& problem_instance):SDSTFSP_MS(problem_instance) { }
+    SDSTFSP_WCT(char* instance_path):SDSTFSP_MS(instance_path) { }
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution);
     virtual int computeObjectiveFunction(std::vector<int> &partial_solution,int size);
+    virtual int computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size);
 };
 
 
@@ -406,6 +414,9 @@ public:
     virtual std::string getSolutionRepresentation();
     /** Implements the clone method of emili::Solution*/
     virtual emili::Solution* clone();
+    /** Overrides the default == operator of Solution class*/
+    virtual bool operator==(Solution& a);
+    /** Destructor of the class*/
     virtual ~PermutationFlowShopSolution();
 };
 
@@ -666,6 +677,15 @@ public:
     virtual emili::Solution* perturb(Solution *solution);
 };
 
+class SDSTIGOPerturbation: public emili::pfsp::IGOPerturbation
+{
+public:
+    SDSTIGOPerturbation(int dparameter, emili::pfsp::PermutationFlowShop& problem):
+        IGOPerturbation(dparameter,problem) { }
+
+    virtual emili::Solution* perturb(Solution *solution);
+};
+
 class IGIOPerturbation: public emili::Perturbation
 {
 protected:
@@ -744,6 +764,13 @@ public:
     IGOLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):emili::pfsp::IGOPerturbation(d_parameter, problem), ls(ls) { }
     virtual emili::Solution* perturb(Solution *solution);
     ~IGOLsPerturbation() { delete ls;}
+};
+
+class SDSTIGOLsPerturbation: public emili::pfsp::IGOLsPerturbation
+{    
+public:
+    SDSTIGOLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):emili::pfsp::IGOLsPerturbation(d_parameter, problem,ls) { }
+    virtual emili::Solution* perturb(Solution *solution);
 };
 
 class RSLSPerturbation: public emili::Perturbation
@@ -869,7 +896,7 @@ public:
 
 /**
  * Insert neighborhood
- * that does a full scan each iteration
+ * that does a full scan each iteration for plain Permutation Flowshop
  */
 class CSInsertNeighborhood: public emili::pfsp::TaillardAcceleratedInsertNeighborhood
 {
@@ -877,6 +904,19 @@ protected:
     virtual Solution* computeStep(Solution *value);
 public:
     CSInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::TaillardAcceleratedInsertNeighborhood(problem){ }
+};
+
+/**
+ * Insert neighborhood
+ * that does a full scan each iteration for Flowshop with Sequence Dependent Setup Times
+ */
+class SDSTCSInsertNeighborhood: public emili::pfsp::CSInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    SDSTCSInsertNeighborhood(PermutationFlowShop& problem):emili::pfsp::CSInsertNeighborhood(problem){ }
+     virtual NeighborhoodIterator begin(Solution *base);
 };
 
 /**
@@ -1287,7 +1327,48 @@ public:
     XTransposeNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspTransposeNeighborhood(problem),prevJob(problem.getNmachines()+1,0),previousMachineEndTime(problem.getNjobs()+1,0),last_saved_position(-1) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
+/**
+ * @brief The InversionNeighborhood class
+ * Neighborhood used in SDST
+ * See Sioud Gagné 2018
+ */
+class InversionNeighborhood: public emili::pfsp::PfspTransposeNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution* value);
+    virtual void reverseLastMove(Solution *step);
+    int gsize;
+public:
+    InversionNeighborhood(PermutationFlowShop& problem, int group_size):
+        emili::pfsp::PfspTransposeNeighborhood(problem),
+        gsize(group_size)
+        {}
 
+    virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
+    virtual std::pair<int,int> lastMove()
+            {return std::pair<int,int>(start_position,start_position+gsize);}
+    virtual int size(){return pis.getNjobs()/gsize;}
+};
+
+/**
+ * @brief The ScrambleNeighborhood class
+ * Neighborhood used in SDST, scrambles randomly
+ * a given group of jobs. Works similarly to InversionNeighborhood
+ */
+class ScrambleNeighborhood: public emili::pfsp::InversionNeighborhood
+{
+public:
+    ScrambleNeighborhood(PermutationFlowShop& problem, int group_size):
+        emili::pfsp::InversionNeighborhood(problem,group_size) {}
+    virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
+};
+
+
+/**
+ * @brief The PfspTerminationClassic class
+ */
 class PfspTerminationClassic: public emili::Termination
 {
 public:
@@ -1928,6 +2009,31 @@ public:
         this->njobs = p.getNjobs();
     }
     emili::Solution* search(emili::Solution* initial);
+};
+
+class STH : public emili::LocalSearch
+{
+protected:
+    int b;
+    const std::vector< std::vector <long int> >& processingTimesMatrix;
+    std::vector< std::vector <long int> > sumOfST;
+    emili::pfsp::SDSTFSP_MS& prob;
+    void initialize_sumOfST();
+public:
+    STH(int _b, emili::pfsp::SDSTFSP_MS& problem,emili::InitialSolution& is):
+        b(_b),
+        prob(problem),
+        processingTimesMatrix(problem.getProcessingTimesMatrix()),
+        sumOfST(problem.getNjobs()+1,std::vector<long int>(problem.getNjobs()+1,0))
+    {
+        this->init = &is;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = is.generateEmptySolution();
+        initialize_sumOfST();
+    }
+
+    virtual emili::Solution* search(emili::Solution* initial);
 };
 
 }

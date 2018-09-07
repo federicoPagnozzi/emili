@@ -38,6 +38,8 @@ if(WRITE_COMMIT_ID)
 add_custom_target(GNUM ALL git rev-parse HEAD | xargs -I cnum sed -ie s/.*"define GIT_COMMIT_NUMBER".*/"\#define GIT_COMMIT_NUMBER \\"cnum\\""/g generalParser.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_custom_target(CGNUM ALL rm -f generalParser.cppe WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 	message(STATUS "Automatic updating of commit number enabled")
+    else()
+        message(STATUS "Automatic updating of commit number disabled")
 endif(WRITE_COMMIT_ID)
 
 #SSE
@@ -61,7 +63,7 @@ if(USE_NEW_MAIN)
     message(STATUS "Component based algorithm loading enabled")
     add_definitions(-DMAIN_NEW)
 else()
-    message(STATUS "Component based algorithm loading not enabled")
+    message(STATUS "Component based algorithm loading disabled")
 endif(USE_NEW_MAIN)
 
 
@@ -69,13 +71,14 @@ if(USE_EM_LIB)
     message(STATUS "Experimental library based extension mechanism enabled")
     add_definitions(-DEM_LIB)
 else()
-    message(STATUS "Experimental library based extension mechanism not enabled")
+    message(STATUS "Experimental library based extension mechanism disabled")
 endif(USE_EM_LIB)
 
 if(PORTABLE)
 	message(STATUS "Using static linking") 
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
 else()
+        message(STATUS "Using dynamic linking")
 endif(PORTABLE)
 
 #C++ 11 detection

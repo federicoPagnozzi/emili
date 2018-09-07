@@ -622,8 +622,11 @@ public:
                if(startSolution != nullptr )
                {
                   line_ = base_->clone();
-                  base_value = base_->getSolutionValue();
-                  line_ = n->computeStep(line_);
+                  base_value = base_->getSolutionValue();                  
+                  emili::Solution* nline_ = n->computeStep(line_);
+                  if(nline_ == nullptr)
+                      delete line_;
+                  line_ = nline_;
                }
                else
                {
@@ -1196,6 +1199,29 @@ public:
     ComplexPerturbation(emili::Perturbation* perturbation, emili::LocalSearch* localsearch):p(perturbation),ls(localsearch) { }
     virtual Solution* perturb(Solution *solution);
     ~ComplexPerturbation() {delete p; delete ls;}
+};
+/**
+ * @brief The MRSILSPerturbation class
+ * implements the multi restart perturbation scheme described
+ * in DonCheHuaNow2013
+ */
+class MRSILSPerturbation : public emili::Perturbation
+{
+protected:
+    emili::Perturbation* p;
+    std::vector< emili::Solution* > solution_pool;
+    int pool_size;
+    int worst;
+public:
+    MRSILSPerturbation(emili::Perturbation* perturbation,int poolSize):
+                       p(perturbation),
+                       pool_size(poolSize),
+                       worst(0)
+    { }
+
+    virtual Solution* perturb(Solution *solution);
+    ~MRSILSPerturbation() {delete p;}
+
 };
 
 /**
