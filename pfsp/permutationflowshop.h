@@ -1327,7 +1327,48 @@ public:
     XTransposeNeighborhood(PermutationFlowShop& problem):emili::pfsp::PfspTransposeNeighborhood(problem),prevJob(problem.getNmachines()+1,0),previousMachineEndTime(problem.getNjobs()+1,0),last_saved_position(-1) { }
     virtual NeighborhoodIterator begin(Solution *base);
 };
+/**
+ * @brief The InversionNeighborhood class
+ * Neighborhood used in SDST
+ * See Sioud Gagné 2018
+ */
+class InversionNeighborhood: public emili::pfsp::PfspTransposeNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution* value);
+    virtual void reverseLastMove(Solution *step);
+    int gsize;
+public:
+    InversionNeighborhood(PermutationFlowShop& problem, int group_size):
+        emili::pfsp::PfspTransposeNeighborhood(problem),
+        gsize(group_size)
+        {}
 
+    virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
+    virtual std::pair<int,int> lastMove()
+            {return std::pair<int,int>(start_position,start_position+gsize);}
+    virtual int size(){return pis.getNjobs()/gsize;}
+};
+
+/**
+ * @brief The ScrambleNeighborhood class
+ * Neighborhood used in SDST, scrambles randomly
+ * a given group of jobs. Works similarly to InversionNeighborhood
+ */
+class ScrambleNeighborhood: public emili::pfsp::InversionNeighborhood
+{
+public:
+    ScrambleNeighborhood(PermutationFlowShop& problem, int group_size):
+        emili::pfsp::InversionNeighborhood(problem,group_size) {}
+    virtual Solution* random(Solution *currentSolution);
+    virtual Solution* random(Solution *currentSolution,int size);
+};
+
+
+/**
+ * @brief The PfspTerminationClassic class
+ */
 class PfspTerminationClassic: public emili::Termination
 {
 public:
@@ -1968,6 +2009,31 @@ public:
         this->njobs = p.getNjobs();
     }
     emili::Solution* search(emili::Solution* initial);
+};
+
+class STH : public emili::LocalSearch
+{
+protected:
+    int b;
+    const std::vector< std::vector <long int> >& processingTimesMatrix;
+    std::vector< std::vector <long int> > sumOfST;
+    emili::pfsp::SDSTFSP_MS& prob;
+    void initialize_sumOfST();
+public:
+    STH(int _b, emili::pfsp::SDSTFSP_MS& problem,emili::InitialSolution& is):
+        b(_b),
+        prob(problem),
+        processingTimesMatrix(problem.getProcessingTimesMatrix()),
+        sumOfST(problem.getNjobs()+1,std::vector<long int>(problem.getNjobs()+1,0))
+    {
+        this->init = &is;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = is.generateEmptySolution();
+        initialize_sumOfST();
+    }
+
+    virtual emili::Solution* search(emili::Solution* initial);
 };
 
 }

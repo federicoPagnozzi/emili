@@ -20,6 +20,8 @@
 #define NW_RIS_LS "nwris"
 #define RNW_RIS_LS "rnwris"
 #define SWP_INC_LS "swpinc"
+#define STH_LS "sthp"
+#define STHF_LS "sth"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -308,6 +310,27 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         int r = 3;
         ls = new emili::pfsp::SwapIncLocalSearch(r,*in);
+    }
+    else if(tm.checkToken(STH_LS))
+    {
+        printTab("STH");
+        emili::pfsp::SDSTFSP_MS* instance =(emili::pfsp::SDSTFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        int b = tm.getInteger();
+        printTabPlusOne("b",b);
+        ls = new emili::pfsp::STH(b,*instance,*in);
+    }
+    else if(tm.checkToken(STHF_LS))
+    {
+        printTab("STH");
+        emili::pfsp::SDSTFSP_MS* instance =(emili::pfsp::SDSTFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        int n4 = instance->getNjobs()/4;
+        n4 = n4==0?1:n4;
+        int b  = n4 + emili::generateRandomNumber()%n4;
+        //int b = tm.getInteger();
+        printTabPlusOne("b",b);
+        ls = new emili::pfsp::STH(b,*instance,*in);
     }
 
     prs::decrementTabLevel();
@@ -1556,7 +1579,7 @@ emili::Problem* prs::PfspBuilder::openInstance()
          return instance;
      }
 
-        std::cout << info_pfsp() << std::endl;
+        std::cout << info_pfsp() << std::endl;        
         exit(-1);
 }
 

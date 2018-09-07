@@ -619,8 +619,11 @@ public:
                if(startSolution != nullptr )
                {
                   line_ = base_->clone();
-                  base_value = base_->getSolutionValue();
-                  line_ = n->computeStep(line_);
+                  base_value = base_->getSolutionValue();                  
+                  emili::Solution* nline_ = n->computeStep(line_);
+                  if(nline_ == nullptr)
+                      delete line_;
+                  line_ = nline_;
                }
                else
                {

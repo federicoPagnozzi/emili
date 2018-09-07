@@ -217,9 +217,7 @@ class PfspInstance{
     void computeHead(std::vector<int>& sol,std::vector< std::vector< int > >& head, int njobs);
     //void updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans);
 
-    const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }
-
-
+    const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }   
 
 };
 
