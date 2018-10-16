@@ -2010,8 +2010,12 @@ public:
     }
     emili::Solution* search(emili::Solution* initial);
 };
-
-class STH : public emili::LocalSearch
+/**
+ * @brief The STH class
+ * STH implements the sth heuristic and localsearch for
+ * sequence dependent setup times introduced in Sioud, Gagné 07
+ */
+class STH : public emili::LocalSearch, public emili::pfsp::PfspInitialSolution
 {
 protected:
     int b;
@@ -2019,8 +2023,11 @@ protected:
     std::vector< std::vector <long int> > sumOfST;
     emili::pfsp::SDSTFSP_MS& prob;
     void initialize_sumOfST();
+    virtual emili::Solution* generate();
 public:
     STH(int _b, emili::pfsp::SDSTFSP_MS& problem,emili::InitialSolution& is):
+        emili::pfsp::PfspInitialSolution(problem),
+        emili::LocalSearch(),
         b(_b),
         prob(problem),
         processingTimesMatrix(problem.getProcessingTimesMatrix()),
@@ -2033,7 +2040,38 @@ public:
         initialize_sumOfST();
     }
 
+    STH(int _b, emili::pfsp::SDSTFSP_MS& problem):
+        emili::pfsp::PfspInitialSolution(problem),
+        emili::LocalSearch(),
+        b(_b),
+        prob(problem),
+        processingTimesMatrix(problem.getProcessingTimesMatrix()),
+        sumOfST(problem.getNjobs()+1,std::vector<long int>(problem.getNjobs()+1,0))
+    {
+        this->init = nullptr;
+        this->neighbh = new emili::EmptyNeighBorHood();
+        this->termcriterion = new emili::LocalMinimaTermination();
+        this->bestSoFar = this->generateEmptySolution();
+        initialize_sumOfST();
+    }
+
     virtual emili::Solution* search(emili::Solution* initial);
+
+};
+/**
+ * @brief The EmboPerturbation class
+ */
+class EmboPerturbation : public emili::Perturbation
+{
+protected:
+    std::vector< std::pair<int,int> > tabu_list;
+    emili::pfsp::PermutationFlowShop& instance;
+    int tabu_tenure;
+public:
+    EmboPerturbation(int tabu_size, emili::pfsp::PermutationFlowShop& problem):
+                     tabu_tenure(tabu_size), instance(problem),
+                     tabu_list(){}
+    virtual Solution* perturb(Solution* solution);
 };
 
 }

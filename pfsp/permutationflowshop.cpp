@@ -10000,7 +10000,18 @@ void inline copy_insert_block(std::vector<int>& current,std::vector<int>& newseq
 */
         i = 0;
         for(;i<bsize;i++)
-            newseq[ins_pos+i] = current[bind+i];
+        {
+            /*if(ins_pos+i > njobs || bind+i > njobs)
+            {
+                std::cout << "!!! ins_pos+i " << ins_pos+i
+                          << " bind+1 " << bind+i
+                          << " correction ins_pos+i " << (ins_pos+i)%njobs
+                          << " correction bind+1 " << (bind+i)%njobs
+                          << std::endl;
+            }*/
+            int ins = (ins_pos+i)>njobs?(ins_pos+i)%njobs:ins_pos+i;
+            newseq[ins] = current[bind+i];
+        }
 
 /*
         for(int i=1; i<= njobs;i++)
@@ -10083,7 +10094,12 @@ emili::Solution* emili::pfsp::STH::search(emili::Solution* initial)
       //select inspos the b lowest setup times for the insertion
       std::vector< int > inspos;
       std::vector< int > setTimes(njobs+1,0);
-      for(int l = 1; l <= njobs; l++ )
+
+      // test this!
+      //setTimes[1] =  setUpTimes[1][current[bind+bsize]][current[1]];
+      setTimes[1] =  sumOfST[current[bind+bsize]][current[1]];
+      inspos.push_back(1);
+      for(int l = 2; l <= njobs; l++ )
       {
           if(l<bind || l >= bind+bsize)
           {
@@ -10104,11 +10120,7 @@ emili::Solution* emili::pfsp::STH::search(emili::Solution* initial)
           //Calculate best insertion
           int temp_value = prob.computeObjectiveFunction(temp);
           if(value==-1 || temp_value < value ) //better
-          {
-              if(temp_value==7932)
-              {
-                  std::cout << "ins_pos " << ins << "\nbind " << bind << "\nbsize " << bsize << std::endl;
-              }
+          {           
             best_ins = ins;
             value = temp_value;
            // std::cout << "s -> " << temp_value << std::endl;
@@ -10128,6 +10140,79 @@ emili::Solution* emili::pfsp::STH::search(emili::Solution* initial)
   emili::Solution* ret = new emili::pfsp::PermutationFlowShopSolution(best_value,current);
   *bestSoFar = *ret;
   return ret;
+}
+
+emili::Solution* emili::pfsp::STH::generate()
+{
+    std::vector< int > test;
+    test.insert(test.begin(),0);
+    test_neh_init(test,prob);
+    PermutationFlowShopSolution* start = new PermutationFlowShopSolution(prob.computeObjectiveFunction(test),test);
+    return this->search(start);
+}
+
+inline void generate_pos(int& p1, int& p2,int njobs, std::vector<std::pair<int,int>>& tabulist)
+{
+    int tabu = 0;
+    do
+    {
+        p1 = (emili::generateRandomNumber()%njobs)+1;
+        p2 = (emili::generateRandomNumber()%njobs)+1;
+        while(p2==p1)
+        {
+            p2 = (emili::generateRandomNumber()%njobs)+1;
+        }
+        tabu = 0;
+        for(std::vector<std::pair<int,int> >::iterator iter = tabulist.begin();iter!=tabulist.end(); ++iter)
+        {
+            std::pair<int,int> a = *iter;
+            if(a.first == p1 || a.first==p2 )
+                if(a.second == p1 || a.second==p2)
+                {
+                    tabu = 1;
+                    break;
+                }
+        }
+    }while(tabu);
+}
+
+emili::Solution* emili::pfsp::EmboPerturbation::perturb(emili::Solution* solution)
+{
+    int njobs = instance.getNjobs();
+    int p1,p2;
+    //generate positions
+    generate_pos(p1,p2,njobs,tabu_list);
+    std::vector<int> nsol(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    //random choose type of perturbation
+    float ptype = emili::generateRealRandomNumber();
+    if(ptype <= 0.5)
+    {
+        //do swap
+        std::swap(nsol[p1],nsol[p2]);
+    }
+    else
+    {
+        //do insert
+        int toi = p1<p2?p2:p1;
+        int val = nsol[toi];
+        int pos = p1!=toi?p1:p2;
+        nsol.erase(nsol.begin()+toi);
+        nsol.insert(nsol.begin()+pos,val);
+    }
+    // calc objective function value
+    int value = instance.computeObjectiveFunction(nsol);
+    //check if has to be inserted in tabu_list
+    if(value < solution->getSolutionValue())
+    {
+        //check if tabu_list is full
+        if(tabu_list.size() == tabu_tenure)
+        {
+            tabu_list.erase(tabu_list.begin());
+        }
+        //insert in tabu_list
+        tabu_list.push_back(std::pair<int,int>(p1,p2));
+    }
+    return new emili::pfsp::PermutationFlowShopSolution(value,nsol);
 }
 
 /*emili::pfsp::BeamSearchHeuristic::bs_node* emili::pfsp::BeamSearchHeuristic::bs_node::generateSequence()

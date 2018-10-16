@@ -869,10 +869,11 @@ protected:
      */
     inline void setBest(Solution* nBest);
 public:
-    SearchAlgorithm():status() { }
+    SearchAlgorithm():status(new SearchStatus) { }
     SearchAlgorithm(SearchStatus& _status):status(&_status) {}
     virtual SearchStatus& getSearchStatus(){ return *status;}
     virtual void reset() {}
+    virtual ~SearchAlgorithm() {delete status;}
 };
 
 /** @brief The LocalSearch class
@@ -907,7 +908,8 @@ Solution* bestSoFar;
      * the empty constructor is declared protected so that an extending class can not
      * use a public one
      */
-    LocalSearch():SearchAlgorithm(){ }
+    LocalSearch():SearchAlgorithm(),init(nullptr)
+                 ,termcriterion(nullptr),neighbh(nullptr){ }
 public:
     /**
      * @brief LocalSearch
@@ -1098,7 +1100,7 @@ public:
 /** @brief The Perturbation class
 * The pertubation phase of the ils.
 */
-class Perturbation
+class  Perturbation
 {
   public:
     /**

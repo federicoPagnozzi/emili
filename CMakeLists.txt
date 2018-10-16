@@ -5,6 +5,7 @@ aux_source_directory(. SRC_LIST)
 aux_source_directory(./SA SA_SRC_LIST)
 aux_source_directory(./QAP QAP_SRC_LIST)
 aux_source_directory(./pfsp PFSP_SRC_LIST)
+aux_source_directory(./pop PFSP_SRC_LIST)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 option(USE_SSE "Use SSE compile path if available" OFF)

@@ -110,6 +110,7 @@
 #define INITIAL_BSCHO "bscho"
 #define INITIAL_BSCHR "bschr"
 #define INITIAL_BSCH "bsch"
+#define INITIAL_STH  "isth"
 
 
 /* Termination criteria*/
@@ -211,6 +212,7 @@
 #define PERTURBATION_RESTART_LS "restartls"
 #define PERTURBATION_IG_SDST "sdstigo"
 #define PERTURBATION_IGLS_SDST "sdstigols"
+#define PERTURBATION_EMBO "embop"
 
 
 
@@ -316,7 +318,10 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         printTab("STH");
         emili::pfsp::SDSTFSP_MS* instance =(emili::pfsp::SDSTFSP_MS*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        int b = tm.getInteger();
+        float bd = tm.getDecimal();
+        float bb = instance->getNjobs()*bd;
+        int b = bb;
+        b = b==0?1:b;
         printTabPlusOne("b",b);
         ls = new emili::pfsp::STH(b,*instance,*in);
     }
@@ -620,6 +625,13 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss.str(""); oss  << "Compound perturbation :  d= " << d << ", omega= " << omega << ",pc= "<< pc;
         printTab(oss.str().c_str());
         per = new emili::pfsp::CompoundPerturbation(*instance,omega,d,pc);
+    }
+    else if(tm.checkToken(PERTURBATION_EMBO))
+    {
+        printTab("EMBO Perturbation");
+        int l = tm.getInteger();
+        printTabPlusOne("Tabu list size",l);
+        per = new emili::pfsp::EmboPerturbation(l,*instance);
     }
 
     prs::decrementTabLevel();
@@ -1122,6 +1134,17 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             gamma = instance->getNjobs();
         printTabPlusOne("x",gamma);
         init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+    }else if(tm.checkToken(INITIAL_STH))
+    {
+        printTab("STH");
+        emili::pfsp::SDSTFSP_MS* instance =(emili::pfsp::SDSTFSP_MS*) gp.getInstance();
+        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*instance);
+        float bd = tm.getDecimal();
+        float bb = instance->getNjobs()*bd;
+        int b = bb;
+        b = b==0?1:b;
+        printTabPlusOne("b",b);
+        init = new emili::pfsp::STH(b,*instance,*in);
     }
 
 

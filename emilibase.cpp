@@ -603,7 +603,7 @@ void emili::LocalSearch::setSearchTime(float time)
 }
 
 emili::LocalSearch::~LocalSearch()
- {
+ {    
     if(init != nullptr)
     {
         delete init;
@@ -615,7 +615,7 @@ emili::LocalSearch::~LocalSearch()
     if(neighbh != nullptr)
     {
        delete neighbh;
-    }
+    }    
       delete bestSoFar;
 }
 
@@ -662,8 +662,14 @@ emili::Solution* emili::EmptyLocalSearch::timedSearch()
  */
 
 emili::Solution* emili::LocalSearch::getBestSoFar()
-{   
-    return status->getBestSolution();
+{
+    emili::Solution* best = status->getBestSolution();
+    if(best == nullptr)
+    {
+       status->newBestSolution(bestSoFar);
+       best = bestSoFar;
+    }
+    return best;
 }
 
 void emili::LocalSearch::setBestSoFar(Solution *newBest)

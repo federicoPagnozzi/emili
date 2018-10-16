@@ -32,6 +32,7 @@
 #include "SA/sa_qap_parser.h"
 #include "SA/SABuilder.h"
 #include "QAP/qapBuilder.h"
+#include "pop/mboBuilder.h"
 
 
 void g2c_info()
@@ -220,6 +221,7 @@ int main(int argc, char *argv[])
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
     prs::QAPBuilder qap(ps,ps.getTokenManager());
     prs::SABuilder sab(ps,ps.getTokenManager());
+    prs::MboBuilder mbo(ps,ps.getTokenManager());
     //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
     //ps.addBuilder(&px);
@@ -229,6 +231,7 @@ int main(int argc, char *argv[])
     ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
     ps.addBuilder(&sab);
+    ps.addBuilder(&mbo);
 #endif
     ls = ps.parseParams();
     if(ls!=nullptr)
