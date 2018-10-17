@@ -1,5 +1,5 @@
 #include "mbo.h"
-
+#include <algorithm>
 void inline restart_bird(emili::Solution* bird,emili::Neighborhood* restarter)
 {
     emili::Solution* res = restarter->random(bird);
@@ -161,8 +161,8 @@ emili::Solution* emili::pop::EMBO::search(emili::Solution* initial)
            std::vector<Solution*> rnghbs;
            for(int o=0;o<(k-x);o++)
            {
-                lnghbs[o] = nghbs[o];
-                rnghbs[o] = nghbs[o];
+                lnghbs.push_back(nghbs[o]);
+                rnghbs.push_back(nghbs[o]->clone());
            }
 
            for(int i=0;i<lwsize;i++)
@@ -192,6 +192,7 @@ emili::Solution* emili::pop::EMBO::search(emili::Solution* initial)
        if(*leader < *bestSoFar)
        {
            *bestSoFar = *leader;
+            printSolstats(bestSoFar);
        }
        //Select new leader and move current leader on the back
        //
