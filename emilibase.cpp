@@ -285,7 +285,7 @@ void emili::iteration_decrement(){
  * Print Solution info
  */
 double cbest = std::numeric_limits<double>::max();
-inline void emili::printSolstats(emili::Solution* sol)
+void emili::printSolstats(emili::Solution* sol)
 {
 #ifdef WITH_STATS
     if(print && cbest > sol->getSolutionValue())
@@ -296,7 +296,7 @@ inline void emili::printSolstats(emili::Solution* sol)
 #endif
 }
 
-inline void emili::printSearchstats(emili::SearchStatus* status)
+void emili::printSearchstats(emili::SearchStatus* status)
 {
 #ifdef WITH_STATS
     emili::Solution* sol = status->getBestSolution();

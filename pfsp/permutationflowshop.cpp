@@ -9949,7 +9949,8 @@ emili::Solution* emili::pfsp::SwapIncLocalSearch::search(emili::Solution *initia
 
 void inline copy_insert_block(std::vector<int>& current,std::vector<int>& newseq,int ins_pos,int bind,int bsize,int njobs)
 {
- /*
+    assert(ins_pos != njobs);
+/*
     std::cout << "ins_pos " << ins_pos << "\nbind " << bind << "\nbsize " << bsize << std::endl;
         for(int i=1; i<= njobs;i++)
         if(i == bind)
@@ -9964,7 +9965,6 @@ void inline copy_insert_block(std::vector<int>& current,std::vector<int>& newseq
         }
         std::cout << std::endl;
 */
-
         int i=1;
         int ii = 1;
         while(i<=njobs && ii<=njobs)
@@ -10013,7 +10013,7 @@ void inline copy_insert_block(std::vector<int>& current,std::vector<int>& newseq
             newseq[ins] = current[bind+i];
         }
 
-/*
+     /*
         for(int i=1; i<= njobs;i++)
             if(i == ins_pos)
             {
@@ -10026,8 +10026,8 @@ void inline copy_insert_block(std::vector<int>& current,std::vector<int>& newseq
                 std::cout << " " << newseq[i];
             }
         std::cout << std::endl;
-        exit(-1);
-*/
+    */
+
 }
 
 void test_neh_init(std::vector< int >& order,emili::pfsp::PermutationFlowShop& pis)
@@ -10099,7 +10099,7 @@ emili::Solution* emili::pfsp::STH::search(emili::Solution* initial)
       //setTimes[1] =  setUpTimes[1][current[bind+bsize]][current[1]];
       setTimes[1] =  sumOfST[current[bind+bsize]][current[1]];
       inspos.push_back(1);
-      for(int l = 2; l <= njobs; l++ )
+      for(int l = 2; l <= (njobs-bsize); l++ )
       {
           if(l<bind || l >= bind+bsize)
           {
@@ -10196,6 +10196,7 @@ emili::Solution* emili::pfsp::EmboPerturbation::perturb(emili::Solution* solutio
         int toi = p1<p2?p2:p1;
         int val = nsol[toi];
         int pos = p1!=toi?p1:p2;
+
         nsol.erase(nsol.begin()+toi);
         nsol.insert(nsol.begin()+pos,val);
     }
