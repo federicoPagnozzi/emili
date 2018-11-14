@@ -811,32 +811,8 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
     }
     else if(tm.checkToken(TERMINATION_WTRUE))
     {
-        printTab("While true termination");
-        float time = 0;
-        if(tm.move(tm.seek(IT)))
-        {
-            tm++;
-            time = tm.getInteger();
-            tm.restore();
-        }
-        else if(tm.move(tm.seek(RO)))
-        {
-            tm++;
-            float d = tm.getDecimal();
-            float time = d*gp.getInstance()->problemSize();
-            tm.restore();
-        }
-        if(time == 0)
-        {
-            term = new emili::WhileTrueTermination();
-        }
-        else
-        {
-            time = time + 1 ;
-            printTab("Changed to timed termination");
-            printTabPlusOne("time",time);
-            term = new emili::TimedTermination(time);
-        }
+        printTab("While true termination");       
+        term = new emili::WhileTrueTermination();
     }
     else if(tm.checkToken(TERMINATION_TIME))
     {
