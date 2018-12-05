@@ -13,7 +13,7 @@
 #include "generalParser.h"
 //#define MAIN_NEW
 #ifndef MAIN_NEW
-#include "pfsp/paramsparser.h"
+#include "SA/paramsparser.h"
 #else
 #include "pfsp/pfspBuilder.h"
 //#include "template/problem_builder.h"
@@ -29,9 +29,9 @@
 #endif
 
 //#include "SA/sa_pfsp_parser.h"
-#include "SA/sa_qap_parser.h"
-#include "SA/SABuilder.h"
-#include "QAP/qapBuilder.h"
+//#include "SA/sa_qap_parser.h"
+//#include "SA/SABuilder.h"
+//#include "QAP/qapBuilder.h"
 #include "pop/mboBuilder.h"
 
 
@@ -79,7 +79,7 @@ prs::emili_header();
 //<<<<<<< HEAD
 //    std::cout << "searching..." << std::endl;
  //   SAPFSPParser p;
-    SAQAPParser p;
+//    SAQAPParser p;
 // =======
 //    prs::ParamsParser p;
 // >>>>>>> master
@@ -219,8 +219,8 @@ int main(int argc, char *argv[])
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
-    prs::QAPBuilder qap(ps,ps.getTokenManager());
-    prs::SABuilder sab(ps,ps.getTokenManager());
+   // prs::QAPBuilder qap(ps,ps.getTokenManager());
+   // prs::SABuilder sab(ps,ps.getTokenManager());
     prs::MboBuilder mbo(ps,ps.getTokenManager());
     //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
@@ -228,9 +228,9 @@ int main(int argc, char *argv[])
 #ifdef EM_LIB
     loadBuilders(ps);
 #else
-    ps.addBuilder(&qap);
+   // ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
-    ps.addBuilder(&sab);
+   // ps.addBuilder(&sab);
     ps.addBuilder(&mbo);
 #endif
     ls = ps.parseParams();

@@ -48,6 +48,7 @@ public:
     { }
 
     virtual Solution* search(Solution* initial);
+    virtual Solution* getBestSoFar();
 };
 
 }

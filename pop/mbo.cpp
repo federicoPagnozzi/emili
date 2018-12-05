@@ -192,7 +192,7 @@ emili::Solution* emili::pop::EMBO::search(emili::Solution* initial)
        if(*leader < *bestSoFar)
        {
            *bestSoFar = *leader;
-            printSolstats(bestSoFar);
+            //printSolstats(bestSoFar);
        }
        //Select new leader and move current leader on the back
        //
@@ -223,5 +223,19 @@ emili::Solution* emili::pop::EMBO::search(emili::Solution* initial)
            }
 
     }while(!termcriterion->terminate(initial,leader));
+    return bestSoFar;
+}
+
+emili::Solution* emili::pop::EMBO::getBestSoFar()
+{
+    emili::Solution* bestOfInnerLocal = this->ls->getBestSoFar();
+    if(*leader < *bestSoFar)
+    {
+        bestSoFar = leader;
+    }
+    if(bestOfInnerLocal != nullptr &&  bestOfInnerLocal->operator <(*bestSoFar))
+    {
+        return bestOfInnerLocal;
+    }
     return bestSoFar;
 }

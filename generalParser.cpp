@@ -20,7 +20,7 @@
 #define DEFAULT_TS 10
 #define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "4122de05aaa32dd79554993f5741e19c8a5ebf79"
+#define GIT_COMMIT_NUMBER "c2e1c91ab7b16254b49e9980bbb759c4c2a14be9"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
@@ -812,31 +812,31 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
     else if(tm.checkToken(TERMINATION_WTRUE))
     {
         printTab("While true termination");
-        float time = 0;
-        if(tm.move(tm.seek(IT)))
-        {
-            tm++;
-            time = tm.getInteger();
-            tm.restore();
-        }
-        else if(tm.move(tm.seek(RO)))
-        {
-            tm++;
-            float d = tm.getDecimal();
-            float time = d*gp.getInstance()->problemSize();
-            tm.restore();
-        }
-        if(time == 0)
-        {
+//        float time = 0;
+//        if(tm.move(tm.seek(IT)))
+//        {
+//            tm++;
+//            time = tm.getInteger();
+//            tm.restore();
+//        }
+//        else if(tm.move(tm.seek(RO)))
+//        {
+//            tm++;
+//            float d = tm.getDecimal();
+//            time = d*gp.getInstance()->problemSize();
+//            tm.restore();
+//        }
+//        if(time == 0)
+//        {
             term = new emili::WhileTrueTermination();
-        }
-        else
-        {
-            time = time + 1 ;
-            printTab("Changed to timed termination");
-            printTabPlusOne("time",time);
-            term = new emili::TimedTermination(time);
-        }
+//        }
+//        else
+//        {
+//            time = time + 1 ;
+//            printTab("Changed to timed termination");
+//            printTabPlusOne("time",time);
+//            term = new emili::TimedTermination(time);
+//        }
     }
     else if(tm.checkToken(TERMINATION_TIME))
     {

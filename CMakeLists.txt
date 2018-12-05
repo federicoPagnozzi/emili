@@ -2,8 +2,8 @@ project(emili)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
 
-aux_source_directory(./SA SA_SRC_LIST)
-aux_source_directory(./QAP QAP_SRC_LIST)
+#aux_source_directory(./SA SA_SRC_LIST)
+#aux_source_directory(./QAP QAP_SRC_LIST)
 aux_source_directory(./pfsp PFSP_SRC_LIST)
 aux_source_directory(./pop PFSP_SRC_LIST)
 

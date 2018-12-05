@@ -329,8 +329,8 @@ public:
  * WITH_STATS must be defined when running cmake.
  * @param sol
  */
-void printSolstats(emili::Solution* sol);
-void printSearchstats(emili::SearchStatus* status);
+void inline printSolstats(emili::Solution* sol);
+void inline printSearchstats(emili::SearchStatus* status);
 
 /**
  * @brief The InitialSolution class

@@ -285,7 +285,7 @@ void emili::iteration_decrement(){
  * Print Solution info
  */
 double cbest = std::numeric_limits<double>::max();
-void emili::printSolstats(emili::Solution* sol)
+void inline emili::printSolstats(emili::Solution* sol)
 {
 #ifdef WITH_STATS
     if(print && cbest > sol->getSolutionValue())
@@ -296,7 +296,7 @@ void emili::printSolstats(emili::Solution* sol)
 #endif
 }
 
-void emili::printSearchstats(emili::SearchStatus* status)
+void inline emili::printSearchstats(emili::SearchStatus* status)
 {
 #ifdef WITH_STATS
     emili::Solution* sol = status->getBestSolution();
@@ -461,13 +461,16 @@ void emili::SearchStatus::incrementCounters()
 void emili::SearchStatus::newBestSolution(Solution* new_best)
 {
     not_improved = 0;
-    delete best;
+    if(best != feasible_best)
+    {
+        delete best;
+    }
     best = new_best;
     if(new_best->isFeasible())
     {
         if(feasible_best==nullptr)
         {
-            feasible_best = new_best->clone();
+            feasible_best = new_best;
         }
         else
         {
