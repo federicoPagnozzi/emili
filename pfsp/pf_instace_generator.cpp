@@ -1,9 +1,53 @@
 #include <iostream>
 #include <random>
-
+#include "pfspinstance.h"
 using namespace std;
+int add_DD_to_SDST(int argc, char *argv[])
+{
+    int rndseed = atoi(argv[3]);
+    std::mt19937 generator(rndseed);
+    std::uniform_int_distribution<int> distr(1,99);
+    PfspInstance pfs;
+    std::cout << argv[2] << std::endl;
+    bool asd = pfs.readSeqDepDataFromFile(argv[2]);
+    int nmslb = pfs.computeMSLB();
+    const std::vector< std::vector < std::vector < int > > >& stupti = pfs.getSetUpTimes();
+    for(int i=2; i < pfs.getNbJob() ; i++)
+    {
+        for(int m=1; m < pfs.getNbMac() ; m++)
+        nmslb = nmslb + stupti[m][i-1][i];
+    }
+
+        std::cout << "Reldue" << std::endl;
+        float T = 0.2;
+        float R = 0.6;
+
+        T = atof(argv[4]);
+        R = atof(argv[5]);
+
+        int DDlw = (int)((float)nmslb*(1.0f-T-R/2.0f));
+        int DDlh = (int)((float)nmslb*(1.0f-T+R/2.0f));
+
+        std::uniform_int_distribution<int> dd(DDlw,DDlh);
+        std::uniform_int_distribution<int> weight(1,10);
+        for(int i=0;i<pfs.getNbJob();i++)
+        {
+            std::cout << "-1" << " " << dd(generator) << " -1 " << weight(generator) << std::endl;
+        }
+
+    std::cout << "LB " << nmslb << std::endl;
+    return 1;
+}
+
 int maino(int argc, char *argv[]) {
-	
+    if(argc > 1)
+    {
+        if(strcmp(argv[1],"sdst")==0)
+        {
+          return add_DD_to_SDST(argc,argv);
+        }
+
+    }
 	if(argc > 3)
 	{
 		int rndseed = atoi(argv[3]);

@@ -10113,6 +10113,7 @@ emili::Solution* emili::pfsp::STH::search(emili::Solution* initial)
 
       for(int j=0; j<ins_points; j++)
       {
+          //TODO can maybe improve this by using taillard accelerations?
           //insert block after position inspos[j]
           int ins = inspos[j];
           copy_insert_block(current,temp,ins,bind,bsize,njobs);

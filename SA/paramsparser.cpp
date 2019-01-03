@@ -1565,7 +1565,7 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
         std::cout << info() << std::endl;
         exit(-1);
 }
-#include "pfspBuilder.h"
+#include "../pfsp/pfspBuilder.h"
 
 emili::LocalSearch* prs::ParamsParser::buildAlgo(prs::TokenManager& tm)
 {
