@@ -22,6 +22,7 @@
 #define SWP_INC_LS "swpinc"
 #define STH_LS "sthp"
 #define STHF_LS "sth"
+#define TEST_NITA "testni"
 
 /* tabu tenure types */
 #define TABU_MEMORY_MOVES "move"
@@ -111,6 +112,8 @@
 #define INITIAL_BSCHR "bschr"
 #define INITIAL_BSCH "bsch"
 #define INITIAL_STH  "isth"
+#define INITIAL_NAGANO "nagano"
+#define INITIAL_NAGANO_DEFAULT_PARAMS "nag"
 
 
 /* Termination criteria*/
@@ -207,6 +210,7 @@
 #define PERTURBATION_IGLS_OPTIMIZED "igols"
 #define PERTURBATION_NWIG "nwig"
 #define PERTURBATION_NIIG "niig"
+#define PERTURBATION_NIIGO "niigo"
 #define PERTURBATION_MPTLM "mptlm"
 #define PERTURBATION_RESTART "restart"
 #define PERTURBATION_RESTART_LS "restartls"
@@ -336,7 +340,7 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         //int b = tm.getInteger();
         printTabPlusOne("b",b);
         ls = new emili::pfsp::STH(b,*instance,*in);
-    }
+    }   
 
     prs::decrementTabLevel();
     return ls;
@@ -383,9 +387,17 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
             printTab(oss.str().c_str());
             per = new emili::pfsp::NoIdleIGper(n,*((emili::pfsp::NWPFSP_MS*)instance));
         }
-
-    else if(tm.checkToken(PERTURBATION_RSFF))
+    else if(tm.checkToken(PERTURBATION_NIIGO))
         {
+            int nj = instance->getNjobs();
+            int n = tm.getInteger();
+            n = n<nj?n:nj-1;
+            oss << "No idle optimized NEH destruct/construct perturbation. number of job erased: "<<n;
+            printTab(oss.str().c_str());
+            per = new emili::pfsp::NIIGOPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
+       }
+    else if(tm.checkToken(PERTURBATION_RSFF))
+       {
         int nj = instance->getNjobs();
         int n = tm.getInteger();
         n = n<nj?n:nj-1;
@@ -1145,6 +1157,37 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         b = b==0?1:b;
         printTabPlusOne("b",b);
         init = new emili::pfsp::STH(b,*instance,*in);
+    }
+    else if(tm.checkToken(INITIAL_NAGANO))
+    {
+        printTab("Nagano");
+        emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::SDSTFSP_MS*) gp.getInstance();
+        int x = tm.getInteger();
+        printTabPlusOne("x",x);
+        int y = tm.getInteger();
+        printTabPlusOne("y",y);
+        float dp = tm.getDecimal();
+        printTabPlusOne("d",dp);
+        float Ap = tm.getDecimal();
+        printTabPlusOne("A",Ap);
+        init = new emili::pfsp::NaganoHeuristic(*instance,x,y,dp,Ap);
+
+    }
+    else if(tm.checkToken(INITIAL_NAGANO_DEFAULT_PARAMS))
+    {
+        printTab("Nagano Default A,d paramaters values");
+        emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::SDSTFSP_MS*) gp.getInstance();
+        int x = tm.getInteger();
+        printTabPlusOne("x",x);
+        int y = tm.getInteger();
+        printTabPlusOne("y",y);
+        int njobs = instance->getNjobs();
+        float dp = (njobs*3.0f)/(4.0f);
+        printTabPlusOne("d",dp);
+        float Ap = njobs/4.0f;
+        printTabPlusOne("A",Ap);
+        init = new emili::pfsp::NaganoHeuristic(*instance,x,y,dp,Ap);
+
     }
 
 

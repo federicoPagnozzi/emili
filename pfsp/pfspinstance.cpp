@@ -2152,83 +2152,7 @@ void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vec
     }
 }
 
-void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
-{
-    computeNoIdleTAmatrices(sol,head,tail,nbJob);
-}
 
-void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
-{
-    int j,m;
-
-    int jobNumber;
-    int end_i = size;//nbJob-1;
-   // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
-    long int a_h = 0;
-    long int a_t = 0;
-    int prevj = 0;
-    int postj = 0;
-    int k;
-    for(j=1;j<size;j++)
-    {
-        k = size-j;
-        jobNumber = sol[j];
-        prevj = prevj + processingTimesMatrix[jobNumber][1];
-        postj = postj + processingTimesMatrix[sol[k]][nbMac];
-        head[1][j] = prevj;
-        tail[nbMac][k] = postj;
-    }
-
-    k = size-1;//nbJob-1;
-
-
-
-       for ( m = 2; m <= nbMac; ++m )
-       {
-           int n = nbMac-m+1;
-           head[m][1] = head[m-1][1] + processingTimesMatrix[sol[1]][m];
-           tail[n][k] = tail[n+1][k] + processingTimesMatrix[sol[k]][n];
-       }
-
-      for ( j = 2; j <= end_i; ++j )
-        {
-            k = size-j;
-            long int previousJobEndTime = head[1][j];
-            long int postJobEndTime = tail[nbMac][k];
-            a_t = 0;
-            a_h = 0;
-            jobNumber = sol[j];
-
-            for ( m = 2; m <= nbMac; ++m )
-            {
-                int n = nbMac-m+1;
-
-            if ( head[m][j-1]+a_h > previousJobEndTime )
-            {
-                head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m]+ a_h;
-            }
-            else
-            {
-                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
-                a_h += previousJobEndTime-(head[m][j-1]+a_h);
-            }
-
-            if ( tail[n][k+1]+a_t > postJobEndTime )
-            {
-                tail[n][k] = tail[n][k+1] + processingTimesMatrix[sol[k]][n]+a_t;
-            }
-            else
-            {
-                tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
-                a_t += postJobEndTime - (tail[n][k+1]+a_t);
-            }
-
-            previousJobEndTime = head[m][j];
-            postJobEndTime = tail[n][k];
-        }
-    }
-
-}
 
 void PfspInstance:: computeSDSTTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
 {
@@ -3135,7 +3059,7 @@ long int PfspInstance::computeNWWCT(std::vector< int > &sol,int size)
 /** No idle permutation flowshop*/
 
 
-inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob,int size)
+inline std::vector< long int > computeNoIdlePartialMakespanss(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob,int size)
 {
     std::vector< long int > partialMs(nbJob+1,0);
 
@@ -3169,11 +3093,268 @@ inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >&
     return partialMs;
 }
 
+inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob,int size)
+{
+    std::vector< long int > partialMs(nbJob+1,0);
+    partialMs[1] = processingTimesMatrix[sol[1]][1];
+    std::vector< int > minimumDiff(nbJob+1,0);
+
+    /** NEW AND HOPELFULLY BETTER WAY **/
+    for(int j=2;j<=size;j++)
+    {
+        partialMs[j] = partialMs[j-1]+processingTimesMatrix[sol[j]][1];
+    }
+
+
+    for (int m = 2; m <= nbMac ; m++)
+    {
+        partialMs[1] += processingTimesMatrix[sol[1]][m];
+
+        for (int j = 2; j <= size ; j++)
+        {
+            int diff = partialMs[j]-(partialMs[j-1]+minimumDiff[j-1]);
+            if(diff > 0)
+            {
+                minimumDiff[j-1] += diff;
+                partialMs[j] = partialMs[j]+processingTimesMatrix[sol[j]][m];
+            }
+            else
+            {
+                partialMs[j] = partialMs[j-1]+minimumDiff[j-1]+processingTimesMatrix[sol[j]][m];
+            }
+        }
+
+     }
+   // std::cout << "------------------" << std::endl;
+    for(int b=size; b > 0 ; b--)
+    {
+     //   std::cout << sol[b] << " ms " << partialMs[b] << " d " << minimumDiff[b] << std::endl;
+        partialMs[b] += minimumDiff[b];
+        minimumDiff[b-1] += minimumDiff[b];
+       // std::cout << sol[b] << " ms " << partialMs[b] << " d " << minimumDiff[b] << std::endl;
+    }
+    return partialMs;
+}
 
 inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob)
 {
     return computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,nbJob);
 }
+
+void PfspInstance::computeNoIdleHead(std::vector<int> &sol,std::vector< std::vector < int > >& head)
+{
+    computeNoIdleHead(sol,head,nbJob);
+}
+void PfspInstance::computeNoIdleHead(std::vector<int> &sol,std::vector< std::vector < int > >& head,int size)
+{
+    int j,m;
+    int jobNumber;
+    int end_i = size;//nbJob-1;
+    long int a_h = 0;
+    int prevj = 0;
+    for(j=1;j<=size;j++)
+    {
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        head[1][j] = prevj;
+    }
+
+       for ( m = 2; m <= nbMac; ++m )
+       {
+           int n = nbMac-m+1;
+           head[m][1] = head[m-1][1] + processingTimesMatrix[sol[1]][m];
+       }
+      for ( j = 2; j <= end_i; ++j )
+        {
+
+            long int previousJobEndTime = head[1][j];
+            a_h = 0;
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+
+            if ( head[m][j-1]+a_h > previousJobEndTime )
+            {
+                head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m]+ a_h;
+            }
+            else
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                a_h += previousJobEndTime-(head[m][j-1]+a_h);
+                //head[m][j-1] +=a_h;
+            }
+            previousJobEndTime = head[m][j];
+        }
+    }
+
+      for(j = size; j>0; j--)
+      {
+          jobNumber = sol[j];
+          for(m = 2; m<=nbMac; m++)
+          {
+              int hmj = head[m][j]-processingTimesMatrix[jobNumber][m];
+              if( hmj > head[m][j-1] && j>1)
+              {
+                  head[m][j-1] = hmj;
+              }
+          }
+      }
+}
+
+void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail)
+{
+    computeNoIdleTAmatrices(sol,head,tail,nbJob);
+}
+
+void PfspInstance::computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
+{
+    int j,m;
+
+    int jobNumber;
+    int end_i = size;//nbJob-1;
+   // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
+    long int a_h = 0;
+    long int a_t = 0;
+    int prevj = 0;
+    int postj = 0;
+    int k;
+    k = size;
+    for(j=1;j<=size;j++)
+    {
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        postj = postj + processingTimesMatrix[sol[k]][nbMac];
+        head[1][j] = prevj;
+        tail[nbMac][k] = postj;
+        k = size-j;
+    }
+
+    k = size;//nbJob-1;
+
+
+
+       for ( m = 2; m <= nbMac; ++m )
+       {
+           int n = nbMac-m+1;
+           head[m][1] = head[m-1][1] + processingTimesMatrix[sol[1]][m];
+           tail[n][k] = tail[n+1][k] + processingTimesMatrix[sol[k]][n];
+       }
+    k = size-1;
+      for ( j = 2; j <= end_i; ++j )
+        {
+
+            long int previousJobEndTime = head[1][j];
+            long int postJobEndTime = tail[nbMac][k];
+            a_t = 0;
+            a_h = 0;
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+
+            if ( head[m][j-1]+a_h > previousJobEndTime )
+            {
+                head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m]+ a_h;
+            }
+            else
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                a_h += previousJobEndTime-(head[m][j-1]+a_h);
+                //head[m][j-1] +=a_h;
+            }
+
+            if ( tail[n][k+1]+a_t > postJobEndTime )
+            {
+                tail[n][k] = tail[n][k+1] + processingTimesMatrix[sol[k]][n]+a_t;
+            }
+            else
+            {
+                tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
+                a_t += postJobEndTime - (tail[n][k+1]+a_t);
+            }
+
+            previousJobEndTime = head[m][j];
+            postJobEndTime = tail[n][k];
+
+        }
+            k = size-j;
+    }
+
+      for(j = size; j>0; j--)
+      {
+          jobNumber = sol[j];
+          for(m = 2; m<=nbMac; m++)
+          {
+              int hmj = head[m][j]-processingTimesMatrix[jobNumber][m];
+              if( hmj > head[m][j-1] && j>1)
+              {
+                  head[m][j-1] = hmj;
+              }
+          }
+      }
+
+      for(j = 1; j<=size; j++)
+      {
+          jobNumber = sol[j];
+          for(m = nbMac-1; m>0; m--)
+          {
+              int hmj = tail[m][j]-processingTimesMatrix[jobNumber][m];
+              if( hmj > tail[m][j+1] && j < size)
+              {
+                  tail[m][j+1] = hmj;
+              }
+          }
+      }
+/*
+      int headtct = 0;
+      int tailtct = 0;
+      std::cout << "HEAD " << std::endl;
+      for(int i = 1; i <= nbMac ; i++)
+      {
+          for(int j=1; j <= nbJob ; j++)
+          {
+              std::cout << " " << head[i][j];
+              if(i == nbMac)
+              {
+                  headtct += head[i][j];
+              }
+          }
+          std::cout << std::endl;
+      }
+
+      std::cout << "TAIL " << std::endl;
+        for(int i = 1; i <= nbMac ; i++)
+        {
+            for(int j=1; j <= nbJob ; j++)
+            {
+                std::cout << " " << tail[i][j];
+                if(i == 1)
+                {
+                    tailtct += tail[i][j];
+                }
+            }
+            std::cout << std::endl;
+
+        }
+        std::cout << "headtct " << headtct << std::endl;
+        std::cout << "tailtct " << tailtct << std::endl;
+
+        std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob);
+        long int wt = 0;
+        for ( int j = 1; j<= nbJob; ++j )
+        {
+            wt += partials[j] ;
+            std::cout << " " << partials[j];
+        }
+        std::cout << std::endl;
+        std::cout << "tct " << std::endl;
+        */
+}
+
+
 
 
 long int PfspInstance::computeNIMS(std::vector<int> &sol)
@@ -3354,8 +3535,9 @@ long int PfspInstance::computeNITCT(std::vector<int> &sol, int size)
     std::vector< long int > partials = computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,size);
     long int wt = 0;
     for ( int j = 1; j<= size; ++j )
-        wt += partials[j];
-
+    {
+        wt += partials[j];      
+    }
     return wt;
 }
 

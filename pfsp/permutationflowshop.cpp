@@ -1833,6 +1833,83 @@ int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &partial_s
     return instance.computeNIMS(partial_solution,size);
 }
 
+int emili::pfsp::NIPFSP_MS::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
+{
+    return makespans[size];
+}
+
+long int emili::pfsp::NIPFSP_MS::computeObjectiveFunctionFromHead(std::vector<int> &sol, int starting_point, std::vector<std::vector<int> > &head, int njobs)
+{
+    int j,m;
+    int jobNumber;
+    int size = njobs;
+    int nbMac = this->getNmachines();
+    int nbJob = this->getNjobs();
+    int sp_j = starting_point-1;
+    const std::vector< std::vector <long int> >& processingTimesMatrix = instance.getProcessingTimesMatrix();
+    std::vector< int > partialMs(nbJob+1,0);
+    partialMs[1] = processingTimesMatrix[sol[sp_j]][1];
+    std::vector< int > minimumDiff(nbJob+1,0);
+    std::cout << " ______________ " << std::endl;
+    for(int i=1;i <= nbMac; i++)
+    {
+    for(int j=0; j<=size ; j++)
+    {
+        std::cout << " " << head[i][j];
+    }
+    std::cout << std::endl;
+    }
+    std::cout << " sp " << starting_point << " spj " << sp_j << std::endl;
+    for(int j=1;j<=sp_j;j++)
+    {
+        partialMs[j] = head[nbMac][j];
+        std::cout << " " << partialMs[j];
+    }
+   // std::cout << " " << partialMs[sp_j];
+    partialMs[sp_j] = head[1][sp_j];
+    /** NEW AND HOPELFULLY BETTER WAY **/
+    for(int j=starting_point;j<=size;j++)
+    {
+        partialMs[j] = partialMs[j-1]+processingTimesMatrix[sol[j]][1];
+        std::cout << " " << partialMs[j];
+    }
+    std::cout << std::endl;
+    std::cout << 1 << " : " << partialMs[sp_j] << std::endl;
+    for (int m = 2; m <= nbMac ; m++)
+    {
+        partialMs[sp_j] = head[m][sp_j];
+
+        std::cout << m << " : " << partialMs[sp_j] << std::endl;
+        for (int j = starting_point; j <= size ; j++)
+        {
+            int diff = partialMs[j]-(partialMs[j-1]+minimumDiff[j-1]);
+            if(diff > 0)
+            {
+                minimumDiff[j-1] += diff;
+                partialMs[j] = partialMs[j]+processingTimesMatrix[sol[j]][m];
+            }
+            else
+            {
+                partialMs[j] = partialMs[j-1]+minimumDiff[j-1]+processingTimesMatrix[sol[j]][m];
+            }
+        }
+
+     }
+   // std::cout << "------------------" << std::endl;
+    for(int b=size; b > 0  ; b--)
+    {
+        partialMs[b] += minimumDiff[b];
+        minimumDiff[b-1] += minimumDiff[b];
+    }
+    for(int j=1; j<=size ; j++)
+    {
+        std::cout << " " << partialMs[j];
+    }
+    std::cout << std::endl;
+    std::cout << " OOOOOOOOOOOOOOO " << std::endl;
+    return computeObjectiveFunction(sol,partialMs,njobs);
+}
+
 int emili::pfsp::NIPFSP_WT::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeNIWT(partial_solution);
@@ -1873,6 +1950,16 @@ int emili::pfsp::NIPFSP_T::computeObjectiveFunction(std::vector<int> &partial_so
     return instance.computeNIT(partial_solution,size);
 }
 
+int emili::pfsp::NIPFSP_T::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
+{
+    int nitct=0;
+    for(int i=1; i <=size; i++)
+    {
+        nitct += std::max(0,(int)(instance.getDueDate(solution[i])-makespans[i]));
+    }
+    return nitct;
+}
+
 int emili::pfsp::NIPFSP_WCT::computeObjectiveFunction(std::vector<int> &partial_solution)
 {
     return instance.computeNIWCT(partial_solution);
@@ -1891,6 +1978,16 @@ int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_
 int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &partial_solution, int size)
 {
     return instance.computeNITCT(partial_solution,size);
+}
+
+int emili::pfsp::NIPFSP_TCT::computeObjectiveFunction(std::vector<int> &solution, std::vector<int>& makespans, int size)
+{
+    int nitct=0;
+    for(int i=1; i <=size; i++)
+    {
+        nitct += makespans[i];
+    }
+    return nitct;
 }
 
 void emili::pfsp::NI_A_PFSP_MS::calc_nims_base()
@@ -3039,6 +3136,120 @@ emili::Solution* emili::pfsp::SDSTIGOPerturbation::perturb(Solution *solution)
             int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
             // std::cout << sops << " <> " << tmp << " - " << tmp1 << std::endl;
             //assert(tmp==tmp1);
+            if(tmp<min){
+                min=tmp;
+                ind=r;
+            }
+
+        }
+        solPartial.insert(solPartial.begin()+ind,k);
+    }
+    //assert(min == instance.computeObjectiveFunction(solPartial));
+    emili::pfsp::PermutationFlowShopSolution* s = new emili::pfsp::PermutationFlowShopSolution(min,solPartial);
+    return s;
+}
+
+void emili::pfsp::NIIGOPerturbation::computeHead(std::vector<int> &sol,std::vector< std::vector < int > >& head,int size)
+{
+    int j,m;
+    int jobNumber;
+    int end_i = size;//nbJob-1;
+    int nbMac = instance.getNmachines();
+    int nbJob = instance.getNjobs();
+    const std::vector< std::vector <long int> >& processingTimesMatrix = instance.getProcessingTimesMatrix();
+    long int a_h = 0;
+    int prevj = 0;
+    for(j=1;j<=size;j++)
+    {
+        jobNumber = sol[j];
+        prevj = prevj + processingTimesMatrix[jobNumber][1];
+        head[1][j] = prevj;
+    }
+
+       for ( m = 2; m <= nbMac; ++m )
+       {
+           int n = nbMac-m+1;
+           head[m][1] = head[m-1][1] + processingTimesMatrix[sol[1]][m];
+       }
+      for ( j = 2; j <= end_i; ++j )
+        {
+
+            long int previousJobEndTime = head[1][j];
+            a_h = 0;
+            jobNumber = sol[j];
+
+            for ( m = 2; m <= nbMac; ++m )
+            {
+                int n = nbMac-m+1;
+
+            if ( head[m][j-1]+a_h > previousJobEndTime )
+            {
+                head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m]+ a_h;
+            }
+            else
+            {
+                head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                a_h += previousJobEndTime-(head[m][j-1]+a_h);
+                //head[m][j-1] +=a_h;
+            }
+            previousJobEndTime = head[m][j];
+        }
+    }
+
+}
+
+emili::Solution* emili::pfsp::NIIGOPerturbation::perturb(Solution *solution)
+{    
+    int index;
+    int min;
+    int ind=1;
+    std::vector< int > removed;
+    std::vector< int > solPartial(((emili::pfsp::PermutationFlowShopSolution*)solution)->getJobSchedule());
+    int size = solPartial.size();
+
+
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    for(int k = 0; k < d; k++) {
+        index = (emili::generateRandomNumber()%sops)+1;
+        removed.push_back(solPartial[index]);
+        solPartial.erase(solPartial.begin() + index);
+        sops--;
+    }
+    for(int l=0;l<removed.size();l++){
+        sops++;
+        int k=removed[l];
+        min = std::numeric_limits<int>::max();
+        std::cout << "NIIGO solution " << std::endl;
+        for(int i = 0; i < sops; i++)
+            std::cout << " " << solPartial[i];
+        std::cout << std::endl;
+        computeHead(solPartial,head,sops-1);
+        for(int i=1;i <= this->instance.getNmachines(); i++)
+        {
+        for(int j=0; j<=sops ; j++)
+        {
+            std::cout << " " << head[i][j];
+        }
+        std::cout << std::endl;
+        }
+        for(int r=1; r<sops; r++){
+
+            for(int h=1; h<r; h++)
+                solTMP[h]=solPartial[h];
+            solTMP[r]=k;
+            for(int h=r+1; h<=sops; h++)
+                solTMP[h]=solPartial[h-1];
+
+            std::cout << "solTMP " << std::endl;
+            for(int i = 0; i <= sops; i++)
+                std::cout << " " << solTMP[i];
+            std::cout << std::endl;
+             std::cout << "<solTMP> " << std::endl;
+            int tmp = instance.computeObjectiveFunctionFromHead(solTMP,r,head,sops);
+            int tmp1 = instance.computeObjectiveFunction(solTMP,sops);
+            std::cout << r << " . " << sops << " <> " << tmp << " - " << tmp1 << std::endl;
+            assert(tmp==tmp1);
             if(tmp<min){
                 min=tmp;
                 ind=r;
@@ -10261,3 +10472,288 @@ emili::Solution* emili::pfsp::EmboPerturbation::perturb(emili::Solution* solutio
     return best;
 }
 */
+
+void emili::pfsp::NaganoHeuristic::nagano_nims(std::vector< int >& s,std::vector< int >& lastJobCompletionTimes, long int& a_h, int& size)
+{
+    int job = s[1];
+    lastJobCompletionTimes[1] = ctimesMatrix[job][1];
+    for(int m=2; m<= nmac; m++)
+        lastJobCompletionTimes[m] = lastJobCompletionTimes[m-1]+ctimesMatrix[job][m];
+    // All other jobs
+    for(int j=2; j < size; j++)
+    {
+       job = s[j];
+       lastJobCompletionTimes[1] = lastJobCompletionTimes[1]+ctimesMatrix[job][1];
+       for(int m=2; m<= nmac; m++)
+       {
+           if(lastJobCompletionTimes[m]+a_h > lastJobCompletionTimes[m-1])
+           {
+                lastJobCompletionTimes[m] = lastJobCompletionTimes[m]+ctimesMatrix[job][m]+a_h;
+           }
+           else
+           {
+               a_h += lastJobCompletionTimes[m-1] - (lastJobCompletionTimes[m]+a_h);
+               lastJobCompletionTimes[m] = lastJobCompletionTimes[m-1]+ctimesMatrix[job][m];
+
+           }
+
+       }
+
+    }
+}
+
+std::vector< float >  emili::pfsp::NaganoHeuristic::xi_index(std::vector< int >& s, std::vector<int>& u)
+{
+    std::vector< int > lastJobCompletionTimes(nmac+1,0);
+    std::vector< int > pmacend(njobs+1,0);
+    long int a_h = 0;
+    int job;
+    int size = s.size();
+    if(size > 1)
+    {
+        //instance.computeWTs(s,lastJobCompletionTimes,s.size()-1,pmacend);
+        std::vector< std::vector < int > > head;
+        std::vector< std::vector < int > > tail;
+        pis.getInstance().computeTAmatrices(s,head,tail,s.size());
+        // Compute partial nims
+        nagano_nims(s,lastJobCompletionTimes,a_h,size);
+    }
+
+    if(u.size() == 1)
+    {
+        return std::vector< float > (1,0.0f);
+    }
+
+    std::vector< float > findex(njobs+1,std::numeric_limits<float>::max());
+    std::vector< float > tpj = std::vector< float> (nmac+1,0);
+
+        for(int j=1;j<=nmac;j++)
+        {
+            for(int i=0;i<u.size();i++)
+            {
+                tpj[j] += ctimesMatrix[u[i]][j];
+            }
+            //tpj[j] = tpj[j];
+        }
+
+    int k = s.size();
+    //TODO change to calculate noidle
+    for(int i=0;i < u.size();i++)
+    {
+        int i_job = u[i];
+        float i_comp = lastJobCompletionTimes[1]+ctimesMatrix[i_job][1];
+        float p_comp = i_comp + (tpj[1]-ctimesMatrix[i_job][1])/(float)(u.size()-1);
+        for(int j=2;j<=nmac;j++)
+        {
+            // not relevant in No-idle/** ITK calculation*/
+            //float wjk = nmac/(j+k*((nmac-j)/(float)(njobs-2)));
+            float tcomp = std::max(i_comp-lastJobCompletionTimes[j],0.0f);
+
+            i_comp = tcomp>0?i_comp:lastJobCompletionTimes[j];
+            i_comp += ctimesMatrix[i_job][j];
+
+            /**  P job completion time calculation*/
+            float tpcj = (tpj[j]-ctimesMatrix[i_job][j])/(float)(u.size()-1);
+
+            if(p_comp + tpcj > i_comp)
+            {
+                p_comp = p_comp + tpcj;
+            }
+            else
+            {
+                p_comp = i_comp + tpcj;
+            }
+        }
+        float ATik = i_comp+p_comp;
+
+        findex[i_job] = ATik;
+    }
+
+    return findex;
+}
+
+void emili::pfsp::NaganoHeuristic::insertBest(int k,std::vector<int>& solPartial)
+{
+    int tmp=0,ind=1;
+    int min = std::numeric_limits<int>::max();
+    std::vector< std::vector < int > > head(nmac+1,std::vector< int >(njobs+1,0));
+    std::vector< std::vector < int > > tail(nmac+1,std::vector< int >(njobs+1,0));
+    int size = solPartial.size();
+    std::vector< int > solTMP(size,0);
+    int sops = size-1;
+    pis.getInstance().computeTAmatrices(solPartial,head,tail,sops);
+    for(int r=1; r<sops; r++){
+
+        for(int h=1; h<r; h++)
+            solTMP[h]=solPartial[h];
+        solTMP[r]=k;
+        for(int h=r+1; h<=sops; h++)
+            solTMP[h]=solPartial[h-1];
+
+        long int c_cur = head[1][r-1]+ctimesMatrix[k][1];
+        long int c_max = c_cur+tail[1][r];
+        long int a = 0;
+        long int aa = 0;
+        for (int i = 2; i <= nmac; ++i) {
+            int c_pm = head[i][r-1];
+            if(c_pm + aa < c_cur)
+            {
+                aa += c_cur - (c_pm+aa);
+                c_cur = c_cur + ctimesMatrix[k][i];
+            }
+            else
+            {
+                c_cur = c_pm + aa + ctimesMatrix[k][i];
+            }
+            long int c_can = (c_cur+a+tail[i][r]);
+            c_max = c_max>c_can?c_max:c_can;
+            a = a+c_max-c_can;
+        }
+        //tmp = instance.computeObjectiveFunction(solTMP,sops);
+
+        //assert(c_max == tmp);
+        tmp = c_max;
+        if(tmp<min){
+            min=tmp;
+            ind=r;
+        }
+
+    }
+    solPartial.insert(solPartial.begin()+ind,k);
+}
+
+void emili::pfsp::NaganoHeuristic::job_selection(std::vector<int>& pi_l,std::vector<int>& R, std::vector<int>& L, int k)
+{
+    //TODO implement this!
+    std::vector< int > W(njobs+1,0);
+    int size = pi_l.size();
+    // Calculate Wj = TFT(pi_l - j), for every j in pi_l
+    for(int i=1; i < size;i++)
+    {
+        int j = pi_l[i];
+        pi_l.erase(pi_l.begin()+i);
+        W[j] = pis.computeObjectiveFunction(pi_l,size-1);
+        pi_l.insert(pi_l.begin()+i,j);
+    }
+    // Order Wj in ascending order obtaining gamma
+    std::vector<int> gamma(pi_l);
+    std::sort(gamma.begin(),gamma.end(),[W](int i1,int i2){return W[i1] < W[i2];});
+    int u = 1;
+    int lsize = 0;
+    int rsize = R.size();
+    int nmdpkcy = ((njobs-d)+k)<y?((njobs-d)+k):y;
+    while((lsize < nmdpkcy) && (u < ((njobs-d)+k)) )
+    {
+        bool gammau_in_R = false;
+        for(int i = 0; i< rsize;i++)
+            if(R[i] == gamma[u])
+            {
+                gammau_in_R = true;
+                break;
+            }
+        if(!gammau_in_R)
+        {
+            L.push_back(gamma[u]);
+            lsize++;
+        }
+        u++;
+    }
+    u = 1;
+    while(lsize < nmdpkcy)
+    {
+        bool gammau_in_L = false;
+        for(int i = 0; i< lsize;i++)
+            if(L[i] == gamma[u])
+            {
+                gammau_in_L = true;
+                break;
+            }
+
+        if(!gammau_in_L)
+        {
+            L.push_back(gamma[u]);
+            lsize++;
+        }
+        u++;
+    }
+
+}
+
+emili::Solution* emili::pfsp::NaganoHeuristic::generate()
+{
+    //emili::Solution* s=nullptr;
+    std::vector< int > solution;
+    std::vector < int > alpha;
+    int bestTFT = std::numeric_limits<int>::max();
+    std::vector<int> bestPl;
+    for(int i=1; i <= njobs; i++)
+        alpha.push_back(i);
+
+    std::vector< float > findex = xi_index(solution,alpha);
+    std::sort(alpha.begin(),alpha.end(),[findex](int i1,int i2){return findex[i1] < findex[i2];});
+    for(int l=0; l<= x; l++)
+    {
+        std::vector<int> pi_l;
+        pi_l.push_back(0);
+        pi_l.push_back(alpha[l]);
+        std::vector< int > U(alpha);
+        U.erase(U.begin()+l);
+        //select d jobs with lowest xi value and put them in pi_l
+        for(int k=1;k<d;k++)
+        {
+            pi_l.push_back(U[0]);
+            U.erase(U.begin());
+        }
+        //order the jobs in U according to beta obtaining delta
+        std::vector<int > delta(U);
+        std::vector<int >& bet = beta;
+        std::sort(delta.begin(),delta.end(),[bet](int i1,int i2){return bet[i1] < bet[i2];});
+        // R = ø
+        std::vector<int> R;
+        int pi_lTFT = 0;
+        for(int k=0; k < (njobs-d);k++)
+        {
+            // insert job delta[k] in the position that minimizes Cj in pi_l
+            insertBest(delta[k],pi_l);
+            std::vector<int> L;
+            job_selection(pi_l,R,L,k);
+            //for q=1 to min{(n-d)+k,y}
+            int q_limit = (y<((njobs-d)+k))?y:((njobs-d)+k);
+            //std::cout << q_limit << " y " << y << " k " << k << std::endl;
+            pi_lTFT = pis.computeObjectiveFunction(pi_l,pi_l.size()-1);
+            for(int q=1; q<q_limit;q++)
+            {
+                std::vector<int> pi(pi_l);
+                // insert job L[q] in the position that minimizes Cj in pi
+                for(int i =1; i< pi.size(); i++)
+                    if(pi[i] == L[q])
+                    {
+                        pi.erase(pi.begin()+i);
+                        break;
+                    }
+                insertBest(L[q],pi);
+                R.push_back(L[q]);
+                if(R.size() > A)
+                {
+                    R.erase(R.begin());
+                }
+                //if(TFT(pi) < TFT(pi_l)) pi_l = pi;
+                int piTFT = pis.computeObjectiveFunction(pi,pi.size()-1);
+                if(piTFT < pi_lTFT)
+                {
+                    //std::cout << pi_l.size() << " b-> " << pi_lTFT <<  " p-> " << piTFT << std::endl;
+                    pi_l = pi;
+                    pi_lTFT = piTFT;
+                }
+
+            }
+        }
+        //std::cout << "TFT " << pi_lTFT << std::endl;
+        if(pi_lTFT < bestTFT)
+        {
+            bestPl = pi_l;
+            bestTFT = pi_lTFT;
+        }
+    }
+    return new emili::pfsp::PermutationFlowShopSolution(bestTFT,bestPl);
+}
