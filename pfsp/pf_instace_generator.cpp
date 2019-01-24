@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <random>
 #include "pfspinstance.h"
 using namespace std;
