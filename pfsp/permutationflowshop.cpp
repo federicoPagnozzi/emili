@@ -10619,7 +10619,7 @@ void emili::pfsp::NaganoHeuristic::insertBest(int k,std::vector<int>& solPartial
         }
 
     }
-    solPartial.insert(solPartial.begin()+ind,k);
+    solPartial.insert(solPartial.begin()+ind,k);   
 }
 
 void emili::pfsp::NaganoHeuristic::job_selection(std::vector<int>& pi_l,std::vector<int>& R, std::vector<int>& L, int k)
@@ -10711,7 +10711,7 @@ emili::Solution* emili::pfsp::NaganoHeuristic::generate()
         // R = ø
         std::vector<int> R;
         int pi_lTFT = 0;
-        for(int k=0; k < (njobs-d);k++)
+        for(int k=0; k < (int)(njobs-d);k++)
         {
             // insert job delta[k] in the position that minimizes Cj in pi_l
             insertBest(delta[k],pi_l);
