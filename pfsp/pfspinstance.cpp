@@ -3136,6 +3136,80 @@ inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >&
     return partialMs;
 }
 
+void PfspInstance::computeNoIdleTAmatricesMS(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size)
+ {
+     int j,m;
+
+     int jobNumber;
+     int end_i = size;//nbJob-1;
+    // std::vector< std::vector < int >> head(previousMachineEndTimeMatri);
+     long int a_h = 0;
+     long int a_t = 0;
+     int prevj = 0;
+     int postj = 0;
+     int k;
+     for(j=1;j<size;j++)
+     {
+         k = size-j;
+         jobNumber = sol[j];
+         prevj = prevj + processingTimesMatrix[jobNumber][1];
+         postj = postj + processingTimesMatrix[sol[k]][nbMac];
+         head[1][j] = prevj;
+         tail[nbMac][k] = postj;
+     }
+
+     k = size-1;//nbJob-1;
+
+
+
+        for ( m = 2; m <= nbMac; ++m )
+        {
+            int n = nbMac-m+1;
+            head[m][1] = head[m-1][1] + processingTimesMatrix[sol[1]][m];
+            tail[n][k] = tail[n+1][k] + processingTimesMatrix[sol[k]][n];
+        }
+
+       for ( j = 2; j <= end_i; ++j )
+         {
+             k = size-j;
+             long int previousJobEndTime = head[1][j];
+             long int postJobEndTime = tail[nbMac][k];
+             a_t = 0;
+             a_h = 0;
+             jobNumber = sol[j];
+
+             for ( m = 2; m <= nbMac; ++m )
+             {
+                 int n = nbMac-m+1;
+
+             if ( head[m][j-1]+a_h > previousJobEndTime )
+             {
+                 head[m][j] = head[m][j-1] + processingTimesMatrix[jobNumber][m]+ a_h;
+             }
+             else
+             {
+                 head[m][j] = previousJobEndTime + processingTimesMatrix[jobNumber][m];
+                 a_h += previousJobEndTime-(head[m][j-1]+a_h);
+             }
+
+             if ( tail[n][k+1]+a_t > postJobEndTime )
+             {
+                 tail[n][k] = tail[n][k+1] + processingTimesMatrix[sol[k]][n]+a_t;
+             }
+             else
+             {
+                 tail[n][k] = postJobEndTime + processingTimesMatrix[sol[k]][n];
+                 a_t += postJobEndTime - (tail[n][k+1]+a_t);
+             }
+
+             previousJobEndTime = head[m][j];
+             postJobEndTime = tail[n][k];
+         }
+     }
+
+ }
+
+
 inline std::vector< long int > computeNoIdlePartialMakespans(std::vector< int >& sol,std::vector< std::vector <long int> >& processingTimesMatrix,int nbMac,int nbJob)
 {
     return computeNoIdlePartialMakespans(sol,processingTimesMatrix,nbMac,nbJob,nbJob);

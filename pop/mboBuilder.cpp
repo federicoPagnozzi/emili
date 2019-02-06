@@ -5,6 +5,7 @@
 //  for details.
 #include "mboBuilder.h"
 #include "vig_de.h"
+#include "maneh.h"
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
@@ -16,6 +17,7 @@
 /* Algos */
 #define LS_EMBO "embo"
 #define LS_VigDE "vigde"
+#define LS_MANEH "maneh"
 
 emili::LocalSearch* prs::MboBuilder::buildAlgo()
 {
@@ -57,6 +59,28 @@ emili::LocalSearch* prs::MboBuilder::buildAlgo()
         float cr = tm.getDecimal();
         printTabPlusOne("Crossover factor",cr);
         ls = new emili::pop::vIG_DE(*te,*in,*in1,popsize,mf,cr);
+    }
+    else if(tm.checkToken(LS_MANEH))
+    {
+        printTab("MANEH");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        emili::Perturbation* pe = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        int pops = tm.getInteger();
+        printTabPlusOne("Population size",pops);
+        float pmp = tm.getDecimal();
+        printTabPlusOne("Mutation probability",pmp);
+        float pcp = tm.getDecimal();
+        printTabPlusOne("Crossover probability",pcp);
+        float bratio = tm.getDecimal();
+        printTabPlusOne("bratio",bratio);
+        float lsp = tm.getDecimal();
+        printTabPlusOne("Local search probability",lsp);
+        float alph = tm.getDecimal();
+        printTabPlusOne("Alpha",alph);
+        ls = new emili::pop::MANEH(*te,*in,pops,ls1,ls2,pe,pmp,pcp,bratio,lsp,alph);
     }
 
 

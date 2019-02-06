@@ -212,6 +212,7 @@ class PfspInstance{
     void computeSDSThead(std::vector<int> &sol,std::vector< std::vector < int > >& head, int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
+    void computeNoIdleTAmatricesMS(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleHead(std::vector<int> &sol,std::vector< std::vector < int > >& head);
     void computeNoIdleHead(std::vector<int> &sol,std::vector< std::vector < int > >& head,int size);
     int computeIdleTimeCoeff(std::vector<int>& prevJob, int job);

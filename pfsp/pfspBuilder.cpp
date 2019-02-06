@@ -173,6 +173,7 @@
 
 /* No idle makespan*/
 #define NEIGHBORHOOD_NITA_INSERT "ntainsert"
+#define NEIGHBORHOOD_CSNITA_INSERT "ncstainsert"
 
 /* No wait makespan*/
 #define NEIGHBORHOOD_NW_INSERT "nwinsert"
@@ -1384,6 +1385,11 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     {
         printTab( "Insert with Taillard Acceleration for no idle make span ");
         neigh = new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*instance);
+    }
+    else if(tm.checkToken(NEIGHBORHOOD_CSNITA_INSERT))
+    {
+        printTab( "Insert with Taillard Acceleration for no idle make span ");
+        neigh = new emili::pfsp::NoIdleCSAcceleratedInsertNeighborhood(*instance);
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA_TCT_INSERT))
     {

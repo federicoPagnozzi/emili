@@ -27,9 +27,10 @@ class PermutationFlowShop: public emili::Problem
 {
 protected:
 PfspInstance instance;
+int nbjobs;
 public:
     // Constructor that uses a PfspInstance implementation
-    PermutationFlowShop(PfspInstance& problemInstance):instance(problemInstance) { }
+    PermutationFlowShop(PfspInstance& problemInstance):instance(problemInstance),nbjobs(problemInstance.getNbJob()) { }
     //Constructor that loads the instance from file path
     PermutationFlowShop(char* instance_path):instance()
     {
@@ -37,6 +38,7 @@ public:
         if (! instance.readDataFromFile(instance_path) ){
             exit(-1);
         }
+        nbjobs = instance.getNbJob();
     }
     /**
      computes the objective function value of solution.
@@ -81,6 +83,7 @@ public:
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail,int size);
     void computeNoIdleTAmatrices(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
+    void computeNoIdleTAmatricesMS(std::vector<int> &sol,std::vector< std::vector < int > >& head, std::vector< std::vector< int > >& tail);
     void computeHead(std::vector<int> &sol,std::vector< std::vector< int > >& head, int njobs) ;
     /** Old methods used by some particular and exceptional speed-ups*/
     int computeObjectiveFunction(std::vector<int> &sol,std::vector<int>& prevJob,int job,std::vector<int>& previousMachineEndTime);
@@ -420,6 +423,8 @@ public:
     virtual emili::Solution* clone();
     /** Overrides the default == operator of Solution class*/
     virtual bool operator==(Solution& a);
+    virtual int& operator[](std::size_t idx) {return solution[idx];}
+    virtual const int& operator[](std::size_t idx) const {return solution[idx];}
     /** Destructor of the class*/
     virtual ~PermutationFlowShopSolution();
 };
@@ -1146,6 +1151,14 @@ protected:
 public:
     NoIdleAcceleratedInsertNeighborhood(PermutationFlowShop& problem):TaillardAcceleratedInsertNeighborhood(problem) { }
     virtual NeighborhoodIterator begin(Solution *base);
+};
+
+class NoIdleCSAcceleratedInsertNeighborhood: public NoIdleAcceleratedInsertNeighborhood
+{
+protected:
+    virtual Solution* computeStep(Solution *value);
+public:
+    NoIdleCSAcceleratedInsertNeighborhood(PermutationFlowShop& problem):NoIdleAcceleratedInsertNeighborhood(problem) { }
 };
 
 class NoWaitAcceleratedNeighborhood: public PfspInsertNeighborhood
