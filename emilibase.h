@@ -1645,6 +1645,34 @@ public:
     bool terminate(Solution *currentSolution, Solution *newSolution);
     void reset();
 };
+/**
+ * @brief The TwoSolutionPerturbation class
+ * This class can be used to model any kind of
+ * algorithms that generate a solution starting from
+ * two solutions like Path relinking or even a crossover operator.
+ */
+class TwoSolutionPerturbation : public emili::Perturbation
+{
+public:
+    /**
+     * @brief perturb
+     * see the description of this method in the Perturbation class
+     * @param solution
+     * @return
+     * return the result of calling perturb(solution,bestsofar)
+     */
+    virtual Solution* perturb(Solution* solution);
+    /**
+     * @brief perturb
+     * combines solution1 and solution2 to generate a solution
+     * different from both.
+     * @param solution1
+     * @param solution2
+     * @return
+     * a new different solution.
+     */
+    virtual Solution* perturb(Solution* solution1, Solution* solution2)=0;
+};
 
 /**
 class SimulatedAnnealing : public emili::LocalSearch

@@ -196,14 +196,15 @@ void emili::pop::MANEH::check_and_replace(emili::Solution* s)
         bool unique = true;
         for(auto iter=pop.begin(); iter!=pop.end(); ++iter)
         {
-            if((*iter)->operator<(*s))
+         /*   if((*iter)->operator<(*s))
             {
                 break;
             }
-
+*/
             if((*iter)->getSolutionValue() == s->getSolutionValue())
             {
                 unique = false;
+                break;
             }
         }
         if(unique)
@@ -225,7 +226,9 @@ void emili::pop::MANEH::check_and_replace(emili::Solution* s)
             }
             if(idx < PS-1)
             {
-                std::swap(pop[idx],pop[PS-1]);
+                //std::swap(pop[idx],pop[PS-1]);
+                pop.erase(pop.begin()+PS-1);
+                pop.insert(pop.begin()+idx,s);
             }
             if(idx == 0)
             {

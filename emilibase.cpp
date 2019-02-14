@@ -1968,3 +1968,9 @@ void emili::MaxStepsNoImprov::reset()
 {
     h= 0;
 }
+
+emili::Solution* emili::TwoSolutionPerturbation::perturb(emili::Solution* solution)
+{
+    emili::Solution* b = getAlgo()->getBestSoFar();
+    return this->perturb(solution,b);
+}
