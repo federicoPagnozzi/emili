@@ -1,4 +1,12 @@
 #include "maneh.h"
+#include <cstdlib>
+#include <climits>
+#include <string>
+#include <sstream>
+#include <assert.h>
+#include <algorithm>
+#include <limits>
+
 bool check_probability(float probability)
 {
     return emili::generateRealRandomNumber() < probability ;
