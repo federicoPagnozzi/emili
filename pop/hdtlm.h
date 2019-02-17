@@ -20,7 +20,7 @@ public:
 class HDTLM : public emili::LocalSearch
 {
 protected:
-    std::vector<emili::Solution* > pop;
+    std::vector<emili::pfsp::PermutationFlowShopSolution* > pop;
     int PS;
     int ePS;
     int njobs;
@@ -44,7 +44,8 @@ public:
           emili::LocalSearch* ls3, int popsize, float _lambda, float _alpha, float _beta, float _ls):
           emili::LocalSearch(popinit1,termination,*(new emili::EmptyNeighBorHood())),
           pfs((emili::pfsp::PermutationFlowShop&)popinit1.getProblem()), popinit(&popinit2),
-          per(&perturbation),p3(ls1),p5(ls2),p8(ls3),lambda(_lambda),alpha(_alpha),beta(_beta),
+          PS(popsize),ePS(popsize*_lambda),per(&perturbation),p3(ls1),
+          p5(ls2),p8(ls3),lambda(_lambda),alpha(_alpha),beta(_beta),
           ls(_ls),isp(new emili::pop::InsertPathRelink(&perturbation,(emili::pfsp::PermutationFlowShop&)popinit1.getProblem()))
     {
         njobs = pfs.getNjobs();

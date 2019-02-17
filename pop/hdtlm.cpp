@@ -56,6 +56,7 @@ void calc_pmat(std::vector < std::vector< float >>& p_m,std::vector< std::vector
 
 void calc_consensu_permutation(std::vector< std::vector < int >>& pop, int ps, std::vector< int >& pcon, int njobs )
 {
+      //  std::cout << "procedure 1" << std::endl;
         std::vector< float > sigma(njobs+1, 0);
         for(int i = 1; i <= njobs; i++)
         {
@@ -89,6 +90,7 @@ void calc_consensu_permutation(std::vector< std::vector < int >>& pop, int ps, s
 
 void sample_permutation( std::vector< std::vector < float >>& pm, std::vector<int>& pcon, std::vector<int>& newp, int njobs)
 {
+       // std::cout << "procedure 2" << std::endl;
         std::vector<int> vp(njobs+1,0);
         for(int i = 1; i <= njobs; i++ )
         {
@@ -144,15 +146,20 @@ void sample_permutation( std::vector< std::vector < float >>& pm, std::vector<in
 
 void pmx(std::vector<int>& parent1, std::vector<int>& parent2, std::vector<int>& child, int njobs)
 {
+       // std::cout << "pmx " << std::endl;
         std::vector<int> j2i(njobs+1,0);
         job_at_index(parent2, j2i, njobs);
 
-        int lb = emili::generateRandomNumber()%(njobs);
-        int up = emili::generateRandomNumber()%(njobs);
-        if(lb>up)
+        int up = emili::generateRandomNumber()%(njobs)+1;
+        int lb = emili::generateRandomNumber()%(up)+1;
+        if(lb == up)
         {
-                std::swap(lb,up);
+            if(up < njobs)
+               up++;
+            else
+               lb--;
         }
+        int free_places = lb+(njobs-up);
         std::vector<int> to_insert;
         std::vector<int> to_check(njobs+1,1);
 
@@ -169,9 +176,11 @@ void pmx(std::vector<int>& parent1, std::vector<int>& parent2, std::vector<int>&
                 {
                         //to_insert.push_back(parent2[i]);
                         int idx = j2i[parent1[i]];
-                        while(lb<=idx && idx<=up)
+                        int n = 0;
+                        while(lb<=idx && idx<=up && n<free_places)
                         {
                                 idx = j2i[parent1[idx]];
+                                n++;
                         }
                         child[idx] = parent2[i];
                 }
@@ -209,18 +218,20 @@ emili::Solution* emili::pop::InsertPathRelink::perturb(emili::Solution* s1, emil
     int i = 1;
     int j = 1;
     std::vector<int> temp(spoint);
-    while(i != njobs)
+    while(i < njobs)
     {
         if(epoint[i] != spoint[i])
         {
             int job = epoint[i];
-            for(j = i; j<=njobs; j++)
+            j = i;
+            for(; j<=njobs; j++)
             {
                 if(temp[j] == job)
                     break;
             }
-            temp.erase(temp.begin()+j);
-            temp.insert(temp.begin()+i,job);
+//          temp.erase(temp.begin()+j);
+//          temp.insert(temp.begin()+i,job);
+            std::swap(temp[i],temp[j]);
             int value = prob.computeObjectiveFunction(temp);
             if(value < best_value)
             {
@@ -258,7 +269,6 @@ void emili::pop::HDTLM::check_and_replace(emili::Solution* s)
         if(unique)
         {
             emili::Solution* t = pop[PS-1];
-            pop[PS-1] = s;
             delete t;
             int idx = PS-1;
             for(int i=PS-2;i>=0;i--)
@@ -272,11 +282,10 @@ void emili::pop::HDTLM::check_and_replace(emili::Solution* s)
                     break;
                 }
             }
-            if(idx < PS-1)
-            {
-                pop.erase(pop.begin()+PS-1);
-                pop.insert(pop.begin()+idx,s);
-            }
+           // std::cout << "insert " << s->getSolutionValue() << " in " << idx << std::endl;
+            pop.pop_back();
+            pop.insert(pop.begin()+idx,(emili::pfsp::PermutationFlowShopSolution*)s);
+
             if(idx == 0)
             {
                 if(*bestSoFar > *pop[0])
@@ -296,19 +305,19 @@ void emili::pop::HDTLM::procedure4()
     std::vector < std::vector < float > > p_m(njobs+1, std::vector< float>(njobs+1, 1.0/njobs) );
     std::vector < std::vector< int > > Im (njobs+1, std::vector< int > (njobs+1,0));
     std::vector < std::vector< int > > Imb (njobs+1, std::vector< int > (njobs+1,0));
-    emili::pfsp::PermutationFlowShopSolution** ps = (emili::pfsp::PermutationFlowShopSolution**)pop.data();
-    std::vector< emili::pfsp::PermutationFlowShopSolution* > stuff(ps,ps+PS);
     //Order solutions ?
     // Select lamba * PS
     // Calculate the probabilistic model ( procedure 1)
-    calc_Imat(stuff,Im,njobs,ePS);
-    calc_Imat(stuff,Imb,njobs,1);
+    calc_Imat(pop,Im,njobs,ePS);
+    calc_Imat(pop,Imb,njobs,1);
     calc_pmat(p_m,Im,Imb,alpha,beta,njobs,ePS);
     // for each learner PI_i
     for(int i = 0; i < PS ; i++)
     {
+        clock_t iter = clock();
     //   PI = sample P (procedure 2)
-        std::vector< int>& PI_I = stuff[i]->getJobSchedule();
+        std::vector< int>& PI_I = pop[i]->getJobSchedule();
+        assert(PI_I.size() > 0);
         std::vector<int > PI(njobs+1,0);
         sample_permutation(p_m,PI_I,PI,njobs);
     //   PI_p = pmx(PI, PI_i)
@@ -319,21 +328,19 @@ void emili::pop::HDTLM::procedure4()
         double r= emili::generateRealRandomNumber();
         if(r < ls)
         {
+            //std::cout << "procedure 3" << std::endl;
             emili::Solution* t = p3->search(newp);
             if(*t < *newp)
             {
-                emili::Solution* toDel = newp;
-                newp = t;
-                delete toDel;
-            }
-            else
-            {
+                *newp = *t;
                 delete t;
             }
         }
     //   if pi_p < pi_i and pi_p is unique -> pi_i = pi_p
-        if(*newp < *stuff[i])
+        if(*newp < *pop[i])
             check_and_replace(newp);
+        clock_t end_iter = clock();
+        //std::cout << "Iteration " << i << " time: " << ((double)(end_iter-iter)/CLOCKS_PER_SEC) << std::endl;
     }
     // update best
     if(*bestSoFar > *pop[0])
@@ -354,7 +361,7 @@ void emili::pop::HDTLM::procedure7()
     if(*rissed < *pop[0])
     {
         emili::Solution* s = pop[0];
-        pop[0] = rissed;
+        pop[0] = (emili::pfsp::PermutationFlowShopSolution*)rissed;
         delete s;
     }
     else
@@ -363,28 +370,49 @@ void emili::pop::HDTLM::procedure7()
     }
     // middle layer
     // for each elite pop ep_i (pop[1,ePS])
+    emili::pfsp::PermutationFlowShopSolution* bl = (emili::pfsp::PermutationFlowShopSolution*) pop[0];
+    std::vector< int >& blv = bl->getJobSchedule();
+    for(int i=1; i<ePS; i++)
+    {
     //   pi_new = PMX(ep_i,pop[0])
+         emili::pfsp::PermutationFlowShopSolution* ep_i = (emili::pfsp::PermutationFlowShopSolution*)pop[i];
+         std::vector< int > pi_new(njobs+1,0);
+         pmx(ep_i->getJobSchedule(),blv,pi_new,njobs);
+         int value = pfs.computeObjectiveFunction(pi_new);
     //   if pi_new < ep_i -> ep_i = pi_new
-
+         if(value < ep_i->getSolutionValue())
+         {
+             emili::Solution* news = new emili::pfsp::PermutationFlowShopSolution(value,pi_new);
+             check_and_replace(news);
+         }
+    }
     // bottom layer
     // for each of the remaining opi
-    // rep = random ep_i
-    // pi_new = path_relink_shift(opi,epi)
-    // if pi_new < opi -> opi = pi_new
-
+    for(int i=ePS; i < PS; i++ )
+    {
+        // rep = random ep_i
+        int rep = emili::generateRandomNumber()%ePS;
+        emili::Solution* epi = pop[rep];
+        // pi_new = path_relink_shift(opi,epi)
+        emili::Solution* pi_new = isp->perturb(pop[i],epi);
+        // if pi_new < opi -> opi = pi_new
+        if(*pi_new < *pop[i])
+            check_and_replace(pi_new);
+    }
     // update best
 }
 
 emili::Solution* emili::pop::HDTLM::search(emili::Solution* initial)
 {
     //Initialize pop
+   // std::cout << "Initialize pop \n" << std::endl;
     *bestSoFar = *initial;
     int pophalf = PS/2;
-    pop.push_back(initial->clone());
+    pop.push_back((emili::pfsp::PermutationFlowShopSolution*)initial->clone());
     for(int i=1; i<pophalf;i++)
-        pop.push_back(init->generateSolution());
+        pop.push_back((emili::pfsp::PermutationFlowShopSolution*)init->generateSolution());
     for(int i=0; i<pophalf;i++)
-        pop.push_back(popinit->generateSolution());
+        pop.push_back((emili::pfsp::PermutationFlowShopSolution*)popinit->generateSolution());
 
     //Order solutions and select best as teacher ( the teacher is the bestsofar)
     std::sort(pop.begin(),pop.end(),[](emili::Solution* i1, emili::Solution* i2){return *i1 < *i2;});
@@ -397,14 +425,17 @@ emili::Solution* emili::pop::HDTLM::search(emili::Solution* initial)
     {
     //while(!termination)
     //procedure 4
+   // std::cout << "Procedure 4 \n" << std::endl;
      procedure4();
     //procedure 7
+   //  std::cout << "Procedure 7 \n" << std::endl;
      procedure7();
+   //  std::cout << "Procedure 8 \n" << std::endl;
     emili::Solution* pnbest = p8->search(pop[0]);
     if(*pnbest < *pop[0])
     {
         emili::Solution* t = pop[0];
-        pop[0] = pnbest;
+        pop[0] =(emili::pfsp::PermutationFlowShopSolution*) pnbest;
         delete t;
     }
     else

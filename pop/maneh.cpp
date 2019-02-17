@@ -197,6 +197,20 @@ emili::Solution* emili::pop::MANEH::RSC(emili::Solution* tmpl, std::vector< std:
     }
 }
 
+bool is_ordered(std::vector<emili::Solution*> pop)
+{
+    emili::Solution* prev = pop[0];
+    for(auto iter = pop.begin(); iter != pop.end(); ++iter)
+    {
+        if(*prev > *(*iter))
+        {
+            return false;
+        }
+        prev = *iter;
+    }
+    return true;
+}
+
 void emili::pop::MANEH::check_and_replace(emili::Solution* s)
 {
     if(*s < *pop[PS-1])
@@ -237,6 +251,7 @@ void emili::pop::MANEH::check_and_replace(emili::Solution* s)
                 //std::swap(pop[idx],pop[PS-1]);
                 pop.erase(pop.begin()+PS-1);
                 pop.insert(pop.begin()+idx,s);
+               // assert(is_ordered(pop));
             }
             if(idx == 0)
             {

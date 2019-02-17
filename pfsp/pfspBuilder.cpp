@@ -1190,8 +1190,6 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         init = new emili::pfsp::NaganoHeuristic(*instance,x,y,dp,Ap);
 
     }
-
-
     prs::decrementTabLevel();
     return init;
 }

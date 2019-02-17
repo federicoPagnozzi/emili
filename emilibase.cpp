@@ -1695,6 +1695,7 @@ void emili::MaxStepsTermination::reset()
 emili::Solution* emili::PipeSearch::search(Solution *initial)
 {
     Solution* current = init->generateEmptySolution();
+    bestSoFar = init->generateEmptySolution();
     *bestSoFar = *initial;
     *current  = *initial;
     for(std::vector< emili::LocalSearch*>::iterator iter = lss.begin();iter!=lss.end();++iter)

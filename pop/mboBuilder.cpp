@@ -19,6 +19,7 @@
 #define LS_EMBO "embo"
 #define LS_VigDE "vigde"
 #define LS_MANEH "maneh"
+#define LS_DTLM "dtlm"
 
 emili::LocalSearch* prs::MboBuilder::buildAlgo()
 {
@@ -83,8 +84,31 @@ emili::LocalSearch* prs::MboBuilder::buildAlgo()
         printTabPlusOne("Alpha",alph);
         ls = new emili::pop::MANEH(*te,*in,pops,ls1,ls2,pe,pmp,pcp,bratio,lsp,alph);
     }
-
-
+    else if(tm.checkToken(LS_DTLM))
+    {
+        printTab("DTLM");
+        emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::InitialSolution* in2 = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
+        emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
+        emili::LocalSearch* ls3 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        printTab("---------");
+        emili::LocalSearch* ls5 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        printTab("---------");
+        emili::LocalSearch* ls8 = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
+        printTab("---------");
+        emili::Perturbation* pe = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        int pops = tm.getInteger();
+        printTabPlusOne("Population size",pops);
+        float lambda = tm.getDecimal();
+        printTabPlusOne("lambda",lambda);
+        float alpha = tm.getDecimal();
+        printTabPlusOne("alpha",alpha);
+        float beta = tm.getDecimal();
+        printTabPlusOne("beta",beta);
+        float lsp = tm.getDecimal();
+        printTabPlusOne("Local search probability",ls);
+        ls = new emili::pop::HDTLM(*te,*in,*in2,*pe,ls3,ls5,ls8,pops,lambda,alpha,beta,lsp);
+    }
     prs::decrementTabLevel();
     return ls;
 }
