@@ -317,7 +317,7 @@ void emili::pop::HDTLM::procedure4()
         clock_t iter = clock();
     //   PI = sample P (procedure 2)
         std::vector< int>& PI_I = pop[i]->getJobSchedule();
-        assert(PI_I.size() > 0);
+        //assert(PI_I.size() > 0);
         std::vector<int > PI(njobs+1,0);
         sample_permutation(p_m,PI_I,PI,njobs);
     //   PI_p = pmx(PI, PI_i)
