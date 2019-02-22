@@ -1,4 +1,5 @@
 #include "vig_de.h"
+#include <cmath>
 
 void emili::pop::vIG_DE::mutatePopulation(int& a, int& b, int& c,int i)
 {
@@ -29,7 +30,7 @@ void emili::pop::vIG_DE::mutatePopulation(int& a, int& b, int& c,int i)
 
 }
 
-emili::Solution* emili::pop::vIG_DE::search(Solution* initial)
+emili::Solution* emili::pop::vIG_DE:: search(Solution* initial)
 {
     // Initialize pop
     int njobs = pfs->getNjobs();
@@ -53,7 +54,7 @@ emili::Solution* emili::pop::vIG_DE::search(Solution* initial)
             *bestSoFar = *pop[i];
         }
     }
-    xij[0].second = 1 - (pop[0]->getSolutionValue()/sumfpi);
+    xij[0].second = 1 - (pop[0]->getSolutionValue()/sumfpi);    
     for( int i = 1; i < pop_size; i++)
     {
         xij[i].second = 1 - (pop[i]->getSolutionValue()/sumfpi);
@@ -67,13 +68,13 @@ emili::Solution* emili::pop::vIG_DE::search(Solution* initial)
             int a = emili::generateRandomNumber()%pop_size;
             int b = emili::generateRandomNumber()%pop_size;
             int c = emili::generateRandomNumber()%pop_size;
-            mutatePopulation(a,b,c,i);
+            mutatePopulation(a,b,c,i);            
             // Create Mutation
-            int V_d = xij[a].first + Fr * (xij[b].first - xij[c].first);
-            float V_p = xij[a].second + Fr * (xij[b].second - xij[c].second);
+            int V_d = xij[a].first + Fr * std::abs(xij[b].first - xij[c].first);
+            float V_p = xij[a].second + Fr * (xij[b].second - xij[c].second);       
             // Create trial
             int U_d = Cr*V_d + (1-Cr)*xij[i].first;
-            int U_p = Cr*V_p + (1-Cr)*xij[i].second;
+            float U_p = Cr*V_p + (1-Cr)*xij[i].second;
             // Verify that trial is not out of range
             if(U_d >= njobs)
             {
@@ -85,16 +86,18 @@ emili::Solution* emili::pop::vIG_DE::search(Solution* initial)
             }
             // evaluate trial
             emili::Solution* trial=nullptr;
-            if(emili::generateRealRandomNumber() < U_p)
-            {
+            float thr = emili::generateRealRandomNumber();
+            if(thr < U_p)
+            {                
                 igp->setDestruction(U_d);
-                emili::Solution* temp = igp->perturb(pop[i]);
-                trial = ris->search(temp);
+                emili::Solution* temp = igp->perturb(pop[i]);                
+                trial = ris->search(temp);                
                 delete temp;
             }
+
             // update pop
             if(trial != nullptr)
-            {
+            {           
                 if(*trial < *pop[i])
                 {
                     delete pop[i];
