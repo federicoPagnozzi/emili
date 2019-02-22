@@ -37,6 +37,7 @@ vIG_DE(Termination& terminationcriterion,InitialSolution& first_pop,
     }
 
 virtual emili::Solution* search(Solution* initial);
+virtual emili::Solution* getBestSoFar();
 };
 
 }

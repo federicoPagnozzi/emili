@@ -118,3 +118,13 @@ emili::Solution* emili::pop::vIG_DE::search(Solution* initial)
     return pop[0];
 }
 
+emili::Solution* emili::pop::vIG_DE::getBestSoFar()
+{
+    emili::Solution* b = ris->getBestSoFar();
+    if(*b < *bestSoFar)
+    {
+        return b;
+    }
+    return bestSoFar;
+}
+

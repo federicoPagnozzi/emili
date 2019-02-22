@@ -450,3 +450,29 @@ emili::Solution* emili::pop::HDTLM::search(emili::Solution* initial)
 
     return bestSoFar;
 }
+
+emili::Solution* emili::pop::HDTLM::getBestSoFar()
+{
+    emili::Solution* b1 = p3->getBestSoFar();
+    emili::Solution* b2 = p5->getBestSoFar();
+    emili::Solution* b3 = p8->getBestSoFar();
+
+    if(*b2 < *b1)
+    {
+        b1 = b2;
+    }
+
+    if(*b3 < *b1)
+    {
+        b1 = b3;
+    }
+
+    if(*b1 < *bestSoFar)
+    {
+        return b1;
+    }
+    else
+    {
+        return bestSoFar;
+    }
+}

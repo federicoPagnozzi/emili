@@ -52,6 +52,7 @@ public:
     }
 
     virtual emili::Solution* search(Solution* initial);
+    virtual emili::Solution* getBestSoFar();
 };
 
 
