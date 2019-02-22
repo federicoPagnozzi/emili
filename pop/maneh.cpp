@@ -354,3 +354,22 @@ emili::Solution* emili::pop::MANEH::search(emili::Solution* initial)
     while(!termcriterion->terminate(pop[0],pop[1]));
     return bestSoFar;
 }
+
+emili::Solution* emili::pop::MANEH::getBestSoFar()
+{
+    emili::Solution* b1 = ls1->getBestSoFar();
+    emili::Solution* b2 = ls2->getBestSoFar();
+    if(*b1 < *b2)
+    {
+        b2 = b1;
+    }
+
+    if(*b2 < *bestSoFar)
+    {
+        return b2;
+    }
+    else
+    {
+        return bestSoFar;
+    }
+}
