@@ -1553,7 +1553,9 @@ public:
 
 
 
-/** DEPRECATED*/
+/**
+ * @brief The PipeSearch class
+ */
 class PipeSearch: public emili::LocalSearch
 {
 protected:
@@ -1561,6 +1563,7 @@ protected:
 public:
     PipeSearch(InitialSolution& is,std::vector< emili::LocalSearch*> lss):emili::LocalSearch(is,lss[0]->getTermination(),lss[0]->getNeighborhood()),lss(lss) { }
     virtual Solution* search(Solution* initial);
+    virtual Solution* getBestSoFar();
 };
 
 /**
