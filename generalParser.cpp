@@ -306,17 +306,24 @@ bool prs::AlgoBuilder::operator ==(const AlgoBuilder& b)
 
 float getTime(prs::TokenManager& tm,int problemSize)
 {
-        if(tm.checkToken(IT))
+        int it = tm.seek(IT);
+        int ro = tm.seek(RO);
+        if(it > 0)
         {
+            tm.move(it);
+            tm.next();
             int n = tm.getDecimal();
             std::ostringstream oss;
             oss << "Run time secs : " << n;
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
+            tm.restore();
             return n;
         }
-        else if(tm.checkToken(RO))
+        else if(ro > 0)
         {
+            tm.move(ro);
+            tm.next();
             float d = tm.getDecimal();
             float time = d*problemSize;
             //int n = floorf(time);
@@ -324,6 +331,7 @@ float getTime(prs::TokenManager& tm,int problemSize)
             oss << "Rho = "<< d << " Run time secs : " << time;
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
+            tm.restore();
             return time;
         }
 

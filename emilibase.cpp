@@ -1712,6 +1712,11 @@ emili::Solution* emili::PipeSearch::search(Solution *initial)
     return bestSoFar;
 }
 
+emili::Solution* emili::PipeSearch::getBestSoFar()
+{
+    return bestSoFar;
+}
+
 /**
  *  METROPOLIS ACCEPTANCE
  */

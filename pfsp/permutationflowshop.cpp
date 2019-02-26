@@ -9307,7 +9307,7 @@ emili::Solution* emili::pfsp::RIS::search(Solution *initial)
     emili::Solution* best = bestSoFar;
     if(ls!=nullptr)
     {
-        best = ls->getBestSoFar();
+        *best = *(ls->getBestSoFar());
     }
     std::vector<int> pi_r = ((emili::pfsp::PermutationFlowShopSolution*)best)->getJobSchedule();
     int pi_value = initial->getSolutionValue();
