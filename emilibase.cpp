@@ -1385,7 +1385,6 @@ emili::Solution* emili::IteratedLocalSearch::timedSearch(float maxTime,emili::So
 emili::Solution* emili::IteratedLocalSearch::getBestSoFar()
 {
     emili::Solution* bestOfInnerLocal = this->ls.getBestSoFar();
-
     if(bestOfInnerLocal != nullptr &&  bestOfInnerLocal->operator <(*bestSoFar))
     {
         return bestOfInnerLocal;
@@ -1695,7 +1694,7 @@ void emili::MaxStepsTermination::reset()
 emili::Solution* emili::PipeSearch::search(Solution *initial)
 {
     Solution* current = init->generateEmptySolution();
-    bestSoFar = init->generateEmptySolution();
+    //bestSoFar = init->generateEmptySolution();
     *bestSoFar = *initial;
     *current  = *initial;
     for(std::vector< emili::LocalSearch*>::iterator iter = lss.begin();iter!=lss.end();++iter)
@@ -1709,11 +1708,11 @@ emili::Solution* emili::PipeSearch::search(Solution *initial)
         delete ithSolution;
     }
     delete current;
-    return bestSoFar;
+    return bestSoFar->clone();
 }
 
 emili::Solution* emili::PipeSearch::getBestSoFar()
-{
+{ 
     return bestSoFar;
 }
 
