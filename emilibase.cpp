@@ -159,11 +159,8 @@ static void finalise (int _)
     if(print)
     {
         lastMessage = messages.str();
-    }
-    else
-    {
-        exit(0);
-    }
+    }    
+   exit(0);
 }
 
 
