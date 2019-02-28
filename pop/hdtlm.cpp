@@ -408,9 +408,16 @@ emili::Solution* emili::pop::HDTLM::search(emili::Solution* initial)
    // std::cout << "Initialize pop \n" << std::endl;
     *bestSoFar = *initial;
     int pophalf = PS/2;
+
     pop.push_back((emili::pfsp::PermutationFlowShopSolution*)initial->clone());
     for(int i=1; i<pophalf;i++)
         pop.push_back((emili::pfsp::PermutationFlowShopSolution*)init->generateSolution());
+
+    if(PS%2 > 0)
+    {
+        pophalf++;
+    }
+
     for(int i=0; i<pophalf;i++)
         pop.push_back((emili::pfsp::PermutationFlowShopSolution*)popinit->generateSolution());
 
