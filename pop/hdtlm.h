@@ -49,6 +49,10 @@ public:
           ls(_ls),isp(new emili::pop::InsertPathRelink(&perturbation,(emili::pfsp::PermutationFlowShop&)popinit1.getProblem()))
     {
         njobs = pfs.getNjobs();
+        if(ePS == 0)
+        {
+            ePS = 1;
+        }
     }
 
     virtual emili::Solution* search(Solution* initial);

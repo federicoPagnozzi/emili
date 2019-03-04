@@ -38,7 +38,7 @@ emili::Solution* emili::pop::vIG_DE:: search(Solution* initial)
     emili::Solution* temp = init->generateSolution();
     igp->setDestruction(xij[0].first);
     pop[0] = igp->perturb(temp);
-    bestSoFar = pop[0]->clone();
+    *bestSoFar = *pop[0];
     delete temp;
     long int sumfpi = pop[0]->getSolutionValue();
     for( int i = 1; i < pop_size; i++)
@@ -93,25 +93,22 @@ emili::Solution* emili::pop::vIG_DE:: search(Solution* initial)
                 emili::Solution* temp = igp->perturb(pop[i]);                
                 trial = ris->search(temp);                
                 delete temp;
-            }
+            //}
 
             // update pop
-            if(trial != nullptr)
-            {           
+            //if(trial != nullptr)
+            //{
                 if(*trial < *pop[i])
                 {
-                    delete pop[i];
-                    pop[i] = trial;
+                    //delete pop[i];
+                    *pop[i] = *trial;
                     if(*pop[i] < *bestSoFar)
                     {
                         //update best so far
                         *bestSoFar = *pop[i];
                     }
                 }
-                else
-                {
-                    delete trial;
-                }
+                delete trial;
             }
 
         }
