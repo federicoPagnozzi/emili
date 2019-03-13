@@ -1211,18 +1211,40 @@ class MRSILSPerturbation : public emili::Perturbation
 {
 protected:
     emili::Perturbation* p;
+
     std::vector< emili::Solution* > solution_pool;
     int pool_size;
-    int worst;
+    int worst;    
 public:
     MRSILSPerturbation(emili::Perturbation* perturbation,int poolSize):
                        p(perturbation),
                        pool_size(poolSize),
                        worst(0)
+    { }    
+
+    virtual Solution* perturb(Solution *solution);
+    virtual ~MRSILSPerturbation() {delete p;}
+
+};
+/**
+ * @brief The MRSILSPerturbation2 class
+ * Modified version of MRSILSPerturbation if the pool is not full
+ * perturbation1 will be used to perturb the selected solution
+ * otherwise it will use pertubation2
+ */
+class MRSILSPerturbation2 : public emili::MRSILSPerturbation
+{
+protected:
+     emili::Perturbation* p2;
+public:
+     MRSILSPerturbation2(emili::Perturbation* perturbation,
+                        emili::Perturbation* perturbation2,int poolSize):
+                        emili::MRSILSPerturbation(perturbation,poolSize)
+                        ,p2(perturbation2)
     { }
 
     virtual Solution* perturb(Solution *solution);
-    ~MRSILSPerturbation() {delete p;}
+    virtual  ~MRSILSPerturbation2() {delete p2;}
 
 };
 

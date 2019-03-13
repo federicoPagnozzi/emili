@@ -59,6 +59,7 @@
 #define PERTURBATION_RANDOM_PERTURBATION_SET "perset"
 #define PERTURBATION_COMPLEX_PERTURBATION "cper"
 #define PERTURBATION_MRSILS_PERTURBATION "mrsilsp"
+#define PERTURBATION_MRSILS_PERTURBATION2 "mrsilsp2"
 /*base acceptance criteria*/
 #define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
@@ -961,6 +962,14 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
         int poolsize = tm.getInteger();
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
         per = new emili::MRSILSPerturbation(prsp,poolsize);
+    }
+    else if(tm.checkToken(PERTURBATION_MRSILS_PERTURBATION2))
+    {
+        printTab("MRSILS Perturbation");
+        int poolsize = tm.getInteger();
+        emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        emili::Perturbation* prsp2 = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
+        per = new emili::MRSILSPerturbation2(prsp,prsp2,poolsize);
     }
     prs::decrementTabLevel();
     return per;
