@@ -48,9 +48,7 @@ public:
 /**
  * @brief The Solution class
  * This class models a solution to an optimization problem.
- * I'm not sure if the fact that the solution must contain an instance
- * of the base class problem
- * is a good thing...
+ * This class should contain all the data structures regarding the solution.
  */
 class SolutionProblemX: public emili::Solution
 {

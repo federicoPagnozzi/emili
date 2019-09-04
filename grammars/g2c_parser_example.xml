@@ -1,0 +1,58 @@
+<!-- 
+     EMILI parser description example.
+     
+-->
+
+<gr:grammar xmlns:gr="grammar">
+	<gr:derivations>
+	
+	<intpar type="int"/>
+	<floatpar type="float"/>
+	
+	<initial_solution>
+	</initial_solution>
+	
+	<termination>
+	</termination>
+	
+	<perturbation>
+	</perturbation>
+	
+	<acceptance>
+	</acceptance>
+	
+	<neighborhood>
+	   <![CDATA[neigh1 ]]>
+	   <or/>
+	   <![CDATA[neigh2 ]]>
+	</neighborhood>
+	
+	<tabu_memory>
+	   <![CDATA[tm1 ]]>
+	   <or/>
+	   <![CDATA[tm2 ]]>
+	</tabu_memory>
+	
+	<neighborhood_change>
+	</neighborhood_change>
+	
+	<shake>
+	</shake>	
+	
+	<localsearch>
+	      <![CDATA[first ]]></initial_solution></termination></neighborhood>
+	       </or>
+	       <![CDATA[best ]]></initial_solution></termination></neighborhood>
+	       </or>
+	       <![CDATA[tabu ]]></initial_solution></termination></neighborhood></tabu_memory>
+	</localsearch>	
+	
+	<algos>
+	       <![CDATA[ ils ]]></localsearch></termination></perturbation></acceptance>
+	       </or>
+	       <![CDATA[ vns ]]></localsearch></termination></shake></neighborhood_change>
+	</algos>
+	
+	</gr:derivations>
+</gr:grammar>
+	

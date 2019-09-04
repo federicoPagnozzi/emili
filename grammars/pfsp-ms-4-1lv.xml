@@ -101,7 +101,7 @@
 	  <![CDATA[cstainsert ]]>
 	</pfsp:neighborhood>
 	
-	<pfsp:pertubation>
+	<pfsp:perturbation>
 		<![CDATA[rsio ]]><pfsp:sp_impact/><![CDATA[ ]]>
 	  	<or/>
 		<![CDATA[rsper ]]><pfsp:sp_impact/><![CDATA[ ]]>
@@ -119,7 +119,7 @@
 		<![CDATA[rsffls ]]><pfsp:sp_impact/><![CDATA[ ]]><pfsp:localsearch/>
 		<or/>
 		<![CDATA[rsff ]]><pfsp:sp_impact/><![CDATA[ ]]>
-	</pfsp:pertubation>
+	</pfsp:perturbation>
 
 	<pfsp:acceptance>
 		<![CDATA[soaacc ]]><pfsp:s_acc_temp/><![CDATA[ ]]>
@@ -174,7 +174,7 @@
 		<![CDATA[ils ]]>
 		<pfsp:ilsalgos/>
 		<pfsp:ilstermination/>
-		<pfsp:pertubation/>
+		<pfsp:perturbation/>
 		<pfsp:acceptance/>
 	</pfsp:ils>
 	
@@ -182,7 +182,7 @@
 		<![CDATA[ils ]]>
 		<pfsp:ilsalgos/>
 	        <![CDATA[true ]]>
-		<pfsp:pertubation/>
+		<pfsp:perturbation/>
 		<pfsp:acceptance/>
 	</pfsp:ails>
         
@@ -190,7 +190,7 @@
            <![CDATA[ils ]]>
 		<pfsp:ils/>
 	        <![CDATA[true ]]>
-		<pfsp:pertubation/>
+		<pfsp:perturbation/>
 		<pfsp:acceptance/>
 	</pfsp:gls>
 
