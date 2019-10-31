@@ -5,8 +5,6 @@
 	| |____| |  | |_| |_| |____ _| |_ 
 	|______|_|  |_|_____|______|_____|
 
-commit : e5dffeb8ea6a4577658872eac6ae82376edd42e5
-Usage:
 
 EMILI INSTANCE_FILE_PATH PROBLEM <ALGORITHM DESCRIPTION> [-it|-ro time] [rnds seed] [ps]
 
@@ -23,12 +21,12 @@ Use cmake for the configuration and then make.
 An example: 
 
 *from the source dir
-# mkdir build
-# cd build
-# cmake ../
-# make
+ mkdir build
+ cd build
+ cmake ../
+ make
 
-How to proceed: 
+#How to start contributing: 
 
 1) Create a subdir for your problem.
 2) Create classes for your problem and solution ( extend the classes Problem and Solution).
@@ -38,7 +36,7 @@ How to proceed:
    and how to instantiate the components you created.
 5) Use the framework to instantiate algorithms to solve your problem!
 
-Use the manual (Chapter 3 of my thesis) to learn how the framework is structured
+Use the manual (Chapter 3 of my thesis that will be available soon) to learn how the framework is structured
 and how to add components and templates.
 Check the examples in the template dir to have a quick idea of what to do.
 Check the components implemented for the permutation flowshop problem 
