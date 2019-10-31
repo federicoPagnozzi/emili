@@ -12,12 +12,8 @@
 #include <algorithm>
 #include "generalParser.h"
 //#define MAIN_NEW
-#ifndef MAIN_NEW
-#include "pfsp/paramsparser.h"
-#else
 #include "pfsp/pfspBuilder.h"
 //#include "template/problem_builder.h"
-#endif
 #include "setup.h"
 #include <sys/types.h>
 #ifdef EM_LIB
@@ -28,76 +24,6 @@
 #define A_LIB ".a"
 #endif
 
-
-void g2c_info()
-{
-    std::cout << "usage in grammar2code mode : \n\tEMILI instance_file_path time random_seed" << std::endl;
-    exit(0);
-}
-
-#ifndef MAIN_NEW
-int main(int argc, char *argv[])
-{
-    prs::emili_header();
-    /* initialize random seed: */
-    srand ( time(0) );
-    /* Create instance object */
-    clock_t time = clock();
-    if (argc < 3 )
-    {
-#ifndef GRAMMAR2CODE
-        prs::info();
-#else
-        g2c_info();
-#endif
-        return 1;
-    }
-    float pls = 0;
-    emili::LocalSearch* ls;
-#ifndef GRAMMAR2CODE
-    prs::ParamsParser p;
-    prs::GeneralParser ps(argv,argc);
-    ps.registerBuilder(&p);
-    ls = ps.parseParams();
-    if(ls==nullptr)
-    {
-        exit(-1);
-    }
-    pls = ls->getSearchTime();
-#else
-#include "algorithm.h"
-    pls = atoi(argv[2]);
-    int seed = atoi(argv[3]);
-    emili::initializeRandom(seed);
-    time = clock();
-#endif
-    emili::Solution* solution;
-    std::cout << "searching..." << std::endl;
-    if(pls>0)
-    {
-        solution = ls->timedSearch(pls);
-    }
-    else
-    {
-        solution = ls->search();
-    }
-    if(!emili::get_print())
-    {
-        solution = ls->getBestSoFar();
-        double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
-        std::cout << "time : " << time_elapsed << std::endl;
-        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-        std::cerr << solution->getSolutionValue() << std::endl;
-        //cerr << time_elapsed << " ";
-        std::cout << "Objective function value: " << solution->getSolutionValue() << std::endl;
-        std::cout << "Found solution: ";
-        std::cout << solution->getSolutionRepresentation() << std::endl;
-        std::cout << std::endl;
-    }
-    delete ls;
-    //delete solution;
-}
-#else
 #ifdef EM_LIB
 
 typedef prs::Builder* (*getBuilderFcn)(prs::GeneralParserE* ge);

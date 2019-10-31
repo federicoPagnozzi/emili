@@ -1539,7 +1539,11 @@ public:
     virtual Solution* accept(Solution *intensification_solution, Solution *diversification_solution);
     virtual void reset();
 };
-
+/**
+ * @brief The ComposedInitialSolution class
+ * This class puts together an InitialSolution and a LocalSearch as a single
+ * initial solution.
+ */
 class ComposedInitialSolution: public emili::InitialSolution
 {
 protected:
@@ -1589,20 +1593,12 @@ public:
     void reset();
 };
 
+/**  Kind of a reflection thing...**/
 /**
-class SimulatedAnnealing : public emili::LocalSearch
-{
-protected:
-emili::Acceptance* acceptance;
-public:
-SimulatedAnnealing(InitialSolution* initial,Neighborhood* neigh,Termination* term,Acceptance* acc):emili::LocalSearch(*initial,*term,*neigh),acceptance(acc) { }
-virtual Solution* getBestSoFar();
-virtual Solution* search(Solution *initial);
-virtual ~SimulatedAnnealing() { delete acceptance;}
-};
-*/
-
-/**  Kind of a reflection thing...*/
+ * @brief getAlgo
+ * Returns the root LocalSearch object
+ * @return returns the LocalSearch object constructed by GeneralParser
+ */
 emili::LocalSearch* getAlgo();
 void setRootAlgorithm(emili::LocalSearch* ls);
 }

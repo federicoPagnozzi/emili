@@ -794,7 +794,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
     {
         printTab("Iterated random initial solution");
         int n = tm.getInteger();
-        oss.str("");oss << "number of random solutions generate"<< n;
+        oss.str("");oss << "number of random solutions generated: "<< n;
         printTabPlusOne(oss.str().c_str());
         init = new emili::pfsp::RandomInitialSolution(*instance,n);
     }
