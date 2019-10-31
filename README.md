@@ -21,12 +21,12 @@ Use cmake for the configuration and then make.
 An example: 
 
 *from the source dir
- mkdir build
- cd build
- cmake ../
- make
+$ mkdir build
+$ cd build
+$ cmake ../
+$ make
 
-#How to start contributing: 
+# How to start contributing: 
 
 1) Create a subdir for your problem.
 2) Create classes for your problem and solution ( extend the classes Problem and Solution).
