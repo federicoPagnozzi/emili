@@ -14,7 +14,7 @@
 //#define MAIN_NEW
 #include "pfsp/pfspBuilder.h"
 //#include "template/problem_builder.h"
-#include "setup.h"
+//#include "setup.h"
 #include <sys/types.h>
 #ifdef EM_LIB
 #include <dirent.h>
