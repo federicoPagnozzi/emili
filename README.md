@@ -21,9 +21,13 @@ Use cmake for the configuration and then make.
 An example: 
 
 *from the source dir
+
 $ mkdir build
+
 $ cd build
+
 $ cmake ../
+
 $ make
 
 # How to start contributing: 
