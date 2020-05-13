@@ -61,14 +61,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 EMILI INSTANCE_FILE_PATH PROBLEM <ALGORITHM DESCRIPTION> [-it|-ro time] [rnds seed] [ps]
 
-
-Please, do not modify the main classes in any way.
-The framework is made to be interoperable, flexible and modular.
-Any change you may do to the main classe may break these properties.
-If you discover a bug or want to propose an improvement, feel free
-to contact me at federico.pagnozzi@ulb.ac.be
- 
-How to compile
+### How to compile ###
 Use cmake for the configuration and then make.
 
 An example: 
@@ -103,3 +96,9 @@ For any question, feel free to contact me to the address written above.
 New source code created in subdirectories, like the template dir, 
 needs to be added to the list of source files in the CMakeList.txt file.
 See the commented code at line 5 of CMakeList.txt for an example.
+
+Please, do not modify the main classes in any way.
+The framework is made to be interoperable, flexible and modular.
+Any change you may do to the main classe may break these properties.
+If you discover a bug or want to propose an improvement, feel free
+to contact me at federico.pagnozzi@ulb.ac.be
