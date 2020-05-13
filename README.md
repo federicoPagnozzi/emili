@@ -5,6 +5,59 @@
 	| |____| |  | |_| |_| |____ _| |_ 
 	|______|_|  |_|_____|______|_____|
 
+emili
+============
+
+```emili``` is an algorithmic framework to instantiate several different 
+optimization algorithms to solve hard combinatorial optimization problems. 
+The EMILI framework has been designed to be used in automatic algorithm design
+systems that use a grammar based method to generate algorithms. To this end, 
+the EMILI framework uses a parser to instantiate algorithms at run time.
+The framework is focused on the implementation of single solution SLS algorithms
+and in particular hybrid stochastic local search algorithms.
+
+This software is [open source](http://opensource.org/) and is distributed
+under the terms of the
+[BSD 2-Clause License](http://opensource.org/licenses/BSD-2-Clause).
+
+If you use ```emili``` in your scientific work, please cite the works
+below; if you do a derivative work, you should say it is derivative and also
+cite the papers below:
+
+ *  Federico Pagnozzi and Thomas Stützle. 
+    **Automatic design of hybrid stochastic local search algorithms for 
+    permutation flowshop problems.** 
+    European journal of operational research, 276(2), 409-421, 2019.
+    DOI: [10.1016/j.ejor.2019.01.018](https://doi.org/10.1016/j.ejor.2019.01.018)
+
+#### License ####
+
+Copyright (c) 2015, Federico Pagnozzi
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+### Usage ###
 
 EMILI INSTANCE_FILE_PATH PROBLEM <ALGORITHM DESCRIPTION> [-it|-ro time] [rnds seed] [ps]
 
@@ -30,7 +83,7 @@ $ cmake ../
 
 $ make
 
-# How to start contributing: 
+### How to start contributing ###
 
 1) Create a subdir for your problem.
 2) Create classes for your problem and solution ( extend the classes Problem and Solution).
