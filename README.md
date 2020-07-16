@@ -86,12 +86,12 @@ $ make
    and how to instantiate the components you created.
 5) Use the framework to instantiate algorithms to solve your problem!
 
-Use the manual (Chapter 3 of my thesis that will be available soon) to learn how the framework is structured
+In the third Chapter of my PhD thesis ([available here](https://dipot.ulb.ac.be/dspace/bitstream/2013/294557/4/thesis.pdf)) you can learn how the framework is structured
 and how to add components and templates.
 Check the examples in the template dir to have a quick idea of what to do.
 Check the components implemented for the permutation flowshop problem 
 to learn more (unfortunately, the code there may not be commented).
-For any question, feel free to contact me to the address written above.
+For any question, feel free to contact me to the address written below.
 
 New source code created in subdirectories, like the template dir, 
 needs to be added to the list of source files in the CMakeList.txt file.
