@@ -59,7 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 ### Usage ###
 
-EMILI INSTANCE_FILE_PATH PROBLEM <ALGORITHM DESCRIPTION> [-it|-ro time] [rnds seed] [ps]
+EMILI INSTANCE_FILE_PATH PROBLEM < ALGORITHM DESCRIPTION > [-it|-ro time] [rnds seed] [ps]
 
 ### How to compile ###
 Use cmake for the configuration and then make.
