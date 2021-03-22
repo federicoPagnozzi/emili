@@ -89,13 +89,23 @@ float emili::generateRealRandomNumber()
 bool print;
 bool keep_going;
 bool timer_keep_going;
-std::ostringstream messages;
-std::string lastMessage;
 clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
+long final_iteration_counter = 0;
 emili::LocalSearch* localsearch = nullptr;
+emili::Solution* s_cap = nullptr;
+double sol_val = -1;
 
+void emili::initializeTimerBaseSolution(emili::Solution* base_solution)
+{
+    s_cap = base_solution;
+}
+
+bool emili::getKeepGoing()
+{
+    return keep_going;
+}
 
 double emili::getCurrentExecutionTime()
 {
@@ -119,48 +129,40 @@ static void finalise (int _)
 {
     keep_going = false;
     endTime = clock();
-    emili::Solution* s_cap = localsearch->getBestSoFar();
+    *s_cap = *localsearch->getBestSoFar();
     if(s_cap != nullptr)
     {
-        double sol_val = s_cap->getSolutionValue();
+        sol_val = s_cap->getSolutionValue();
         if(print)
         {
-            messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-            messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            messages << "objective function value : "<< std::fixed << sol_val << std::endl;
-            messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+            //messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+            //messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
+            //messages << "objective function value : "<< std::fixed << sol_val << std::endl;
+            final_iteration_counter = emili::iteration_counter();
+            //messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
         else
         {
-            std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+            /*std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
             std::cerr << std::fixed << sol_val << std::endl;
-            std::cerr << std::flush;
+            std::cerr << std::flush;*/
         }
     }
     else
     {
-        if(print)
-        {
-            messages << "No valid solution found!" << std::endl;
-        }
-        else
-        {
+        if(!print)
+        {         
             std::cout  << "No valid solution found!" << std::endl;
-
         }
     }
     //std::cout << std::flush;
-    if(print)
+    /*if(!print)
     {
-        lastMessage = messages.str();
-    }
-    else
-    {
-        exit(0);
-    }
+       exit(0);
+    }*/
 }
 
 
@@ -202,7 +204,21 @@ static inline bool isTimerUp()
 
 void lastPrint()
 {
-    std::cout << lastMessage << std::endl;
+    if(s_cap != nullptr)
+    {
+        double sol_val2 = s_cap->getSolutionValue();
+        std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
+        std::cout << "objective function value : "<< std::fixed << sol_val << std::endl;
+        std::cout << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+        if(sol_val2 != sol_val)
+        {
+            std::cout << "value of printed solution : " << sol_val2 << std::endl;
+        }
+    }
+    else {
+        std::cout  << "No valid solution found!" << std::endl;
+    }
 }
 
 int max_time = -1 ;
@@ -218,13 +234,13 @@ static inline void setTimer(float maxTime)
     emili::iteration_counter_zero();
     signal(SIGPROF, finalise);
     signal(SIGINT, finalise);
+    if(print)
+        atexit(lastPrint);
     if (setitimer (ITIMER_PROF, &timer, NULL) != 0) {
         printf("error in setitimer\n");
         exit(10);
     }else{
-        std::cout << "timer set " << maxTime << " seconds " << std::endl;
-        if(print)
-            atexit(lastPrint);
+        std::cout << "timer set " << maxTime << " seconds " << std::endl;       
         max_time = maxTime;
     }
 }
@@ -285,10 +301,27 @@ double cbest = std::numeric_limits<double>::max();
 inline void emili::printSolstats(emili::Solution* sol)
 {
 #ifdef WITH_STATS
+    double nbest = sol->getSolutionValue();
+    if(print && cbest > nbest)
+    {
+      cbest = nbest;
+      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << "\n";
+    }
+#endif
+}
+
+inline void emili::printSearchstats(emili::SearchStatus* status)
+{
+#ifdef WITH_STATS
+    emili::Solution* sol = status->getBestSolution();
     if(print && cbest > sol->getSolutionValue())
     {
       cbest = sol->getSolutionValue();
-      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , " << sol->getSolutionValue() << " , " << iteration_counter_ << "\n";
+      std::cout << (clock() - beginTime) / (float)CLOCKS_PER_SEC << " , "
+                << sol->getSolutionValue() << " , "
+                << iteration_counter_      << " , "
+                << status->total_counter   << " , "
+                << status->not_improved    << "\n";
     }
 #endif
 }
@@ -428,6 +461,67 @@ emili::Solution* emili::RandomConstructiveHeuristicNeighborhood::computeStep(Sol
          return nullptr;
      }
 }
+/**
+ * SearchStatus
+ */
+
+void emili::SearchStatus::incrementCounters()
+{
+    counter += 1;
+    total_counter += 1;
+    not_improved += 1;
+}
+
+void emili::SearchStatus::newBestSolution(Solution* new_best)
+{
+    not_improved = 0;
+    //delete best;
+    /*    if(best==nullptr)
+        {
+            best = new_best->clone();
+        }
+        else
+        {
+            *best = *new_best;
+        }
+    */
+    best = new_best;
+    if(new_best->isFeasible())
+    {
+        if(feasible_best==nullptr)
+        {
+            feasible_best = new_best->clone();
+        }
+        else
+        {
+            *feasible_best = *new_best;
+        }
+    }
+    printSearchstats(this);
+}
+
+emili::Solution* emili::SearchStatus::getBestSolution()
+{
+    return best;
+}
+
+emili::Solution* emili::SearchStatus::getFeasibleBestSolution()
+{    
+    return feasible_best;
+}
+
+void emili::SearchStatus::resetCounters()
+{
+    counter = 0;
+    total_counter = 0;
+    not_improved = 0;
+}
+
+void emili::SearchAlgorithm::setBest(Solution* newbest)
+{
+    status->newBestSolution(newbest);
+}
+
 
 /**
  * LocalSearch base class ( Old neighborhood concept)
@@ -439,8 +533,8 @@ emili::Solution* emili::LocalSearch::search()
     emili::Solution* current = init->generateSolution();
     printSolstats(current);
     emili::Solution* sol = search(current);
-    if(current!=sol)
-        delete current;
+    //if(current!=sol)
+    //    delete current;
 
     return sol;
 }
@@ -452,8 +546,8 @@ emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
     beginTime = clock();    
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
-    if(current!=sol)
-        delete current;
+    //if(current!=sol)
+    //    delete current;
     stopTimer();
     return sol;
 }
@@ -497,8 +591,8 @@ emili::Solution* emili::LocalSearch::timedSearch()
     beginTime = clock();
     emili::Solution* current = init->generateSolution();
     emili::Solution* sol = search(current);
-    if(current!=sol)
-        delete current;
+   // if(current!=sol)
+   //     delete current;
     stopTimer();
     return sol;
 }
@@ -590,29 +684,9 @@ emili::Solution* emili::EmptyLocalSearch::timedSearch()
  * Feasible Local Search stuff
  */
 
-void emili::LocalSearch::setBest(Solution* nBest)
-{
-    *bestSoFar = *nBest;
-    if(nBest->isFeasible())
-    {
-        if(feasibleBest==nullptr)
-        {
-            feasibleBest = nBest->clone();
-        }
-        else
-        {
-            *feasibleBest = *nBest;
-        }
-    }
-}
-
 emili::Solution* emili::LocalSearch::getBestSoFar()
-{
-    if(feasibleBest != nullptr)
-    {
-        return feasibleBest;
-    }
-    return bestSoFar;
+{   
+    return status->getBestSolution();
 }
 
 void emili::LocalSearch::setBestSoFar(Solution *newBest)
@@ -1472,6 +1546,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::timedSearch(float maxTime,e
 emili::Solution* emili::FeasibleIteratedLocalSearch::getBestSoFar()
 {
     emili::Solution* bestOfInnerLocal = IteratedLocalSearch::getBestSoFar();
+    emili::Solution* feasibleBest = status->getFeasibleBestSolution();
     if(feasibleBest != nullptr )
     {
         if(bestOfInnerLocal->isFeasible() && bestOfInnerLocal->operator <(*feasibleBest))
@@ -1587,6 +1662,7 @@ bool emili::LocalMinimaTermination::terminate(Solution* currentSolution,Solution
  * MaxSteps Termination
  */
 bool emili::MaxStepsTermination::terminate(Solution *currentSolution, Solution *newSolution)
+
 {
     if(current_step >= max_steps_){
         if(*currentSolution > *newSolution)
@@ -1690,7 +1766,7 @@ emili::Solution* emili::Metropolis::accept(Solution *intensification_solution, S
     float intens = intensification_solution->getSolutionValue();
     float divers = diversification_solution->getSolutionValue();
     if(diversification_solution->operator >(*intensification_solution))
-    {
+    { 
         float prob = std::exp((intens-divers)/temperature);
         if(prob < 1.0 && generateRealRandomNumber()>prob)
         {
@@ -1857,16 +1933,33 @@ emili::Solution* emili::ComposedInitialSolution::generateSolution()
 
 emili::Solution* emili::AlternateLocalSearch::search(emili::Solution * solution)
 {
-    emili::Solution* s = nullptr;
-    if(turn)
-    {
-          s = ls1->search(solution);
+    emili::Solution* s = solution->clone();
+    std::cout << "START" << std::endl;
+    while (!termcriterion->terminate(nullptr, nullptr)) {
+      if(turn)
+      {
+          //std::cout << "run first " << std::endl;
+          //Solution* sol1
+          s = ls1->search(s);
+          //std::cout << "done first " << s->getSolutionValue() << std::endl;
+          /*if (sol1 != s) {
+             delete s;
+             s = sol1;
+          }*/
+      }
+      else
+      {
+          //std::cout << "run second " << std::endl;
+          //Solution* sol2 
+          s = ls2->search(s);
+          /*if (sol2 != s) {
+               delete s;
+               s = sol2;
+          }*/
+          //std::cout << "done second " << s->getSolutionValue() << std::endl;
+      }
+      turn = !turn;
     }
-    else
-    {
-        s = ls2->search(solution);
-    }
-    turn = !turn;
     return s;
 }
 
@@ -1875,6 +1968,31 @@ emili::Solution* emili::AlternateLocalSearch::getBestSoFar()
     emili::Solution* best = ls1->getBestSoFar();
     emili::Solution* best2 = ls2->getBestSoFar();
 
+
+    /*if ( best == nullptr)
+      printf("oh fuck\n");
+    printf("best: %f\n", best->getSolutionValue());
+    if ( best2 == nullptr)
+      printf("oh fuck\n");
+    printf("best2: %f\n", best2->getSolutionValue());*/
+
+    if (best == nullptr && best2 == nullptr) {
+      //std::cout << "WTF .. both null" << std::endl;
+      return nullptr;
+    } else if (best != nullptr && best2 == nullptr) {
+      //std::cout << "WTF .. ls1 not null" << std::endl; 
+      return best;
+    } else if (best == nullptr && best2 != nullptr) {
+      //std::cout << "WTF .. ls2 not null" << std::endl;
+      return best2; // should never be here
+    }
+    
+    /*std::cout << "WTF both not null" << std::endl;
+    double xxx = best->getSolutionValue();
+    std::cout << best->getSolutionRepresentation() << std::endl;
+    
+    std::cout << best2->getSolutionValue() << std::endl;
+    std::cout << best2->getSolutionRepresentation() << std::endl;*/
     if(*best < *best2)
     {
         return best;

@@ -16,6 +16,7 @@
 //#include "template/problem_builder.h"
 //#include "setup.h"
 #include <sys/types.h>
+
 #ifdef EM_LIB
 #include <dirent.h>
 #include <dlfcn.h>
@@ -24,6 +25,104 @@
 #define A_LIB ".a"
 #endif
 
+//#include "SA/sa_pfsp_parser.h"
+//#include "SA/sa_qap_parser.h"
+#include "SA/SABuilder.h"
+#include "QAP/qapBuilder.h"
+#include "stats/stats_builder.h"
+#include "TSP/tspBuilder.h"
+
+void g2c_info()
+{
+    std::cout << "usage in grammar2code mode : \n\tEMILI instance_file_path time random_seed" << std::endl;
+    exit(0);
+}
+
+#ifndef MAIN_NEW
+int main(int argc, char *argv[])
+{
+prs::emili_header();
+    /* initialize random seed: */
+    srand ( time(0) );
+
+    /* Create instance object */
+    //testTaillardAccel();
+    clock_t time = clock();
+ //instance.setSilence(true);
+#ifdef GRAMMAR2CODE
+
+
+#else
+    //prs::emili_header();
+#endif
+    /* Read data from file */
+    if (argc < 3 )
+    {        
+#ifndef GRAMMAR2CODE
+        prs::info();
+#else
+
+        g2c_info();
+#endif
+      return 1;
+    }
+   // testNewEvaluationFunction(instance);
+    //emili::pfsp::NWPFSP_MS problem(instance);
+    //testHeuritstic(problem);
+    float pls = 0;
+    emili::LocalSearch* ls;
+#include "algorithm.h"
+#ifndef GRAMMAR2CODE
+    prs::GeneralParser ps(argv,argc);
+    ps.registerBuilder(&p);
+    ls = ps.parseParams();
+   // testHeuritstic(ps.getInstance());
+    if(ls==nullptr)
+    {
+       // std::cout << "EXITING" << std::endl;
+        exit(-1);
+     //   return -1;
+    }
+    pls = ls->getSearchTime();//ps.ils_time;
+#else
+    pls = atoi(argv[2]);
+    int seed = atoi(argv[3]);
+    emili::initializeRandom(seed);
+    time = clock();
+#endif
+    emili::Solution* solution;
+    std::cout << "searching..." << std::endl;
+    if(pls>0)
+    {
+       solution = ls->timedSearch(pls);
+    }
+    else
+    {
+        solution = ls->search();
+    }
+
+#ifndef GRAMMAR2CODE
+
+#else
+    long int totalWeightedTardiness = problem.computeObjectiveFunction(sol);
+    int njobs = problem.getNjobs();
+#endif
+    solution = ls->getBestSoFar();    
+    double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
+    std::cout << "time : " << time_elapsed << std::endl;
+    std::cout << "iteration counter : " << std::fixed << emili::iteration_counter()<< std::endl;
+    std::cerr << std::fixed << solution->getSolutionValue() << std::endl;
+    //cerr << time_elapsed << " ";    
+    std::cout << "Objective function value: " << std::fixed << solution->getSolutionValue() << std::endl;
+    std::cout << "Found solution: ";
+    std::cout << std::fixed << solution->getSolutionRepresentation() << std::endl;
+    std::cout << std::endl;
+
+    // std::cerr << std::fixed << solution->getSolutionValue() << endl;
+    
+    return 0;
+}
+#else
 #ifdef EM_LIB
 
 typedef prs::Builder* (*getBuilderFcn)(prs::GeneralParserE* ge);
@@ -92,13 +191,23 @@ int main(int argc, char *argv[])
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
     prs::PfspBuilder pfspb(ps,ps.getTokenManager());
+    prs::QAPBuilder qap(ps,ps.getTokenManager());
+    prs::SABuilder sab(ps,ps.getTokenManager());
+    prs::MABuilder mab(ps,ps.getTokenManager());
+    prs::stats::StatsBuilder sb(ps,ps.getTokenManager());
+    prs::TSPBuilder tsp(ps,ps.getTokenManager());
     //prs::problemX::ProblemXBuilder px(ps,ps.getTokenManager());
     ps.addBuilder(&emb);
     //ps.addBuilder(&px);
 #ifdef EM_LIB
     loadBuilders(ps);
 #else
+    ps.addBuilder(&qap);
     ps.addBuilder(&pfspb);
+    ps.addBuilder(&sab);
+    ps.addBuilder(&mab);
+    ps.addBuilder(&sb);
+    ps.addBuilder(&tsp);
 #endif
     ls = ps.parseParams();
     if(ls!=nullptr)
@@ -124,10 +233,12 @@ int main(int argc, char *argv[])
           //  std::cerr << solution->getSolutionValue() << std::endl;            
             std::cout << "Objective function value: "<< std::fixed << solval << std::endl;
             std::cerr << std::fixed << solval << std::endl;
-            std::cout << "Found solution: ";
+          /*  std::cout << "Found solution: ";
             std::cout << solution->getSolutionRepresentation() << std::endl;
-            std::cout << std::endl;
+            std::cout << std::endl;*/
         }
         delete ls;
     }
 }
+#endif
+

@@ -63,6 +63,9 @@ class nullptr_t
  * emili enclose all the components of the EMILI framework.
  */
 namespace emili{
+
+class Solution;
+
 /**
  * @brief iteration_counter_zero
  * reset the iterations counter
@@ -100,6 +103,24 @@ void set_print(bool p);
  *  true if the flag is set, false otherwise
  */
 bool get_print();
+
+/**
+ * @brief allocateTimerBaseSolution
+ * This function is called to allow the memory allocation of the solution used in the timer callback to store
+ * the best solution. Since the callback is executed in a different thread,
+ * it cannot allocate memory on the heap otherwise it could generate a deadlock.
+ * A solution pointer is needed to properly print the advanced information regarding
+ * the best solution when the print option is enabled.
+ * @param base_solution
+ * A pointer to a solution that has been properly initialized.
+ */
+void initializeTimerBaseSolution(emili::Solution* base_solution);
+
+/**
+ * @brief getKeepGoing
+ * return the value of keepgoing, to use it on other methods as well.
+ */
+bool getKeepGoing();
 
 /**
  * @brief initializeRandom
@@ -142,6 +163,8 @@ float generateRealRandomNumber();
 double getCurrentExecutionTime();
 
 class Solution;
+class SearchStatus;
+
 /**
  * @brief The Problem class
  * The istance of the problem to solve.
@@ -328,6 +351,7 @@ public:
  * @param sol
  */
 inline void printSolstats(emili::Solution* sol);
+inline void printSearchstats(emili::SearchStatus* status);
 
 /**
  * @brief The InitialSolution class
@@ -816,11 +840,67 @@ public:
     virtual int size(){ return -1; }
     virtual ~RandomConstructiveHeuristicNeighborhood() { delete heuristic;}
 };
+/**
+ * @brief The SearchStatus class
+ * This class keeps track of the algorithm execution status
+ * by holding counters and the best solution.
+ */
+class SearchStatus
+{
+protected:    
+    Solution* feasible_best;
+public:
+    Solution* best;
+    long counter;
+    long total_counter;
+    long not_improved;
+    SearchStatus():
+        counter(0),
+        total_counter(0),
+        not_improved(0),
+        best(nullptr),
+        feasible_best(nullptr) { }
+
+    SearchStatus(SearchStatus& status):
+        counter(status.counter),
+        total_counter(status.total_counter),
+        not_improved(status.not_improved),
+        best(status.getBestSolution()),
+        feasible_best(status.getFeasibleBestSolution()){ }
+
+    virtual void incrementCounters();
+
+    virtual void newBestSolution(Solution* new_best);
+
+    virtual Solution* getBestSolution();
+
+    virtual Solution* getFeasibleBestSolution();
+
+    virtual void resetCounters();
+
+};
+
+class SearchAlgorithm
+{
+protected:
+    SearchStatus* status;
+    /**
+     * @brief setBest
+     * @param nBest
+     */
+    inline void setBest(Solution* nBest);
+public:
+    SearchAlgorithm():status(new SearchStatus()) { }
+    SearchAlgorithm(SearchStatus& _status):status(&_status) {}
+    virtual SearchStatus* getSearchStatus(){ return status;}
+    virtual void setSearchStatus(emili::SearchStatus* _status) { status = _status; }
+    virtual void reset() {}
+};
 
 /** @brief The LocalSearch class
 * This class models a very general local search.
 */
-class LocalSearch
+class LocalSearch : public SearchAlgorithm
 {
 protected:
     /**
@@ -839,30 +919,17 @@ Termination* termcriterion;
  */
 Neighborhood* neighbh;
 /**
- * @brief bestSoFar
- * the best solution found so far
- */
-Solution* bestSoFar;
-/**
- * @brief feasibleBest
- */
-Solution* feasibleBest;
-/**
- * @brief setBest
- * @param nBest
- */
-inline void setBest(Solution* nBest);
-/**
  * @brief seconds
  * Maximum amount of time, in seconds, for the local search
  */
 float seconds;
+Solution* bestSoFar;
 /**
      * @brief LocalSearch
      * the empty constructor is declared protected so that an extending class can not
      * use a public one
      */
-    LocalSearch():bestSoFar(nullptr),feasibleBest(nullptr) { }
+    LocalSearch():SearchAlgorithm(){ }
 public:
     /**
      * @brief LocalSearch
@@ -874,7 +941,12 @@ public:
      * The Neighborhood relation used by the Local Search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(0),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
+        SearchAlgorithm(),
+        init(&initialSolutionGenerator),
+        termcriterion(&terminationcriterion),
+        neighbh(&neighborh),
+        seconds(0),
+        bestSoFar(initialSolutionGenerator.generateEmptySolution()) { }
     /**
      * @brief LocalSearch
      * @param initialSolutionGenerator
@@ -887,7 +959,12 @@ public:
      * Maximum amount of time, in seconds, for the local search
      */
     LocalSearch(InitialSolution& initialSolutionGenerator ,Termination& terminationcriterion, Neighborhood& neighborh, float time):
-    init(&initialSolutionGenerator),termcriterion(&terminationcriterion),neighbh(&neighborh),seconds(time),bestSoFar(initialSolutionGenerator.generateEmptySolution()),feasibleBest(nullptr)    {    }
+        SearchAlgorithm(),
+        init(&initialSolutionGenerator),
+        termcriterion(&terminationcriterion),
+        neighbh(&neighborh),
+        seconds(time),
+        bestSoFar(initialSolutionGenerator.generateEmptySolution())   {    }
     /** @brief search
      * The method uses the InitialSolutionGenerator instance
      * to generate the first solution for the local search
@@ -1573,9 +1650,21 @@ public:
         this->termcriterion = new LocalMinimaTermination();
         turn = true;
     }
+    AlternateLocalSearch(InitialSolution& is,emili::LocalSearch* localsearch1, emili::LocalSearch* localsearch2, emili::Termination* terminationcriterion):
+        emili::LocalSearch(),
+        ls1(localsearch1),
+        ls2(localsearch2)
+    {
+        this->init = &is;
+        this->neighbh = new EmptyNeighBorHood();
+        this->termcriterion = terminationcriterion;
+        turn = true;
+    }
 
     emili::Solution* search(emili::Solution* );
     emili::Solution* getBestSoFar();
+
+    virtual void changeTurn(void) { turn = !turn; }
 
 };
 
