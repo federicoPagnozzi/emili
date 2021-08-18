@@ -59,7 +59,42 @@ POSSIBILITY OF SUCH DAMAGE.
 
 ### Usage ###
 
-EMILI INSTANCE_FILE_PATH PROBLEM < ALGORITHM DESCRIPTION > [-it|-ro time] [rnds seed] [ps]
+emili INSTANCE_FILE_PATH PROBLEM < ALGORITHM DESCRIPTION > [-it|-ro time] [rnds seed] [ps]
+
+#### Examples ####
+
+##### First improvement local search to solve the permutation flowshop problem with the makespan objective #####
+
+Let's say we want to solve the instance Ta086 of the Taillard benchmark 
+considering the makespan objective. In particular, we want to run a simple 
+first improvement local search that explores the insert neighborhood and 
+generates the initial solution using the NEH heuristic. Then the commandline 
+would be the following:
+
+```
+emili Ta086.txt PFSP_MS first neh locmin insert
+```
+
+Here the problem "PFSP_MS" indicates the makespan objective of the permutation flowshop problem and 
+locmin is a termination criterion that stops the execution when the local search cannot 
+find an improving solution in the current iteration. The neighborhood "insert" is the generic 
+insert neighborhood that does not implement the Taillard's accelerations. The accelerated 
+insert neighborhood is called "cstainsert".
+
+##### Running IGirms #####
+
+Now we want to solve the same instance but we want to use IGirms, the algorithm presented 
+in the paper referenced in the [First Section](https://github.com/federicoPagnozzi/emili#emili).
+
+```
+emili Ta086.txt PFSP_MS ils first csfrb5 msorlocmin 77 cstainsert true rsls 1 best random locmin cstainsert pmetro 4.6512 0.9837 0.0234 321
+```
+
+This iterated greedy algorithm uses the FRB5 heuristic to generate the initial solution,
+a first improvement local search, an iterated greedy and a Metropolis acceptance criterion. 
+The local search explores the insert neighborhood and stops after it cannot
+improve the current solution or 77 iterations. The iterated greedy perturbation removes 
+one job and uses a best improvement local search to improve the partial solution. 
 
 ### How to compile ###
 Use cmake for the configuration and then make.
