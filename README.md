@@ -136,4 +136,4 @@ Please, do not modify the main classes in any way.
 The framework is made to be interoperable, flexible and modular.
 Any change you may do to the main classe may break these properties.
 If you discover a bug or want to propose an improvement, feel free
-to contact me at federico.pagnozzi@ulb.ac.be
+to contact me at federico.pagnozzi@ulb.be
