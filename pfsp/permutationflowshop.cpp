@@ -11,7 +11,10 @@
 #include <assert.h>
 #include <algorithm>
 #include <limits>
+
+#ifdef ENABLE_SSE
 #include "sse_functions.h"
+#endif
 
 #ifdef NOC11
 struct rzcomp{
