@@ -5,7 +5,6 @@
 //  for details.
 #include "generalParser.h"
 #include <cstdlib>
-#include <cstdio>
 #include <ctime>
 #include <cstring>
 #include <iostream>
@@ -17,14 +16,11 @@
 #define IT "-it"
 #define RNDSEED "rnds"
 #define PRINT_SOLUTION "ps"
-#define DEFAULT_TS 10
-#define DEFAULT_TI 10
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "e5dffeb8ea6a4577658872eac6ae82376edd42e5"
+#define GIT_COMMIT_NUMBER "527b9dc8a18043a67b2b814b2fe111960d42bc9c"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
-#define IG "ig"
 #define ILS "ils"
 #define FEASIBLE_ILS "fils"
 #define TABU "tabu"
@@ -60,7 +56,6 @@
 #define PERTURBATION_COMPLEX_PERTURBATION "cper"
 #define PERTURBATION_MRSILS_PERTURBATION "mrsilsp"
 /*base acceptance criteria*/
-#define ACCEPTANCE_PROB "prob"
 #define ACCEPTANCE_METRO "metropolis"
 #define ACCEPTANCE_PMETRO "pmetro"
 #define ACCEPTANCE_IMPROVE_PLATEAU "implat"
@@ -584,7 +579,7 @@ std::string prs::GeneralParserE::typeName(int type)
     case COMPONENT_NEIGHBORHOOD_OR_EMPTY: return std::string("Neighborhood or empty");
     case COMPONENT_PERTURBATION: return std::string("Perturbation");
     case COMPONENT_ACCEPTANCE: return std::string("Acceptance");
-    case COMPONENT_SHAKE: return std::string("Shake");
+    case COMPONENT_SHAKE: return {"Shake"};
     case COMPONENT_NEIGHBORHOOD_CHANGE: return std::string("Neighborhood change");
     }
     /*TODO - if Gp does not have a name for the component it should ask the builders*/

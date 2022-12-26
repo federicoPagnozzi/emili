@@ -1,0 +1,97 @@
+#!/bin/bash
+#                 ______ __  __ _____ _      _____ 
+#                |  ____|  \/  |_   _| |    |_   _|
+#                | |__  | \  / | | | | |      | |  
+#                |  __| | |\/| | | | | |      | | 
+#                | |____| |  | |_| |_| |____ _| |_ 
+#                |______|_|  |_|_____|______|_____|
+#
+# EMILI hook-run ver 1.8 for irace 2 and up
+#
+# changelog:
+#
+# ver 1.8
+#     - reorganized code and added comments
+# ver 1.7
+#     - removed the swap between STDOUT and STDERR, now they are redirected to two temp files
+# ver 1.6a
+#     - fixed the if statement that checks if the value returned by EMILI is a number
+# ver 1.6
+#     - added retry mechanism
+# ver 1.5
+#     - added error reporting
+# ver 1.0
+#     - changed from "compile and run" to "parse and run"
+
+#
+# EXPERIMENT PARAMETERS
+INSTANCE=$4
+INSTANCEID=$2
+RND_SEED=$3
+CANDNUM=$1
+shift 4
+# Configuration
+PARAMS=$*
+
+# Number of retries in case of error
+TRIES=3
+# Default output, normally null
+OUTPUT="/dev/null"
+# Grammar2code path
+GRAMMAR2CODE="grammar2code"
+# Grammar file location
+GRAMMAR_DIR='/emili/grammars/no-idle-pfsp-ms2.xml'
+# Error output file location
+ERR_OUT='./ERROR'
+# General emili timer
+TIMER_SETTING='-ro 0.03'
+# Machine id if running in a cluster
+HOST_NAME=`hostname`
+# EMILI bin location
+EMILI_BIN='/home/fpagnozzi/emili/build/EMILI'
+
+# Setup work dir for the experiment
+BUILD_DIR=`mktemp -d`
+# Translate configuration from grammar2code format to emili format
+$GRAMMAR2CODE $GRAMMAR_DIR -t $BUILD_DIR $PARAMS 1>> $OUTPUT 2>> $OUTPUT
+# Move to work dir and setup output files
+pushd $BUILD_DIR  1>> $OUTPUT
+PARAMETERS=`cat params`
+STDOUT=`mktemp`
+STDERR=`mktemp`
+# Run experiment
+$EMILI_BIN $INSTANCE $PARAMETERS $TIMER_SETTING rnds $RND_SEED 1> $STDOUT 2> $STDERR
+
+# Extract solution quality
+OUT_VALUE=`cat $STDERR | tail -n1`
+
+# Check that value is valid otherwise retry the experiment
+if echo "$OUT_VALUE" | grep -Eq "^[0-9]+(\.[0-9]+([eE][+-][0-9]+)?)?$"
+then
+	echo $OUT_VALUE
+else
+        G2Cp=${@:3}
+       	OUT_V=4000000000
+	printf "****ERROR****\nnode: %s\nInstance %s\nRandom seed: %s\n Params to g2c\n %s \n\n Params to EMILI\n %s \n OUTPUT \n %s \n **********\n\n" "${HOST_NAME}" "${INSTANCE}" "${RND_SEED}" "${G2Cp[@]}" "${PARAMETERS}" "${OUT_VALUE}" >> $ERR_OUT
+	for i in `seq 1 $TRIES`
+	    do	
+		$EMILI_BIN $INSTANCE $PARAMETERS $TIMER_SETTING rnds $RND_SEED 1> $STDOUT 2> $STDERR
+		OUT_VALUE=`cat $STDERR | tail -n1`
+	    if echo "$OUT_VALUE" | grep -Eq "^[0-9]+(\.[0-9]+([eE][+-][0-9]+)?)?$"
+            then
+	      OUT_V=$OUT_VALUE
+	      break
+	    else
+	      printf "****ERROR %s****\nInstance %s\nRandom seed: %s\n Params to g2c\n %s \n\n Params to EMILI\n %s \n OUTPUT \n %s \n **********\n\n" "$i" "${INSTANCE}" "${RND_SEED}" "${G2Cp[@]}" "${PARAMETERS}" "${OUT_VALUE}" >> $ERR_OUT
+            fi
+	done
+	echo $OUT_V
+fi 
+
+# Leave work dir
+popd 1>> $OUTPUT
+
+# Clean up
+rm -f $STDOUT
+rm -f $STDERR
+rm -rf $BUILD_DIR

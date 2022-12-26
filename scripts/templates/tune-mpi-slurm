@@ -1,0 +1,67 @@
+#!/bin/bash
+# This is a version of tune-main for launching irace using the --mpi
+# option in a SLURM Cluster.
+set -e
+set -o pipefail
+
+if [ $# == 0 ]; then
+    echo "Usage: ./tune-mpi-slurm <BINDIR> <EXECDIR> --parallel <NB_SLAVES> --rack <rack_number> --queue <queue> additional_args_to_irace"
+    exit 1
+fi
+
+BINDIR=$1
+EXECDIR=$2
+shift 2
+NB_SLAVES=0
+RACK_NUM=1
+QUEUE_ARG=long
+PARAMS=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --parallel) shift; NB_SLAVES="$1"; shift;;
+	--rack) shift; RACK_NUM="$1"; shift;;
+	--queue) shift; QUEUE_ARG="$1"; shift;;
+        *) PARAMS="$PARAMS $1"; shift;;# terminate case
+  esac
+done
+
+if [ $NB_SLAVES -lt 2 ]; then
+    echo "$0: error: --parallel must be larger than 1"
+    exit 1
+fi
+
+QUEUE=long
+case $QUEUE_ARG in
+	long) QUEUE=long;;
+	short) QUEUE=short;;
+	*) ;;
+esac
+JOBNAME=IREM-$$
+MACHINE=7
+case $RACK_NUM in
+	4)MACHINE=4;;
+	5)MACHINE=5;;
+	6)MACHINE=6;;
+	7)MACHINE=7;;
+	*) ;;
+esac
+MPIRUN=/opt/ohpc/pub/mpi/openmpi4-gnu9/4.0.5/bin/mpirun
+
+let NB_PARALLEL_PROCESS=NB_SLAVES+1
+CURRENT_DIR=`pwd`
+exec sbatch <<EOF
+#!/bin/sh
+#SBATCH -J $JOBNAME
+#SBATCH -p $QUEUE$MACHINE
+##SBATCH -N $NB_PARALLEL_PROCESS  #This specify the number of nodes you want to use, not needed 
+#SBATCH -n $NB_PARALLEL_PROCESS
+#SBATCH -o $EXECDIR/irace-$$.stdout
+#SBATCH -e $EXECDIR/irace-$$.stderr
+##SBATCH -wd $CURRENT_DIR # altough this is the default for slurm
+export OMPI_MCA_plm_rsh_disable_qrsh=1
+export PATH
+$MPIRUN -x OMPI_MCA_plm_rsh_disable_qrsh -x PATH \
+        -np 1 \
+        $BINDIR/irace --exec-dir=$EXECDIR --parallel $NB_SLAVES --mpi 1 $PARAMS
+EOF
+

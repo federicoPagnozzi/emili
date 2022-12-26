@@ -1,0 +1,79 @@
+#!/bin/sh
+
+if [ $# -lt 2 ]; then
+    echo "                 ______ __  __ _____ _      _____ "
+    echo "                |  ____|  \/  |_   _| |    |_   _|"
+    echo "                | |__  | \  / | | | | |      | |  "
+    echo "                |  __| | |\/| | | | | |      | |  "
+    echo "                | |____| |  | |_| |_| |____ _| |_ "
+    echo "                |______|_|  |_|_____|______|_____|"
+    echo "                                                  "
+    echo " $* "
+    echo "                                                  "
+    echo "utility to extract and convert configurations from irace rdata files"
+    echo "Usage: ${0} irace|irace2|iraceElite irace.Rdata [ grammar -s stage | -c candidate_id | -b ]"
+    echo " use irace for irace < 2 and irace2 for irace >= 2 "
+else
+    IRACE=$1
+    CANDIDATES="allCandidates"
+    IRACE_OBJ="tunerResults"
+    if [ $1 == 'irace2' ]
+    then
+         IRACE="irace"
+         IRACE_OBJ="iraceResults"
+         CANDIDATES="allConfigurations"
+    fi
+
+STAGE="length($IRACE_OBJ\$allElites)"
+#CANDIDATE="$IRACE_OBJ\$$CANDIDATES$.ID. %in% $IRACE_OBJ\$allElites[[length($IRACE_OBJ\$allElites)]]"
+CANDIDATE="unlist($IRACE_OBJ\$allElites[$STAGE])"
+if [ $# -eq 4 ]
+then
+	if [ "${4}" = "-b" ]
+	then
+       		 CANDIDATE="c( unlist($IRACE_OBJ\$allElites[$STAGE])[1] )"
+	fi
+fi
+
+if [ $# -eq 5 ]
+then
+  if [ "${4}" = "-s" ]
+  then
+    STAGE=$5
+   # CANDIDATE="$IRACE_OBJ\$$CANDIDATES$.ID. %in% $IRACE_OBJ\$allElites[[$5]]"
+    CANDIDATE="unlist($IRACE_OBJ\$allElites[$STAGE])"
+  else
+  	if [ "${4}" = "-c" ]
+  	then
+    	CANDIDATE="c( $5 )"
+	fi
+  	if [ "${4}" = "-sb" ]
+  	then
+        STAGE=$5
+        # CANDIDATE="$IRACE_OBJ\$$CANDIDATES$.ID. %in% $IRACE_OBJ\$allElites[[$5]]"
+        CANDIDATE="unlist($IRACE_OBJ\$allElites[$STAGE])[1]"
+	fi
+  fi 
+fi
+TMP_FILE=`mktemp`
+    R --slave > $TMP_FILE  <<EOF
+        library(${IRACE})
+        load("${2}")
+	candidates <- $CANDIDATE
+	for( i in 1 : length(candidates))
+	{
+                cat(paste0(i,apply($IRACE_OBJ\$$CANDIDATES[candidates[i], unlist($IRACE_OBJ\$parameters\$names) ], 1, buildCommandLine, unlist($IRACE_OBJ\$parameters\$switches)),"\n"));
+	}
+EOF
+TMP_DIR=`mktemp -d`
+if [ $# -ge 3 ]; then
+	pushd $TMP_DIR &> /dev/null
+	~/bin/conf_translator $3 $TMP_FILE
+	popd &> /dev/null
+else
+	cat $TMP_FILE
+fi
+#tail -n1 ttemp | cut -d\" -f2
+yes | rm $TMP_FILE >> /dev/null
+fi
+

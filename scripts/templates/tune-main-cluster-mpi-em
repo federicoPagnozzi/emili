@@ -1,0 +1,69 @@
+#!/bin/bash
+# This is a version of tune-main for launching irace using the --mpi
+# option in a SGE Cluster.
+set -e
+set -o pipefail
+
+if [ $# == 0 ]; then
+    echo "Usage: ./tune-main-cluster-mpi <BINDIR> <EXECDIR> --parallel <NB_SLAVES> --rack <rack_number> --queue <queue> additional_args_to_irace"
+    exit 1
+fi
+
+BINDIR=$1
+EXECDIR=$2
+shift 2
+NB_SLAVES=0
+RACK_NUM=1
+QUEUE_ARG=long
+PARAMS=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --parallel) shift; NB_SLAVES="$1"; shift;;
+	--rack) shift; RACK_NUM="$1"; shift;;
+	--queue) shift; QUEUE_ARG="$1"; shift;;
+        *) PARAMS="$PARAMS $1"; shift;;# terminate case
+  esac
+done
+
+if [ $NB_SLAVES -lt 2 ]; then
+    echo "$0: error: --parallel must be larger than 1"
+    exit 1
+fi
+
+QUEUE=long
+case $QUEUE_ARG in
+	long) QUEUE=long;;
+	short) QUEUE=short;;
+	*) ;;
+esac
+JOBNAME=EmIR2-$$
+MACHINE=opteron2216
+case $RACK_NUM in
+	2) MACHINE=xeon5410;;
+	3)MACHINE=opteron6128;;
+	4)MACHINE=opteron6272;;
+	5)MACHINE=xeon2680;;
+	*) ;;
+esac
+MPIRUN=/opt/openmpi/bin/mpirun
+PARALLEL_ENV=mpich_fu
+#PARALLEL_ENV=mpich_rr
+let NB_PARALLEL_PROCESS=NB_SLAVES+1
+
+exec qsub -v PATH <<EOF
+#!/bin/sh
+#$ -N $JOBNAME
+#$ -l $MACHINE
+#$ -l $QUEUE
+#$ -binding linear:256
+#$ -pe $PARALLEL_ENV $NB_PARALLEL_PROCESS
+#$ -m ase
+#$ -o $EXECDIR/irace-$$.stdout
+#$ -e $EXECDIR/irace-$$.stderr
+#$ -cwd
+export OMPI_MCA_plm_rsh_disable_qrsh=1
+export PATH
+$MPIRUN -x OMPI_MCA_plm_rsh_disable_qrsh -x PATH \
+        -np 1 \
+        $BINDIR/irace --exec-dir=$EXECDIR --parallel $NB_SLAVES --mpi 1 $PARAMS
+EOF

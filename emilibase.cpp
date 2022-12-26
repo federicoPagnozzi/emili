@@ -5,7 +5,6 @@
 //  for details.
 
 #include "emilibase.h"
-#include <cstdlib>
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
@@ -95,6 +94,7 @@ clock_t endTime;
 clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch = nullptr;
+emili::Solution* globalBest = nullptr;
 
 
 double emili::getCurrentExecutionTime()
@@ -112,6 +112,7 @@ void emili::setRootAlgorithm(emili::LocalSearch *ls)
     if(ls != nullptr)
     {
         localsearch = ls;
+        globalBest = ls->getInitialSolution().generateEmptySolution();
     }
 }
 
@@ -119,16 +120,16 @@ static void finalise (int _)
 {
     keep_going = false;
     endTime = clock();
-    emili::Solution* s_cap = localsearch->getBestSoFar();
-    if(s_cap != nullptr)
+//    emili::Solution* s_cap = localsearch->getBestSoFar();
+    if(globalBest != nullptr)
     {
-        double sol_val = s_cap->getSolutionValue();
+        double sol_val = globalBest->getSolutionValue();
         if(print)
         {
             messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
             messages << "objective function value : "<< std::fixed << sol_val << std::endl;
-            messages << "solution : " << s_cap->getSolutionRepresentation() << std::endl;
+            messages << "solution : " << globalBest->getSolutionRepresentation() << std::endl;
             //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
             //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
         }
@@ -593,6 +594,7 @@ emili::Solution* emili::EmptyLocalSearch::timedSearch()
 void emili::LocalSearch::setBest(Solution* nBest)
 {
     *bestSoFar = *nBest;
+    *globalBest = *bestSoFar;
     if(nBest->isFeasible())
     {
         if(feasibleBest==nullptr)
