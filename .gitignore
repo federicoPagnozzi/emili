@@ -12,3 +12,5 @@ generalParser.cppold
 statbuild
 debug
 *.swp
+.idea
+cmake-build-debug

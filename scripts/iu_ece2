@@ -24,6 +24,24 @@ else
          CANDIDATES="allConfigurations"
     fi
 
+GRAMMAR2CODE="grammar2code"
+
+conf_translator()
+{
+  FILENAME="$2"
+  GRAMMAR_DIR="$1"
+  while read -r line
+  do
+
+     SOLUTION=${line:2}
+
+     $GRAMMAR2CODE $GRAMMAR_DIR -t . $SOLUTION  1>> $OUTPUT 2>> $OUTPUT
+     EMILI_PARAMS=`cat params`
+     echo "${line:0:2} ->  $EMILI_PARAMS"
+  done < "$FILENAME"
+  yes | rm params
+}
+
 STAGE="length($IRACE_OBJ\$allElites)"
 #CANDIDATE="$IRACE_OBJ\$$CANDIDATES$.ID. %in% $IRACE_OBJ\$allElites[[length($IRACE_OBJ\$allElites)]]"
 CANDIDATE="unlist($IRACE_OBJ\$allElites[$STAGE])"
@@ -53,7 +71,7 @@ then
         # CANDIDATE="$IRACE_OBJ\$$CANDIDATES$.ID. %in% $IRACE_OBJ\$allElites[[$5]]"
         CANDIDATE="unlist($IRACE_OBJ\$allElites[$STAGE])[1]"
 	fi
-  fi 
+  fi
 fi
 TMP_FILE=`mktemp`
     R --slave > $TMP_FILE  <<EOF
@@ -68,7 +86,7 @@ EOF
 TMP_DIR=`mktemp -d`
 if [ $# -ge 3 ]; then
 	pushd $TMP_DIR &> /dev/null
-	~/bin/conf_translator $3 $TMP_FILE
+	conf_translator $3 $TMP_FILE
 	popd &> /dev/null
 else
 	cat $TMP_FILE
@@ -76,4 +94,3 @@ fi
 #tail -n1 ttemp | cut -d\" -f2
 yes | rm $TMP_FILE >> /dev/null
 fi
-

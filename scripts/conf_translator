@@ -16,9 +16,7 @@ then
 else
 
 OUTPUT="/dev/null"
-#OUTPUT="out"
-EMILI_SRC="/home/fpagnozzi/emili"
-GRAMMAR2CODE="/home/fpagnozzi/Federico/grammar2code/build/grammar2code"
+GRAMMAR2CODE="grammar2code"
 
 FILENAME="$2"
 GRAMMAR_DIR="$1"
