@@ -1,0 +1,5 @@
+PFSP_MS ils first neh locmin csinsert true igper 4 rsacc 0.4
+SDSTPFS_MS ils first nrz locmin sdsttainsert true sdstigo 6 pmetro 4.2073 0.0042 0.0441 206
+SDSTPFS_MS ils first neh locmin sdsttainsert true igper 4 rsacc 0.4
+SDSTPFS_TCT ils ils ils vnd first mneh msnoimprov binsert exchange tinsert msnoimprov igls 5 first random locmin exchange always diversify maxstep 32 igper 9 saacc 2.0027 0.7216 0.0313 308 0.4397 true igper 2 always intensify
+NIPFSP_MS ils ils first nrz2 locmin ncstainsert maxstep 150 niig 8 pmetro 3.8648 0.6922 0.014 137 true igls 5 first random locmin ncstainsert pmetro 3.5859 0.0764 0.076 336
