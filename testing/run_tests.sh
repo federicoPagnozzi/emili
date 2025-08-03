@@ -17,7 +17,7 @@ BUILD_DIR="${SCRIPT_DIR}/../build"
 EMILI_BIN="${BUILD_DIR}/emili"
 TEST_INSTANCE="${SCRIPT_DIR}/DD_Ta055.txt"
 CONFIG_FILE="${SCRIPT_DIR}/configurations.txt"
-TIME_LIMIT="0.01"  # 0.01 seconds as specified
+TIME_LIMIT="0.001"  # 0.001 seconds (1ms) for faster testing
 LOG_DIR="${SCRIPT_DIR}/test_logs"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
@@ -133,7 +133,7 @@ run_single_test() {
     local start_time=$(date +%s)
     
     if [ -n "${timeout_cmd}" ]; then
-        ${timeout_cmd} 10s "${EMILI_BIN}" "${TEST_INSTANCE}" ${config} -ro "${TIME_LIMIT}" \
+        ${timeout_cmd} 2s "${EMILI_BIN}" "${TEST_INSTANCE}" ${config} -ro "${TIME_LIMIT}" \
             > "${stdout_file}" 2> "${stderr_file}"
         local exit_code=$?
     else
@@ -142,9 +142,9 @@ run_single_test() {
             > "${stdout_file}" 2> "${stderr_file}" &
         local pid=$!
         
-        # Wait for process with manual timeout
+        # Wait for process with manual timeout (2 seconds)
         local count=0
-        while kill -0 $pid 2>/dev/null && [ $count -lt 100 ]; do
+        while kill -0 $pid 2>/dev/null && [ $count -lt 20 ]; do
             sleep 0.1
             ((count++))
         done
@@ -187,7 +187,7 @@ run_single_test() {
         status_color="${YELLOW}"
         ((TESTS_TIMEOUT++))
         ((TESTS_FAILED++))
-        echo -e "  ${status_color}⏱${NC} Timed out after 10 seconds"
+        echo -e "  ${status_color}⏱${NC} Timed out after 2 seconds"
         print_warning "  Logs saved to: ${stderr_file}"
         
     elif [ ${exit_code} -eq 139 ] || [ ${exit_code} -eq 134 ]; then
