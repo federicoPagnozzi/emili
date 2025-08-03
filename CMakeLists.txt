@@ -1,5 +1,5 @@
+cmake_minimum_required(VERSION 3.5)
 project(emili)
-cmake_minimum_required(VERSION 2.8)
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./pfsp SRC_LIST)
 #aux_source_directory(./template SRC_LIST)
@@ -102,3 +102,23 @@ if(WRITE_COMMIT_ID)
     add_dependencies(${PROJECT_NAME} GNUM)
     add_dependencies(CGNUM GNUM)
 endif(WRITE_COMMIT_ID)
+
+# Testing support
+enable_testing()
+
+# Add custom target for running tests (using 'check' instead of 'test' to avoid conflicts)
+add_custom_target(check
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/testing/run_tests.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Running EMILI test suite"
+    VERBATIM
+)
+
+# Make check depend on the emili executable
+add_dependencies(check ${PROJECT_NAME})
+
+# Also add a CTest integration for standard 'make test' compatibility
+add_test(NAME emili_basic_test
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/testing/run_tests.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
