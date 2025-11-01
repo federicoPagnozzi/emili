@@ -130,10 +130,10 @@ For any question, feel free to contact me to the address written below.
 
 New source code created in subdirectories, like the template dir, 
 needs to be added to the list of source files in the CMakeList.txt file.
-See the commented code at line 5 of CMakeList.txt for an example.
+See the commented code at line 5 of CMakeList.txt for an example.	
 
 Please, do not modify the main classes in any way.
 The framework is made to be interoperable, flexible and modular.
 Any change you may do to the main classe may break these properties.
 If you discover a bug or want to propose an improvement, feel free
-to contact me at federico.pagnozzi@ulb.be
+to contact me at fed.pagnozzi[at]gmail.com
