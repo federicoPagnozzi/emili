@@ -14,3 +14,6 @@ debug
 *.swp
 .idea
 cmake-build-debug
+.claude
+Claude.md
+claude-workspace
