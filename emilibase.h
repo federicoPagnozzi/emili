@@ -582,7 +582,7 @@ class Neighborhood
 protected:
     /**
      * @brief computeStep
-     * Takes step wich is a pointer to the base solution of the neighborhood
+     * Takes a step which is a pointer to the base solution of the neighborhood
      * and applies the move.
      *
      * @return

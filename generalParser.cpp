@@ -17,7 +17,7 @@
 #define RNDSEED "rnds"
 #define PRINT_SOLUTION "ps"
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "527b9dc8a18043a67b2b814b2fe111960d42bc9c"
+#define GIT_COMMIT_NUMBER "ee291751f3de79d1150825f8ddd95d4db34b23e1"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
