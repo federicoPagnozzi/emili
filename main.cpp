@@ -79,7 +79,6 @@ void loadBuilders(prs::GeneralParserE& ps)
 int main(int argc, char *argv[])
 {
     prs::emili_header();
-    srand ( time(0) );
     clock_t time = clock();
     if (argc < 3 )
     {
