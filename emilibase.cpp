@@ -464,7 +464,7 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
                 delete newSolution;
             }
 
-        }while(!termcriterion->terminate(bestSoFar,newSolution));
+        }while(!termcriterion->terminate(bestSoFar,newSolution) && keep_going);
 
         return bestSoFar->clone();
 }
@@ -631,7 +631,7 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
                 }                
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
             *bestSoFar = *incumbent;
@@ -673,7 +673,7 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
                 }
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
             *bestSoFar = *incumbent;
@@ -706,7 +706,7 @@ emili::Solution* emili::FeasibleBestImprovementSearch::search(emili::Solution* i
                 }
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
             *bestSoFar = *incumbent;
@@ -741,7 +741,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                 }
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
             *bestSoFar = *incumbent;
@@ -788,7 +788,7 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
                 }
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
             *bestSoFar = *incumbent;
@@ -824,7 +824,7 @@ emili::Solution* emili::FeasibleFirstImprovementSearch::search(emili::Solution* 
                 }
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
             *bestSoFar = *incumbent;
@@ -857,7 +857,7 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                 }
             }
             delete ithSolution;
-        }while(!termcriterion->terminate(bestSoFar,incumbent));
+        }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         delete incumbent;
         return bestSoFar;
 }
@@ -907,7 +907,7 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
         delete ithSolution;
         tabuMemory.forbid(incumbent);
         }
-    }while(!termcriterion->terminate(bestSoFar,incumbent));
+    }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
     if(*bestSoFar > *incumbent)
     {
         *bestSoFar = *incumbent;
@@ -948,7 +948,7 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
          delete ithSolution;         
         tabuMemory.forbid(incumbent);
         }
-    }while(!termcriterion->terminate(bestSoFar,incumbent));
+    }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
     delete incumbent;
     return bestSoFar->clone();
 }
@@ -987,7 +987,7 @@ emili::Solution* emili::TabuSearch::search(emili::Solution *initial)
         }
         newSolution = best;
         tabuMemory.forbid(newSolution);
-    }while(!termcriterion->terminate(current,newSolution));
+    }while(!termcriterion->terminate(current,newSolution) && keep_going);
     return current;
 }
 
@@ -1222,7 +1222,7 @@ emili::Solution* emili::IteratedLocalSearch::search(emili::Solution* initial){
         //acceptance step
         s_p = s;
         s = acc.accept(s_p,s_s);
-    }while(!termcriterion->terminate(s_p,s));
+    }while(!termcriterion->terminate(s_p,s) && keep_going);
     delete s_p;
     delete s_s;
     return bestSoFar->clone();
@@ -1365,7 +1365,7 @@ emili::Solution* emili::FeasibleIteratedLocalSearch::search(emili::Solution* ini
         //acceptance step
         s_p = s;
         s = acc.accept(s_p,s_s);
-    }while(!termcriterion->terminate(s_p,s));
+    }while(!termcriterion->terminate(s_p,s) && keep_going);
     delete s_p;
     delete s_s;
     return bestSoFar->clone();
@@ -1721,7 +1721,7 @@ emili::Solution* emili::LS_VND::search(emili::Solution *initial)
             i = i+1;
             delete new_s;
         }
-    }while(i < k);
+    }while(i < k && keep_going);
     return bestSoFar->clone();
 }
 
@@ -1809,7 +1809,7 @@ emili::Solution* emili::GVNS::search(Solution* initial)
                 s = changer.neighborhoodChange(s_p,s_s,k);                
                 //std::cout << "post nc" << std::endl;
             }while (k < k_max);
-        }while(!termcriterion->terminate(s_p,s));
+        }while(!termcriterion->terminate(s_p,s) && keep_going);
        // std::cout << "returning" << std::endl;
 
         delete s_p;

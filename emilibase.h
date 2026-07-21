@@ -75,6 +75,12 @@ void iteration_counter_zero();
  */
 unsigned long iteration_counter();
 /**
+ * @brief shouldContinue
+ * false once the run timer (-it/-ro) has fired; true otherwise (always true
+ * in untimed runs). Search loops must poll this to unwind after timeout.
+ */
+bool shouldContinue();
+/**
  * @brief iteration_increment
  * adds 1 to the iterations counter
  */
@@ -1381,7 +1387,7 @@ public:
         delete new_s;
                 i = i+1;
             }
-        }while(i < neigh.size());
+        }while(i < neigh.size() && emili::shouldContinue());
         return incumbent;
     }
 };
@@ -1601,12 +1607,6 @@ public:
  */
 emili::LocalSearch* getAlgo();
 void setRootAlgorithm(emili::LocalSearch* ls);
-/**
- * @brief shouldContinue
- * false once the run timer (-it/-ro) has fired; true otherwise (always true
- * in untimed runs). Search loops must poll this to unwind after timeout.
- */
-bool shouldContinue();
 /**
  * @brief printFinalReport
  * Prints the end-of-run report (CPU time, iterations, best objective on
