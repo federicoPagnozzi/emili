@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     float pls = 0;
-    emili::LocalSearch* ls;
+    emili::LocalSearch* ls = nullptr;
 
     prs::GeneralParserE  ps(argv,argc);
     prs::EmBaseBuilder emb(ps,ps.getTokenManager());
@@ -99,7 +99,15 @@ int main(int argc, char *argv[])
 #else
     ps.addBuilder(&pfspb);
 #endif
-    ls = ps.parseParams();
+    try
+    {
+        ls = ps.parseParams();
+    }
+    catch(prs::ParsingError& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return 255; // same process exit status exit(-1) produced
+    }
     if(ls!=nullptr)
     {
         pls = ls->getSearchTime();//ps.ils_time;

@@ -18,7 +18,7 @@
 #define RNDSEED "rnds"
 #define PRINT_SOLUTION "ps"
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "06905fd1bb76b7b26542382de57e21dd7cf7d0e2"
+#define GIT_COMMIT_NUMBER "dc2c3b6fe6d364a2b4ed089f7e4c9b1cfc691310"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
@@ -141,8 +141,7 @@ void prs::check(char* t,const char* message)
     if(t==nullptr)
     {
         prs::info();
-        std::cerr <<"PARSING ERROR "<< message << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("PARSING ERROR ") + message);
     }
 }
 
@@ -570,9 +569,12 @@ emili::LocalSearch* prs::GeneralParserE::parseParams()
 
 void prs::GeneralParserE::fatalError(int received_type,int expected_type)
 {
-    std::cerr << "FATAL ERROR!\n";
-    std::cerr << "I was expecting a " << typeName(expected_type) << " for token '" << tm.peek() << "' but I received " << typeName(received_type)<< std::endl;
-    exit(-1);
+    std::ostringstream oss;
+    oss << "FATAL ERROR!\n"
+        << "I was expecting a " << typeName(expected_type)
+        << " for token '" << tm.peek() << "' but I received "
+        << typeName(received_type);
+    throw ParsingError(oss.str());
 }
 
 std::string prs::GeneralParserE::typeName(int type)

@@ -6,11 +6,25 @@
 #ifndef GENERALPARSER_H
 #define GENERALPARSER_H
 #include "emilibase.h"
+#include <stdexcept>
 /**
  * All the classes that are involved in the parsing of the command line belongs to this namespace
  */
 namespace prs
 {
+/**
+ * @brief The ParsingError class
+ * Thrown for any error while parsing the command line or algorithm
+ * description. Caught at the main() boundary, which prints the message and
+ * exits nonzero — replaces the exit(-1) calls that made EMILI unusable as a
+ * library and untestable.
+ */
+class ParsingError : public std::runtime_error
+{
+public:
+    explicit ParsingError(const std::string& message)
+        : std::runtime_error(message) { }
+};
 /**
  * @brief emili_header
  * This method prints the big emili at the beginning of the execution.
