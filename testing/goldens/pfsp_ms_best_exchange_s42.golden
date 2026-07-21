@@ -1,0 +1,33 @@
+=== exit 0 ===
+=== stdout ===
+	 ______ __  __ _____ _      _____ 
+	|  ____|  \/  |_   _| |    |_   _|
+	| |__  | \  / | | | | |      | |  
+	|  __| | |\/| | | | | |      | |  
+	| |____| |  | |_| |_| |____ _| |_ 
+	|______|_|  |_|_____|______|_____|
+
+commit : <NORMALIZED>
+Random seed : 42
+name : DD_Ta055.txt
+file : /Users/federicopagnozzi/Projects/emili/testing/DD_Ta055.txt
+File /Users/federicopagnozzi/Projects/emili/testing/DD_Ta055.txt is now open, start to read...
+Number of jobs : 50
+Number of machines : 20
+Memory allowed.
+Start to read matrix...
+All is read from file.
+Permutation Flow Shop Make Span
+  BEST IMPROVEMENT
+      NEH initial solution
+      Local minima termination
+      Exchange neighborhood
+The print option is not enabled
+searching...
+time : <NORMALIZED>
+iteration counter : 6130
+Objective function value: 3790.000000
+Found solution: { 40, 48, 2, 4, 19, 24, 23, 43, 33, 49, 34, 15, 32, 18, 28, 36, 42, 31, 45, 25, 10, 22, 6, 5, 38, 50, 39, 16, 26, 20, 27, 13, 21, 46, 8, 47, 44, 3, 37, 14, 41, 12, 7, 29, 17, 9, 1, 30, 35, 11 }
+
+=== stderr ===
+3790.000000
