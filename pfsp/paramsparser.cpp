@@ -546,7 +546,6 @@ emili::LocalSearch* prs::ParamsParser::ils(prs::TokenManager& tm)
     //ils_time = ilstime();
     emili::Termination* pft = term(tm);
     //emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
-    int rpc = 5;
     emili::Perturbation* prsp = per(tm);
     //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
     //emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1);

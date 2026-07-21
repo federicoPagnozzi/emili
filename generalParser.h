@@ -383,6 +383,12 @@ public:
      */
     Component():type(COMPONENT_NULL),rawComponent(nullptr) { }
     /**
+     * @brief Component copy constructor
+     * Explicitly defaulted: a user-provided operator= makes the implicit
+     * copy constructor deprecated in C++17.
+     */
+    Component(const Component& a) = default;
+    /**
      * @brief operator =
      *        Component copy operator
      * @param a
@@ -390,7 +396,7 @@ public:
      * @return
      *        The copy.
      */
-    virtual Component& operator=(const Component& a);    
+    virtual Component& operator=(const Component& a);
     /**
      * @brief is
      *      Check if the component is of type "type".

@@ -1925,7 +1925,7 @@ public:
 
       double calcG(double W);
 
-       ~bs_node()
+       virtual ~bs_node()
        {
           /*  std::vector<bs_node*>::iterator iter = children.begin();
             for(;iter!=children.end();++iter)

@@ -18,7 +18,7 @@
 #define RNDSEED "rnds"
 #define PRINT_SOLUTION "ps"
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "dc2c3b6fe6d364a2b4ed089f7e4c9b1cfc691310"
+#include "git_version.h"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
@@ -396,7 +396,7 @@ void prs::GeneralParser::registerBuilder(AlgoBuilder* builder)
 
 void prs::GeneralParser::removeBuilder(AlgoBuilder* builder)
 {
-    int ind = 0;
+    size_t ind = 0;
     for(;ind<builders.size();ind++)
     {
         if(builder == builders[ind])

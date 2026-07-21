@@ -36,8 +36,6 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
 /**
  * RANDOM NUMBER GENERATOR
  */
-#ifndef NOC11
-
 std::mt19937 generator;
 std::uniform_int_distribution<int> distribution;
 std::uniform_real_distribution<float> realdistr;
@@ -51,24 +49,6 @@ std::mt19937& emili::getRandomGenerator()
 {
     return generator;
 }
-
-#else
-//Random generation compilation path for compilers that don't support c++11
-std::tr1::mt19937 generator;
-std::tr1::uniform_int<int> distribution;
-std::tr1::uniform_real<float> realdistr;
-void emili::initializeRandom(int seed)
-{
-    generator = std::tr1::mt19937(seed);
-    //rand = std::bind(distribution,generator);
-}
-
-std::tr1::mt19937& emili::getRandomGenerator()
-{
-    return generator;
-}
-
-#endif
 
 
 int emili::generateRandomNumber()
@@ -194,15 +174,6 @@ void setTerminationTimer(int time)
     }
 }
 
-static inline bool isTimerUp()
-{
-
-      itimerval current_timer;
-       getitimer(ITIMER_PROF, &current_timer);
-      return (current_timer.it_value.tv_sec != 0 ||
-              current_timer.it_value.tv_usec != 0);
-
-}
 
 int max_time = -1 ;
 static inline void setTimer(float maxTime)
@@ -239,7 +210,7 @@ static inline void setTimer(float maxTime)
 static inline void stopTimer()
 {
     std::cout << "timer stopped" << std::endl;
-    struct itimerval zero_timer = { 0 };
+    struct itimerval zero_timer = {};
     setitimer(wall_clock_mode ? ITIMER_REAL : ITIMER_PROF, &zero_timer, &timer);
 }
 #else

@@ -33,29 +33,7 @@
 #include <iostream>
 #include <vector>
 
-#ifndef NOC11
 #include <random>
-#else
-//if the compiler does not support c++11 this compile path will be selected.
-#include <tr1/random>
-//#define nullptr NULL
-const // It is a const object...
-class nullptr_t
-{
-  public:
-    template<class T>
-    inline operator T*() const // convertible to any type of null non-member pointer...
-    { return 0; }
-
-    template<class C, class T>
-    inline operator T C::*() const   // or any type of null member pointer...
-    { return 0; }
-
-   private:
-    void operator&() const;  // Can't take address of nullptr
-
-} nullptr = {};
-#endif
 #include <functional>
 
 
@@ -117,16 +95,12 @@ bool get_print();
  * the random seed.
  */
 void initializeRandom(int seed);
-#ifdef NOC11
-std::tr1::mt19937& getRandomGenerator();
-#else
 /**
  * @brief getRandomGenerator
  * @return
  *     returns the Marsenne twister random generator
  */
 std::mt19937& getRandomGenerator();
-#endif
 /**
  * @brief generateRandomNumber
  * @return
@@ -610,8 +584,15 @@ public:
         * a base solution. It uses computeStep() and so it's compatible with
         * every extension of the Neighborhood Class
         */
-       class NeighborhoodIterator : public std::iterator<std::forward_iterator_tag, emili::Solution> {
+       class NeighborhoodIterator {
        public:
+           // std::iterator is deprecated in C++17: provide the member
+           // typedefs directly instead of inheriting them.
+           using iterator_category = std::forward_iterator_tag;
+           using value_type = emili::Solution;
+           using difference_type = std::ptrdiff_t;
+           using pointer = emili::Solution*;
+           using reference = emili::Solution&;
            /**
             * @brief NeighborhoodIterator
             * Iterator constructor
@@ -1372,7 +1353,7 @@ public:
 
         this->neighbh = neigh[0];
         Solution* incumbent = T::search(initial);
-        int i = 0;
+        size_t i = 0;
         do{
             this->neighbh = neigh[i];
             Solution* new_s = T::search(incumbent);
