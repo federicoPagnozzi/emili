@@ -1,0 +1,8 @@
+# name|instance (relative to testing/)|arguments
+# All configs untimed + seeded: they must terminate deterministically.
+pfsp_ms_first_insert_s42|DD_Ta055.txt|PFSP_MS first neh locmin insert rnds 42
+pfsp_ms_first_insert_s7|DD_Ta055.txt|PFSP_MS first neh locmin insert rnds 7
+pfsp_ms_best_exchange_s42|DD_Ta055.txt|PFSP_MS best neh locmin exchange rnds 42
+pfsp_ms_ils_maxstep_s42|DD_Ta055.txt|PFSP_MS ils first neh locmin insert maxstep 50 rndmv insert 3 improve rnds 42
+pfsp_wt_first_insert_s42|DD_Ta055.txt|PFSP_WT first neh locmin insert rnds 42
+pfsp_tct_best_exchange_s42|DD_Ta055.txt|PFSP_TCT best random locmin exchange rnds 42
