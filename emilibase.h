@@ -1608,6 +1608,12 @@ public:
 emili::LocalSearch* getAlgo();
 void setRootAlgorithm(emili::LocalSearch* ls);
 /**
+ * @brief setWallClockMode
+ * When true (-rt flag) the run timer uses ITIMER_REAL/steady_clock (wall
+ * time) instead of the default ITIMER_PROF/clock() (CPU time).
+ */
+void setWallClockMode(bool wc);
+/**
  * @brief printFinalReport
  * Prints the end-of-run report (CPU time, iterations, best objective on
  * stderr) that the old signal handler used to print. Call once from main

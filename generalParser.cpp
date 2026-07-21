@@ -14,10 +14,11 @@
 /* modifiers */
 #define RO "-ro"
 #define IT "-it"
+#define RT "-rt"
 #define RNDSEED "rnds"
 #define PRINT_SOLUTION "ps"
 #define DEFAULT_IT 0
-#define GIT_COMMIT_NUMBER "ee291751f3de79d1150825f8ddd95d4db34b23e1"
+#define GIT_COMMIT_NUMBER "06905fd1bb76b7b26542382de57e21dd7cf7d0e2"
 /*Base Initials*/
 #define COMPOSED_INITIAL "cinit"
 /*Base Algos */
@@ -320,6 +321,15 @@ float getTime(prs::TokenManager& tm,int problemSize)
             //printTab(oss.str().c_str());
             std::cout << oss.str() << std::endl;
             return time;
+        }
+        else if(tm.checkToken(RT))
+        {
+            float n = tm.getDecimal();
+            emili::setWallClockMode(true);
+            std::ostringstream oss;
+            oss << "Wall-clock run time secs : " << n;
+            std::cout << oss.str() << std::endl;
+            return n;
         }
 
 

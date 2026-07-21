@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <assert.h>
+#include <chrono>
 /**
  * WARNING!!!
  * Adding data structures to a solution subclass could broken this method
@@ -95,10 +96,21 @@ clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch = nullptr;
 emili::Solution* globalBest = nullptr;
+bool wall_clock_mode = false;
+std::chrono::steady_clock::time_point wallBegin;
 
+void emili::setWallClockMode(bool wc)
+{
+    wall_clock_mode = wc;
+}
 
 double emili::getCurrentExecutionTime()
 {
+    if(wall_clock_mode)
+    {
+        return std::chrono::duration<double>(
+                   std::chrono::steady_clock::now() - wallBegin).count();
+    }
     return (double)((clock()-beginTime)/ (double)CLOCKS_PER_SEC);
 }
 
@@ -203,9 +215,19 @@ static inline void setTimer(float maxTime)
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
     emili::iteration_counter_zero();
-    signal(SIGPROF, finalise);
     signal(SIGINT, finalise);
-    if (setitimer (ITIMER_PROF, &timer, NULL) != 0) {
+    int which_timer = ITIMER_PROF;
+    if(wall_clock_mode)
+    {
+        signal(SIGALRM, finalise);
+        which_timer = ITIMER_REAL;
+        wallBegin = std::chrono::steady_clock::now();
+    }
+    else
+    {
+        signal(SIGPROF, finalise);
+    }
+    if (setitimer (which_timer, &timer, NULL) != 0) {
         printf("error in setitimer\n");
         exit(10);
     }else{
@@ -217,10 +239,8 @@ static inline void setTimer(float maxTime)
 static inline void stopTimer()
 {
     std::cout << "timer stopped" << std::endl;
-
     struct itimerval zero_timer = { 0 };
-   setitimer(ITIMER_PROF, &zero_timer, &timer);
-
+    setitimer(wall_clock_mode ? ITIMER_REAL : ITIMER_PROF, &zero_timer, &timer);
 }
 #else
 
