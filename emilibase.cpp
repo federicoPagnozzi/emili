@@ -86,11 +86,11 @@ float emili::generateRealRandomNumber()
  * TIMED SEARCH CODE
  */
 bool print;
-bool keep_going;
-bool timer_keep_going;
-std::ostringstream messages;
-std::string lastMessage;
-clock_t endTime;
+// Written from the SIGPROF/SIGINT handler: must be volatile sig_atomic_t.
+// Initialized to 1 so untimed runs (which never call setTimer) see "running".
+volatile sig_atomic_t keep_going = 1;
+volatile sig_atomic_t timer_keep_going = 1;
+clock_t endTime = 0;
 clock_t beginTime;
 clock_t s_time;
 emili::LocalSearch* localsearch = nullptr;
@@ -118,49 +118,40 @@ void emili::setRootAlgorithm(emili::LocalSearch *ls)
 
 static void finalise (int _)
 {
-    keep_going = false;
+    // Async-signal-safe only: set the flag and capture the end time.
+    // All reporting happens in emili::printFinalReport() on the normal
+    // return path (the search loops poll keep_going and unwind).
+    keep_going = 0;
     endTime = clock();
-//    emili::Solution* s_cap = localsearch->getBestSoFar();
+}
+
+bool emili::shouldContinue()
+{
+    return keep_going != 0;
+}
+
+void emili::printFinalReport()
+{
+    if(endTime == 0)
+    {   // termination came from the criterion, not the timer
+        endTime = clock();
+    }
     if(globalBest != nullptr)
     {
         double sol_val = globalBest->getSolutionValue();
+        std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
+        std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
         if(print)
         {
-            messages << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-            messages << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            messages << "objective function value : "<< std::fixed << sol_val << std::endl;
-            messages << "solution : " << globalBest->getSolutionRepresentation() << std::endl;
-            //std::cout << "Reached at time: " << (s_time - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-            //std::cerr << (endTime - beginTime) / (float)CLOCKS_PER_SEC << " ";
+            std::cout << "objective function value : "<< std::fixed << sol_val << std::endl;
+            std::cout << "solution : " << globalBest->getSolutionRepresentation() << std::endl;
         }
-        else
-        {
-            std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
-            std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
-            std::cerr << std::fixed << sol_val << std::endl;
-            std::cerr << std::flush;
-        }
+        std::cerr << std::fixed << sol_val << std::endl;
+        std::cerr << std::flush;
     }
     else
     {
-        if(print)
-        {
-            messages << "No valid solution found!" << std::endl;
-        }
-        else
-        {
-            std::cout  << "No valid solution found!" << std::endl;
-
-        }
-    }
-    //std::cout << std::flush;
-    if(print)
-    {
-        lastMessage = messages.str();
-    }
-    else
-    {
-        exit(0);
+        std::cout << "No valid solution found!" << std::endl;
     }
 }
 
@@ -201,11 +192,6 @@ static inline bool isTimerUp()
 
 }
 
-void lastPrint()
-{
-    std::cout << lastMessage << std::endl;
-}
-
 int max_time = -1 ;
 static inline void setTimer(float maxTime)
 {
@@ -224,8 +210,6 @@ static inline void setTimer(float maxTime)
         exit(10);
     }else{
         std::cout << "timer set " << maxTime << " seconds " << std::endl;
-        if(print)
-            atexit(lastPrint);
         max_time = maxTime;
     }
 }

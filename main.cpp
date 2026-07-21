@@ -108,6 +108,7 @@ int main(int argc, char *argv[])
         if(pls>0)
         {
             solution = ls->timedSearch(pls);
+            emili::printFinalReport();
         }
         else
         {

@@ -1601,5 +1601,18 @@ public:
  */
 emili::LocalSearch* getAlgo();
 void setRootAlgorithm(emili::LocalSearch* ls);
+/**
+ * @brief shouldContinue
+ * false once the run timer (-it/-ro) has fired; true otherwise (always true
+ * in untimed runs). Search loops must poll this to unwind after timeout.
+ */
+bool shouldContinue();
+/**
+ * @brief printFinalReport
+ * Prints the end-of-run report (CPU time, iterations, best objective on
+ * stderr) that the old signal handler used to print. Call once from main
+ * after a timed search returns.
+ */
+void printFinalReport();
 }
 #endif // EMILIBASE_H
