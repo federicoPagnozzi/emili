@@ -1548,9 +1548,8 @@ emili::pfsp::PermutationFlowShop* loadProblem(char* t, PfspInstance i)
     }
     else
     {
-        std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
         prs::info();
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + t + "' -> ERROR a problem was expected! ");
     }
     return prob;
 }
@@ -1579,8 +1578,8 @@ emili::Problem* prs::PfspBuilder::openInstance()
          return instance;
      }
 
-        std::cout << info_pfsp() << std::endl;        
-        exit(-1);
+        std::cout << info_pfsp() << std::endl;
+        throw prs::ParsingError("ERROR: could not load the instance or the problem type is unknown");
 }
 
 bool isParsable(std::string &problem)

@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     {
         ls = ps.parseParams();
     }
-    catch(prs::ParsingError& e)
+    catch(std::exception& e)
     {
         std::cerr << e.what() << std::endl;
         return 255; // same process exit status exit(-1) produced

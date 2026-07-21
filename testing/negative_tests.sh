@@ -26,6 +26,8 @@ expect_error "truncated algorithm description" "FATAL ERROR" \
     "${INSTANCE}" PFSP_MS ils first neh locmin insert rnds 42
 expect_error "non-numeric where number expected" "EXPECTED" \
     "${INSTANCE}" PFSP_MS ils first neh locmin insert maxstep notanumber rndmv insert 3 improve rnds 42
+expect_error "missing instance file" "could not load the instance" \
+    "/nonexistent/file.txt" PFSP_MS first neh locmin insert rnds 42
 
 [ "${FAILED}" -eq 0 ] && echo "All negative tests passed." && exit 0
 exit 1
