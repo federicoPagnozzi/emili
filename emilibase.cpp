@@ -462,9 +462,11 @@ emili::Solution* emili::LocalSearch::timedSearch(float time_seconds)
 emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
 {
         termcriterion->reset();
-        neighbh->reset();        
-        emili::Solution* newSolution = init->generateEmptySolution();
-        *newSolution = *initial;
+        neighbh->reset();
+        // NOTE: 'initial' is currently ignored (the loop steps from bestSoFar).
+        // Making it seed the search is trajectory-changing and deferred to P2.6.
+        // The removed generateEmptySolution() allocation was never read: leak-only fix.
+        emili::Solution* newSolution = nullptr;
         do
         { 
             newSolution = neighbh->step(bestSoFar);
