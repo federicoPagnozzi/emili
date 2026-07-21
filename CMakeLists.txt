@@ -26,8 +26,9 @@ elseif(O3_FLAGS)
 	message(STATUS "Compiling with -O3")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -O3")
 elseif(DEBUG_FLAGS)
-        message(STATUS "Compiling in debug mode")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+        message(STATUS "Compiling in debug mode with ASan/UBSan")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer")
+        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
 endif(IRACE_OPTIMISED_FLAGS)
 
 #ADD COMMIT HASH TO SOURCE CODE
