@@ -1165,6 +1165,12 @@ public:
      *  the accept method decides the direction of the search by choosing between intensification and diversification,
      *  the IteratedLocalSearch class calls this method putting as first paramenter the solution used for pertubation
      *  in the last iteration and as second parameter the result of the local search around the pertubed solution.
+     *
+     *  CONTRACT: accept MUST return one of its two arguments (it may mutate
+     *  the chosen one, e.g. AcceptExplore copies bestSoFar into it, but the
+     *  returned pointer must be intensification_solution or
+     *  diversification_solution). IteratedLocalSearch relies on this to know
+     *  which of the two it must delete.
     */
     virtual Solution* accept(Solution* intensification_solution,Solution* diversification_solution)=0;
     virtual void reset() { }
@@ -1232,6 +1238,13 @@ protected:
     LocalSearch& ls;
     Perturbation& pert;
     Acceptance& acc;
+    /**
+     * @brief ilsLoop
+     * The perturb / local-search / accept loop shared by every search entry
+     * point. Takes ownership of s (the searched start solution) and returns
+     * a caller-owned clone of bestSoFar.
+     */
+    Solution* ilsLoop(Solution* s);
 
 public:
     IteratedLocalSearch(LocalSearch& localsearch,Termination& terminationcriterion,Perturbation& perturb,Acceptance& accept):emili::LocalSearch(localsearch.getInitialSolution(),terminationcriterion,localsearch.getNeighborhood()),ls(localsearch),pert(perturb),acc(accept){}

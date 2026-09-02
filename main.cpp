@@ -111,20 +111,20 @@ int main(int argc, char *argv[])
     if(ls!=nullptr)
     {
         pls = ls->getSearchTime();//ps.ils_time;
-        emili::Solution* solution;
+        emili::Solution* searchResult;   // caller-owned clone returned by search()
         std::cout << "searching..." << std::endl;
         if(pls>0)
         {
-            solution = ls->timedSearch(pls);
+            searchResult = ls->timedSearch(pls);
             emili::printFinalReport();
         }
         else
         {
-            solution = ls->search();
+            searchResult = ls->search();
         }
         if(!emili::get_print())
         {
-            solution = ls->getBestSoFar();
+            emili::Solution* solution = ls->getBestSoFar(); // component-owned, do NOT delete
             double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
             double solval = solution->getSolutionValue();
             std::cout << "time : " << time_elapsed << std::endl;
@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
             std::cout << solution->getSolutionRepresentation() << std::endl;
             std::cout << std::endl;
         }
+        delete searchResult; // caller owns the clone returned by search()
         // ls and every other component are owned by ps's ComponentRegistry
         // and destroyed, in reverse construction order, when ps goes out of
         // scope below (improvement plan P2.3). Do not delete ls here.
