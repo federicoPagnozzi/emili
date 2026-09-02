@@ -25,9 +25,9 @@ Permutation Flow Shop TCT
 The print option is not enabled
 searching...
 time : <NORMALIZED>
-iteration counter : 42910
-Objective function value: 125174.000000
-Found solution: { 40, 48, 4, 31, 21, 23, 35, 36, 19, 41, 46, 2, 43, 44, 15, 17, 29, 16, 28, 11, 12, 49, 7, 37, 50, 33, 13, 38, 20, 25, 32, 24, 5, 47, 42, 6, 39, 45, 27, 30, 10, 34, 3, 26, 1, 18, 14, 9, 22, 8 }
+iteration counter : 30650
+Objective function value: 127422.000000
+Found solution: { 2, 35, 28, 24, 48, 19, 15, 11, 25, 7, 46, 40, 20, 4, 41, 23, 32, 47, 17, 44, 39, 5, 14, 26, 27, 43, 30, 1, 12, 9, 42, 29, 16, 49, 10, 3, 45, 31, 37, 21, 34, 13, 50, 33, 38, 22, 6, 36, 18, 8 }
 
 === stderr ===
-125174.000000
+127422.000000

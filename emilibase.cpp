@@ -5,6 +5,7 @@
 //  for details.
 
 #include "emilibase.h"
+#include <cstdint>
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
@@ -37,12 +38,9 @@ emili::Solution& emili::Solution::operator=(const emili::Solution& a)
  * RANDOM NUMBER GENERATOR
  */
 std::mt19937 generator;
-std::uniform_int_distribution<int> distribution;
-std::uniform_real_distribution<float> realdistr;
 void emili::initializeRandom(int seed)
 {
     generator = std::mt19937(seed);
-    //rand = std::bind(distribution,generator);
 }
 
 std::mt19937& emili::getRandomGenerator()
@@ -50,16 +48,28 @@ std::mt19937& emili::getRandomGenerator()
     return generator;
 }
 
+// The mapping from generator output to numbers is done here with plain
+// arithmetic instead of std::uniform_*_distribution, which is
+// implementation-defined and differs between libstdc++ and libc++ (see the
+// note in emilibase.h). mt19937 yields exactly 32 uniformly random bits.
 
 int emili::generateRandomNumber()
 {
-   // auto rand = std::bind(distribution,generator);
-   return distribution(generator);
+    // was: std::uniform_int_distribution<int>() -> [0, INT_MAX]; same range.
+    return static_cast<int>(generator() >> 1);
+}
+
+int emili::generateRandomInt(int lo, int hi)
+{
+    const std::uint64_t range = static_cast<std::uint64_t>(hi) - static_cast<std::uint64_t>(lo) + 1;
+    const std::uint64_t r = static_cast<std::uint64_t>(generator());
+    return lo + static_cast<int>((r * range) >> 32);
 }
 
 float emili::generateRealRandomNumber()
 {
-    return realdistr(generator);
+    // was: std::uniform_real_distribution<float>() -> [0, 1); same range.
+    return static_cast<float>(generator() >> 8) * (1.0f / 16777216.0f);
 }
 
 
