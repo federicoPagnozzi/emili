@@ -3996,9 +3996,7 @@ emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
 
 emili::pfsp::RestartPerturbation::~RestartPerturbation()
 {
-    if(ls!=nullptr)
-        delete ls;
-    delete initial;
+    // initial/ls are parser-built and owned by the ComponentRegistry (P2.3).
 }
 
 

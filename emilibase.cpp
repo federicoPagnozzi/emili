@@ -104,6 +104,7 @@ void emili::setRootAlgorithm(emili::LocalSearch *ls)
     if(ls != nullptr)
     {
         localsearch = ls;
+        // Process-lifetime singleton, deliberately never deleted (P2.3 audit).
         globalBest = ls->getInitialSolution().generateEmptySolution();
     }
 }
@@ -501,7 +502,9 @@ void emili::LocalSearch::setSearchTime(float time)
     if(time > 0)
     {
     emili::TimedTermination* tt = new emili::TimedTermination(time);
-    delete termcriterion;
+    // The replaced criterion is owned by the ComponentRegistry - do not delete
+    // it here. The new one is not registered and lives until process exit
+    // (deliberate, Windows-only NOSIG path; see improvement plan P2.3 audit).
     termcriterion = tt;
     std::cout << "timer set " << time << " seconds " << std::endl;
     }
@@ -510,20 +513,12 @@ void emili::LocalSearch::setSearchTime(float time)
 }
 
 emili::LocalSearch::~LocalSearch()
- {
-    if(init != nullptr)
-    {
-        delete init;
-    }
-    if(termcriterion != nullptr)
-    {
-       delete termcriterion;
-    }
-    if(neighbh != nullptr)
-    {
-       delete neighbh;
-    }
-      delete bestSoFar;
+{
+    // init/termcriterion/neighbh are owned by the parser's ComponentRegistry
+    // (components hold non-owning references, improvement plan P2.3). This
+    // class owns only its solution slots.
+    delete bestSoFar;
+    delete feasibleBest;
 }
 
 emili::Termination& emili::LocalSearch::getTermination()

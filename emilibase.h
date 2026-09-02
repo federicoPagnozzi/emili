@@ -128,6 +128,8 @@ class Solution;
  */
 class Problem{
 public:     
+    // Polymorphic base owned (and deleted) through the ComponentRegistry.
+    virtual ~Problem() { }
     /**
      * @brief calcObjectiveFunctionValue
      * This function calculates the objective function value of solution and returns
@@ -801,7 +803,7 @@ public:
      * -1 is returned.
      */
     virtual int size(){ return -1; }
-    virtual ~RandomConstructiveHeuristicNeighborhood() { delete heuristic;}
+    virtual ~RandomConstructiveHeuristicNeighborhood() { } // heuristic owned by ComponentRegistry
 };
 
 /** @brief The LocalSearch class
@@ -925,6 +927,8 @@ class EmptyLocalSearch: public emili::LocalSearch
 public:
     EmptyLocalSearch(InitialSolution& in):emili::LocalSearch() {
         this->init = &in;
+        // Registry-era note: these two helpers are constructed here, not by
+        // the parser; they intentionally live until process exit (see P2.3).
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = new emili::MaxStepsTermination(0);
         this->bestSoFar = nullptr;
@@ -1114,12 +1118,7 @@ protected:
 public:
     RandomPerturbationSet(std::vector< Perturbation* > perturbations):perturbations(perturbations),size(perturbations.size()) { }
     virtual Solution* perturb(Solution *solution);
-    ~RandomPerturbationSet() {
-        for(std::vector<Perturbation*>::iterator it = perturbations.begin();it!=perturbations.end();++it)
-        {
-            delete *it;
-        }
-     }
+    virtual ~RandomPerturbationSet() { } // perturbations owned by ComponentRegistry
 };
 
 class ComplexPerturbation : public emili::Perturbation
@@ -1130,7 +1129,7 @@ protected:
 public:
     ComplexPerturbation(emili::Perturbation* perturbation, emili::LocalSearch* localsearch):p(perturbation),ls(localsearch) { }
     virtual Solution* perturb(Solution *solution);
-    ~ComplexPerturbation() {delete p; delete ls;}
+    virtual ~ComplexPerturbation() { } // p/ls owned by ComponentRegistry
 };
 /**
  * @brief The MRSILSPerturbation class
@@ -1152,7 +1151,7 @@ public:
     { }
 
     virtual Solution* perturb(Solution *solution);
-    ~MRSILSPerturbation() {delete p;}
+    virtual ~MRSILSPerturbation() { } // p owned by ComponentRegistry
 
 };
 
@@ -1242,7 +1241,7 @@ public:
     virtual Solution* timedSearch(float seconds);
     virtual Solution* timedSearch(float seconds,emili::Solution* initial);
     virtual Solution* getBestSoFar();
-    virtual ~IteratedLocalSearch() {delete &pert; delete &acc;}
+    virtual ~IteratedLocalSearch() { } // ls/pert/acc owned by ComponentRegistry
 };
 
 /**
@@ -1271,6 +1270,8 @@ protected:
 public:
     TabuMemory(int tenureSize):tabutenure(tenureSize) { }
     TabuMemory():tabutenure(1) { }
+    // Polymorphic base owned (and deleted) through the ComponentRegistry.
+    virtual ~TabuMemory() { }
     /**
      * tabu_check determines if the input it's a forbidden solution.
      * this method should return true if the solution is not tabu and false in the other case,
@@ -1472,13 +1473,15 @@ public:
     GVNS(emili::LocalSearch& localsearch,emili::Termination& term,emili::Shake& shake, emili::NeighborhoodChange& nchange):emili::LocalSearch(),ls(localsearch),shaker(shake),changer(nchange)
     {
         this->init = &ls.getInitialSolution();
+        // Registry-era note: constructed here, not by the parser; lives until
+        // process exit (see P2.3).
         this->neighbh = new emili::EmptyNeighBorHood();
         this->termcriterion = &term;
         this->bestSoFar = init->generateEmptySolution();
     }
     virtual Solution* search(emili::Solution* initial);
     virtual Solution* getBestSoFar();
-    virtual ~GVNS() {delete &shaker;delete &changer;}
+    virtual ~GVNS() { } // ls/shaker/changer owned by ComponentRegistry
 };
 
 
@@ -1540,7 +1543,7 @@ public:
     ComposedInitialSolution(InitialSolution& initial, LocalSearch& local):InitialSolution(initial.getProblem()),is(initial),ls(local){}
     virtual Solution* generateEmptySolution();
     virtual Solution* generateSolution();
-    virtual ~ComposedInitialSolution() { delete &is; delete &ls;}
+    virtual ~ComposedInitialSolution() { } // is/ls owned by ComponentRegistry
 };
 
 class AlternateLocalSearch: public emili::LocalSearch
@@ -1556,6 +1559,8 @@ public:
         ls2(localsearch2)
     {
         this->init = &is;
+        // Registry-era note: these two helpers are constructed here, not by
+        // the parser; they intentionally live until process exit (see P2.3).
         this->neighbh = new EmptyNeighBorHood();
         this->termcriterion = new LocalMinimaTermination();
         turn = true;

@@ -274,42 +274,42 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         emili::Neighborhood* ne2 = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
-        ls = new emili::pfsp::CH6(*in,*te,*ne,*ne2);
+        ls = track(new emili::pfsp::CH6(*in,*te,*ne,*ne2));
     }
     else if(tm.checkToken(RIS_LS))
     {
         printTab("RIS");
         emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        ls = new emili::pfsp::RIS(*instance,*in);
+        ls = track(new emili::pfsp::RIS(*instance,*in));
     }
     else if(tm.checkToken(NI_RIS_LS))
     {
         printTab("NoIdle RIS");
         emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        ls = new emili::pfsp::NoIdle_RIS(*instance,*in);
+        ls = track(new emili::pfsp::NoIdle_RIS(*instance,*in));
     }
     else if(tm.checkToken(NW_RIS_LS))
     {
         printTab("NoWait RIS");
         emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        ls = new emili::pfsp::NoWait_RIS(*instance,*in);
+        ls = track(new emili::pfsp::NoWait_RIS(*instance,*in));
     }
     else if(tm.checkToken(RNW_RIS_LS))
     {
         printTab("Random NoWait RIS");
         emili::pfsp::NWPFSP_MS* instance =(emili::pfsp::NWPFSP_MS*) gp.getInstance();
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        ls = new emili::pfsp::RandomNoWait_RIS(*instance,*in);
+        ls = track(new emili::pfsp::RandomNoWait_RIS(*instance,*in));
     }
     else if(tm.checkToken(SWP_INC_LS))
     {
         printTab("SwapInc local search");
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         int r = 3;
-        ls = new emili::pfsp::SwapIncLocalSearch(r,*in);
+        ls = track(new emili::pfsp::SwapIncLocalSearch(r,*in));
     }
     else if(tm.checkToken(STH_LS))
     {
@@ -318,7 +318,7 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         int b = tm.getInteger();
         printTabPlusOne("b",b);
-        ls = new emili::pfsp::STH(b,*instance,*in);
+        ls = track(new emili::pfsp::STH(b,*instance,*in));
     }
     else if(tm.checkToken(STHF_LS))
     {
@@ -330,7 +330,7 @@ emili::LocalSearch* prs::PfspBuilder::buildAlgo()
         int b  = n4 + emili::generateRandomNumber()%n4;
         //int b = tm.getInteger();
         printTabPlusOne("b",b);
-        ls = new emili::pfsp::STH(b,*instance,*in);
+        ls = track(new emili::pfsp::STH(b,*instance,*in));
     }
 
     prs::decrementTabLevel();
@@ -351,7 +351,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         n = n<nj?n:nj-1;
         oss << "NEH destruct/construct perturbation which use objective function. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::IGPerturbation(n,*instance);
+        per = track(new emili::pfsp::IGPerturbation(n,*instance));
     }else if(tm.checkToken(PERTURBATION_RS))
     {
         int nj = instance->getNjobs();
@@ -359,7 +359,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         n = n<nj?n:nj-1;
         oss << "NEH destruct/construct perturbation. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::RSPerturbation(n,*instance);
+        per = track(new emili::pfsp::RSPerturbation(n,*instance));
     }else if(tm.checkToken(PERTURBATION_NWIG))
     {
         int nj = instance->getNjobs();
@@ -367,7 +367,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         n = n<nj?n:nj-1;
         oss << "No wait optimized NEH destruct/construct perturbation. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::NWIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
+        per = track(new emili::pfsp::NWIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance)));
     }
     else if(tm.checkToken(PERTURBATION_NIIG))
         {
@@ -376,7 +376,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
             n = n<nj?n:nj-1;
             oss << "No idle optimized NEH destruct/construct perturbation. number of job erased: "<<n;
             printTab(oss.str().c_str());
-            per = new emili::pfsp::NoIdleIGper(n,*((emili::pfsp::NWPFSP_MS*)instance));
+            per = track(new emili::pfsp::NoIdleIGper(n,*((emili::pfsp::NWPFSP_MS*)instance)));
         }
 
     else if(tm.checkToken(PERTURBATION_RSFF))
@@ -386,7 +386,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         n = n<nj?n:nj-1;
             oss << "NEH destruct/construct perturbation with tbff tie breaking. number of job erased: "<<n;
             printTab(oss.str().c_str());
-            per = new emili::pfsp::RSffPerturbation(n,*instance);
+            per = track(new emili::pfsp::RSffPerturbation(n,*instance));
         }
     else if(tm.checkToken(PERTURBATION_IGLS))
     {
@@ -399,14 +399,14 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         {
             PfspInstance pfs = instance->getInstance();
             pfs.setNbJob(pfs.getNbJob()-n);
-            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
             gp.setInstance(pfse);
             emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
             gp.setInstance(instance);
             //instances.push_back(pfse);
-            per = new emili::pfsp::IgLsPerturbation(n,*instance,ll);
+            per = track(new emili::pfsp::IgLsPerturbation(n,*instance,ll));
         } else {
-             per = new emili::pfsp::IGPerturbation(1,*instance);
+             per = track(new emili::pfsp::IGPerturbation(1,*instance));
         }
     }
     else if(tm.checkToken(PERTURBATION_NWIGLS))
@@ -420,14 +420,14 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         {
             PfspInstance pfs = instance->getInstance();
             pfs.setNbJob(pfs.getNbJob()-n);
-            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
             gp.setInstance(pfse);
             emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
             gp.setInstance(instance);
             //instances.push_back(pfse);
-            per = new emili::pfsp::NwIgLsPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance),ll);
+            per = track(new emili::pfsp::NwIgLsPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance),ll));
         } else {
-             per = new emili::pfsp::NWIGPerturbation(1,*((emili::pfsp::NWPFSP_MS*)instance));
+             per = track(new emili::pfsp::NWIGPerturbation(1,*((emili::pfsp::NWPFSP_MS*)instance)));
         }
     }
     else if(tm.checkToken(PERTURBATION_IGLS_OPTIMIZED))
@@ -441,14 +441,14 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         {
             PfspInstance pfs = instance->getInstance();
             pfs.setNbJob(pfs.getNbJob()-n);
-            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
             gp.setInstance(pfse);
             emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
             gp.setInstance(instance);
             //instances.push_back(pfse);
-            per = new emili::pfsp::IGOLsPerturbation(n,*instance,ll);
+            per = track(new emili::pfsp::IGOLsPerturbation(n,*instance,ll));
         } else {
-             per = new emili::pfsp::IGOPerturbation(1,*instance);
+             per = track(new emili::pfsp::IGOPerturbation(1,*instance));
         }
     }
     else if(tm.checkToken(PERTURBATION_RSLS))
@@ -462,13 +462,13 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         {
             PfspInstance pfs = instance->getInstance();
             pfs.setNbJob(pfs.getNbJob()-n);
-            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
             gp.setInstance(pfse);
             emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
             gp.setInstance(instance);
-            per = new emili::pfsp::RSLSPerturbation(n,*instance,ll);
+            per = track(new emili::pfsp::RSLSPerturbation(n,*instance,ll));
         } else {
-            per = new emili::pfsp::RSPerturbation(n,*instance);
+            per = track(new emili::pfsp::RSPerturbation(n,*instance));
         }
     }
     else if(tm.checkToken(PERTURBATION_RSffLS))
@@ -482,20 +482,20 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         {
             PfspInstance pfs = instance->getInstance();
             pfs.setNbJob(pfs.getNbJob()-n);
-            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
             gp.setInstance(pfse);
             emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
             gp.setInstance(instance);
-            per = new emili::pfsp::RSffLSPerturbation(n,*instance,ll);
+            per = track(new emili::pfsp::RSffLSPerturbation(n,*instance,ll));
         } else {
-            per = new emili::pfsp::RSffPerturbation(n,*instance);
+            per = track(new emili::pfsp::RSffPerturbation(n,*instance));
         }
     }
     else if(tm.checkToken(PERTURBATION_TEST))
     {
         oss.str(""); oss<< "Random swap test perturbation.";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::PfspRandomSwapPertub(*instance);
+        per = track(new emili::pfsp::PfspRandomSwapPertub(*instance));
     }
     else if(tm.checkToken(PERTURBATION_NRZ))
     {
@@ -504,7 +504,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         n = n<nj?n:nj-1;
         oss.str(""); oss  << "neh rz destruct/construct PERTURBATION. number of job erased: "<<n;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::NRZPerturbation(n,*instance);
+        per = track(new emili::pfsp::NRZPerturbation(n,*instance));
     }
     else if(tm.checkToken(PERTURBATION_TMIIG))
     {
@@ -514,7 +514,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         int tsize = tm.getInteger();
         oss.str(""); oss  << "TMIIG PERTURBATION. Number of job erased " << n << ". tabu list size " << tsize <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::TMIIGPerturbation(n,*instance,tsize);
+        per = track(new emili::pfsp::TMIIGPerturbation(n,*instance,tsize));
     }
     else if(tm.checkToken(PERTURBATION_NWTMIIG))
     {
@@ -524,7 +524,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         int tsize = tm.getInteger();
         oss.str(""); oss  << "No wait optimized TMIIG PERTURBATION. Number of job erased " << n << ". tabu list size " << tsize <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::NWTMIIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance),tsize);
+        per = track(new emili::pfsp::NWTMIIGPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance),tsize));
     }
     else if(tm.checkToken(PERTURBATION_IGIO))
     {
@@ -534,7 +534,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
 
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::IGIOPerturbation(n,*instance);
+        per = track(new emili::pfsp::IGIOPerturbation(n,*instance));
     }
     else if(tm.checkToken(PERTURBATION_IG_OPTIMIZED))
     {
@@ -544,7 +544,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
 
         oss.str(""); oss  << "IG perturbation with general optimization. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::IGOPerturbation(n,*instance);
+        per = track(new emili::pfsp::IGOPerturbation(n,*instance));
     }
     else if(tm.checkToken(PERTURBATION_RSIO))
     {
@@ -554,7 +554,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
 
         oss.str(""); oss  << "IG perturbation that inserts first the removed job with max sum of processing times using taillard acceleration. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::RSIOPerturbation(n,*instance);
+        per = track(new emili::pfsp::RSIOPerturbation(n,*instance));
     }
     else if(tm.checkToken(PERTURBATION_IG_SDST))
     {
@@ -564,7 +564,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
 
         oss.str(""); oss  << "SDST IG perturbation with general optimization. d= " << n <<".\n\t";
         printTab(oss.str().c_str());
-        per = new emili::pfsp::SDSTIGOPerturbation(n,*instance);
+        per = track(new emili::pfsp::SDSTIGOPerturbation(n,*instance));
     }
     else if(tm.checkToken(PERTURBATION_IGLS_SDST))
     {
@@ -577,14 +577,14 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         {
             PfspInstance pfs = instance->getInstance();
             pfs.setNbJob(pfs.getNbJob()-n);
-            emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+            emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
             gp.setInstance(pfse);
             emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
             gp.setInstance(instance);
             //instances.push_back(pfse);
-            per = new emili::pfsp::SDSTIGOLsPerturbation(n,*instance,ll);
+            per = track(new emili::pfsp::SDSTIGOLsPerturbation(n,*instance,ll));
         } else {
-             per = new emili::pfsp::SDSTIGOPerturbation(1,*instance);
+             per = track(new emili::pfsp::SDSTIGOPerturbation(1,*instance));
         }
     }
     else if(tm.checkToken(PERTURBATION_RESTART))
@@ -593,7 +593,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         oss.str(""); oss  << "Restart perturbation, n =" << n << "";
         printTab(oss.str().c_str());
         emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        per = new emili::pfsp::RestartPerturbation(n,init);
+        per = track(new emili::pfsp::RestartPerturbation(n,init));
     }
     else if(tm.checkToken(PERTURBATION_RESTART_LS))
     {
@@ -602,7 +602,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         printTab(oss.str().c_str());
         emili::InitialSolution* init = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        per = new emili::pfsp::RestartPerturbation(n,init,ll);
+        per = track(new emili::pfsp::RestartPerturbation(n,init,ll));
     }
     else if(tm.checkToken(PERTURBATION_MPTLM))
         {
@@ -610,7 +610,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
             int n = tm.getInteger();
             oss.str(""); oss  << "mPTLM inspired perturbation (1-alpha)*np = " << n << "";
             printTab(oss.str().c_str());
-            per = new emili::pfsp::MPTLMPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance));
+            per = track(new emili::pfsp::MPTLMPerturbation(n,*((emili::pfsp::NWPFSP_MS*)instance)));
     }
     else if(tm.checkToken(PERTURBATION_CP3))
     {
@@ -619,7 +619,7 @@ emili::Perturbation* prs::PfspBuilder:: buildPerturbation()
         float pc = tm.getDecimal();
         oss.str(""); oss  << "Compound perturbation :  d= " << d << ", omega= " << omega << ",pc= "<< pc;
         printTab(oss.str().c_str());
-        per = new emili::pfsp::CompoundPerturbation(*instance,omega,d,pc);
+        per = track(new emili::pfsp::CompoundPerturbation(*instance,omega,d,pc));
     }
 
     prs::decrementTabLevel();
@@ -637,14 +637,14 @@ emili::Acceptance* prs::PfspBuilder::buildAcceptance()
         float n = tm.getDecimal();
         oss.str(""); oss  << "soa metropolis like acceptance. temperature : "<<n;
         printTab(oss.str().c_str());
-        acc = new  emili::pfsp::SOAacceptance(n);
+        acc = track(new emili::pfsp::SOAacceptance(n));
     }
     else if(tm.checkToken(ACCEPTANCE_TEST))
     {
         int n = tm.getInteger();
         oss.str(""); oss  << "Probabilistic Acceptance. improving solution accepted"<<n<<" % of the time";
         printTab(oss.str().c_str());
-        acc = new  emili::pfsp::PfspTestAcceptance(*instance,n);
+        acc = track(new emili::pfsp::PfspTestAcceptance(*instance,n));
     }
     else  if(tm.checkToken(ACCEPTANCE_RS))
     {
@@ -666,7 +666,7 @@ emili::Acceptance* prs::PfspBuilder::buildAcceptance()
 
         oss.str(""); oss  << "metropolis like Ruiz Stuetzle 2006 acceptance. temperature : " << temp;
         printTab(oss.str().c_str());
-        acc = new  emili::MetropolisAcceptance(temp);
+        acc = track(new emili::MetropolisAcceptance(temp));
     }
     else  if(tm.checkToken(ACCEPTANCE_KAR))
     {
@@ -684,7 +684,7 @@ emili::Acceptance* prs::PfspBuilder::buildAcceptance()
 
         oss.str(""); oss  << "metropolis like Kar2016 acceptance. temperature : "<<temp;
         printTab(oss.str().c_str());
-        acc = new  emili::MetropolisAcceptance(temp);
+        acc = track(new emili::MetropolisAcceptance(temp));
     }
     else if(tm.checkToken(ACCEPTANCE_TMIIG))
     {
@@ -704,7 +704,7 @@ emili::Acceptance* prs::PfspBuilder::buildAcceptance()
         t = (t*t0)/(10.0f*nj*nm);
         oss.str(""); oss  << "TMIIG metropolis like acceptance criterion. temperature " << t;
         printTab(oss.str().c_str());
-        acc = new  emili::MetropolisAcceptance(t);
+        acc = track(new emili::MetropolisAcceptance(t));
     }
 
     prs::decrementTabLevel();
@@ -724,7 +724,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::PfspMovesMemory(ts);
+        tmem = track(new emili::pfsp::PfspMovesMemory(ts));
     }
     else if(tm.checkToken(TABU_MEMORY_MOVES2))
     {
@@ -732,7 +732,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::PfspMovesMemory2(ts);
+        tmem = track(new emili::pfsp::PfspMovesMemory2(ts));
     }
     else if(tm.checkToken(TABU_MEMORY_HASHES))
     {
@@ -740,7 +740,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::PfspTabuHashMemory(ts);
+        tmem = track(new emili::pfsp::PfspTabuHashMemory(ts));
     }
     else if(tm.checkToken(TABU_MEMORY_SOLUTIONS))
     {
@@ -748,7 +748,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::PfspFullSolutionMemory(ts);
+        tmem = track(new emili::pfsp::PfspFullSolutionMemory(ts));
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB))
     {
@@ -756,7 +756,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::TSABMemory(ts);
+        tmem = track(new emili::pfsp::TSABMemory(ts));
     }
     else if(tm.checkToken(TABU_MEMORY_TSAB_TEST))
     {
@@ -764,7 +764,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::TSABtestMemory(ts);
+        tmem = track(new emili::pfsp::TSABtestMemory(ts));
     }
     else if(tm.checkToken(TABU_MEMORY_VALUE))
     {
@@ -772,7 +772,7 @@ emili::TabuMemory* prs::PfspBuilder::buildTabuTenure()
         int ts = tm.getInteger();
         oss << "Tabu tenure size " << ts;
         printTab(oss.str().c_str());
-        tmem = new  emili::pfsp::PfspTabuValueMemory(ts);
+        tmem = track(new emili::pfsp::PfspTabuValueMemory(ts));
     }
 
     prs::decrementTabLevel();
@@ -789,60 +789,60 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
     if(tm.checkToken(INITIAL_RANDOM))
     {
         printTab("Random initial solution");
-        init = new emili::pfsp::PfspRandomInitialSolution(*instance);
+        init = track(new emili::pfsp::PfspRandomInitialSolution(*instance));
     }else if(tm.checkToken(INITIAL_RANDOM_ITERATED))
     {
         printTab("Iterated random initial solution");
         int n = tm.getInteger();
         oss.str("");oss << "number of random solutions generated: "<< n;
         printTabPlusOne(oss.str().c_str());
-        init = new emili::pfsp::RandomInitialSolution(*instance,n);
+        init = track(new emili::pfsp::RandomInitialSolution(*instance,n));
     }
     else if(tm.checkToken(INITIAL_SLACK))
     {
         printTab("SLACK initial solution");
-        init = new emili::pfsp::PfspSlackInitialSolution(*instance);
+        init = track(new emili::pfsp::PfspSlackInitialSolution(*instance));
     }else if(tm.checkToken(INITIAL_WNSLACK))
     {
         printTab( "NEH WSLACK initial solution");
         //init = new testIS(instance);
-        init = new emili::pfsp::PfspNEHwslackInitialSolution(*instance);
+        init = track(new emili::pfsp::PfspNEHwslackInitialSolution(*instance));
     }
     else if(tm.checkToken(INITIAL_LIT))
         {
             printTab( "Less idle times initial solution");
             //return new testIS(instance);
-            init = new emili::pfsp::LITSolution(*instance);
+            init = track(new emili::pfsp::LITSolution(*instance));
         }
     else if(tm.checkToken(INITIAL_RZ))
         {
             printTab( "rz initial solution");
             //return new testIS(instance);
-            init = new emili::pfsp::RZSolution(*instance);
+            init = track(new emili::pfsp::RZSolution(*instance));
         }
     else if(tm.checkToken(INITIAL_NRZ))
         {
             printTab( "neh rz initial solution");
             //return new testIS(instance);
-            init = new emili::pfsp::NeRZSolution(*instance);
+            init = track(new emili::pfsp::NeRZSolution(*instance));
         }
     else if(tm.checkToken(INITIAL_NRZ2))
         {
             printTab( "neh rz initial solution without improvement phase");
             //return new testIS(*instance);
-            init = new emili::pfsp::NeRZ2Solution(*instance);
+            init = track(new emili::pfsp::NeRZ2Solution(*instance));
         }
     else if(tm.checkToken(INITIAL_NRZ2FF))
         {
             printTab( "nehff rz initial solution without improvement phase");
             //return new testIS(*instance);
-            init = new emili::pfsp::NfRZ2Solution(*instance);
+            init = track(new emili::pfsp::NfRZ2Solution(*instance));
         }
     else if(tm.checkToken(INITIAL_SRZ))
         {
             printTab( "srz initial solution generator");
             //return new testIS(*instance);
-            init = new emili::pfsp::SRZSolution(*instance);
+            init = track(new emili::pfsp::SRZSolution(*instance));
         }
     else if(tm.checkToken(INITIAL_LR))
         {
@@ -851,7 +851,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             oss.str(""); oss << "starting sequences "<<n;
             printTabPlusOne(oss.str().c_str());
             // testIS(*instance);
-            init = new emili::pfsp::LRSolution(*instance,n);
+            init = track(new emili::pfsp::LRSolution(*instance,n));
         }
     else if(tm.checkToken(INITIAL_LR_NM))
         {            
@@ -860,7 +860,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
             oss.str(""); oss << "starting sequences "<<n;
             printTabPlusOne(oss.str().c_str());
             // testIS(*instance);
-            init = new emili::pfsp::LRSolution(*instance,n);
+            init = track(new emili::pfsp::LRSolution(*instance,n));
         }
     else if(tm.checkToken(INITIAL_NLR))
         {
@@ -868,25 +868,25 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         printTab("NLR initial solution");
         oss.str(""); oss << "starting sequences "<<n;
         printTabPlusOne(oss.str().c_str());
-        init = new emili::pfsp::NLRSolution(*instance,n);
+        init = track(new emili::pfsp::NLRSolution(*instance,n));
         }
     else if(tm.checkToken(INITIAL_MNEH))
         {
             printTab( "mneh initial solution");
             //return new testIS(instance);
-            init = new emili::pfsp::MNEH(*instance);
+            init = track(new emili::pfsp::MNEH(*instance));
         }
     else if(tm.checkToken(INITIAL_RMNEH))
         {
             printTab( "mneh initial solution");
             //return new testIS(instance);
-            init = new emili::pfsp::RMNEH(*instance);
+            init = track(new emili::pfsp::RMNEH(*instance));
         }
     else if(tm.checkToken(INITIAL_NEH))
     {
         printTab( "NEH initial solution");
         //return new testIS(instance);
-        init = new emili::pfsp::NEH(*instance);
+        init = track(new emili::pfsp::NEH(*instance));
     }
     else if(tm.checkToken(INITIAL_NEHRS))
     {
@@ -895,82 +895,82 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         int iterations = tm.getInteger();
         oss.str("");oss<<"number of restarts: " << iterations;
         printTabPlusOne(oss.str().c_str());
-        init = new emili::pfsp::NEHRS(*instance,iterations);
+        init = track(new emili::pfsp::NEHRS(*instance,iterations));
     }
     else if(tm.checkToken(INITIAL_NEHEDD))
     {
         printTab( "NEHedd initial solution");
         //return new testIS(instance);
-        init = new emili::pfsp::NEHedd(*instance);
+        init = track(new emili::pfsp::NEHedd(*instance));
     }
     else if(tm.checkToken(INITIAL_NEHFF))
     {
         printTab( "NEHFF initial solution");
         //return new testIS(instance);
-        init = new emili::pfsp::NEHff(*instance);
+        init = track(new emili::pfsp::NEHff(*instance));
     }
     else if(tm.checkToken(INITIAL_NEHLS))
     {
         printTab( "NEHls initial solution");
         PfspInstance pfs = instance->getInstance();
-        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+        emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
         gp.setInstance(pfse);
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         gp.setInstance(instance);
-        init = new emili::pfsp::NEHls(*instance,ll);
+        init = track(new emili::pfsp::NEHls(*instance,ll));
     }
     else if(tm.checkToken(INITIAL_NEHEDDLS))
     {
         printTab( "NEHls initial solution");
         PfspInstance pfs = instance->getInstance();
-        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+        emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
         gp.setInstance(pfse);
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         gp.setInstance(instance);
-        init = new emili::pfsp::NEHeddLS(*instance,ll);
+        init = track(new emili::pfsp::NEHeddLS(*instance,ll));
     }
     else if(tm.checkToken(INITIAL_FRB5))
     {
         printTab( "FRB5 initial solution");
         PfspInstance pfs = instance->getInstance();
-        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
-        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
-        emili::Termination* term = new emili::LocalMinimaTermination();
-        emili::Neighborhood* nei = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse);
-        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);        
-        init = new emili::pfsp::NEHls(*instance,ll);
+        emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
+        emili::InitialSolution* in = track(new emili::pfsp::PfspRandomInitialSolution(*pfse));
+        emili::Termination* term = track(new emili::LocalMinimaTermination());
+        emili::Neighborhood* nei = track(new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*pfse));
+        emili::LocalSearch* ll = track(new emili::FirstImprovementSearch(*in,*term,*nei));
+        init = track(new emili::pfsp::NEHls(*instance,ll));
     }
     else if(tm.checkToken(INITIAL_CSFRB5))
     {
         printTab( "CSFRB5 initial solution");
         PfspInstance pfs = instance->getInstance();
-        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
-        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
-        emili::Termination* term = new emili::LocalMinimaTermination();
-        emili::Neighborhood* nei = new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*pfse);
-        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
-        init = new emili::pfsp::NEHls(*instance,ll);
+        emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
+        emili::InitialSolution* in = track(new emili::pfsp::PfspRandomInitialSolution(*pfse));
+        emili::Termination* term = track(new emili::LocalMinimaTermination());
+        emili::Neighborhood* nei = track(new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*pfse));
+        emili::LocalSearch* ll = track(new emili::FirstImprovementSearch(*in,*term,*nei));
+        init = track(new emili::pfsp::NEHls(*instance,ll));
     }
     else if(tm.checkToken(INITIAL_FRB5_GENERAL))
     {
         printTab( "FRB5 initial solution");
         PfspInstance pfs = instance->getInstance();
-        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
-        emili::InitialSolution* in = new emili::pfsp::PfspRandomInitialSolution(*pfse);
-        emili::Termination* term = new emili::LocalMinimaTermination();
-        emili::Neighborhood* nei = new emili::pfsp::PfspInsertNeighborhood(*pfse);
-        emili::LocalSearch* ll = new emili::FirstImprovementSearch(*in,*term,*nei);
-        init = new emili::pfsp::NEHls(*instance,ll);
+        emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
+        emili::InitialSolution* in = track(new emili::pfsp::PfspRandomInitialSolution(*pfse));
+        emili::Termination* term = track(new emili::LocalMinimaTermination());
+        emili::Neighborhood* nei = track(new emili::pfsp::PfspInsertNeighborhood(*pfse));
+        emili::LocalSearch* ll = track(new emili::FirstImprovementSearch(*in,*term,*nei));
+        init = track(new emili::pfsp::NEHls(*instance,ll));
     }
     else if(tm.checkToken(INITIAL_NEHFFLS))
     {
         printTab( "NEHffls initial solution");
         PfspInstance pfs =instance->getInstance();
-        emili::pfsp::PermutationFlowShop * pfse = loadProblem(problem_string,pfs);
+        emili::pfsp::PermutationFlowShop * pfse = track(loadProblem(problem_string,pfs));
         gp.setInstance(pfse);
         emili::LocalSearch* ll = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
         gp.setInstance(instance);
-        init = new emili::pfsp::NEHffls(*instance,ll);
+        init = track(new emili::pfsp::NEHffls(*instance,ll));
     }
     else if(tm.checkToken(INITIAL_BS))
     {
@@ -985,7 +985,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         printTabPlusOne("e",e);
         int gamma = tm.getInteger();
         printTabPlusOne("gamma",gamma);
-        init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+        init = track(new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e));
     }
     else if(tm.checkToken(INITIAL_BSNN))
     {
@@ -1002,7 +1002,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0)
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);        
-        init = new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e);
+        init = track(new emili::pfsp::BeamSearchHeuristic(*instance,gamma,a,b,c,e));
     }
     else if(tm.checkToken(INITIAL_BS2))
     {
@@ -1019,7 +1019,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);
-        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+        init = track(new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e));
     }
     else if(tm.checkToken(INITIAL_BS2N))
     {
@@ -1036,7 +1036,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);
-        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+        init = track(new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e));
     }
     else if(tm.checkToken(INITIAL_BS2NF))
     {
@@ -1053,7 +1053,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("gamma",gamma);
-        init = new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e);
+        init = track(new emili::pfsp::BSheuristic(*instance,gamma,a,b,c,e));
     }
     else if(tm.checkToken(INITIAL_FF))
     {
@@ -1064,7 +1064,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         printTabPlusOne("b",b);
         int x = tm.getInteger();
         printTabPlusOne("x",x);
-        init = new emili::pfsp::FFheuristic(*instance,x,a,b);
+        init = track(new emili::pfsp::FFheuristic(*instance,x,a,b));
     }
     else if(tm.checkToken(INITIAL_FFN))
     {
@@ -1075,7 +1075,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         printTabPlusOne("b",b);
         int x = instance->getNjobs();
         printTabPlusOne("x",x);
-        init = new emili::pfsp::FFheuristic(*instance,x,a,b);
+        init = track(new emili::pfsp::FFheuristic(*instance,x,a,b));
     }
     else if(tm.checkToken(INITIAL_BSCHO))
     {
@@ -1090,7 +1090,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("x",gamma);
-        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+        init = track(new emili::pfsp::BSCH(*instance,gamma,a,b,c));
     }
     else if(tm.checkToken(INITIAL_BSCHR))
     {
@@ -1105,7 +1105,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0 || gamma> instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("x",gamma);
-        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+        init = track(new emili::pfsp::BSCH(*instance,gamma,a,b,c));
     }
     else if(tm.checkToken(INITIAL_BSCH))
     {
@@ -1121,7 +1121,7 @@ emili::InitialSolution* prs::PfspBuilder::buildInitialSolution()
         if(gamma==0 || gamma > instance->getNjobs())
             gamma = instance->getNjobs();
         printTabPlusOne("x",gamma);
-        init = new emili::pfsp::BSCH(*instance,gamma,a,b,c);
+        init = track(new emili::pfsp::BSCH(*instance,gamma,a,b,c));
     }
 
 
@@ -1143,7 +1143,7 @@ emili::Termination* prs::PfspBuilder::buildTermination()
         std::ostringstream oss;
         oss << "number of max iterations "<< ti;
         printTabPlusOne(oss.str().c_str());
-        term =  new emili::pfsp::PfspTerminationIterations(ti);
+        term =  track(new emili::pfsp::PfspTerminationIterations(ti));
     }
     else if(tm.checkToken(TERMINATION_SOA))
     {
@@ -1153,19 +1153,19 @@ emili::Termination* prs::PfspBuilder::buildTermination()
          std::ostringstream oss;
          oss << "number of max iterations "<< ti;
          printTabPlusOne(oss.str().c_str());
-        term =  new emili::pfsp::SOAtermination(ti);
+        term =  track(new emili::pfsp::SOAtermination(ti));
     }
     if(tm.checkToken(TERMINATION_KAR))
     {
         int ti = instance->getNjobs();
         printTab("Kar termination");
-        term =  new emili::pfsp::KarTermination(ti);
+        term =  track(new emili::pfsp::KarTermination(ti));
     }
     if(tm.checkToken(TERMINATION_MAXSTEPS_WITHNOIMPROV))
     {
         int n = instance->getNjobs();
         printTab("Termination that stops after n not improving steps");
-        term = new emili::MaxStepsNoImprov(n);
+        term = track(new emili::MaxStepsNoImprov(n));
     }
 
 
@@ -1181,198 +1181,198 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
     if(tm.checkToken(NEIGHBORHOOD_INSERT))
     {
         printTab( "Insert Neighborhood");
-        neigh = new emili::pfsp::PfspInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_ADAPTIVE_INSERT))
     {
         printTab( "Insert Neighborhood");
-        neigh = new emili::pfsp::PfspInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspInsertNeighborhood(*instance));
     }
     else  if(tm.checkToken(NEIGHBORHOOD_FORW_INSERT))
     {
         printTab( "Forward insert Neighborhood");
-        neigh = new emili::pfsp::PfspForwardInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspForwardInsertNeighborhood(*instance));
     }
     else  if(tm.checkToken(NEIGHBORHOOD_BACK_INSERT))
     {
         printTab( "Backward Insert Neighborhood");
-        neigh = new emili::pfsp::PfspBackwardInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspBackwardInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_EXCHANGE))
     {
         printTab( "Exchange neighborhood");
-        neigh = new emili::pfsp::PfspExchangeNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspExchangeNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_ATX_EXCHANGE))
     {
         printTab( "Exchange neighborhood");
-        neigh = new emili::pfsp::AxtExchange(*instance);
+        neigh = track(new emili::pfsp::AxtExchange(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_OPT_EXCHANGE))
     {
         printTab( "Optimized Exchange neighborhood");
-        neigh = new emili::pfsp::OptExchange(*instance);
+        neigh = track(new emili::pfsp::OptExchange(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATX_EXCHANGE))
        {
            printTab( "Exchange neighborhood with speedup");
-           neigh = new emili::pfsp::HaxtExchange(*instance);
+           neigh = track(new emili::pfsp::HaxtExchange(*instance));
        }
        else if(tm.checkToken(NEIGHBORHOOD_EATX_EXCHANGE))
        {
            printTab( "Exchange neighborhood with speedup");
-           neigh = new emili::pfsp::EaxtExchange(*instance);
+           neigh = track(new emili::pfsp::EaxtExchange(*instance));
        }
     else if(tm.checkToken(NEIGHBORHOOD_TRANSPOSE))
     {
         printTab( "Transpose neighborhood");
-        neigh = new emili::pfsp::PfspTransposeNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspTransposeNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_TWO_INSERT))
     {
         printTab( "Two insert neighborhood");
-        neigh = new emili::pfsp::PfspTwoInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PfspTwoInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_XTRANSPOSE))
     {
         printTab( "XTranspose neighborhood");
-        neigh = new emili::pfsp::XTransposeNeighborhood(*instance);
+        neigh = track(new emili::pfsp::XTransposeNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_TA_INSERT))
     {
         printTab( "Insert with Taillard Acceleration");
-        neigh = new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::TaillardAcceleratedInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_FSTA_INSERT))
     {
         printTab( "Insert with Taillard Acceleration that updates the base solution after each improvement");
-        neigh = new emili::pfsp::FSTaillardAcceleratedInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::FSTaillardAcceleratedInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_CSTA_INSERT))
     {
         printTab( "Insert with Taillard Acceleration that evaluates all the possible insertion points");
-        neigh = new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::CSTaillardAcceleratedInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_TAx_INSERT))
     {
         printTab( "Insert with Taillard Acceleration(Experimental)");
-        neigh = new emili::pfsp::TAxInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::TAxInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_OPT_INSERT))
     {
         printTab( "Delta Evaluation Insert for Weighted Tardiness with tail improvement");
-        neigh = new emili::pfsp::OptInsert(*instance);
+        neigh = track(new emili::pfsp::OptInsert(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_ATAx_INSERT))
     {
         printTab( "Atx Delta Evaluation Insert for Weighted Tardiness");
-        neigh = new emili::pfsp::AtxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::AtxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_HATAx_INSERT))
     {
         printTab( "Approximated Insert with Taillard Acceleration for Weighted Tardiness with no threshold");
-        neigh = new emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with 1 level approximation");
-        neigh = new emili::pfsp::NatxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::NatxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA2x_INSERT))
     {
         printTab( "Improved Approximated Insert for Weighted Tardiness with 1 level approximation and online tuned threshold");
-        neigh = new emili::pfsp::Natx2Neighborhood(*instance);
+        neigh = track(new emili::pfsp::Natx2Neighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_EATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with 2 levels of approximation");
-        neigh = new emili::pfsp::EatxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::EatxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_THATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with 3 levels of approximation");
-        neigh = new emili::pfsp::ThatxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::ThatxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_PATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with 5 levels of approximation");
-        neigh = new emili::pfsp::PatxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::PatxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_SATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with 6 levels of approximation");
-        neigh = new emili::pfsp::SatxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::SatxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_FATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with 4 levels of approximation");
-        neigh = new emili::pfsp::FatxNeighborhood(*instance);
+        neigh = track(new emili::pfsp::FatxNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_TATAx_INSERT))
     {
         printTab( "Approximated Insert for Weighted Tardiness with settable threshold");
         float start_level = tm.getDecimal();       
-        neigh = new emili::pfsp::TatxNeighborhood(start_level,*instance);
+        neigh = track(new emili::pfsp::TatxNeighborhood(start_level,*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NITA_INSERT))
     {
         printTab( "Insert with Taillard Acceleration for no idle make span ");
-        neigh = new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::NoIdleAcceleratedInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA_TCT_INSERT))
     {
         printTab( "Improved Approximated Insert for Total Completion Times with 1 level approximation and online tuned threshold");
-        neigh = new emili::pfsp::NatxTCTNeighborhood(*instance);
+        neigh = track(new emili::pfsp::NatxTCTNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_RZ_TCT_INSERT))
     {
         printTab( "iRZ neighborhood see PanRui2012");
-        neigh = new emili::pfsp::NrzTCTNeighborhood(*instance);
+        neigh = track(new emili::pfsp::NrzTCTNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NATA_TT_INSERT))
     {
         printTab( "Improved Approximated Insert for Total Tardiness with 1 level approximation and online tuned threshold");
-        neigh = new emili::pfsp::NatxTTNeighborhood(*instance);
+        neigh = track(new emili::pfsp::NatxTTNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_SDSTTA_INSERT))
     {
         printTab( "Taillard acceleration for Sequence dependent setup times");
-        neigh = new emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_KAR))
     {
         printTab( "KAR2016 Neighborhood");
-        neigh = new emili::pfsp::KarNeighborhood(*instance);
+        neigh = track(new emili::pfsp::KarNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_INSERT))
     {
         printTab("No wait delta evaluation insert");
-        neigh = new emili::pfsp::NoWaitAcceleratedInsertNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
+        neigh = track(new emili::pfsp::NoWaitAcceleratedInsertNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance)));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_TWO_INSERT))
     {
         printTab("No wait delta evaluation insert");
-        neigh = new emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
+        neigh = track(new emili::pfsp::NoWaitAcceleratedTwoInsertNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance)));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_EXCHANGE))
     {
         printTab("No wait delta evaluation exchange");
-        neigh = new emili::pfsp::NoWaitAcceleratedExchangeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
+        neigh = track(new emili::pfsp::NoWaitAcceleratedExchangeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance)));
     }
     else if(tm.checkToken(NEIGHBORHOOD_NW_TRANSPOSE))
     {
         printTab("No wait delta evaluation transpose");
-        neigh = new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance));
+        neigh = track(new emili::pfsp::NoWaitAcceleratedTransposeNeighborhood(*((emili::pfsp::NWPFSP_MS*)instance)));
     }
     else if(tm.checkToken(NEIGHBORHOOD_CS_INSERT))
     {
         printTab("Insert Neighborhood that returns only the best insertion");
-        neigh = new emili::pfsp::CSInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::CSInsertNeighborhood(*instance));
     }
     else if(tm.checkToken(NEIGHBORHOOD_SDST_CS_INSERT))
     {
         printTab("SDST Insert Neighborhood that returns only the best insertion");
-        neigh = new emili::pfsp::SDSTCSInsertNeighborhood(*instance);
+        neigh = track(new emili::pfsp::SDSTCSInsertNeighborhood(*instance));
     }
 
     prs::decrementTabLevel();
@@ -1381,7 +1381,7 @@ emili::Neighborhood* prs::PfspBuilder::buildNeighborhood()
 emili::Problem* prs::PfspBuilder::buildProblem()
 {
     emili::pfsp::PermutationFlowShop* instance =(emili::pfsp::PermutationFlowShop*) gp.getInstance();
-    return loadProblem(tm.nextToken(),instance->getInstance());
+    return track(loadProblem(tm.nextToken(),instance->getInstance()));
 }
 
 emili::pfsp::PermutationFlowShop* loadProblem(char* t, PfspInstance i)
@@ -1574,7 +1574,7 @@ emili::Problem* prs::PfspBuilder::openInstance()
 
     if(ok)
      {
-         emili::pfsp::PermutationFlowShop* instance = loadProblem(problem_string, i);
+         emili::pfsp::PermutationFlowShop* instance = track(loadProblem(problem_string, i));
          return instance;
      }
 

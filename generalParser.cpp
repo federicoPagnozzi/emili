@@ -618,7 +618,7 @@ emili::InitialSolution* prs::EmBaseBuilder::buildInitialSolution()
         printTab("Composed InitialSolution");
         emili::InitialSolution* i = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::LocalSearch* ls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        init = new emili::ComposedInitialSolution(*i,*ls);
+        init = track(new emili::ComposedInitialSolution(*i,*ls));
     }
     return init;
 }
@@ -634,7 +634,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* pft = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();        
         emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
-        ls = new emili::IteratedLocalSearch(*lls,*pft,*prsp,*tac);
+        ls = track(new emili::IteratedLocalSearch(*lls,*pft,*prsp,*tac));
     }else if(tm.checkToken(FEASIBLE_ILS))
     {
         printTab("ILS that returns a feasible solution if it generates one");
@@ -642,14 +642,14 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* pft = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
         emili::Acceptance* tac = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
-        ls = new emili::FeasibleIteratedLocalSearch(*lls,*pft,*prsp,*tac);
+        ls = track(new emili::FeasibleIteratedLocalSearch(*lls,*pft,*prsp,*tac));
     }else if(tm.checkToken(ALG_LS_VND))
     {
         printTab("VND that uses localsearches as neighborhoods");
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        emili::Termination* te = new emili::LocalMinimaTermination();
+        emili::Termination* te = track(new emili::LocalMinimaTermination());
         std::vector< emili::LocalSearch* > lls = buildComponentVector<emili::LocalSearch>(COMPONENT_ALGORITHM);
-        ls = new emili::LS_VND(*in,*te,lls);
+        ls = track(new emili::LS_VND(*in,*te,lls));
     }else if(tm.checkToken(ALG_GVNS))
     {
         printTab("VNS");
@@ -658,7 +658,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* pft = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Shake* shk = retrieveComponent(COMPONENT_SHAKE).get<emili::Shake>();
         emili::NeighborhoodChange* ng = retrieveComponent(COMPONENT_NEIGHBORHOOD_CHANGE).get<emili::NeighborhoodChange>();
-        ls = new emili::GVNS(*lls,*pft,*shk,*ng);
+        ls = track(new emili::GVNS(*lls,*pft,*shk,*ng));
     }else if(tm.checkToken(TABU))
     {
         printTab("TABU SEARCH");
@@ -679,11 +679,11 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
             emili::TabuMemory* tmem = retrieveComponent(COMPONENT_TABU_TENURE).get<emili::TabuMemory>();
             if(best)
             {
-                ls =  new emili::BestTabuSearch(*in,*te,*ne,*tmem);
+                ls =  track(new emili::BestTabuSearch(*in,*te,*ne,*tmem));
             }
             else
             {
-                ls = new emili::FirstTabuSearch(*in,*te,*ne,*tmem);
+                ls = track(new emili::FirstTabuSearch(*in,*te,*ne,*tmem));
             }
         }
     }
@@ -693,7 +693,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
-        ls =  new emili::FirstImprovementSearch(*in,*te,*ne);
+        ls =  track(new emili::FirstImprovementSearch(*in,*te,*ne));
     }
     else if(tm.checkToken(BEST))
     {
@@ -701,7 +701,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
-        ls =  new emili::BestImprovementSearch(*in,*te,*ne);
+        ls =  track(new emili::BestImprovementSearch(*in,*te,*ne));
     }
     else if(tm.checkToken(FEASIBLE_FIRST))
     {
@@ -709,7 +709,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
-        ls =  new emili::FeasibleFirstImprovementSearch(*in,*te,*ne);
+        ls =  track(new emili::FeasibleFirstImprovementSearch(*in,*te,*ne));
     }
     else if(tm.checkToken(FEASIBLE_BEST))
     {
@@ -717,7 +717,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
-        ls =  new emili::FeasibleBestImprovementSearch(*in,*te,*ne);
+        ls =  track(new emili::FeasibleBestImprovementSearch(*in,*te,*ne));
     }
     else if(tm.checkToken(TB_FIRST))
     {
@@ -726,7 +726,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         emili::Problem* p = retrieveComponent(COMPONENT_PROBLEM).get<emili::Problem>();
-        ls =  new emili::TieBrakingFirstImprovementSearch(*in,*te,*ne,*p);
+        ls =  track(new emili::TieBrakingFirstImprovementSearch(*in,*te,*ne,*p));
     }
     else if(tm.checkToken(TB_BEST))
     {
@@ -735,7 +735,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::Termination* te = retrieveComponent(COMPONENT_TERMINATION_CRITERION).get<emili::Termination>();
         emili::Neighborhood* ne = retrieveComponent(COMPONENT_NEIGHBORHOOD).get<emili::Neighborhood>();
         emili::Problem* p = retrieveComponent(COMPONENT_PROBLEM).get<emili::Problem>();
-        ls =  new emili::TieBrakingBestImprovementSearch(*in,*te,*ne,*p);
+        ls =  track(new emili::TieBrakingBestImprovementSearch(*in,*te,*ne,*p));
     }
     else if(tm.checkToken(ALS))
     {
@@ -743,7 +743,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
         emili::InitialSolution* in = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         emili::LocalSearch* ls1 = retrieveComponent(COMPONENT_ALGORITHM).get< emili::LocalSearch>();
         emili::LocalSearch* ls2 = retrieveComponent(COMPONENT_ALGORITHM).get< emili::LocalSearch>();
-        ls = new emili::AlternateLocalSearch(*in,ls1,ls2);
+        ls = track(new emili::AlternateLocalSearch(*in,ls1,ls2));
     }
     else if(tm.checkToken(VND))
     {
@@ -765,11 +765,11 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
             std::vector<emili::Neighborhood*> nes = buildNeighborhoodVector();
             if(best)
             {
-                ls =  new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes);
+                ls =  track(new emili::VNDSearch<emili::BestImprovementSearch>(*in,*te,nes));
             }
             else
             {
-                 ls =  new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes);
+                 ls =  track(new emili::VNDSearch<emili::FirstImprovementSearch>(*in,*te,nes));
             }
         }
     }
@@ -793,14 +793,14 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
     {
         printTab("NO LOCAL SEARCH");
         emili::InitialSolution* ini = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        ls = new emili::EmptyLocalSearch(*ini);
+        ls = track(new emili::EmptyLocalSearch(*ini));
     }
     else if(tm.checkToken(LS_PIPE))
     {
         printTab("Localserach pipe");
         emili::InitialSolution* ini = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
         std::vector<emili::LocalSearch* > algos = this->buildComponentVector< emili::LocalSearch >(COMPONENT_ALGORITHM);
-        ls = new emili::PipeSearch(*ini,algos);
+        ls = track(new emili::PipeSearch(*ini,algos));
     }
 
     prs::decrementTabLevel();
@@ -814,12 +814,12 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
     if(tm.checkToken(TERMINATION_LOCMIN))
     {
         printTab("Local minima termination");
-        term = new emili::LocalMinimaTermination();
+        term = track(new emili::LocalMinimaTermination());
     }
     else if(tm.checkToken(TERMINATION_WTRUE))
     {
         printTab("While true termination");
-        term = new emili::WhileTrueTermination();
+        term = track(new emili::WhileTrueTermination());
     }
     else if(tm.checkToken(TERMINATION_TIME))
     {
@@ -831,7 +831,7 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         std::ostringstream oss;
         oss << "Timed termination. ratio: " << time;
         printTab(oss.str().c_str());
-        term =  new emili::TimedTermination(time);
+        term =  track(new emili::TimedTermination(time));
     }
     else if(tm.checkToken(TERMINATION_TIMERO))
     {
@@ -852,7 +852,7 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         oss << "running time : " << rtime;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
-        term =  new emili::TimedTermination(rtime);
+        term =  track(new emili::TimedTermination(rtime));
     }
     else if(tm.checkToken(TERMINATION_MAXSTEPS))
     {
@@ -860,7 +860,7 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         std::ostringstream oss;
         oss << "Max Steps termination. # steps: "<< steps;
         printTab(oss.str().c_str());
-        term = new emili::MaxStepsTermination(steps);
+        term = track(new emili::MaxStepsTermination(steps));
     }
     else if(tm.checkToken(TERMINATION_MAXSTEPS_OR_LOCMIN))
     {
@@ -868,14 +868,14 @@ emili::Termination* prs::EmBaseBuilder::buildTermination()
         std::ostringstream oss;
         oss << "Max Steps termination or when reaching locmin. # steps: "<< steps;
         printTab(oss.str().c_str());
-        term = new emili::MaxStepsOrLocmin(steps);
+        term = track(new emili::MaxStepsOrLocmin(steps));
     }
     else if(tm.checkToken(TERMINATION_MAXSTEPS_NOIMPROV))
     {
         int steps = tm.getInteger();
         printTab("Termination: Max steps without improvements");
         printTabPlusOne("steps",steps);
-        term = new emili::MaxStepsNoImprov(steps);
+        term = track(new emili::MaxStepsNoImprov(steps));
     }
 
     prs::decrementTabLevel();
@@ -896,12 +896,12 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
         oss.str(""); oss  << "number of moves per perturbation step " << num;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
-        per = new emili::RandomMovePerturbation(*n,num);
+        per = track(new emili::RandomMovePerturbation(*n,num));
     }
     else if(tm.checkToken(PERTURBATION_NOPER))
     {
         printTab("No PERTURBATION.");
-        per = new emili::NoPerturbation();
+        per = track(new emili::NoPerturbation());
     }
     else if(tm.checkToken(PERTURBATION_VNRANDOM_MOVE))
     {
@@ -915,27 +915,27 @@ emili::Perturbation* prs::EmBaseBuilder::buildPerturbation()
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
         std::vector<emili::Neighborhood*> nes = this->buildNeighborhoodVector();
-        per = new emili::VNRandomMovePerturbation(nes,num,iter);
+        per = track(new emili::VNRandomMovePerturbation(nes,num,iter));
     }
     else if(tm.checkToken(PERTURBATION_RANDOM_PERTURBATION_SET))
     {
        printTab("Multiple random perturbation" );
        std::vector<emili::Perturbation*> ps = this->buildComponentVector<emili::Perturbation>(COMPONENT_PERTURBATION);
-       per = new emili::RandomPerturbationSet(ps);
+       per = track(new emili::RandomPerturbationSet(ps));
     }
     else if(tm.checkToken(PERTURBATION_COMPLEX_PERTURBATION))
     {
         printTab("Complex Perturbation");
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
         emili::LocalSearch* lls = retrieveComponent(COMPONENT_ALGORITHM).get<emili::LocalSearch>();
-        per = new emili::ComplexPerturbation(prsp,lls);
+        per = track(new emili::ComplexPerturbation(prsp,lls));
     }
     else if(tm.checkToken(PERTURBATION_MRSILS_PERTURBATION))
     {
         printTab("MRSILS Perturbation");
         int poolsize = tm.getInteger();
         emili::Perturbation* prsp = retrieveComponent(COMPONENT_PERTURBATION).get<emili::Perturbation>();
-        per = new emili::MRSILSPerturbation(prsp,poolsize);
+        per = track(new emili::MRSILSPerturbation(prsp,poolsize));
     }
     prs::decrementTabLevel();
     return per;
@@ -949,7 +949,7 @@ emili::Neighborhood* prs::EmBaseBuilder::buildNeighborhood()
     {
         printTab("Random Constructive Heuristic Neighborhood ");
         emili::InitialSolution* heuristic = retrieveComponent(COMPONENT_INITIAL_SOLUTION_GENERATOR).get<emili::InitialSolution>();
-        neigh = new emili::RandomConstructiveHeuristicNeighborhood(*heuristic);
+        neigh = track(new emili::RandomConstructiveHeuristicNeighborhood(*heuristic));
     }
     prs::decrementTabLevel();
     return neigh;
@@ -965,7 +965,7 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         float n = tm.getDecimal();
         oss.str(""); oss  << "metropolis acceptance. temperature : "<<n;
         printTab(oss.str().c_str());
-        acc = new  emili::MetropolisAcceptance(n);
+        acc = track(new emili::MetropolisAcceptance(n));
     }
     else  if(tm.checkToken(ACCEPTANCE_ALWAYS))
     {
@@ -989,14 +989,14 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         }
         oss.str(""); oss  << "Acceptance always "<< t1;
         printTab(oss.str().c_str());
-        acc = new  emili::AlwaysAccept(accc);
+        acc = track(new emili::AlwaysAccept(accc));
     }
     else  if(tm.checkToken(ACCEPTANCE_IMPROVE))
     {
 
         printTab( "improve acceptance");
 
-        acc = new  emili::ImproveAccept();
+        acc = track(new emili::ImproveAccept());
     }
     else  if(tm.checkToken(ACCEPTANCE_SA_METRO))
     {
@@ -1013,7 +1013,7 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         oss.str(""); oss << "ratio: "<< ratio;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
-        acc = new  emili::Metropolis(start,end,ratio);
+        acc = track(new emili::Metropolis(start,end,ratio));
     }
     else  if(tm.checkToken(ACCEPTANCE_PMETRO))
     {
@@ -1033,7 +1033,7 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         oss.str(""); oss << "frequence: "<< iterations;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
-        acc = new  emili::Metropolis(start,end,ratio,iterations);
+        acc = track(new emili::Metropolis(start,end,ratio,iterations));
     }
     else if(tm.checkToken(ACCEPTANCE_SA))
     {
@@ -1056,7 +1056,7 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         oss.str(""); oss << "alpha: "<< alpha;
         printTab(oss.str().c_str());
         prs::decrementTabLevel();
-        acc = new  emili::Metropolis(start,end,ratio,iterations,alpha);
+        acc = track(new emili::Metropolis(start,end,ratio,iterations,alpha));
     }
     else if(tm.checkToken(ACCEPTANCE_IMPROVE_PLATEAU))
     {
@@ -1064,14 +1064,14 @@ emili::Acceptance* prs::EmBaseBuilder::buildAcceptance()
         int threshold = tm.getInteger();
         oss.str(""); oss  << "Accept a diversification solution if it improves on the intensification otherwise it will accept "<< plateau_steps << " non improving steps once it reaches the threshold of " << threshold;
         printTab(oss.str().c_str());
-        acc = new  emili::AcceptPlateau(plateau_steps,threshold);
+        acc = track(new emili::AcceptPlateau(plateau_steps,threshold));
     }
     else if(tm.checkToken(ACCEPTANCE_EXPLORE))
     {
         printTab("Explore acceptance");
         int steps = tm.getInteger();
         printTabPlusOne("steps",steps);
-        acc = new emili::AcceptExplore(steps);
+        acc = track(new emili::AcceptExplore(steps));
     }
 
 
@@ -1087,7 +1087,7 @@ emili::Shake* prs::EmBaseBuilder::buildShake()
     {
         printTab("PerShake Shake operator ");
         std::vector<emili::Perturbation*> nes = buildComponentVector<emili::Perturbation>(COMPONENT_PERTURBATION);
-        sh = new emili::PerShake(nes);
+        sh = track(new emili::PerShake(nes));
     }
     else if(tm.checkToken(SHAKE_NEIGHBORHOOD))
     {
@@ -1095,7 +1095,7 @@ emili::Shake* prs::EmBaseBuilder::buildShake()
         std::vector<emili::Neighborhood*> nes = buildComponentVector<emili::Neighborhood>(COMPONENT_NEIGHBORHOOD);
         int size = tm.getInteger();
         printTabPlusOne("Max size",size);
-        sh = new emili::NeighborhoodShake(nes,size);
+        sh = track(new emili::NeighborhoodShake(nes,size));
     }
     prs::decrementTabLevel();
     return sh;
@@ -1109,7 +1109,7 @@ emili::NeighborhoodChange* prs::EmBaseBuilder::buildNeighborhoodChange()
     {
         printTab("AccNeighborhoodChange operator");
         emili::Acceptance* acc = retrieveComponent(COMPONENT_ACCEPTANCE).get<emili::Acceptance>();
-        ng = new emili::AccNeighborhoodChange(acc);
+        ng = track(new emili::AccNeighborhoodChange(acc));
     }
     prs::decrementTabLevel();
     return ng;

@@ -136,11 +136,8 @@ int main(int argc, char *argv[])
             std::cout << solution->getSolutionRepresentation() << std::endl;
             std::cout << std::endl;
         }
-        // DELIBERATE leak-at-exit: the component tree contains aliased owning
-        // pointers (e.g. IteratedLocalSearch shares the inner search's
-        // init/neighbh), so deleting the root double-deletes. Ownership is
-        // fixed by the component registry in improvement-plan P2.3, which
-        // makes end-of-run destruction safe. Until then the OS reclaims it.
-        // delete ls;
+        // ls and every other component are owned by ps's ComponentRegistry
+        // and destroyed, in reverse construction order, when ps goes out of
+        // scope below (improvement plan P2.3). Do not delete ls here.
     }
 }
