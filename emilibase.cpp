@@ -357,7 +357,16 @@ void emili::Solution::setSolutionValue(double value)
  */
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator =(const emili::Neighborhood::NeighborhoodIterator& iter)
 {
-    line_ = iter.line_;
+    if(this == &iter)
+    {
+        return *this;
+    }
+    // Deep copy: this iterator owns its working neighbor (P2.5). The old
+    // shallow copy aliased line_ and left two owners of one object.
+    delete line_;
+    line_ = (iter.line_ != nullptr) ? iter.line_->clone() : nullptr;
+    base_ = iter.base_;
+    base_value = iter.base_value;
     n = iter.n;
     return *this;
 }
@@ -373,10 +382,20 @@ bool emili::Neighborhood::NeighborhoodIterator::operator !=(const emili::Neighbo
 }
 
 emili::Neighborhood::NeighborhoodIterator& emili::Neighborhood::NeighborhoodIterator::operator++()
-{    
+{
     line_->setSolutionValue(base_value);
     n->reverseLastMove(line_);
-    this->line_ = n->computeStep(this->line_);
+    emili::Solution* next = n->computeStep(line_);
+    if(next != line_)
+    {
+        // Either the neighborhood is exhausted (next == nullptr: this
+        // iterator becomes end()) or the neighborhood allocates a fresh
+        // neighbor per step; in both cases the previous working neighbor
+        // dies here. The old code just dropped the pointer, which forced
+        // callers to delete *iter themselves (ownership by stale pointer).
+        delete line_;
+    }
+    line_ = next;
     return *this;
 }
 
@@ -629,7 +648,6 @@ emili::Solution* emili::BestImprovementSearch::search(emili::Solution* initial)
                     printSolstats(incumbent);
                 }                
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
@@ -671,7 +689,6 @@ emili::Solution* emili::TieBrakingBestImprovementSearch::search(emili::Solution*
                    }
                 }
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
@@ -704,7 +721,6 @@ emili::Solution* emili::FeasibleBestImprovementSearch::search(emili::Solution* i
                     printSolstats(incumbent);
                 }
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
@@ -739,7 +755,6 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                     break;
                 }
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
@@ -786,7 +801,6 @@ emili::Solution* emili::TieBrakingFirstImprovementSearch::search(emili::Solution
                    }
                 }
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
@@ -822,7 +836,6 @@ emili::Solution* emili::FeasibleFirstImprovementSearch::search(emili::Solution* 
                     break;
                 }
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         if(*bestSoFar > *incumbent)
         {
@@ -855,7 +868,6 @@ emili::Solution* emili::FirstImprovementSearch::search(emili::Solution* initial)
                     break;
                 }
             }
-            delete ithSolution;
         }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
         delete incumbent;
         return bestSoFar;
@@ -903,7 +915,6 @@ emili::Solution* emili::BestTabuSearch::search(emili::Solution *initial)
                 printSolstats(incumbent);
             }
         }
-        delete ithSolution;
         tabuMemory.forbid(incumbent);
         }
     }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);
@@ -944,7 +955,6 @@ emili::Solution* emili::FirstTabuSearch::search(emili::Solution *initial)
                     break;
                 }
             }
-         delete ithSolution;         
         tabuMemory.forbid(incumbent);
         }
     }while(!termcriterion->terminate(bestSoFar,incumbent) && keep_going);

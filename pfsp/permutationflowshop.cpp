@@ -8789,18 +8789,15 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
         rneigh->setReference(bestSoFar);
         for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
         {
-            emili::Solution* ithSolution = *iter;
+            emili::Solution* ithSolution = *iter;   // owned by the iterator (P2.5)
             if(incumbent->operator >(*ithSolution)){
                 if(incumbent!=bestSoFar)
                 delete incumbent;
 
-                incumbent = ithSolution;
+                incumbent = ithSolution->clone();   // keep a copy: the iterator deletes its own
                 break;
             }
-            else
-            {
-                delete ithSolution;
-            }
+            // rejected neighbors are released by the iterator on ++ / destruction
 
         }
 

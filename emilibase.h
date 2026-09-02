@@ -603,14 +603,14 @@ public:
             * @param startSolution
             * The base solution that is used to generate the neighbors
             */
-           NeighborhoodIterator(emili::Neighborhood* n,emili::Solution* startSolution):base_(startSolution),n(n)
+           NeighborhoodIterator(emili::Neighborhood* n,emili::Solution* startSolution):base_(startSolution),base_value(0.0),n(n)
            {
                if(startSolution != nullptr )
                {
                   line_ = base_->clone();
-                  base_value = base_->getSolutionValue();                  
+                  base_value = base_->getSolutionValue();
                   emili::Solution* nline_ = n->computeStep(line_);
-                  if(nline_ == nullptr)
+                  if(nline_ != line_)      // exhausted (nullptr) or a neighborhood that allocates
                       delete line_;
                   line_ = nline_;
                }
@@ -620,10 +620,23 @@ public:
                }
            }
            /**
+            * OWNERSHIP (improvement plan P2.5): the iterator OWNS line_, the
+            * working neighbor. It is deleted on destruction, on exhaustion
+            * inside operator++, and whenever computeStep returns a different
+            * object. Callers must never delete *iter, and must clone it if
+            * they keep it beyond the iterator's lifetime. Copies are deep.
+            */
+           NeighborhoodIterator(const NeighborhoodIterator& other)
+               : base_(other.base_), base_value(other.base_value), n(other.n)
+           {
+               line_ = (other.line_ != nullptr) ? other.line_->clone() : nullptr;
+           }
+           /**
             * @brief operator =
-            * Copy operator
+            * Copy operator (deep copy of the working neighbor)
             */
            NeighborhoodIterator& operator=(const NeighborhoodIterator& iter);
+           ~NeighborhoodIterator() { delete line_; }
            /**
             * @brief operator ==
             * equal operator
