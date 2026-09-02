@@ -1,0 +1,17 @@
+# LeakSanitizer suppressions for the Linux CI gate (testing/ci_linux.sh).
+#
+# Every entry is a DELIBERATE process-lifetime allocation listed in the P2.3
+# audit table (claude-workspace/plans/2026-07-04-phase2-ownership-registry.md,
+# Task 3 Step 2) and carries a matching comment in the code. Nothing else may
+# be added here without a row in that table.
+#
+# Helpers constructed inside component constructors, not by the parser:
+leak:emili::EmptyLocalSearch::EmptyLocalSearch
+leak:emili::GVNS::GVNS
+leak:emili::AlternateLocalSearch::AlternateLocalSearch
+leak:emili::pfsp::GVNS_innerloop::GVNS_innerloop
+# The globalBest singleton allocated when the parser registers the root:
+leak:emili::setRootAlgorithm
+# Windows-only NOSIG path: the replaced TimedTermination (never runs on Linux,
+# listed for completeness):
+leak:emili::LocalSearch::setSearchTime

@@ -27,9 +27,13 @@ fi
 mkdir -p "${GOLDEN_DIR}"
 
 normalize() {
+    # The instance path is printed by the loaders; replace the absolute
+    # testing directory so goldens are checkout-independent (CI runs them
+    # from /work, developers from wherever the repo lives).
     sed -E -e 's/^time : .*/time : <NORMALIZED>/' \
            -e 's/^CPU time: .*/CPU time: <NORMALIZED>/' \
-           -e 's/^commit : .*/commit : <NORMALIZED>/'
+           -e 's/^commit : .*/commit : <NORMALIZED>/' \
+           -e "s#${SCRIPT_DIR}#<TESTING_DIR>#g"
 }
 
 while IFS='|' read -r name instance args; do

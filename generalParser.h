@@ -437,7 +437,7 @@ public:
      * @brief Component
      * The default component has type COMPONENT_NULL
      */
-    Component():type(COMPONENT_NULL),rawComponent(nullptr) { }
+    Component():type(COMPONENT_NULL),rawComponent(nullptr),token(nullptr) { }
     /**
      * @brief Component copy constructor
      * Explicitly defaulted: a user-provided operator= makes the implicit

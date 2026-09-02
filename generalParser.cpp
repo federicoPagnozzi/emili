@@ -662,7 +662,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
     }else if(tm.checkToken(TABU))
     {
         printTab("TABU SEARCH");
-        char best = -1;
+        int best = -1;   // int, not char: char is unsigned on ARM Linux and -1 would never be < 0
         if(tm.checkToken(BEST))
         {
             best = 1;
@@ -748,7 +748,7 @@ emili::LocalSearch* prs::EmBaseBuilder::buildAlgo()
     else if(tm.checkToken(VND))
     {
         //printTab("VND SEARCH");
-        char best = -1;
+        int best = -1;   // int, not char: char is unsigned on ARM Linux and -1 would never be < 0
         if(tm.checkToken(BEST))
         {
             printTab("BEST IMPROVEMENT VND");

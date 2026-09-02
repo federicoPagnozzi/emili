@@ -58,7 +58,12 @@ endif(IRACE_OPTIMISED_FLAGS)
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     add_compile_options(-Wno-reorder-ctor -Wno-vla-cxx-extension -Wno-overloaded-virtual -Wno-unused-parameter -Wno-sign-compare)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    add_compile_options(-Wno-reorder -Wno-vla -Wno-overloaded-virtual -Wno-unused-parameter -Wno-sign-compare)
+    # -Wmaybe-uninitialized is a GCC-only flow heuristic that fires on ~20
+    # 'min'/'ind'/'best' locals in frozen PFSP hot loops (permutationflowshop.cpp)
+    # whose initialization the compiler cannot prove; clang has no equivalent
+    # and ASan/UBSan runs are clean. Suppressed with the same backlog status
+    # as the families above (P2 Task 7, Linux CI).
+    add_compile_options(-Wno-reorder -Wno-vla -Wno-overloaded-virtual -Wno-unused-parameter -Wno-sign-compare -Wno-maybe-uninitialized)
 endif()
 
 #SSE

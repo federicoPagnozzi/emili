@@ -1,0 +1,12 @@
+# Linux CI gate (improvement plan P2 Task 7).
+# All the logic lives in testing/ci_linux.sh so that testing/ci_docker.sh can
+# run the identical steps locally; keep this file a thin trigger.
+name: ci
+on: [push, pull_request]
+jobs:
+  linux-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: release + sanitizer builds, goldens, negative tests
+        run: bash testing/ci_linux.sh

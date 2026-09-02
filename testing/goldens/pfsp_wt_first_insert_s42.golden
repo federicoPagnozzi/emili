@@ -10,8 +10,8 @@
 commit : <NORMALIZED>
 Random seed : 42
 name : DD_Ta055.txt
-file : /Users/federicopagnozzi/Projects/emili/testing/DD_Ta055.txt
-File /Users/federicopagnozzi/Projects/emili/testing/DD_Ta055.txt is now open, start to read...
+file : <TESTING_DIR>/DD_Ta055.txt
+File <TESTING_DIR>/DD_Ta055.txt is now open, start to read...
 Number of jobs : 50
 Number of machines : 20
 Memory allowed.

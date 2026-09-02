@@ -18,3 +18,6 @@ cmake-build-debug
 Claude.md
 claude-workspace
 git_version.h
+
+# CI / sanitizer build trees (testing/ci_linux.sh, build-asan, build-inv, ...)
+build-*/
