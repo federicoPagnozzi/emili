@@ -464,23 +464,21 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
 {
         termcriterion->reset();
         neighbh->reset();
-        // NOTE: 'initial' is currently ignored (the loop steps from bestSoFar).
-        // Making it seed the search is trajectory-changing and deferred to P2.6.
-        // The removed generateEmptySolution() allocation was never read: leak-only fix.
-        emili::Solution* newSolution = nullptr;
+        // 'initial' seeds the search (P2.6). Every parser-reachable subclass
+        // overrides this method, so this generic loop is a reference
+        // implementation for new LocalSearch subclasses rather than a hot path.
+        *bestSoFar = *initial;
+        emili::Solution* newSolution = bestSoFar;
         do
-        { 
+        {
+            // step() mutates and returns bestSoFar itself for mutate-in-place
+            // neighborhoods: it allocates nothing, so there is nothing to delete
+            // (the old 'else delete newSolution' was a double-delete family).
             newSolution = neighbh->step(bestSoFar);
             if(bestSoFar->operator >(*newSolution))
             {
-
                 *bestSoFar = *newSolution;
             }
-            else
-            {
-                delete newSolution;
-            }
-
         }while(!termcriterion->terminate(bestSoFar,newSolution) && keep_going);
 
         return bestSoFar->clone();
