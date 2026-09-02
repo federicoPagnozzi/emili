@@ -840,6 +840,23 @@ public:
 
 /** @brief The LocalSearch class
 * This class models a very general local search.
+*
+* OWNERSHIP DOCTRINE (improvement plan, Phase 2):
+*  - The parser's prs::ComponentRegistry owns ALL components (problems,
+*    initial solutions, terminations, neighborhoods, perturbations,
+*    acceptances, tabu memories, local searches). Components hold
+*    NON-OWNING references to each other and never delete them; the registry
+*    destroys everything in reverse construction order at the end of main.
+*  - Solutions returned by search(...) / timedSearch(...) are owned by the
+*    CALLER (they are clones). bestSoFar and feasibleBest are owned by their
+*    LocalSearch and destroyed with it; getBestSoFar() returns a borrowed
+*    pointer that must not be deleted.
+*  - A Neighborhood::NeighborhoodIterator owns its working neighbor: never
+*    delete *iter, clone it if it must outlive the iterator.
+*  - Acceptance::accept must return one of its two arguments.
+*  - The few helpers a component constructs for itself (see the comments in
+*    EmptyLocalSearch, GVNS, AlternateLocalSearch) intentionally live until
+*    process exit and are listed in testing/lsan.supp.
 */
 class LocalSearch
 {
