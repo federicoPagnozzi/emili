@@ -8774,6 +8774,7 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
     termcriterion->reset();
     neighbh->reset();
 
+    delete bestSoFar;                   // previous run's best (nullptr on the first call)
     bestSoFar = init->generateEmptySolution();
     emili::Solution* incumbent = bestSoFar;
 
@@ -8801,8 +8802,12 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
 
         }
 
-    }while(!termcriterion->terminate(bestSoFar,incumbent));
-    return bestSoFar;
+    }while(!termcriterion->terminate(bestSoFar,incumbent) && emili::shouldContinue());
+    if(incumbent != bestSoFar)
+    {
+        delete incumbent;
+    }
+    return bestSoFar->clone();          // caller owns the result; bestSoFar dies with this LocalSearch
 }
 
 void emili::pfsp::GVNS_RIS_Neighborhood::reset()

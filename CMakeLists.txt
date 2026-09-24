@@ -2,18 +2,17 @@ cmake_minimum_required(VERSION 3.8)
 project(emili)
 
 # Commit id header (replaces the old in-tree sed on generalParser.cpp).
-# Refreshed at cmake time; goldens normalize the commit line so staleness
-# between reconfigures is harmless.
-execute_process(COMMAND git rev-parse HEAD
-                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                OUTPUT_VARIABLE GIT_COMMIT_HASH
-                OUTPUT_STRIP_TRAILING_WHITESPACE
-                ERROR_QUIET)
-if(NOT GIT_COMMIT_HASH)
-    set(GIT_COMMIT_HASH "unknown")
-endif()
-configure_file(${PROJECT_SOURCE_DIR}/git_version.h.in
-               ${PROJECT_BINARY_DIR}/git_version.h @ONLY)
+# Generated at configure time so it exists for the first build, and refreshed
+# on every build by the git_version target (like the old GNUM target did), so
+# the 'commit :' line EMILI prints follows HEAD; goldens normalize that line.
+set(GIT_VERSION_SCRIPT ${PROJECT_SOURCE_DIR}/cmake/git_version.cmake)
+set(SRC_DIR ${PROJECT_SOURCE_DIR})
+set(BIN_DIR ${PROJECT_BINARY_DIR})
+include(${GIT_VERSION_SCRIPT})
+add_custom_target(git_version ALL
+    COMMAND ${CMAKE_COMMAND} -DSRC_DIR=${PROJECT_SOURCE_DIR} -DBIN_DIR=${PROJECT_BINARY_DIR} -P ${GIT_VERSION_SCRIPT}
+    BYPRODUCTS ${PROJECT_BINARY_DIR}/git_version.h
+    COMMENT "Refreshing git_version.h")
 include_directories(${PROJECT_BINARY_DIR})
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./pfsp SRC_LIST)
@@ -110,6 +109,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
+add_dependencies(${PROJECT_NAME} git_version)
 
 # Testing support
 enable_testing()

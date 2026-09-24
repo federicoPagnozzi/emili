@@ -105,7 +105,7 @@ std::mt19937& getRandomGenerator();
  * PLATFORM-INDEPENDENT MAPPING (improvement plan P2 Task 7).
  * std::mt19937 is fully specified by the standard, but std::uniform_*_distribution
  * and std::shuffle are not: libstdc++ (Linux) and libc++ (macOS) turn the same
- * seed into different numbers. The three helpers below do the mapping with plain
+ * seed into different numbers. The two helpers below do the mapping with plain
  * arithmetic on the raw 32-bit output, so 'rnds <seed>' reproduces the same
  * trajectory on every platform. Do not consume getRandomGenerator() through a
  * standard distribution or algorithm in search code.
@@ -117,14 +117,6 @@ std::mt19937& getRandomGenerator();
  * generator output), from the centralized random number generator
  */
 int generateRandomNumber();
-/**
- * @brief generateRandomInt
- * @return
- * a uniformly distributed integer in [lo, hi] (both inclusive; lo <= hi),
- * computed from one generator output with a 64-bit multiply-shift (bias at most
- * (hi-lo+1)/2^32, no division, identical on every platform)
- */
-int generateRandomInt(int lo, int hi);
 /**
  * @brief generateRealRandomNumber
  * @return
@@ -988,7 +980,7 @@ public:
     virtual Solution* timedSearch(int seconds);
     virtual Solution* timedSearch(int seconds, Solution *initial) { return initial->clone();}
     virtual Solution* timedSearch(Solution* initial) {return initial->clone();}
-    virtual Solution* getBestSoFar() { return nullptr;}
+    virtual Solution* getBestSoFar() { return bestSoFar;}  // set by search()/timedSearch(int); nullptr before
 };
 /*
  * @brief The FeasibleLocalSearch class

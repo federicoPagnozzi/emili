@@ -125,6 +125,10 @@ int main(int argc, char *argv[])
         if(!emili::get_print())
         {
             emili::Solution* solution = ls->getBestSoFar(); // component-owned, do NOT delete
+            if(solution == nullptr)
+            {   // e.g. a root that keeps no best (nols): report the caller-owned result
+                solution = searchResult;
+            }
             double time_elapsed = (double)(clock()-time)/CLOCKS_PER_SEC;
             double solval = solution->getSolutionValue();
             std::cout << "time : " << time_elapsed << std::endl;

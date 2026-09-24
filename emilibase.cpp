@@ -5,7 +5,6 @@
 //  for details.
 
 #include "emilibase.h"
-#include <cstdint>
 #include <cstdio>
 #include <signal.h>
 #include <ctime>
@@ -57,13 +56,6 @@ int emili::generateRandomNumber()
 {
     // was: std::uniform_int_distribution<int>() -> [0, INT_MAX]; same range.
     return static_cast<int>(generator() >> 1);
-}
-
-int emili::generateRandomInt(int lo, int hi)
-{
-    const std::uint64_t range = static_cast<std::uint64_t>(hi) - static_cast<std::uint64_t>(lo) + 1;
-    const std::uint64_t r = static_cast<std::uint64_t>(generator());
-    return lo + static_cast<int>((r * range) >> 32);
 }
 
 float emili::generateRealRandomNumber()
@@ -139,15 +131,18 @@ void emili::printFinalReport()
     {   // termination came from the criterion, not the timer
         endTime = clock();
     }
-    if(globalBest != nullptr)
+    // Ask the root algorithm directly: globalBest is only refreshed through
+    // setBest (ILS/GVNS), while first/best/tabu/VND write bestSoFar in place.
+    emili::Solution* best = (localsearch != nullptr) ? localsearch->getBestSoFar() : nullptr;
+    if(best != nullptr)
     {
-        double sol_val = globalBest->getSolutionValue();
+        double sol_val = best->getSolutionValue();
         std::cout << "CPU time: " << (endTime - beginTime) / (float)CLOCKS_PER_SEC << std::endl;
         std::cout << "iteration counter : " << emili::iteration_counter()<< std::endl;
         if(print)
         {
             std::cout << "objective function value : "<< std::fixed << sol_val << std::endl;
-            std::cout << "solution : " << globalBest->getSolutionRepresentation() << std::endl;
+            std::cout << "solution : " << best->getSolutionRepresentation() << std::endl;
         }
         // The stderr objective (irace contract: last stderr line) is printed
         // by main's report block when print is off; print it here only when
@@ -478,19 +473,31 @@ emili::Solution* emili::LocalSearch::search(emili::Solution* initial)
         // overrides this method, so this generic loop is a reference
         // implementation for new LocalSearch subclasses rather than a hot path.
         *bestSoFar = *initial;
-        emili::Solution* newSolution = bestSoFar;
+        // Working copy handed to step(): mutate-in-place neighborhoods return
+        // it, others allocate a fresh neighbor, and an exhausted neighborhood
+        // returns nullptr. bestSoFar itself is never passed to step(), so the
+        // comparison below is never an object against itself.
+        emili::Solution* current = bestSoFar->clone();
+        bool stop;
         do
         {
-            // step() mutates and returns bestSoFar itself for mutate-in-place
-            // neighborhoods: it allocates nothing, so there is nothing to delete
-            // (the old 'else delete newSolution' was a double-delete family).
-            newSolution = neighbh->step(bestSoFar);
+            *current = *bestSoFar;
+            emili::Solution* newSolution = neighbh->step(current);
+            if(newSolution == nullptr)
+            {   // neighborhood exhausted
+                break;
+            }
             if(bestSoFar->operator >(*newSolution))
             {
                 *bestSoFar = *newSolution;
             }
-        }while(!termcriterion->terminate(bestSoFar,newSolution) && keep_going);
-
+            stop = termcriterion->terminate(bestSoFar,newSolution);
+            if(newSolution != current)
+            {   // the neighborhood allocated a fresh neighbor
+                delete newSolution;
+            }
+        }while(!stop && keep_going);
+        delete current;
         return bestSoFar->clone();
 }
 
@@ -1506,7 +1513,7 @@ emili::Solution* emili::PipeSearch::search(Solution *initial)
         delete ithSolution;
     }
     delete current;
-    return bestSoFar;
+    return bestSoFar->clone();   // caller owns the result; bestSoFar dies with this LocalSearch
 }
 
 /**
