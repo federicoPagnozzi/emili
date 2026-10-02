@@ -380,9 +380,8 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
     }
     else
     {
-        std::cerr<< "'" << t << "' -> ERROR a problem was expected! " << std::endl;
         prs::info();
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + t + "' -> ERROR a problem was expected! ");
     }
     return prob;
 }
@@ -532,9 +531,8 @@ emili::LocalSearch* prs::ParamsParser::search(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << tm.peek() << "' -> ERROR a search definition was expected! " << std::endl;
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + tm.peek() + "' -> ERROR a search definition was expected! ");
     }
     prs::decrementTabLevel();
     return ls;
@@ -548,7 +546,6 @@ emili::LocalSearch* prs::ParamsParser::ils(prs::TokenManager& tm)
     //ils_time = ilstime();
     emili::Termination* pft = term(tm);
     //emili::pfsp::PfspRandomSwapPertub* prsp = new emili::pfsp::PfspRandomSwapPertub(istance);
-    int rpc = 5;
     emili::Perturbation* prsp = per(tm);
     //emili::AcceptanceCriteria* tac = new emili::pfsp::PfspTestAcceptance(istance);
     //emili::AcceptanceCriteria* tac = new emili::MetropolisAcceptance(1);
@@ -739,9 +736,8 @@ emili::Perturbation* prs::ParamsParser::per(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << tm.peek() << "' -> ERROR a perturbation criteria specification was expected! " << std::endl;
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + tm.peek() + "' -> ERROR a perturbation criteria specification was expected! ");
     }
     prs::decrementTabLevel();
     return per;
@@ -831,9 +827,8 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
         }
         else
         {
-            std::cerr<< "'" << *tm << "' -> ERROR " << ACCEPTANCE_INTENSIFY << " or " << ACCEPTANCE_DIVERSIFY <<" was expected! " << std::endl;
             std::cout << info() << std::endl;
-        exit(-1);
+            throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR " + ACCEPTANCE_INTENSIFY + " or " + ACCEPTANCE_DIVERSIFY + " was expected! ");
         }
         oss.str(""); oss  << "Acceptance always "<< t1;
         printTab(oss.str().c_str());
@@ -905,9 +900,8 @@ emili::Acceptance* prs::ParamsParser::acc(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR an acceptance criteria specification was expected! " << std::endl;
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR an acceptance criteria specification was expected! ");
     }
     prs::decrementTabLevel();
     return acc;
@@ -936,9 +930,8 @@ emili::BestTabuSearch* prs::ParamsParser::tparams(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a pivotal rule (best or first) for the tabu search was expected! \n" << std::endl;
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR a pivotal rule (best or first) for the tabu search was expected! \n");
     }
 }
 
@@ -1002,9 +995,8 @@ emili::TabuMemory* prs::ParamsParser::tmemory(emili::pfsp::PfspNeighborhood* n,p
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a memory specification for the tabu search was expected! " << std::endl;
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR a memory specification for the tabu search was expected! ");
     }
     prs::decrementTabLevel();
     return tmem;
@@ -1049,10 +1041,8 @@ emili::LocalSearch* prs::ParamsParser::vparams(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a valid type of search must be specified (first,best) " << std::endl;
-
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR a valid type of search must be specified (first,best) ");
     }
     prs::decrementTabLevel();
     return ls;
@@ -1225,10 +1215,8 @@ emili::InitialSolution* prs::ParamsParser::init(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a initial solution generator specification was expected! (random,slack)" << std::endl;
-
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR a initial solution generator specification was expected! (random,slack)");
     }
     prs::decrementTabLevel();
     return init;
@@ -1294,9 +1282,8 @@ emili::Termination* prs::ParamsParser::term(prs::TokenManager& tm)
     }
     else
     {
-        std::cerr<< "'" << *tm << "' -> ERROR a termination criteria specification was expected! " << std::endl;
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR a termination criteria specification was expected! ");
     }
     prs::decrementTabLevel();
     return term;
@@ -1477,9 +1464,8 @@ emili::Neighborhood* prs::ParamsParser::neigh(prs::TokenManager& tm,bool checkEx
     {
         if(checkExist)
         {
-            std::cerr<< "'" << *tm << "' -> ERROR a neighborhood specification was expected! " << std::endl;
             std::cout << info() << std::endl;
-            exit(-1);
+            throw prs::ParsingError(std::string("'") + *tm + "' -> ERROR a neighborhood specification was expected! ");
         }
     }
     prs::decrementTabLevel();
@@ -1531,7 +1517,7 @@ void prs::ParamsParser::problem(prs::TokenManager& tm)
      }
 
         std::cout << info() << std::endl;
-        exit(-1);
+        throw prs::ParsingError("ERROR: could not load the instance or the problem type is unknown");
 }
 #include "pfspBuilder.h"
 

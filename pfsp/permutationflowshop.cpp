@@ -723,6 +723,7 @@ std::vector< int > inline neh(std::vector< int >& partial,int nbJobs,emili::pfsp
     {
         int candidate = partial[i];
         int bestpos = 1;
+        (void)bestpos; // written below, never read; kept to document the NEH best-position slot
         sol.insert(sol.begin()+1,candidate);
         int wt_min = pis.computeObjectiveFunction(sol);
         for(int j = 2;j<i;j++)
@@ -3995,9 +3996,7 @@ emili::Solution* emili::pfsp::MPTLMPerturbation::perturb(Solution *solution)
 
 emili::pfsp::RestartPerturbation::~RestartPerturbation()
 {
-    if(ls!=nullptr)
-        delete ls;
-    delete initial;
+    // initial/ls are parser-built and owned by the ComponentRegistry (P2.3).
 }
 
 
@@ -7078,6 +7077,7 @@ emili::Solution* emili::pfsp::NoWaitAcceleratedExchangeNeighborhood::computeStep
          {
              delta += distance[j][k]+distance[k][j];
          }
+         (void)delta; // only read by the commented-out verification block below
   /*        std::ostringstream oss;
         oss << "Cmax " << new_value << " delta " << delta << "\n";
          new_value += delta;
@@ -8118,7 +8118,6 @@ emili::Solution* emili::pfsp::XTransposeNeighborhood::computeStep(emili::Solutio
         sp_iterations++;
         start_position = (start_position%njobs)+1;
         //start_position = njobs-sp_iterations+1;
-        emili::pfsp::PermutationFlowShopSolution* p = (emili::pfsp::PermutationFlowShopSolution*) value;
         std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)value)->getJobSchedule();
         int endpos =  start_position<njobs?start_position+1:1;
         std::swap(newsol[start_position],newsol[endpos]);
@@ -8230,6 +8229,7 @@ emili::Solution* emili::pfsp::InversionNeighborhood::random(Solution* currentSol
     std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule();
     std::vector <int> rand(newsol);
     int spos = emili::generateRandomNumber()%limit+1;
+    (void)spos; // never read, but the generateRandomNumber() call must stay (RNG stream)
     int endpos = start_position<njobs?start_position+size:1;
     int swaps = size/2;
     for(int i=0;i<swaps;i++)
@@ -8250,6 +8250,7 @@ emili::Solution* emili::pfsp::ScrambleNeighborhood::random(Solution* currentSolu
     std::vector < int >& newsol = ((emili::pfsp::PermutationFlowShopSolution*)currentSolution)->getJobSchedule();
     std::vector <int> rand(newsol);
     int spos = emili::generateRandomNumber()%limit+1;
+    (void)spos; // never read, but the generateRandomNumber() call must stay (RNG stream)
     int endpos = start_position<njobs?start_position+size:1;
     int swaps = size/2;
     for(int i=0;i<swaps;i++)
@@ -8773,6 +8774,7 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
     termcriterion->reset();
     neighbh->reset();
 
+    delete bestSoFar;                   // previous run's best (nullptr on the first call)
     bestSoFar = init->generateEmptySolution();
     emili::Solution* incumbent = bestSoFar;
 
@@ -8788,23 +8790,24 @@ emili::Solution* emili::pfsp::GVNS_innerloop::search(emili::Solution *initial)
         rneigh->setReference(bestSoFar);
         for(Neighborhood::NeighborhoodIterator iter = neighbh->begin(incumbent);iter!=neighbh->end();++iter)
         {
-            emili::Solution* ithSolution = *iter;
+            emili::Solution* ithSolution = *iter;   // owned by the iterator (P2.5)
             if(incumbent->operator >(*ithSolution)){
                 if(incumbent!=bestSoFar)
                 delete incumbent;
 
-                incumbent = ithSolution;
+                incumbent = ithSolution->clone();   // keep a copy: the iterator deletes its own
                 break;
             }
-            else
-            {
-                delete ithSolution;
-            }
+            // rejected neighbors are released by the iterator on ++ / destruction
 
         }
 
-    }while(!termcriterion->terminate(bestSoFar,incumbent));
-    return bestSoFar;
+    }while(!termcriterion->terminate(bestSoFar,incumbent) && emili::shouldContinue());
+    if(incumbent != bestSoFar)
+    {
+        delete incumbent;
+    }
+    return bestSoFar->clone();          // caller owns the result; bestSoFar dies with this LocalSearch
 }
 
 void emili::pfsp::GVNS_RIS_Neighborhood::reset()
@@ -9385,7 +9388,6 @@ emili::Solution* emili::pfsp::BeamSearchHeuristic::generate()
     int k = 1;
 
     std::vector<bs_node*> current_iteration;
-    int g = _gamma<njobs?_gamma:njobs;
    // for(int x=0;x<g;x++)
     //{
        bs_node* start = new bs_node(*this,0);
@@ -10067,7 +10069,6 @@ emili::Solution* emili::pfsp::STH::search(emili::Solution* initial)
 {
   *bestSoFar = *initial;
   std::vector<int>& init = ((emili::pfsp::PermutationFlowShopSolution*) initial)->getJobSchedule();
-  const std::vector< std::vector < std::vector< int > > >& setUpTimes = prob.getInstance().getSetUpTimes();
   int njobs = prob.getInstance().getNbJob();
   std::vector<int> current(init);
   //test_neh_init(current,prob);

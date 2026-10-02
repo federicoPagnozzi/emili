@@ -744,7 +744,7 @@ protected:
 public:
     IgLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls): emili::pfsp::IGPerturbation(d_parameter,problem),ls(ls) {/**    */}
     virtual emili::Solution* perturb(Solution *solution);
-    ~IgLsPerturbation() { delete ls;}
+    virtual ~IgLsPerturbation() { } // ls owned by ComponentRegistry
 };
 
 class NwIgLsPerturbation: public emili::pfsp::IgLsPerturbation
@@ -763,7 +763,7 @@ protected:
 public:
     IGOLsPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):emili::pfsp::IGOPerturbation(d_parameter, problem), ls(ls) { }
     virtual emili::Solution* perturb(Solution *solution);
-    ~IGOLsPerturbation() { delete ls;}
+    virtual ~IGOLsPerturbation() { } // ls owned by ComponentRegistry
 };
 
 class SDSTIGOLsPerturbation: public emili::pfsp::IGOLsPerturbation
@@ -785,7 +785,7 @@ protected:
 public:
     RSLSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem, emili::LocalSearch* ls):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ls(ls) { }
     virtual emili::Solution* perturb(Solution *solution);
-    ~RSLSPerturbation() { delete ls;}
+    virtual ~RSLSPerturbation() { } // ls owned by ComponentRegistry
 };
 
 class RSffLSPerturbation: public emili::pfsp::RSLSPerturbation
@@ -1925,7 +1925,7 @@ public:
 
       double calcG(double W);
 
-       ~bs_node()
+       virtual ~bs_node()
        {
           /*  std::vector<bs_node*>::iterator iter = children.begin();
             for(;iter!=children.end();++iter)

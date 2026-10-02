@@ -1,0 +1,33 @@
+=== exit 0 ===
+=== stdout ===
+	 ______ __  __ _____ _      _____ 
+	|  ____|  \/  |_   _| |    |_   _|
+	| |__  | \  / | | | | |      | |  
+	|  __| | |\/| | | | | |      | |  
+	| |____| |  | |_| |_| |____ _| |_ 
+	|______|_|  |_|_____|______|_____|
+
+commit : <NORMALIZED>
+Random seed : 42
+name : DD_Ta055.txt
+file : <TESTING_DIR>/DD_Ta055.txt
+File <TESTING_DIR>/DD_Ta055.txt is now open, start to read...
+Number of jobs : 50
+Number of machines : 20
+Memory allowed.
+Start to read matrix...
+All is read from file.
+Permutation Flow Shop Weighted Tardiness
+  FIRST IMPROVEMENT
+      NEH initial solution
+      Local minima termination
+      Insert Neighborhood
+The print option is not enabled
+searching...
+time : <NORMALIZED>
+iteration counter : 19363
+Objective function value: 26933.000000
+Found solution: { 40, 31, 4, 32, 6, 13, 48, 14, 33, 11, 30, 23, 35, 36, 45, 1, 41, 46, 47, 39, 25, 20, 22, 5, 19, 16, 28, 15, 17, 7, 34, 9, 21, 8, 18, 43, 26, 2, 42, 49, 24, 3, 27, 12, 37, 50, 29, 44, 38, 10 }
+
+=== stderr ===
+26933.000000

@@ -50,7 +50,7 @@ public:
     virtual emili::LocalSearch* buildAlgo(prs::TokenManager& tm);
     virtual std::string info();
     ParamsParser() { }
-    ~ParamsParser() { delete instance; for(int i=0;i<istances.size();i++)delete istances[i];}
+    ~ParamsParser() { delete instance; for(size_t i=0;i<istances.size();i++)delete istances[i];}
 };
 }
 #endif // PARAMSPARSER_H

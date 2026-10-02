@@ -6,11 +6,81 @@
 #ifndef GENERALPARSER_H
 #define GENERALPARSER_H
 #include "emilibase.h"
+#include <stdexcept>
+#include <functional>
+#include <vector>
 /**
  * All the classes that are involved in the parsing of the command line belongs to this namespace
  */
 namespace prs
 {
+/**
+ * @brief The ParsingError class
+ * Thrown for any error while parsing the command line or algorithm
+ * description. Caught at the main() boundary, which prints the message and
+ * exits nonzero — replaces the exit(-1) calls that made EMILI unusable as a
+ * library and untestable.
+ */
+class ParsingError : public std::runtime_error
+{
+public:
+    explicit ParsingError(const std::string& message)
+        : std::runtime_error(message) { }
+};
+/**
+ * @brief The ComponentRegistry class
+ * Owns every algorithm component the parser builds. Components are created
+ * once, wired into a static tree and live until end of main; the registry
+ * deletes them in reverse registration order (children were registered
+ * before the composites that reference them, so composites die first).
+ * Components hold NON-OWNING references to each other.
+ */
+class ComponentRegistry
+{
+    std::vector<std::function<void()>> deleters;
+public:
+    ComponentRegistry() { }
+    ComponentRegistry(const ComponentRegistry&) = delete;
+    ComponentRegistry& operator=(const ComponentRegistry&) = delete;
+
+    /**
+     * @brief track
+     * Register a freshly new'd component; the registry now owns it.
+     * Returns p unchanged so it can wrap an allocation in place. Null-safe.
+     */
+    template<class T>
+    T* track(T* p)
+    {
+        if(p != nullptr)
+        {
+            deleters.emplace_back([p]() { delete p; });
+        }
+        return p;
+    }
+
+    /**
+     * @brief clear
+     * Deletes every tracked component in reverse registration order.
+     * Idempotent.
+     */
+    void clear()
+    {
+        // reverse order: composites (registered last) before their children
+        for(auto it = deleters.rbegin(); it != deleters.rend(); ++it)
+        {
+            (*it)();
+        }
+        deleters.clear();
+    }
+
+    /**
+     * @brief size
+     * Number of components currently owned.
+     */
+    std::size_t size() const { return deleters.size(); }
+
+    ~ComponentRegistry() { clear(); }
+};
 /**
  * @brief emili_header
  * This method prints the big emili at the beginning of the execution.
@@ -367,7 +437,13 @@ public:
      * @brief Component
      * The default component has type COMPONENT_NULL
      */
-    Component():type(COMPONENT_NULL),rawComponent(nullptr) { }
+    Component():type(COMPONENT_NULL),rawComponent(nullptr),token(nullptr) { }
+    /**
+     * @brief Component copy constructor
+     * Explicitly defaulted: a user-provided operator= makes the implicit
+     * copy constructor deprecated in C++17.
+     */
+    Component(const Component& a) = default;
     /**
      * @brief operator =
      *        Component copy operator
@@ -376,7 +452,7 @@ public:
      * @return
      *        The copy.
      */
-    virtual Component& operator=(const Component& a);    
+    virtual Component& operator=(const Component& a);
     /**
      * @brief is
      *      Check if the component is of type "type".
@@ -466,6 +542,14 @@ protected:
      */
     template <class T>
     std::vector<T*> buildComponentVector(int type);
+    /**
+     * @brief track
+     * Register a freshly new'd component with the parser's registry, which
+     * owns it. Usage: ls = track(new emili::IteratedLocalSearch(...));
+     * Defined after GeneralParserE (it needs the complete type).
+     */
+    template<class T>
+    T* track(T* p);
 public:
     /**
      * @brief Builder
@@ -659,6 +743,11 @@ protected:
      */
     emili::Problem* instance;
     /**
+     * @brief components
+     *         Owns every component built during parsing (see ComponentRegistry).
+     */
+    ComponentRegistry components;
+    /**
      * @brief typeName
      *          Returns a string that describe type.
      * @param type
@@ -666,6 +755,11 @@ protected:
      */
     virtual std::string typeName(int type);
 public:
+    /**
+     * @brief registry
+     *          The registry that owns every component built by this parser.
+     */
+    ComponentRegistry& registry() { return components; }
     /**
      * @brief GeneralParserE
      *         This constructor uses the parameters to initialize a TokenManager
@@ -800,6 +894,14 @@ public:
      */
     virtual emili::NeighborhoodChange* buildNeighborhoodChange();
 };
+
+// Defined here because Builder only sees a forward declaration of
+// GeneralParserE; the registry accessor needs the complete type.
+template<class T>
+T* Builder::track(T* p)
+{
+    return gp.registry().track(p);
+}
 
 }
 
