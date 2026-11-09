@@ -18,20 +18,16 @@ Memory allowed.
 Start to read matrix...
 All is read from file.
 Permutation Flow Shop Make Span
-  ILS 
-    FIRST IMPROVEMENT
-        NEH initial solution
-        Local minima termination
-        Insert with Taillard Acceleration
-      Max Steps termination. # steps: 30
-      NEH destruct/construct perturbation which use objective function. number of job erased: 4
-      improve acceptance
+  FIRST IMPROVEMENT
+      NEHFF initial solution
+      Local minima termination
+      Insert Neighborhood
 The print option is not enabled
 searching...
 time : <NORMALIZED>
-iteration counter : 139917
-Objective function value: 3707.000000
-Found solution: { 40, 48, 4, 2, 19, 49, 31, 32, 18, 28, 25, 42, 5, 34, 45, 8, 6, 39, 43, 44, 27, 16, 13, 21, 26, 14, 50, 23, 37, 47, 20, 33, 38, 41, 12, 10, 3, 24, 22, 17, 36, 9, 7, 1, 46, 15, 30, 29, 35, 11 }
+iteration counter : 17848
+Objective function value: 3740.000000
+Found solution: { 40, 48, 4, 2, 19, 33, 23, 49, 5, 34, 18, 28, 7, 42, 43, 31, 37, 21, 45, 25, 22, 47, 39, 38, 20, 8, 32, 6, 15, 26, 36, 13, 44, 27, 50, 16, 3, 14, 41, 12, 10, 24, 17, 9, 46, 1, 30, 29, 35, 11 }
 
 === stderr ===
-3707.000000
+3740.000000

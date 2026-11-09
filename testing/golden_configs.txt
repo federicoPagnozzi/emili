@@ -8,6 +8,7 @@ pfsp_wt_first_insert_s42|DD_Ta055.txt|PFSP_WT first neh locmin insert rnds 42
 pfsp_tct_best_exchange_s42|DD_Ta055.txt|PFSP_TCT best random locmin exchange rnds 42
 pfsp_ms_tainsert_s42|DD_Ta055.txt|PFSP_MS first neh locmin tainsert rnds 42
 pfsp_wt_tainsert_s7|DD_Ta055.txt|PFSP_WT first neh locmin tainsert rnds 7
-pfsp_ms_ils_igper_s42|DD_Ta055.txt|PFSP_MS ils first neh locmin tainsert maxstep 30 igper 4 improve rnds 42
+pfsp_ms_ils_igoper_s42|DD_Ta055.txt|PFSP_MS ils first neh locmin tainsert maxstep 30 igoper 4 improve rnds 42
 pfsp_ms_ils_rsper_s42|DD_Ta055.txt|PFSP_MS ils first neh locmin tainsert maxstep 30 rsper 4 improve rnds 42
-pfsp_ms_nehls_s42|DD_Ta055.txt|PFSP_MS first nehls first random locmin insert locmin insert rnds 42
+pfsp_ms_nehff_s42|DD_Ta055.txt|PFSP_MS first nehff locmin insert rnds 42
+pfsp_ms_first_csinsert_s42|DD_Ta055.txt|PFSP_MS first neh locmin csinsert rnds 42

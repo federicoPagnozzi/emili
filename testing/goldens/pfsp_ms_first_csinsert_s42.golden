@@ -19,20 +19,15 @@ Start to read matrix...
 All is read from file.
 Permutation Flow Shop Make Span
   FIRST IMPROVEMENT
-      NEHls initial solution
-      Permutation Flow Shop Make Span
-        FIRST IMPROVEMENT
-            Random initial solution
-            Local minima termination
-            Insert Neighborhood
-        Local minima termination
-        Insert Neighborhood
+      NEH initial solution
+      Local minima termination
+      Insert Neighborhood that returns only the best insertion
 The print option is not enabled
 searching...
 time : <NORMALIZED>
-iteration counter : 84435
-Objective function value: 3742.000000
-Found solution: { 40, 48, 2, 4, 23, 33, 31, 50, 25, 19, 7, 49, 32, 18, 28, 20, 38, 22, 8, 13, 47, 26, 43, 6, 39, 9, 36, 45, 14, 5, 27, 16, 41, 34, 12, 42, 37, 15, 10, 21, 44, 3, 24, 29, 17, 1, 30, 46, 35, 11 }
+iteration counter : 272
+Objective function value: 3757.000000
+Found solution: { 40, 48, 2, 4, 19, 7, 23, 33, 49, 34, 27, 32, 18, 28, 26, 36, 31, 6, 42, 15, 43, 45, 25, 10, 38, 22, 5, 8, 16, 39, 21, 44, 13, 50, 47, 20, 3, 37, 14, 41, 12, 24, 29, 17, 9, 46, 1, 30, 35, 11 }
 
 === stderr ===
-3742.000000
+3757.000000
