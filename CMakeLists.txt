@@ -111,6 +111,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} git_version)
 
+# SIMD parity test harness: every library source except main.cpp, plus its own main
+option(BUILD_SIMD_PARITY "Build the simd_parity test program" ON)
+if(BUILD_SIMD_PARITY)
+    set(SIMD_PARITY_SRC ${SRC_LIST})
+    list(FILTER SIMD_PARITY_SRC EXCLUDE REGEX "(^|/)main\\.cpp$")
+    add_executable(simd_parity testing/simd_parity/simd_parity.cpp ${SIMD_PARITY_SRC})
+    add_dependencies(simd_parity git_version)
+endif()
+
 # Testing support
 enable_testing()
 

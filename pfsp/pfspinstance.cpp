@@ -94,6 +94,23 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 
 	dueDates.resize(nbJ+1);
 	priority.resize(nbJ+1);
+
+  ptStride = nbM+1;
+  processingTimesFlat.assign((size_t)(nbJ+1)*(size_t)(nbM+1), 0);
+}
+
+void PfspInstance::setTime(int job, int machine, long int processTime)
+{
+  processingTimesMatrix[job][machine] = processTime;
+  processingTimesFlat[(size_t)job*ptStride + machine] = (int32_t)processTime;
+}
+
+/** Copies the whole processing-time matrix into the flat int32 buffer */
+void PfspInstance::syncFlatTimes()
+{
+  for (int j = 0; j <= nbJob; ++j)
+    for (int m = 0; m <= nbMac; ++m)
+      processingTimesFlat[(size_t)j*ptStride + m] = (int32_t)processingTimesMatrix[j][m];
 }
 
 
@@ -170,6 +187,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 				processingTimesMatrix[j][m] = readValue;
 			}
 		}
+        syncFlatTimes();
         fileIn >> str; // this is not read
 
 		for (j = 1; j <= nbJob; ++j)
@@ -256,6 +274,7 @@ bool PfspInstance::readSeqDepDataFromFile(char* fileName)
                 processingTimesMatrix[j][m] = readValue;
             }
         }
+        syncFlatTimes();
         fileIn >> str; // this is not read
         if(str.compare("SSD")==0)
         {
@@ -364,6 +383,8 @@ bool PfspInstance::readDataFromFile(const std::string _fileName)
                   start = buffer.find_first_not_of(" ", end);
               }
           }
+
+          syncFlatTimes();
 
           for (unsigned int j=1 ; j<nbJob+1 ; j++)
           {

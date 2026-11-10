@@ -9,6 +9,8 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
+#include "pfsp_ptimes.h"
 
 
 
@@ -21,6 +23,9 @@ class PfspInstance{
     bool silence;
     std::vector< std::vector <long int> > processingTimesMatrix;
     std::vector< std::vector < std::vector< int > > > setUpTimes;
+    std::vector< int32_t > processingTimesFlat;
+    int ptStride = 0;
+    void syncFlatTimes();
     void computeTails(std::vector<int> &sol, int size,std::vector< std::vector< int > > & tail);
   public:
     PfspInstance(PfspInstance& is)
@@ -32,6 +37,8 @@ class PfspInstance{
         this->processingTimesMatrix = is.getProcessingTimesMatrix();
         this->silence = is.silence;
         this->setUpTimes = is.setUpTimes;
+        this->processingTimesFlat = is.processingTimesFlat;
+        this->ptStride = is.ptStride;
     }
 
     PfspInstance();
@@ -218,6 +225,9 @@ class PfspInstance{
     //void updateHead(std::vector<int> &solution, int starting_point, std::vector < std::vector < int > >& head, std::vector<int>& makespans);
 
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix() { return processingTimesMatrix; }   
+
+    /** Flat int32 copy of the processing times (stays valid for the life of the instance) */
+    PfspTimesView getTimesView() const { return PfspTimesView{processingTimesFlat.data(), ptStride}; }
 
 };
 

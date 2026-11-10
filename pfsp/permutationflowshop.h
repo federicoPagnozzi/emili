@@ -58,6 +58,8 @@ public:
     std::vector< long int >& getPriorities();
     /**  This method returns the processing time matrix so that it can be used by particular implementations of neighborhoods*/
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
+    /**  flat int32 view of the processing times, used by the SIMD kernels*/
+    PfspTimesView getTimesView();
     /**  this method returns the problem size (used by some timed termination criteria)*/
     virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
     /**  This method returns the pfspinstance object that incapsulate the actual computation of the objective functions*/

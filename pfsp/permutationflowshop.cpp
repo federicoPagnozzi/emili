@@ -1629,6 +1629,11 @@ const std::vector< std::vector < long int > > & emili::pfsp::PermutationFlowShop
     return instance.getProcessingTimesMatrix();
 }
 
+PfspTimesView emili::pfsp::PermutationFlowShop::getTimesView()
+{
+    return instance.getTimesView();
+}
+
 emili::pfsp::PermutationFlowShopSolution::~PermutationFlowShopSolution()
 {
  /** nothing to delete*/
