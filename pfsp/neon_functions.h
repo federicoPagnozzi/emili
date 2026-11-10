@@ -45,13 +45,36 @@ static inline int32x4_t pfsp_gather(const PfspTimesView& pt, int j0, int j1, int
     return v;
 }
 
-// p(job, m) for any m, 0 outside the machines 1..nbMac (fill / drain lanes)
+/*  Index mapping of the wavefront. The core walks logical job positions
+ *  i = 1..nbJob and logical machines m = 1..nbMac; Dir maps them to the sol
+ *  index and the real machine. The tail recurrence is the head recurrence on
+ *  the reversed permutation and the reversed machine order:
+ *    T[j][m] = C'[nbJob+1-j][nbMac+1-m],  C' computed on job(i) = sol[nbJob+1-i],
+ *  machine nbMac+1-m. Both maps are bijections of 1..n onto itself, so every
+ *  index the core derives from a logical index in range is in range.
+ *  PfspNeonForward is the identity and inlines away (head / makespan paths).
+ */
+struct PfspNeonForward {
+    static int job(int i, int)  { return i; }
+    static int mac(int m, int)  { return m; }
+};
+struct PfspNeonMirror {
+    static int job(int i, int nbJob) { return nbJob + 1 - i; }
+    static int mac(int m, int nbMac) { return nbMac + 1 - m; }
+};
+
+// p(job, Dir::mac(m)) for any logical m, 0 outside the machines 1..nbMac
+// (fill / drain lanes)
+template <class Dir>
 static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m, int nbMac)
 {
-    return (m >= 1 && m <= nbMac) ? pt.at(job, m) : 0;
+    return (m >= 1 && m <= nbMac) ? pt.at(job, Dir::mac(m, nbMac)) : 0;
 }
 
-/*  Anti-diagonal wavefront over groups of 4 jobs J0..J3 = sol[j..j+3].
+/*  Anti-diagonal wavefront over groups of 4 jobs J0..J3 = sol[j..j+3]
+ *  (with Dir = PfspNeonMirror read every job / machine index below through
+ *  the mirror: Jk = sol[Dir::job(j+k)], machine s-k is Dir::mac(s-k); the
+ *  remainder group, last in logical order, is then sol[1..lanes]).
  *
  *  At step s (s = 1 .. nbMac+3) lane k computes job Jk on machine m = s-k:
  *
@@ -77,7 +100,8 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
  *  nbMac < 4 needs no special path: the steady loop is empty and fill / drain
  *  overlap, every step using the checked gather.
  *
- *  The Sink policy receives the values (all inline, empty bodies vanish):
+ *  The Sink policy receives the values in logical indices (all inline,
+ *  empty bodies vanish):
  *    steady(v, s, j, lanes)   after a steady step: lane k is C(j+k, s-k), every
  *                             lane on a machine in 1..nbMac
  *    checked(v, s, j, lanes)  after a fill / drain step: lane k is C(j+k, s-k)
@@ -87,7 +111,7 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
  *  are padding (job id 0) and must not be stored. Returns the completion
  *  time of sol[nbJob] on machine nbMac, 0 when nbJob < 1.
  */
-template <class Sink>
+template <class Dir = PfspNeonForward, class Sink>
 static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const PfspTimesView& pt,
                                           int nbJob, int nbMac, Sink& sink)
 {
@@ -99,10 +123,10 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const Pfs
 
     for (int j = 1; j <= nbJob; j += 4) {
         lanes = std::min(4, nbJob - j + 1);
-        const int J0 = sol[j];
-        const int J1 = lanes > 1 ? sol[j+1] : 0;
-        const int J2 = lanes > 2 ? sol[j+2] : 0;
-        const int J3 = lanes > 3 ? sol[j+3] : 0;
+        const int J0 = sol[Dir::job(j, nbJob)];
+        const int J1 = lanes > 1 ? sol[Dir::job(j + 1, nbJob)] : 0;
+        const int J2 = lanes > 2 ? sol[Dir::job(j + 2, nbJob)] : 0;
+        const int J3 = lanes > 3 ? sol[Dir::job(j + 3, nbJob)] : 0;
 
         int32x4_t v = vdupq_n_s32(0);
 
@@ -111,10 +135,10 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const Pfs
             int32x4_t up = pfsp_shift_up1(v);
             if (s <= nbMac)
                 up = vsetq_lane_s32(L[s], up, 0);
-            int32x4_t p = vdupq_n_s32(pfsp_time_or_zero(pt, J0, s, nbMac));
-            p = vsetq_lane_s32(pfsp_time_or_zero(pt, J1, s - 1, nbMac), p, 1);
-            p = vsetq_lane_s32(pfsp_time_or_zero(pt, J2, s - 2, nbMac), p, 2);
-            p = vsetq_lane_s32(pfsp_time_or_zero(pt, J3, s - 3, nbMac), p, 3);
+            int32x4_t p = vdupq_n_s32(pfsp_time_or_zero<Dir>(pt, J0, s, nbMac));
+            p = vsetq_lane_s32(pfsp_time_or_zero<Dir>(pt, J1, s - 1, nbMac), p, 1);
+            p = vsetq_lane_s32(pfsp_time_or_zero<Dir>(pt, J2, s - 2, nbMac), p, 2);
+            p = vsetq_lane_s32(pfsp_time_or_zero<Dir>(pt, J3, s - 3, nbMac), p, 3);
             v = vaddq_s32(vmaxq_s32(v, up), p);
             if (s >= 4)                       // s-3 <= nbMac since s <= nbMac+3
                 L[s - 3] = vgetq_lane_s32(v, 3);
@@ -134,7 +158,9 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const Pfs
         for (; s <= nbMac; ++s) {
             // v -> [C0,s C1,s-1 C2,s-2 C3,s-3], all lanes on machines 1..nbMac
             const int32x4_t up = vsetq_lane_s32(L[s], pfsp_shift_up1(v), 0);
-            v = vaddq_s32(vmaxq_s32(v, up), pfsp_gather(pt, J0, J1, J2, J3, s, s - 1, s - 2, s - 3));
+            v = vaddq_s32(vmaxq_s32(v, up),
+                          pfsp_gather(pt, J0, J1, J2, J3, Dir::mac(s, nbMac), Dir::mac(s - 1, nbMac),
+                                      Dir::mac(s - 2, nbMac), Dir::mac(s - 3, nbMac)));
             L[s - 3] = vgetq_lane_s32(v, 3);
             sink.steady(v, s, j, lanes);
         }
@@ -166,20 +192,24 @@ struct PfspNeonLastMachineSink : PfspNeonNoSink {
     }
 };
 
-// head[m][j] = C(j, m) for every cell the wavefront visits:
-// lane k at step s goes to head[s-k][j+k] when 1 <= s-k <= nbMac and k < lanes.
-struct PfspNeonHeadSink : PfspNeonNoSink {
-    std::vector< std::vector<int> >& head;
-    int nbMac;
-    PfspNeonHeadSink(std::vector< std::vector<int> >& h, int nm) : head(h), nbMac(nm) {}
+// M[Dir::mac(m)][Dir::job(j)] = C(j, m) for every logical cell the wavefront
+// visits: lane k at step s is stored when 1 <= s-k <= nbMac and k < lanes.
+// Forward: head[m][j] = C[j][m]. Mirror: tail[m][j] = T[j][m].
+template <class Dir>
+struct PfspNeonMatrixSink : PfspNeonNoSink {
+    std::vector< std::vector<int> >& M;
+    int nbJob, nbMac;
+    PfspNeonMatrixSink(std::vector< std::vector<int> >& out, int nj, int nm) : M(out), nbJob(nj), nbMac(nm) {}
+
+    int* cell(int m, int j) { return M[Dir::mac(m, nbMac)].data() + Dir::job(j, nbJob); }
 
     void steady(int32x4_t v, int s, int j, int lanes)
     {
         if (lanes == 4) {                     // s-3 >= 1 and s <= nbMac in the steady loop
-            vst1q_lane_s32(head[s].data() + j, v, 0);
-            vst1q_lane_s32(head[s - 1].data() + j + 1, v, 1);
-            vst1q_lane_s32(head[s - 2].data() + j + 2, v, 2);
-            vst1q_lane_s32(head[s - 3].data() + j + 3, v, 3);
+            vst1q_lane_s32(cell(s, j), v, 0);
+            vst1q_lane_s32(cell(s - 1, j + 1), v, 1);
+            vst1q_lane_s32(cell(s - 2, j + 2), v, 2);
+            vst1q_lane_s32(cell(s - 3, j + 3), v, 3);
         } else {
             store_lanes(v, s, j, lanes);
         }
@@ -193,7 +223,7 @@ struct PfspNeonHeadSink : PfspNeonNoSink {
         for (int k = 0; k < lanes; ++k) {
             const int m = s - k;
             if (m >= 1 && m <= nbMac)
-                head[m][j + k] = tmp[k];
+                *cell(m, j + k) = tmp[k];
         }
     }
 };
@@ -218,22 +248,22 @@ inline long pfsp_neon_makespan(std::vector<int>& sol, const PfspTimesView& pt, i
  *  cells past nbJob / nbMac are not written. */
 inline void computeHEAD(std::vector<int> &sol, std::vector< std::vector < int > >& head, const PfspTimesView& pt, int nbJob, int nbMac)
 {
-    PfspNeonHeadSink sink(head, nbMac);
+    PfspNeonMatrixSink<PfspNeonForward> sink(head, nbJob, nbMac);
     pfsp_neon_wavefront(sol, pt, nbJob, nbMac, sink);
 }
 
-// placeholder: replaced in Task 7
+/** tail[m][j] = T[j][m] for m = 1..nbMac, j = 1..nbJob; row 0, column 0 and
+ *  cells past nbJob / nbMac are not written. The mirrored wavefront. */
 inline void computeTAIL(std::vector<int> &sol, std::vector< std::vector < int > >& tail, const PfspTimesView& pt, int nbJob, int nbMac)
 {
-    for (int j = nbJob; j >= 1; --j)
-        for (int m = nbMac; m >= 1; --m) {
-            const int nextJob = j < nbJob ? tail[m][j+1] : 0;
-            const int nextMac = m < nbMac ? tail[m+1][j] : 0;
-            tail[m][j] = std::max(nextJob, nextMac) + pt.at(sol[j], m);
-        }
+    PfspNeonMatrixSink<PfspNeonMirror> sink(tail, nbJob, nbMac);
+    pfsp_neon_wavefront<PfspNeonMirror>(sol, pt, nbJob, nbMac, sink);
 }
 
-// placeholder: replaced in Task 7
+/** computeHEAD followed by computeTAIL (same cells, same values). Running the
+ *  two wavefronts interleaved in one loop (as the SSE kernel does) measured no
+ *  faster on Apple M1: the steps are bound by the scalar gathers and lane
+ *  stores, not by the max/add latency chain. */
 inline void computeHEADandTAIL(std::vector<int> &sol, std::vector< std::vector < int > >& head, std::vector< std::vector < int > >& tail, const PfspTimesView& pt, int nbJob, int nbMac)
 {
     computeHEAD(sol, head, pt, nbJob, nbMac);

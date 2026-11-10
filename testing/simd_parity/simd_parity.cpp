@@ -269,6 +269,44 @@ static int check_head_tail(PfspInstance& inst, const std::vector<std::vector<int
     return 0;
 }
 
+// Taillard identity, a cross-check of head and tail together: the longest path
+// through cell (j, m) is head[m][j] + tail[m][j] - p(sol[j], m), so for every
+// position j = 1..n its maximum over m is the makespan C[n][nbMac]. Checked on
+// computeHEADandTAIL and on computeHEAD + computeTAIL.
+static int check_head_tail_identity(PfspInstance& inst, const std::vector<std::vector<int>>& perms)
+{
+    const int nj = inst.getNbJob();
+    const int nm = inst.getNbMac();
+    const PfspTimesView pt = inst.getTimesView();
+    for (const std::vector<int>& perm : perms) {
+        const std::vector<std::vector<long>> C = ref_completion(inst, perm, nj);
+        for (int n = 1; n <= nj; ++n) {
+            for (int fused = 0; fused <= 1; ++fused) {
+                std::vector<int> sol = perm;
+                std::vector<std::vector<int>> head(nm + 2, std::vector<int>(nj + 2, 0));
+                std::vector<std::vector<int>> tail(nm + 2, std::vector<int>(nj + 2, 0));
+                if (fused) {
+                    computeHEADandTAIL(sol, head, tail, pt, n, nm);
+                } else {
+                    computeHEAD(sol, head, pt, n, nm);
+                    computeTAIL(sol, tail, pt, n, nm);
+                }
+                for (int j = 1; j <= n; ++j) {
+                    long longest = 0;
+                    for (int m = 1; m <= nm; ++m)
+                        longest = std::max(longest, (long)head[m][j] + tail[m][j] - pt.at(perm[j], m));
+                    if (longest != C[n][nm]) {
+                        std::printf("kernel=head_tail_identity(%s) size=%d nbMac=%d job=%d expected=%ld got=%ld\n",
+                                    fused ? "head_and_tail" : "head+tail", n, nm, j, C[n][nm], longest);
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 #if defined(__ARM_NEON)
 static int check_neon_helpers()
 {
@@ -374,7 +412,7 @@ int main(int argc, char** argv)
 
     int f_ms = 0;
 #ifdef ENABLE_SIMD
-    int f_pm = 0, f_head = 0, f_ht = 0, f_tail = 0;
+    int f_pm = 0, f_head = 0, f_ht = 0, f_tail = 0, f_id = 0;
 #if defined(__ARM_NEON)
     fail |= check_neon_helpers();
 #endif
@@ -386,6 +424,7 @@ int main(int argc, char** argv)
         f_head |= check_head_tail(*in, perms, HT_HEAD);
         f_ht |= check_head_tail(*in, perms, HT_BOTH);
         f_tail |= check_head_tail(*in, perms, HT_TAIL);
+        f_id |= check_head_tail_identity(*in, perms);
 #endif
         f_ms |= check_makespan(*in, perms);
     }
@@ -394,7 +433,8 @@ int main(int argc, char** argv)
     if (!f_head) std::printf("head: OK\n");
     if (!f_ht) std::printf("head_and_tail: OK\n");
     if (!f_tail) std::printf("tail: OK\n");
-    fail |= f_pm | f_head | f_ht | f_tail;
+    if (!f_id) std::printf("head_tail_identity: OK\n");
+    fail |= f_pm | f_head | f_ht | f_tail | f_id;
 #endif
     if (!f_ms) std::printf("makespan: OK\n");
     fail |= f_ms;
