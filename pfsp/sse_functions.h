@@ -8,6 +8,9 @@
 #include <xmmintrin.h>
 #include <emmintrin.h>
 //#define ENABLE_SSE
+// Limits: the lanes are 32-bit floats, so results are exact only while every
+// completion time stays below 2^24 (16,777,216). The kernels index machines
+// 1..4 unconditionally, so they assume nbMac >= 4.
 #include <vector>
 #include "pfsp_ptimes.h"
 

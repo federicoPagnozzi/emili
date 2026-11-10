@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include "pfspinstance.h"
 #include  <assert.h>
+#include <cstdint>
 
 //#define ENABLE_SIMD
 
@@ -111,6 +112,7 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 
 void PfspInstance::setTime(int job, int machine, long int processTime)
 {
+  assert(processTime >= INT32_MIN && processTime <= INT32_MAX); // the flat view is int32
   processingTimesMatrix[job][machine] = processTime;
   processingTimesFlat[(size_t)job*ptStride + machine] = (int32_t)processTime;
 }
@@ -120,7 +122,10 @@ void PfspInstance::syncFlatTimes()
 {
   for (int j = 0; j <= nbJob; ++j)
     for (int m = 0; m <= nbMac; ++m)
+    {
+      assert(processingTimesMatrix[j][m] >= INT32_MIN && processingTimesMatrix[j][m] <= INT32_MAX); // the flat view is int32
       processingTimesFlat[(size_t)j*ptStride + m] = (int32_t)processingTimesMatrix[j][m];
+    }
 }
 
 

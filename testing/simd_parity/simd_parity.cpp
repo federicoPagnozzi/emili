@@ -26,6 +26,16 @@
 #define PFSP_PARITY_STRICT 0
 #endif
 
+// The SSE computeMS does not support size 0; scalar and NEON return 0.
+#if defined(ENABLE_SIMD) && defined(__SSE__)
+#define PFSP_PARITY_MS_EMPTY 0
+#else
+#define PFSP_PARITY_MS_EMPTY 1
+#endif
+
+// Failure messages print matrix cells as cell=[machine][job] (head / tail /
+// view layout: row = machine, column = job), vectors as name[index].
+
 static int check_view(PfspInstance& inst)
 {
     const PfspTimesView view = inst.getTimesView();
@@ -93,13 +103,30 @@ static std::vector<std::vector<long>> ref_completion(PfspInstance& inst, const s
     return C;
 }
 
-// Identity plus `rounds` seeded shuffles; sol[0] = 0 is the unused slot.
+// Identity, the reversed permutation (n, n-1, ..., 1) and `rounds` seeded
+// shuffles; sol[0] = 0 is the unused slot. NEON only: identity and reversed
+// again with sol[0] = -7. The NEON kernels never read sol[0] by construction
+// (Dir::job maps 1..nbJob onto 1..nbJob), so a read would index the view with
+// a negative job id; the SSE kernels were not audited for this.
+// Note: std::shuffle with mt19937 is not guaranteed to give the same
+// permutation across standard libraries, so a failing seed may not reproduce
+// on another platform.
 static std::vector<std::vector<int>> test_permutations(int nj, unsigned seed, int rounds)
 {
     std::vector<std::vector<int>> perms;
     std::vector<int> sol(nj + 1);
     std::iota(sol.begin(), sol.end(), 0);
     perms.push_back(sol);
+    std::vector<int> rev = sol;
+    std::reverse(rev.begin() + 1, rev.end());
+    perms.push_back(rev);
+#if defined(ENABLE_SIMD) && defined(__ARM_NEON)
+    sol[0] = -7;
+    rev[0] = -7;
+    perms.push_back(sol);
+    perms.push_back(rev);
+    sol[0] = 0;
+#endif
     std::mt19937 rng(seed);
     for (int r = 0; r < rounds; ++r) {
         std::shuffle(sol.begin() + 1, sol.end(), rng);
@@ -147,7 +174,7 @@ static int check_makespan(PfspInstance& inst, const std::vector<std::vector<int>
             if (check_sol_unchanged("makespan(sol,n)", sol, perm, n))
                 return 1;
         }
-#if PFSP_PARITY_STRICT
+#if PFSP_PARITY_MS_EMPTY
         const long empty = inst.computeMS(sol, 0);
         if (empty != 0) {
             std::printf("kernel=makespan(sol,0) size=0 nbMac=%d expected=0 got=%ld\n", nm, empty);
@@ -186,7 +213,7 @@ static int check_partial_makespans(PfspInstance& inst, const std::vector<std::ve
             for (int j = 1; j <= n; ++j) {
                 if (pmet[j] != C[j][nm]) {
                     std::printf("kernel=partial_makespans size=%d nbMac=%d cell=[%d][%d] expected=%ld got=%ld\n",
-                                n, nm, nm, j, C[j][nm], pmet[j]);
+                                n, nm, nm, j, C[j][nm], pmet[j]);   // [machine nbMac][job j] = pmet[j]
                     return 1;
                 }
             }
@@ -272,7 +299,10 @@ static int check_head_tail(PfspInstance& inst, const std::vector<std::vector<int
 // Taillard identity, a cross-check of head and tail together: the longest path
 // through cell (j, m) is head[m][j] + tail[m][j] - p(sol[j], m), so for every
 // position j = 1..n its maximum over m is the makespan C[n][nbMac]. Checked on
-// computeHEADandTAIL and on computeHEAD + computeTAIL.
+// computeHEADandTAIL and on computeHEAD + computeTAIL. Today these are the same
+// two calls on NEON; both variants are kept to guard a future fused kernel.
+// The matrices are zero-filled here; stray-write detection lives in
+// check_head_tail (sentinel fill).
 static int check_head_tail_identity(PfspInstance& inst, const std::vector<std::vector<int>>& perms)
 {
     const int nj = inst.getNbJob();
@@ -348,6 +378,19 @@ static int check_neon_helpers()
 #endif
 #endif
 
+static std::unique_ptr<PfspInstance> make_const_instance(int nj, int nm, long p)
+{
+    std::unique_ptr<PfspInstance> s(new PfspInstance());
+    s->setSilence(true);
+    s->setNbJob(nj);
+    s->setNbMac(nm);
+    s->allowMatrixMemory(nj, nm);
+    for (int j = 1; j <= nj; ++j)
+        for (int m = 1; m <= nm; ++m)
+            s->setTime(j, m, p);
+    return s;
+}
+
 int main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -406,6 +449,22 @@ int main(int argc, char** argv)
             for (int m = 1; m <= 8; ++m)
                 s.setTime(j, m, ptime(rng));
     }
+    // Magnitude cases, 7 jobs x 20 machines, constant times. Largest completion
+    // time is (nbJob + nbMac - 1) * p = 26 * p.
+    //   p = 99:     2,574
+    //   p = 100000: 2,600,000 < 2^24 = 16,777,216, so SSE float lanes are exact too
+    synth.push_back(make_const_instance(7, 20, 99));
+    synth.push_back(make_const_instance(7, 20, 100000));
+#if defined(ENABLE_SIMD) && defined(__ARM_NEON)
+    // NEON only (the SSE lanes are float): p = 20,000,001 gives a largest
+    // completion time of 26 * 20,000,001 = 520,000,026, above 2^24 (float
+    // lanes would round; p is odd so it is not even representable) but below
+    // 2^31 (int32 lanes are exact).
+    synth.push_back(make_const_instance(7, 20, 20000001));
+#endif
+    // in-process instances (setNbJob / setNbMac / allowMatrixMemory / setTime)
+    // must get a correct view too: zero row 0 and column 0
+    fail |= check_view(*synth.front());
     std::vector<PfspInstance*> all{&inst};
     for (const std::unique_ptr<PfspInstance>& s : synth)
         all.push_back(s.get());

@@ -8,7 +8,9 @@
 //    T[j][m] = max(T[j][m+1], T[j+1][m]) + p(sol[j], m),  T[*][nbMac+1] = T[nbJob+1][*] = 0
 //  where nbJob is the number of leading jobs sol[1..nbJob] that count. Unlike
 //  the SSE kernels they never resize or modify sol / previousMachineEndTime and
-//  never write past index nbJob. Arithmetic is int32, widened to long on store.
+//  never write past index nbJob. Arithmetic is int32, widened to long on store:
+//  the lanes are int32, so every completion time must stay below 2^31
+//  (PfspInstance::setTime asserts that each processing time fits in int32).
 //
 #ifndef PFSP_NEON_FUNCTIONS_H
 #define PFSP_NEON_FUNCTIONS_H
@@ -75,6 +77,9 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
  *  (with Dir = PfspNeonMirror read every job / machine index below through
  *  the mirror: Jk = sol[Dir::job(j+k)], machine s-k is Dir::mac(s-k); the
  *  remainder group, last in logical order, is then sol[1..lanes]).
+ *  Mirror example, nbJob = 6: the second group (j = 5) has J0 = sol[2],
+ *  J1 = sol[1]; lane 0 at logical machine m is stored to
+ *  tail[nbMac+1-m][2] (cell(m, 5) = M[Dir::mac(m)][Dir::job(5)]).
  *
  *  At step s (s = 1 .. nbMac+3) lane k computes job Jk on machine m = s-k:
  *
@@ -109,7 +114,8 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
  *    group(fin, j, lanes)     after a group: fin[k] = C(j+k, nbMac), k < lanes
  *  lanes (1..4) is the number of real jobs in the group; lanes k >= lanes
  *  are padding (job id 0) and must not be stored. Returns the completion
- *  time of sol[nbJob] on machine nbMac, 0 when nbJob < 1.
+ *  time of the last logical job on the last logical machine, 0 when
+ *  nbJob < 1: Forward C[nbJob][nbMac]; Mirror T[1][1].
  */
 template <class Dir = PfspNeonForward, class Sink>
 static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const PfspTimesView& pt,
