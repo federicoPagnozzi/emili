@@ -1695,6 +1695,22 @@ inline void computeTAIL(std::vector<int> &sol,std::vector< std::vector < int > >
 }
 
 
+#elif defined(__ARM_NEON)
+
+// NEON: both overloads run the int32 wavefront of neon_functions.h. As in the
+// scalar code, `size` is the number of leading jobs sol[1..size] that count and
+// the result is the completion time of sol[size] on the last machine (0 for
+// size == 0); sol is not modified.
+long int PfspInstance::computeMS(std::vector<int> &sol)
+{
+    return computeMS(sol, nbJob);
+}
+
+long int PfspInstance::computeMS(std::vector<int> &sol, int size)
+{
+    return pfsp_neon_makespan(sol, getTimesView(), size, nbMac);
+}
+
 #endif
 /**  Compute the weighted tardiness of a given solution */
 
