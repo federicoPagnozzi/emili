@@ -64,6 +64,8 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
  *  earlier), lane 0 takes the carry L[m]: the previous group's last job on
  *  machine m. Lane k only reads lanes < k, so lanes past nbJob (job id 0 in
  *  the remainder group) never reach a stored value.
+ *  The carry is a per-machine array, not a broadcast: L[s] is inserted into
+ *  lane 0 (vsetq_lane 0) and lane 3's C3,s-3 is extracted (vgetq_lane 3).
  *
  *  fill  s = 1..3      : lanes k >= s are before machine 1; they stay 0 by
  *                        induction (v_prev = up = 0, p = 0).
@@ -75,13 +77,22 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
  *  nbMac < 4 needs no special path: the steady loop is empty and fill / drain
  *  overlap, every step using the checked gather.
  *
- *  Store == true writes out[j+k] = Ck,nbMac for the real lanes. Returns the
- *  completion time of sol[nbJob] on machine nbMac. Requires nbJob >= 1.
+ *  The Sink policy receives the values (all inline, empty bodies vanish):
+ *    steady(v, s, j, lanes)   after a steady step: lane k is C(j+k, s-k), every
+ *                             lane on a machine in 1..nbMac
+ *    checked(v, s, j, lanes)  after a fill / drain step: lane k is C(j+k, s-k)
+ *                             only where 1 <= s-k <= nbMac
+ *    group(fin, j, lanes)     after a group: fin[k] = C(j+k, nbMac), k < lanes
+ *  lanes (1..4) is the number of real jobs in the group; lanes k >= lanes
+ *  are padding (job id 0) and must not be stored. Returns the completion
+ *  time of sol[nbJob] on machine nbMac, 0 when nbJob < 1.
  */
-template <bool Store>
-static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, long* out,
-                                          const PfspTimesView& pt, int nbJob, int nbMac)
+template <class Sink>
+static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const PfspTimesView& pt,
+                                          int nbJob, int nbMac, Sink& sink)
 {
+    if (nbJob < 1)
+        return 0;
     std::vector<int32_t> L(nbMac + 1, 0);
     int32_t fin[4] = {0, 0, 0, 0};
     int lanes = 0;
@@ -108,10 +119,13 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, long* out
             if (s >= 4)                       // s-3 <= nbMac since s <= nbMac+3
                 L[s - 3] = vgetq_lane_s32(v, 3);
             if (s >= nbMac) {                 // lane s-nbMac just finished machine nbMac
+                // vgetq_lane needs a compile-time lane; s-nbMac is a runtime
+                // index, so spill the vector and pick the lane from memory
                 int32_t tmp[4];
                 vst1q_s32(tmp, v);
                 fin[s - nbMac] = tmp[s - nbMac];
             }
+            sink.checked(v, s, j, lanes);
         };
 
         int s = 1;
@@ -122,45 +136,90 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, long* out
             const int32x4_t up = vsetq_lane_s32(L[s], pfsp_shift_up1(v), 0);
             v = vaddq_s32(vmaxq_s32(v, up), pfsp_gather(pt, J0, J1, J2, J3, s, s - 1, s - 2, s - 3));
             L[s - 3] = vgetq_lane_s32(v, 3);
+            sink.steady(v, s, j, lanes);
         }
         if (nbMac >= 4)                       // step nbMac ran in the steady loop
             fin[0] = vgetq_lane_s32(v, 0);
         for (; s <= nbMac + 3; ++s)
             checked_step(s);
 
-        if (Store)
-            for (int k = 0; k < lanes; ++k)
-                out[j + k] = fin[k];
+        sink.group(fin, j, lanes);
     }
     return fin[lanes - 1];
 }
+
+// Sink that keeps nothing (makespan only); base of the other sinks.
+struct PfspNeonNoSink {
+    void steady(int32x4_t, int, int, int) {}
+    void checked(int32x4_t, int, int, int) {}
+    void group(const int32_t*, int, int) {}
+};
+
+// out[j+k] = C(j+k, nbMac) for the real lanes.
+struct PfspNeonLastMachineSink : PfspNeonNoSink {
+    long* out;
+    explicit PfspNeonLastMachineSink(long* o) : out(o) {}
+    void group(const int32_t* fin, int j, int lanes)
+    {
+        for (int k = 0; k < lanes; ++k)
+            out[j + k] = fin[k];
+    }
+};
+
+// head[m][j] = C(j, m) for every cell the wavefront visits:
+// lane k at step s goes to head[s-k][j+k] when 1 <= s-k <= nbMac and k < lanes.
+struct PfspNeonHeadSink : PfspNeonNoSink {
+    std::vector< std::vector<int> >& head;
+    int nbMac;
+    PfspNeonHeadSink(std::vector< std::vector<int> >& h, int nm) : head(h), nbMac(nm) {}
+
+    void steady(int32x4_t v, int s, int j, int lanes)
+    {
+        if (lanes == 4) {                     // s-3 >= 1 and s <= nbMac in the steady loop
+            vst1q_lane_s32(head[s].data() + j, v, 0);
+            vst1q_lane_s32(head[s - 1].data() + j + 1, v, 1);
+            vst1q_lane_s32(head[s - 2].data() + j + 2, v, 2);
+            vst1q_lane_s32(head[s - 3].data() + j + 3, v, 3);
+        } else {
+            store_lanes(v, s, j, lanes);
+        }
+    }
+    void checked(int32x4_t v, int s, int j, int lanes) { store_lanes(v, s, j, lanes); }
+
+    void store_lanes(int32x4_t v, int s, int j, int lanes)
+    {
+        int32_t tmp[4];                       // runtime lane index: spill, read from memory
+        vst1q_s32(tmp, v);
+        for (int k = 0; k < lanes; ++k) {
+            const int m = s - k;
+            if (m >= 1 && m <= nbMac)
+                head[m][j + k] = tmp[k];
+        }
+    }
+};
 
 /** previousMachineEndTime[j] = C[j][nbMac] for j = 1..nbJob, and
  *  previousMachineEndTime[0] = 0 as in the scalar kernel. */
 inline void computePartialMakespans(std::vector<int>& sol, std::vector< long >& previousMachineEndTime, const PfspTimesView& pt, int nbJob, int nbMac)
 {
     previousMachineEndTime[0] = 0;
-    if (nbJob >= 1)
-        pfsp_neon_wavefront<true>(sol, previousMachineEndTime.data(), pt, nbJob, nbMac);
+    PfspNeonLastMachineSink sink(previousMachineEndTime.data());
+    pfsp_neon_wavefront(sol, pt, nbJob, nbMac, sink);
 }
 
 /** C[size][nbMac], 0 for size == 0 (PfspInstance::computeMS on NEON). */
 inline long pfsp_neon_makespan(std::vector<int>& sol, const PfspTimesView& pt, int size, int nbMac)
 {
-    if (size <= 0)
-        return 0;
-    return pfsp_neon_wavefront<false>(sol, nullptr, pt, size, nbMac);
+    PfspNeonNoSink sink;
+    return pfsp_neon_wavefront(sol, pt, size, nbMac, sink);
 }
 
-// placeholder: replaced in Task 6
+/** head[m][j] = C[j][m] for m = 1..nbMac, j = 1..nbJob; row 0, column 0 and
+ *  cells past nbJob / nbMac are not written. */
 inline void computeHEAD(std::vector<int> &sol, std::vector< std::vector < int > >& head, const PfspTimesView& pt, int nbJob, int nbMac)
 {
-    for (int j = 1; j <= nbJob; ++j)
-        for (int m = 1; m <= nbMac; ++m) {
-            const int prevJob = j > 1 ? head[m][j-1] : 0;
-            const int prevMac = m > 1 ? head[m-1][j] : 0;
-            head[m][j] = std::max(prevJob, prevMac) + pt.at(sol[j], m);
-        }
+    PfspNeonHeadSink sink(head, nbMac);
+    pfsp_neon_wavefront(sol, pt, nbJob, nbMac, sink);
 }
 
 // placeholder: replaced in Task 7

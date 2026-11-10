@@ -333,8 +333,8 @@ int main(int argc, char** argv)
 
     int fail = check_view(inst);
 
-    // The file instance plus synthetic 9-job instances with few machines
-    // (times 1..99 from the seeded RNG). nbMac 1..3 is NEON / scalar only: the
+    // The file instance plus synthetic 9-job instances with few machines and a
+    // 13 x 8 one (times 1..99 from the seeded RNG). nbMac 1..3 is NEON / scalar only: the
     // SSE kernels index machines up to 4 unconditionally.
     std::vector<std::unique_ptr<PfspInstance>> synth;
 #if defined(ENABLE_SIMD) && defined(__SSE__)
@@ -356,6 +356,17 @@ int main(int argc, char** argv)
                 for (int m = 1; m <= nm; ++m)
                     s.setTime(j, m, ptime(rng));
         }
+        // 13 jobs x 8 machines: steady wavefront steps (nbMac >= 4) with every
+        // remainder-group size (n = 1..13 covers n % 4 = 0..3, incl. 1,2,3,4,5,8,13)
+        synth.emplace_back(new PfspInstance());
+        PfspInstance& s = *synth.back();
+        s.setSilence(true);
+        s.setNbJob(13);
+        s.setNbMac(8);
+        s.allowMatrixMemory(13, 8);
+        for (int j = 1; j <= 13; ++j)
+            for (int m = 1; m <= 8; ++m)
+                s.setTime(j, m, ptime(rng));
     }
     std::vector<PfspInstance*> all{&inst};
     for (const std::unique_ptr<PfspInstance>& s : synth)
