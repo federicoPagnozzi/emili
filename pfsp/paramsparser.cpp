@@ -13,12 +13,7 @@
 #include <algorithm>
 #include "pfspinstance.h"
 
-#ifdef ENABLE_SSE
-/* Temporary fallback; Task 4 replaces it with pfsp_simd.h. */
-#ifndef PFSP_SIMD_NAME
-#define PFSP_SIMD_NAME "SSE"
-#endif
-#endif
+#include "pfsp_simd.h"
 
 /* Algos */
 #define IG "ig"
@@ -228,28 +223,28 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
     emili::pfsp::PermutationFlowShop* prob;
     if(strcmp(t,PROBLEM_PFS_WT)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Weighted Tardiness");
         prob = new emili::pfsp::PFSP_WT(i);
     }else if(strcmp(t,PROBLEM_PFS_E)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Earliness");
         prob = new emili::pfsp::PFSP_E(i);
     }else if(strcmp(t,PROBLEM_PFS_WE)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Weighted Earliness");
         prob = new emili::pfsp::PFSP_WE(i);
     }else if(strcmp(t,PROBLEM_PFS_T)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
 
@@ -257,7 +252,7 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
         prob = new emili::pfsp::PFSP_T(i);
     }else if(strcmp(t,PROBLEM_PFS_MS)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Make Span");
@@ -265,7 +260,7 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
     }
     else if(strcmp(t,PROBLEM_PFS_TCT)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop TCT");
@@ -273,7 +268,7 @@ emili::pfsp::PermutationFlowShop* instantiateProblem(char* t, PfspInstance i)
     }
     else if(strcmp(t,PROBLEM_PFS_WCT)==0)
     {
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
 

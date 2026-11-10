@@ -1,10 +1,15 @@
 // simd_parity: checks the SIMD data structures / kernels against the scalar code.
 // usage: simd_parity <instance> [seed] [rounds]
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <numeric>
+#include <random>
+#include <vector>
 
 #include "../../pfsp/pfspinstance.h"
 #include "../../pfsp/pfsp_ptimes.h"
+#include "../../pfsp/pfsp_simd.h"
 
 static int check_view(PfspInstance& inst)
 {
@@ -60,6 +65,52 @@ static int check_view(PfspInstance& inst)
     return 0;
 }
 
+#ifdef ENABLE_SIMD
+// Reference completion times: C[j][m] = max(C[j-1][m], C[j][m-1]) + p(sol[j], m),
+// with C[0][*] = C[*][0] = 0.
+static std::vector<std::vector<long>> ref_completion(PfspInstance& inst, const std::vector<int>& sol, int n)
+{
+    const PfspTimesView pt = inst.getTimesView();
+    const int nm = inst.getNbMac();
+    std::vector<std::vector<long>> C(n + 1, std::vector<long>(nm + 1, 0));
+    for (int j = 1; j <= n; ++j)
+        for (int m = 1; m <= nm; ++m)
+            C[j][m] = std::max(C[j-1][m], C[j][m-1]) + pt.at(sol[j], m);
+    return C;
+}
+
+static int check_partial_makespans_one(PfspInstance& inst, std::vector<int>& sol, const char* label)
+{
+    const int n = inst.getNbJob();
+    const int nm = inst.getNbMac();
+    const std::vector<std::vector<long>> C = ref_completion(inst, sol, n);
+    std::vector<long> pmet(n + 1, 0);
+    computePartialMakespans(sol, pmet, inst.getTimesView(), n, nm);
+    for (int j = 1; j <= n; ++j) {
+        if (pmet[j] != C[j][nm]) {
+            std::printf("kernel=partial_makespans(%s) size=%d cell=[%d][%d] expected=%ld got=%ld\n",
+                        label, n, nm, j, C[j][nm], pmet[j]);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int check_partial_makespans(PfspInstance& inst, std::vector<int>& sol, unsigned seed, int rounds)
+{
+    if (check_partial_makespans_one(inst, sol, "identity"))
+        return 1;
+    std::mt19937 rng(seed);
+    for (int r = 0; r < rounds; ++r) {
+        std::shuffle(sol.begin() + 1, sol.end(), rng);
+        if (check_partial_makespans_one(inst, sol, "shuffle"))
+            return 1;
+    }
+    std::printf("partial_makespans: OK\n");
+    return 0;
+}
+#endif
+
 int main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -78,5 +129,18 @@ int main(int argc, char** argv)
         std::fprintf(stderr, "empty instance %s\n", argv[1]);
         return 2;
     }
-    return check_view(inst);
+    const unsigned seed = argc > 2 ? (unsigned)std::strtoul(argv[2], nullptr, 10) : 42u;
+    const int rounds = argc > 3 ? std::atoi(argv[3]) : 20;
+
+    int fail = check_view(inst);
+#ifdef ENABLE_SIMD
+    // sol[0] = 0 is the unused slot, jobs are 1..nbJob
+    std::vector<int> sol(inst.getNbJob() + 1);
+    std::iota(sol.begin(), sol.end(), 0);
+    fail |= check_partial_makespans(inst, sol, seed, rounds);
+#else
+    (void)seed;
+    (void)rounds;
+#endif
+    return fail;
 }

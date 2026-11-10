@@ -12,9 +12,7 @@
 #include <algorithm>
 #include <limits>
 
-#ifdef ENABLE_SSE
-#include "sse_functions.h"
-#endif
+#include "pfsp_simd.h"
 
 #ifdef NOC11
 struct rzcomp{
@@ -1006,8 +1004,9 @@ std::vector< int > inline nehffls(std::vector<int >& _fsp,
     for(int k=3;k<=N;k++){
             min = std::numeric_limits<int>::max();//min=10000000;
             //pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solTMP,head,tail,pmatrix,solTMP.size()-1,m);
+#ifdef ENABLE_SIMD
+        PfspTimesView ptv = pis.getTimesView();
+        computeHEADandTAIL(solTMP,head,tail,ptv,solTMP.size()-1,m);
 #else
         pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
 #endif
@@ -1144,8 +1143,9 @@ std::vector< int > inline nehff(std::vector<int >& _fsp,
     for(int k=3;k<=N;k++){
             min = std::numeric_limits<int>::max();//min=10000000;
             //pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solTMP,head,tail,pmatrix,solTMP.size()-1,m);
+#ifdef ENABLE_SIMD
+        PfspTimesView ptv = pis.getTimesView();
+        computeHEADandTAIL(solTMP,head,tail,ptv,solTMP.size()-1,m);
 #else
         pis.computeTAmatrices(solTMP,head,tail,solTMP.size());
 #endif
@@ -1543,10 +1543,10 @@ void emili::pfsp::PermutationFlowShop::computeTAmatrices(std::vector<int> &sol,s
 
 void emili::pfsp::PermutationFlowShop::computeHead(std::vector<int> &sol, std::vector<std::vector<int> > &head, int njobs)
 {
-    #ifdef ENABLE_SSE
+    #ifdef ENABLE_SIMD
         //std::cout << "pre head" << "\n";
-        const std::vector < std::vector < long int > >& pmatrix =  instance.getProcessingTimesMatrix();
-        computeHEAD(sol,head,pmatrix,njobs-1,instance.getNbMac());
+        PfspTimesView ptv = instance.getTimesView();
+        computeHEAD(sol,head,ptv,njobs-1,instance.getNbMac());
         //std::cout << "post head" << "\n";
     #else
         instance.computeHead(sol,head,njobs);
@@ -2981,9 +2981,9 @@ emili::Solution* emili::pfsp::IGOPerturbation::perturb(Solution *solution)
         sops++;
         int k=removed[l];
         min = std::numeric_limits<int>::max();
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         //std::cout << "pre head" << "\n";
-    computeHEAD(solPartial,head,pmatrix,sops-1,nmac);
+    computeHEAD(solPartial,head,ptv,sops-1,nmac);
         //std::cout << "post head" << "\n";
 #else
     instance.getInstance().computeHead(solPartial,head,sops);
@@ -3159,8 +3159,8 @@ emili::Solution* emili::pfsp::RSIOPerturbation::perturb(Solution *solution)
         sops++;
         min = std::numeric_limits<int>::max();
 
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,nmac);
+#ifdef ENABLE_SIMD
+        computeHEADandTAIL(solPartial,head,tail,ptv,sops-1,nmac);
 #else
         instance.computeTAmatrices(solPartial,head,tail,sops);
 #endif
@@ -3231,8 +3231,8 @@ emili::Solution* emili::pfsp::RSPerturbation::perturb(Solution *solution)
         sops++;
         k=removed[l];
         min = std::numeric_limits<int>::max();
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,nmac);
+#ifdef ENABLE_SIMD
+        computeHEADandTAIL(solPartial,head,tail,ptv,sops-1,nmac);
 #else
         instance.computeTAmatrices(solPartial,head,tail,sops);
 #endif
@@ -3302,8 +3302,8 @@ emili::Solution* emili::pfsp::RSffPerturbation::perturb(Solution *solution)
         k=removed[l];
         sops++;
         min = std::numeric_limits<int>::max();
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,nmac);
+#ifdef ENABLE_SIMD
+        computeHEADandTAIL(solPartial,head,tail,ptv,sops-1,nmac);
 #else
         instance.computeTAmatrices(solPartial,head,tail,sops);
 #endif
@@ -3590,9 +3590,9 @@ emili::Solution* emili::pfsp::IGOLsPerturbation::perturb(Solution *solution)
         sops++;
         int k=removed[l];
         min = std::numeric_limits<int>::max();
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
         //std::cout << "pre head" << "\n";
-    computeHEAD(solPartial,head,pmatrix,sops-1,nmac);
+    computeHEAD(solPartial,head,ptv,sops-1,nmac);
         //std::cout << "post head" << "\n";
 #else
     instance.getInstance().computeHead(solPartial,head,sops);
@@ -3746,8 +3746,9 @@ emili::Solution* emili::pfsp::RSLSPerturbation::perturb(Solution *solution)
         sops++;
         k=removed[l];
         min = std::numeric_limits<int>::max();
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,mac);
+#ifdef ENABLE_SIMD
+        PfspTimesView ptv = instance.getTimesView();
+        computeHEADandTAIL(solPartial,head,tail,ptv,sops-1,mac);
 #else
         instance.computeTAmatrices(solPartial,head,tail,sops);
 #endif
@@ -3840,8 +3841,9 @@ emili::Solution* emili::pfsp::RSffLSPerturbation::perturb(Solution *solution)
         sops++;
         min = std::numeric_limits<int>::max();
 
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(solPartial,head,tail,pmatrix,sops-1,nmac);
+#ifdef ENABLE_SIMD
+        PfspTimesView ptv = instance.getTimesView();
+        computeHEADandTAIL(solPartial,head,tail,ptv,sops-1,nmac);
 #else
         instance.computeTAmatrices(solPartial,head,tail,sops);
 #endif
@@ -4073,8 +4075,9 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::TaillardAcceleratedInsert
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEADandTAIL(sol,head,tail,ptv,njobs-1,nmac);
 #else
             computeTAmatrices(sol);
 #endif
@@ -4087,8 +4090,9 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::FSTaillardAcceleratedInse
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEADandTAIL(sol,head,tail,ptv,njobs-1,nmac);
 #else
             computeTAmatrices(sol);
 #endif
@@ -4103,8 +4107,9 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::HeavilyApproximatedTailla
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-#ifdef ENABLE_SSE
-    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+    PfspTimesView ptv = pis.getTimesView();
+    computeHEAD(sol,head,ptv,njobs-1,nmac);
 #else
     computeHead(sol);    
 #endif
@@ -4117,8 +4122,9 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::Natx2Neighborhood::begin(
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-#ifdef ENABLE_SSE
-    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+    PfspTimesView ptv = pis.getTimesView();
+    computeHEAD(sol,head,ptv,njobs-1,nmac);
 #else
     computeHead(sol);
 #endif
@@ -4178,8 +4184,9 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::AxtExchange::begin(Soluti
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     sol.erase(sol.begin()+start_position);
-#ifdef ENABLE_SSE
-    computeHEAD(sol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+    PfspTimesView ptv = pis.getTimesView();
+    computeHEAD(sol,head,ptv,njobs-1,nmac);
 #else
     computeHead(sol);
 #endif
@@ -4356,8 +4363,9 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::KarNeighborhood::begin(So
     sp_iterations = 1;
     std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
     //sol.erase(sol.begin()+start_position);
-#ifdef ENABLE_SSE
-    computeHEAD(sol,head,pmatrix,njobs,nmac);
+#ifdef ENABLE_SIMD
+    PfspTimesView ptv = pis.getTimesView();
+    computeHEAD(sol,head,ptv,njobs,nmac);
 #else
     njobs++;
     computeHead(sol);
@@ -4514,8 +4522,9 @@ emili::Solution* emili::pfsp::TaillardAcceleratedInsertNeighborhood::computeStep
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEADandTAIL(newsol,head,tail,ptv,njobs-1,nmac);
 #else
             computeTAmatrices(newsol);
 
@@ -4569,8 +4578,9 @@ emili::Solution* emili::pfsp::CSTaillardAcceleratedInsertNeighborhood::computeSt
         start_position = ((start_position)%njobs)+1;
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-        computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+        PfspTimesView ptv = pis.getTimesView();
+        computeHEADandTAIL(newsol,head,tail,ptv,njobs-1,nmac);
 #else
         computeTAmatrices(newsol);
 
@@ -4634,8 +4644,9 @@ emili::Solution* emili::pfsp::CSInsertNeighborhood::computeStep(emili::Solution 
         start_position = ((start_position)%njobs)+1;
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-        computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+        PfspTimesView ptv = pis.getTimesView();
+        computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
         computeTAmatrices(newsol);
 
@@ -4772,8 +4783,9 @@ emili::Solution* emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::computeSt
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEADandTAIL(newsol,head,tail,ptv,njobs-1,nmac);
 #else
             computeTAmatrices(newsol);
 
@@ -4825,8 +4837,9 @@ void emili::pfsp::FSTaillardAcceleratedInsertNeighborhood::reverseLastMove(Solut
         ep_iterations = 1;
         std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)step)->getJobSchedule());        
         sol.erase(sol.begin()+start_position);
-    #ifdef ENABLE_SSE
-                computeHEADandTAIL(sol,head,tail,pmatrix,njobs-1,nmac);
+    #ifdef ENABLE_SIMD
+                PfspTimesView ptv = pis.getTimesView();
+                computeHEADandTAIL(sol,head,tail,ptv,njobs-1,nmac);
     #else
                 computeTAmatrices(sol);
     #endif
@@ -4876,8 +4889,9 @@ emili::Solution* emili::pfsp::OptInsert::computeStep(emili::Solution *value)
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEADandTAIL(newsol,head,tail,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEADandTAIL(newsol,head,tail,ptv,njobs-1,nmac);
 #else
             computeTAmatrices(newsol);
 
@@ -5009,8 +5023,9 @@ emili::Solution* emili::pfsp::HeavilyApproximatedTaillardAcceleratedInsertNeighb
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -5154,8 +5169,9 @@ emili::Solution* emili::pfsp::NatxNeighborhood::computeStep(emili::Solution *val
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -5278,8 +5294,9 @@ emili::Solution* emili::pfsp::AtxNeighborhood::computeStep(emili::Solution *valu
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -5378,15 +5395,16 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
         }
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-/** #ifdef ENABLE_SSE
+/** #ifdef ENABLE_SIMD
         float ins_pos[nmac+1];
 #else*/
         int ins_pos[nmac+1];
@@ -5427,7 +5445,7 @@ emili::Solution* emili::pfsp::Natx2Neighborhood::computeStep(emili::Solution *va
                 thresh++;
             }
             /**
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
             std::vector< long int > pmet(njobs+1,0);
             computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
            for(int k=end_position+1; k<= njobs; k++)
@@ -5529,8 +5547,9 @@ emili::Solution* emili::pfsp::EatxNeighborhood::computeStep(emili::Solution *val
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -5655,8 +5674,9 @@ emili::Solution* emili::pfsp::ThatxNeighborhood::computeStep(emili::Solution *va
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -5783,8 +5803,9 @@ emili::Solution* emili::pfsp::FatxNeighborhood::computeStep(emili::Solution *val
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -5913,8 +5934,9 @@ emili::Solution* emili::pfsp::PatxNeighborhood::computeStep(emili::Solution *val
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -6044,8 +6066,9 @@ emili::Solution* emili::pfsp::SatxNeighborhood::computeStep(emili::Solution *val
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -6179,8 +6202,9 @@ emili::Solution* emili::pfsp::TatxNeighborhood::computeStep(emili::Solution *val
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -6308,15 +6332,16 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
         }
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-/** #ifdef ENABLE_SSE
+/** #ifdef ENABLE_SIMD
         float ins_pos[nmac+1];
 #else*/
         int ins_pos[nmac+1];
@@ -6357,7 +6382,7 @@ emili::Solution* emili::pfsp::NatxTCTNeighborhood::computeStep(emili::Solution *
                 thresh++;
             }
             /**
-#ifdef ENABLE_SSE
+#ifdef ENABLE_SIMD
             std::vector< long int > pmet(njobs+1,0);
             computePMakespans(newsol,pmet,pis.getProcessingTimesMatrix(),njobs+1,nmac,end_position+1,ins_pos);
            for(int k=end_position+1; k<= njobs; k++)
@@ -6442,8 +6467,9 @@ emili::Solution* emili::pfsp::NrzTCTNeighborhood::computeStep(emili::Solution *v
 
     sol_i = seed;
     newsol.erase(newsol.begin()+actual_pos);
-#ifdef ENABLE_SSE
-    computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+    PfspTimesView ptv = pis.getTimesView();
+    computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
     computeHead(newsol);
 #endif
@@ -6554,15 +6580,16 @@ emili::Solution* emili::pfsp::NatxTTNeighborhood::computeStep(emili::Solution *v
             }
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
         }
 
         newsol.insert(newsol.begin()+end_position,sol_i);
-/** #ifdef ENABLE_SSE
+/** #ifdef ENABLE_SIMD
         float ins_pos[nmac+1];
 #else*/
         int ins_pos[nmac+1];
@@ -6735,7 +6762,7 @@ emili::Neighborhood::NeighborhoodIterator emili::pfsp::SDSTTaillardAcceleratedIn
     sp_iterations = 1;
 //    std::vector< int > sol(((emili::pfsp::PermutationFlowShopSolution*)base)->getJobSchedule());
 //    sol.erase(sol.begin()+start_position);
-//#ifdef ENABLE_SSE
+//#ifdef ENABLE_SIMD
 //    pis.getInstance().computeSDSTTAmatrices(sol,head,tail,njobs);
     return emili::Neighborhood::NeighborhoodIterator(this,base);
 }
@@ -6757,7 +6784,7 @@ emili::Solution* emili::pfsp::SDSTTaillardAcceleratedInsertNeighborhood::compute
         start_position = ((start_position)%njobs)+1;
         int sol_i = newsol[start_position];
         newsol.erase(newsol.begin()+start_position);
-//#ifdef ENABLE_SSE
+//#ifdef ENABLE_SIMD
         pis.getInstance().computeSDSTTAmatrices(newsol,head,tail,njobs);
 
         for(int k=1; k<=njobs; k++)
@@ -7595,8 +7622,9 @@ emili::Solution* emili::pfsp::AxtExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -7721,8 +7749,9 @@ emili::Solution* emili::pfsp::HaxtExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -7832,8 +7861,9 @@ emili::Solution* emili::pfsp::EaxtExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
@@ -7953,8 +7983,9 @@ emili::Solution* emili::pfsp::OptExchange::computeStep(emili::Solution *value)
             end_position = start_position;
             sol_i = newsol[start_position];
             newsol.erase(newsol.begin()+start_position);
-#ifdef ENABLE_SSE
-            computeHEAD(newsol,head,pmatrix,njobs-1,nmac);
+#ifdef ENABLE_SIMD
+            PfspTimesView ptv = pis.getTimesView();
+            computeHEAD(newsol,head,ptv,njobs-1,nmac);
 #else
             computeHead(newsol);
 #endif
