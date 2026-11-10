@@ -28,6 +28,24 @@ PARITY_INSTANCE="testing/DD_Ta055.txt"
 
 step() { echo; echo "=== $* ==="; }
 
+# check_path <build dir> <scalar|simd>: the golden harness strips the startup
+# banner, so run one cheap instance and assert the build really took (simd) or
+# avoided (scalar) the SIMD code path.
+check_path() {
+    local build="$1" expect="$2" out
+    out="$("./${build}/emili" testing/DD_Ta055.txt PFSP_MS first neh locmin insert rnds 42)"
+    if [ "${expect}" = "simd" ]; then
+        if ! printf '%s\n' "${out}" | grep -q 'SIMD run path enabled:'; then
+            echo "FAIL: ${build} is a SIMD leg but did not report 'SIMD run path enabled:'"; exit 1
+        fi
+    else
+        if printf '%s\n' "${out}" | grep -q 'SIMD run path enabled:'; then
+            echo "FAIL: ${build} is a scalar leg but reported 'SIMD run path enabled:'"; exit 1
+        fi
+    fi
+    echo "path check OK: ${build} is ${expect}"
+}
+
 step "toolchain"
 cmake --version | head -1
 "${CXX:-c++}" --version | head -1
@@ -39,6 +57,7 @@ bash testing/normalize_check.sh
 step "release build (${BUILD_REL})"
 cmake -S . -B "${BUILD_REL}" > /dev/null
 cmake --build "${BUILD_REL}" -j"${JOBS}"
+check_path "${BUILD_REL}" scalar
 
 step "simd_parity (scalar release)"
 "./${BUILD_REL}/simd_parity" "${PARITY_INSTANCE}"
@@ -52,6 +71,7 @@ step "negative tests (release)"
 step "simd release build (${BUILD_SIMD})"
 cmake -S . -B "${BUILD_SIMD}" -DUSE_SIMD=ON > /dev/null
 cmake --build "${BUILD_SIMD}" -j"${JOBS}"
+check_path "${BUILD_SIMD}" simd
 
 step "simd_parity (simd release)"
 "./${BUILD_SIMD}/simd_parity" "${PARITY_INSTANCE}"
@@ -65,6 +85,7 @@ step "negative tests (simd release)"
 step "sanitizer build (${BUILD_ASAN}): ASan + UBSan + LSan, -Wall -Wextra -Werror"
 cmake -S . -B "${BUILD_ASAN}" -DO3_FLAGS=OFF -DDEBUG_FLAGS=ON > /dev/null
 cmake --build "${BUILD_ASAN}" -j"${JOBS}"
+check_path "${BUILD_ASAN}" scalar
 
 # halt_on_error: the first sanitizer report aborts the run, which the golden
 # script records as a nonzero exit -> [DIFF] -> gate failure.
@@ -86,6 +107,7 @@ step "negative tests (sanitizers)"
 step "simd sanitizer build (${BUILD_SIMD_ASAN}): ASan + UBSan + LSan, -Wall -Wextra -Werror"
 cmake -S . -B "${BUILD_SIMD_ASAN}" -DO3_FLAGS=OFF -DDEBUG_FLAGS=ON -DUSE_SIMD=ON > /dev/null
 cmake --build "${BUILD_SIMD_ASAN}" -j"${JOBS}"
+check_path "${BUILD_SIMD_ASAN}" simd
 
 step "simd_parity (simd sanitizers)"
 "./${BUILD_SIMD_ASAN}/simd_parity" "${PARITY_INSTANCE}"
