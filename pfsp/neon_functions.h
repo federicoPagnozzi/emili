@@ -73,6 +73,36 @@ static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m,
     return (m >= 1 && m <= nbMac) ? pt.at(job, Dir::mac(m, nbMac)) : 0;
 }
 
+/*  Machine count up to which the wavefront's per-machine carry L[0..nbMac]
+ *  lives in a stack buffer; above it the carry is heap-allocated. A heap
+ *  vector per call (malloc/free on every makespan call of the insert and
+ *  exchange neighbourhoods) cost 17-30% of the NEON run time on the 50x20
+ *  insert rows (Task 10b). This is a stack-size bound, not a tuned value:
+ *  129 int32 = 516 bytes; Taillard / VRF instances have <= 60 machines.
+ */
+constexpr int PFSP_NEON_STACK_MACHINES = 128;
+
+// L[0..nbMac], zero-initialised: stack buffer when nbMac <= PFSP_NEON_STACK_MACHINES
+class PfspNeonCarry {
+    int32_t stack_[PFSP_NEON_STACK_MACHINES + 1];
+    std::vector<int32_t> heap_;
+    int32_t* p_;
+public:
+    explicit PfspNeonCarry(int nbMac)
+    {
+        if (nbMac <= PFSP_NEON_STACK_MACHINES) {
+            std::fill(stack_, stack_ + nbMac + 1, 0);
+            p_ = stack_;
+        } else {
+            heap_.assign(nbMac + 1, 0);
+            p_ = heap_.data();
+        }
+    }
+    PfspNeonCarry(const PfspNeonCarry&) = delete;
+    PfspNeonCarry& operator=(const PfspNeonCarry&) = delete;
+    int32_t* data() { return p_; }
+};
+
 /*  Anti-diagonal wavefront over groups of 4 jobs J0..J3 = sol[j..j+3]
  *  (with Dir = PfspNeonMirror read every job / machine index below through
  *  the mirror: Jk = sol[Dir::job(j+k)], machine s-k is Dir::mac(s-k); the
@@ -123,7 +153,8 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const Pfs
 {
     if (nbJob < 1)
         return 0;
-    std::vector<int32_t> L(nbMac + 1, 0);
+    PfspNeonCarry carry(nbMac);
+    int32_t* const L = carry.data();
     int32_t fin[4] = {0, 0, 0, 0};
     int lanes = 0;
 

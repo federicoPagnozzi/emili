@@ -448,6 +448,20 @@ int main(int argc, char** argv)
         for (int j = 1; j <= 13; ++j)
             for (int m = 1; m <= 8; ++m)
                 s.setTime(j, m, ptime(rng));
+#if defined(ENABLE_SIMD) && defined(__ARM_NEON)
+        // 6 jobs x (PFSP_NEON_STACK_MACHINES + 3) machines: the NEON carry's
+        // heap fallback (the stack buffer covers nbMac <= PFSP_NEON_STACK_MACHINES)
+        const int big_mac = PFSP_NEON_STACK_MACHINES + 3;
+        synth.emplace_back(new PfspInstance());
+        PfspInstance& b = *synth.back();
+        b.setSilence(true);
+        b.setNbJob(6);
+        b.setNbMac(big_mac);
+        b.allowMatrixMemory(6, big_mac);
+        for (int j = 1; j <= 6; ++j)
+            for (int m = 1; m <= big_mac; ++m)
+                b.setTime(j, m, ptime(rng));
+#endif
     }
     // Magnitude cases, 7 jobs x 20 machines, constant times. Largest completion
     // time is (nbJob + nbMac - 1) * p = 26 * p.
