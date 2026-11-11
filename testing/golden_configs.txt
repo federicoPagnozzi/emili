@@ -12,3 +12,5 @@ pfsp_ms_ils_igoper_s42|DD_Ta055.txt|PFSP_MS ils first neh locmin tainsert maxste
 pfsp_ms_ils_rsper_s42|DD_Ta055.txt|PFSP_MS ils first neh locmin tainsert maxstep 30 rsper 4 improve rnds 42
 pfsp_ms_nehff_s42|DD_Ta055.txt|PFSP_MS first nehff locmin insert rnds 42
 pfsp_ms_first_csinsert_s42|DD_Ta055.txt|PFSP_MS first neh locmin csinsert rnds 42
+pfsp_ms_first_karnghb_s42|DD_Ta055.txt|PFSP_MS first neh locmin karnghb rnds 42
+pfsp_ms_first_fstainsert_s42|DD_Ta055.txt|PFSP_MS first neh locmin fstainsert rnds 42
