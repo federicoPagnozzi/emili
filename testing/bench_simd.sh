@@ -38,13 +38,6 @@ done
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# now: seconds as a float, portable (python3 or perl).
-if command -v python3 >/dev/null 2>&1; then
-    now() { python3 -c 'import time;print("%.6f"%time.time())'; }
-else
-    now() { perl -MTime::HiRes=time -e 'printf "%.6f\n", time'; }
-fi
-
 # timed <binary> <instance> <count> <args...>: wall seconds for <count>
 # consecutive runs (output discarded).  Timestamps are taken by a single
 # python3/perl process that spawns the runs, so interpreter start-up is not
@@ -111,7 +104,6 @@ printf '|---|---|'
 for l in "${LABELS[@]}"; do printf -- '---:|'; done
 echo '---:|'
 
-fail=0
 NR_=${#ROWS_NAME[@]}
 r=0
 while [ $r -lt $NR_ ]; do
@@ -173,4 +165,3 @@ while [ $r -lt $NR_ ]; do
     for ((i=0;i<NB;i++)); do printf ' %.3f |' "${MED[$i]}"; done
     awk -v a="${MED[0]}" -v b="${MED[$((NB-1))]}" 'BEGIN{printf " %.2f |\n", (b>0)?a/b:0}'
 done
-exit $fail

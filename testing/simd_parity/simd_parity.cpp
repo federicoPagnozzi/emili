@@ -341,24 +341,6 @@ static int check_head_tail_identity(PfspInstance& inst, const std::vector<std::v
 static int check_neon_helpers()
 {
     int32_t out[4];
-    const int32_t in[4] = {3, 5, 7, 11};
-    const int32x4_t v = vld1q_s32(in);
-
-    vst1q_s32(out, pfsp_shift_up1(v));
-    const int32_t up[4] = {0, 3, 5, 7};
-    for (int k = 0; k < 4; ++k)
-        if (out[k] != up[k]) {
-            std::printf("kernel=pfsp_shift_up1 lane=%d expected=%d got=%d\n", k, up[k], out[k]);
-            return 1;
-        }
-
-    vst1q_s32(out, pfsp_prefix_sum(v, 100));
-    const int32_t ps[4] = {103, 108, 115, 126};
-    for (int k = 0; k < 4; ++k)
-        if (out[k] != ps[k]) {
-            std::printf("kernel=pfsp_prefix_sum lane=%d expected=%d got=%d\n", k, ps[k], out[k]);
-            return 1;
-        }
 
     // 3 jobs x 4 machines, stride 5
     std::vector<int32_t> buf(4 * 5);

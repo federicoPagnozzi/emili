@@ -1906,13 +1906,9 @@ void PfspInstance::computeTAmatrices(std::vector<int> &sol,std::vector< std::vec
             for ( m = 2; m <= nbMac; ++m )
             {
                 int n = nbMac-m+1;
-                int nextTail = tail[n].size() > (size_t)(k+1) ? tail[n][k+1] : 0;
-                if(k+1>=size)
-                {
-                    nextTail = 0;
-                    if((size_t)(k+1) < tail[n].size())
-                        tail[n][k+1] = 0;
-                }
+                int nextTail = (k+1 < size) ? tail[n][k+1] : 0;
+                if(k+1>=size && (size_t)(k+1) < tail[n].size())
+                    tail[n][k+1] = 0;
 
 
             if ( head[m][j-1] > previousJobEndTime )

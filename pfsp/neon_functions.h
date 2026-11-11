@@ -7,8 +7,8 @@
 //    C[j][m] = max(C[j-1][m], C[j][m-1]) + p(sol[j], m),  C[0][*] = C[*][0] = 0
 //    T[j][m] = max(T[j][m+1], T[j+1][m]) + p(sol[j], m),  T[*][nbMac+1] = T[nbJob+1][*] = 0
 //  where nbJob is the number of leading jobs sol[1..nbJob] that count. Unlike
-//  the SSE kernels they never resize or modify sol / previousMachineEndTime and
-//  never write past index nbJob. Arithmetic is int32, widened to long on store:
+//  the SSE kernels they never resize sol or previousMachineEndTime, never
+//  modify sol, and never write past index nbJob. Arithmetic is int32, widened to long on store:
 //  the lanes are int32, so every completion time must stay below 2^31
 //  (PfspInstance::setTime asserts that each processing time fits in int32).
 //
@@ -22,23 +22,9 @@
 
 #include "pfsp_ptimes.h"
 
-// [0, v0, v1, v2]: lane k receives lane k-1, lane 0 is zero
-static inline int32x4_t pfsp_shift_up1(int32x4_t v)
-{
-    return vextq_s32(vdupq_n_s32(0), v, 3);
-}
-
-// [v0+k, v0+v1+k, v0+v1+v2+k, v0+..+v3+k]
-static inline int32x4_t pfsp_prefix_sum(int32x4_t v, int32_t k)
-{
-    v = vaddq_s32(v, pfsp_shift_up1(v));                     // v0, v0+v1, v1+v2, v2+v3
-    v = vaddq_s32(v, vextq_s32(vdupq_n_s32(0), v, 2));       // v0, v0+v1, v0+..+v2, v0+..+v3
-    return vaddq_s32(v, vdupq_n_s32(k));
-}
-
 // [pt.at(j0,m0), pt.at(j1,m1), pt.at(j2,m2), pt.at(j3,m3)]
-static inline int32x4_t pfsp_gather(const PfspTimesView& pt, int j0, int j1, int j2, int j3,
-                                    int m0, int m1, int m2, int m3)
+inline int32x4_t pfsp_gather(const PfspTimesView& pt, int j0, int j1, int j2, int j3,
+                             int m0, int m1, int m2, int m3)
 {
     int32x4_t v = vdupq_n_s32(pt.at(j0, m0));
     v = vsetq_lane_s32(pt.at(j1, m1), v, 1);
@@ -68,7 +54,7 @@ struct PfspNeonMirror {
 // p(job, Dir::mac(m)) for any logical m, 0 outside the machines 1..nbMac
 // (fill / drain lanes)
 template <class Dir>
-static inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m, int nbMac)
+inline int32_t pfsp_time_or_zero(const PfspTimesView& pt, int job, int m, int nbMac)
 {
     return (m >= 1 && m <= nbMac) ? pt.at(job, Dir::mac(m, nbMac)) : 0;
 }
@@ -85,6 +71,8 @@ constexpr int PFSP_NEON_STACK_MACHINES = 128;
 // L[0..nbMac], zero-initialised: stack buffer when nbMac <= PFSP_NEON_STACK_MACHINES
 class PfspNeonCarry {
     int32_t stack_[PFSP_NEON_STACK_MACHINES + 1];
+    static_assert(sizeof(stack_) / sizeof(stack_[0]) == PFSP_NEON_STACK_MACHINES + 1,
+                  "stack carry holds L[0..PFSP_NEON_STACK_MACHINES]");
     std::vector<int32_t> heap_;
     int32_t* p_;
 public:
@@ -152,8 +140,8 @@ public:
  *  nbJob < 1: Forward C[nbJob][nbMac]; Mirror T[1][1].
  */
 template <class Dir = PfspNeonForward, class Sink>
-static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const PfspTimesView& pt,
-                                          int nbJob, int nbMac, Sink& sink)
+int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const PfspTimesView& pt,
+                            int nbJob, int nbMac, Sink& sink)
 {
     if (nbJob < 1)
         return 0;

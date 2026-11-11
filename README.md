@@ -124,8 +124,8 @@ $ cmake ../ -DUSE_SIMD=ON
 * Results are bit-identical to the scalar build: same objective values and same
   trajectories for the same seed. The golden tests and the ```simd_parity```
   program check this.
-* A SIMD binary prints ```SIMD run path enabled: SSE``` (or ```NEON```) at start-up; a
-  scalar binary prints no such line.
+* A SIMD binary prints ```SIMD run path enabled: SSE``` (or ```NEON```) when it loads
+  a PFSP problem; a scalar binary prints no such line.
 * Limits: the NEON kernels use int32 completion times (each must stay below 2^31).
   The SSE kernels use float lanes, exact only while completion times stay below
   2^24, and assume at least 4 machines.
