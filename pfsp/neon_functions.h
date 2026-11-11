@@ -113,7 +113,7 @@ public:
  *
  *  At step s (s = 1 .. nbMac+3) lane k computes job Jk on machine m = s-k:
  *
- *        v (after step s)           up = shift_up1(v_prev), lane 0 <- L[s]
+ *        v (after step s)           up = ext(dup(L[s]), v_prev, 3)
  *    [ C0,s  C1,s-1  C2,s-2  C3,s-3 ]   [ L[s]  C0,s-1  C1,s-2  C2,s-3 ]
  *
  *    v = max(v_prev, up) + [p(J0,s), p(J1,s-1), p(J2,s-2), p(J3,s-3)]
@@ -122,8 +122,12 @@ public:
  *  earlier), lane 0 takes the carry L[m]: the previous group's last job on
  *  machine m. Lane k only reads lanes < k, so lanes past nbJob (job id 0 in
  *  the remainder group) never reach a stored value.
- *  The carry is a per-machine array, not a broadcast: L[s] is inserted into
- *  lane 0 (vsetq_lane 0) and lane 3's C3,s-3 is extracted (vgetq_lane 3).
+ *  The carry is a per-machine array, not a broadcast: L[s] enters lane 0 and
+ *  lane 3's C3,s-3 is extracted (vgetq_lane 3). L[s] is broadcast and joined
+ *  to v_prev with one vext, off the v dependency chain; inserting it with
+ *  vsetq_lane compiled to a lane load (ld1 {v}[0]) that merges into the
+ *  shifted v, putting a load latency on the chain at every step (Task 10b:
+ *  the vext form measured 17-31% faster on the 50x20 insert rows).
  *
  *  fill  s = 1..3      : lanes k >= s are before machine 1; they stay 0 by
  *                        induction (v_prev = up = 0, p = 0).
@@ -169,9 +173,7 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const Pfs
 
         // one checked step (fill / drain): any s in 1..nbMac+3
         auto checked_step = [&](int s) {
-            int32x4_t up = pfsp_shift_up1(v);
-            if (s <= nbMac)
-                up = vsetq_lane_s32(L[s], up, 0);
+            const int32x4_t up = vextq_s32(vdupq_n_s32(s <= nbMac ? L[s] : 0), v, 3);
             int32x4_t p = vdupq_n_s32(pfsp_time_or_zero<Dir>(pt, J0, s, nbMac));
             p = vsetq_lane_s32(pfsp_time_or_zero<Dir>(pt, J1, s - 1, nbMac), p, 1);
             p = vsetq_lane_s32(pfsp_time_or_zero<Dir>(pt, J2, s - 2, nbMac), p, 2);
@@ -194,7 +196,7 @@ static inline int32_t pfsp_neon_wavefront(const std::vector<int>& sol, const Pfs
             checked_step(s);
         for (; s <= nbMac; ++s) {
             // v -> [C0,s C1,s-1 C2,s-2 C3,s-3], all lanes on machines 1..nbMac
-            const int32x4_t up = vsetq_lane_s32(L[s], pfsp_shift_up1(v), 0);
+            const int32x4_t up = vextq_s32(vdupq_n_s32(L[s]), v, 3);   // [L[s], v0, v1, v2]
             v = vaddq_s32(vmaxq_s32(v, up),
                           pfsp_gather(pt, J0, J1, J2, J3, Dir::mac(s, nbMac), Dir::mac(s - 1, nbMac),
                                       Dir::mac(s - 2, nbMac), Dir::mac(s - 3, nbMac)));
