@@ -461,6 +461,20 @@ int main(int argc, char** argv)
         for (int j = 1; j <= 6; ++j)
             for (int m = 1; m <= big_mac; ++m)
                 b.setTime(j, m, ptime(rng));
+        // 5 jobs at the stack-buffer boundary (nbMac == PFSP_NEON_STACK_MACHINES,
+        // last stack case) and one past it (first heap-fallback case); appended
+        // after the instances above so their random times are unchanged
+        for (int edge_mac : {PFSP_NEON_STACK_MACHINES, PFSP_NEON_STACK_MACHINES + 1}) {
+            synth.emplace_back(new PfspInstance());
+            PfspInstance& e = *synth.back();
+            e.setSilence(true);
+            e.setNbJob(5);
+            e.setNbMac(edge_mac);
+            e.allowMatrixMemory(5, edge_mac);
+            for (int j = 1; j <= 5; ++j)
+                for (int m = 1; m <= edge_mac; ++m)
+                    e.setTime(j, m, ptime(rng));
+        }
 #endif
     }
     // Magnitude cases, 7 jobs x 20 machines, constant times. Largest completion
