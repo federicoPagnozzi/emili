@@ -115,15 +115,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+# Every source except main.cpp is compiled once into an OBJECT library shared
+# by emili and simd_parity (consumed through $<TARGET_OBJECTS:...>, which works
+# with cmake 3.8; target_link_libraries on OBJECT libraries needs 3.12).
+# generalParser.cpp includes the generated git_version.h, so emili_core
+# depends on the git_version target.
+set(EMILI_CORE_SRC ${SRC_LIST})
+list(FILTER EMILI_CORE_SRC EXCLUDE REGEX "(^|/)main\\.cpp$")
+add_library(emili_core OBJECT ${EMILI_CORE_SRC})
+add_dependencies(emili_core git_version)
+
+add_executable(${PROJECT_NAME} main.cpp $<TARGET_OBJECTS:emili_core>)
 add_dependencies(${PROJECT_NAME} git_version)
 
-# SIMD parity test harness: every library source except main.cpp, plus its own main
+# SIMD parity test harness: the shared objects plus its own main
 option(BUILD_SIMD_PARITY "Build the simd_parity test program" ON)
 if(BUILD_SIMD_PARITY)
-    set(SIMD_PARITY_SRC ${SRC_LIST})
-    list(FILTER SIMD_PARITY_SRC EXCLUDE REGEX "(^|/)main\\.cpp$")
-    add_executable(simd_parity testing/simd_parity/simd_parity.cpp ${SIMD_PARITY_SRC})
+    add_executable(simd_parity testing/simd_parity/simd_parity.cpp $<TARGET_OBJECTS:emili_core>)
     add_dependencies(simd_parity git_version)
 endif()
 
