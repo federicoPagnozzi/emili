@@ -58,6 +58,8 @@ public:
     std::vector< long int >& getPriorities();
     /**  This method returns the processing time matrix so that it can be used by particular implementations of neighborhoods*/
     const std::vector< std::vector < long int > > & getProcessingTimesMatrix();
+    /**  flat int32 view of the processing times, used by the SIMD kernels*/
+    PfspTimesView getTimesView();
     /**  this method returns the problem size (used by some timed termination criteria)*/
     virtual int problemSize(){ return instance.getNbMac()*instance.getNbJob();}
     /**  This method returns the pfspinstance object that incapsulate the actual computation of the objective functions*/
@@ -671,9 +673,10 @@ protected:
     emili::pfsp::PermutationFlowShop& instance;
     std::vector < std::vector < int > > head;
     const std::vector< std::vector < long int > >& pmatrix;
+    PfspTimesView ptv;
     int nmac;
 public:
-    IGOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem),pmatrix(problem.getProcessingTimesMatrix()),nmac(problem.getNmachines()),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)) { }
+    IGOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):d(d_parameter),instance(problem),pmatrix(problem.getProcessingTimesMatrix()),ptv(problem.getTimesView()),nmac(problem.getNmachines()),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -704,8 +707,9 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < int > > tail;
     const std::vector < std::vector < long int > >& pmatrix;
+    PfspTimesView ptv;
 public:
-    RSIOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):emili::pfsp::IGIOPerturbation(d_parameter,problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) {}
+    RSIOPerturbation(int d_parameter, emili::pfsp::PermutationFlowShop& problem):emili::pfsp::IGIOPerturbation(d_parameter,problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ptv(problem.getTimesView()) {}
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -717,9 +721,10 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < int > > tail;
     const std::vector < std::vector < long int > >& pmatrix;
+    PfspTimesView ptv;
 
 public:
-    RSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    RSPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ptv(problem.getTimesView()) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 
@@ -731,9 +736,10 @@ protected:
     std::vector < std::vector < int > > head;
     std::vector < std::vector < int > > tail;
     const std::vector < std::vector < long int > >& pmatrix;
+    PfspTimesView ptv;
 
 public:
-    RSffPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()) { }
+    RSffPerturbation(int d_param, emili::pfsp::PermutationFlowShop& problem):d(d_param),instance(problem),head(problem.getNmachines()+1,std::vector< int > (problem.getNjobs()+1,0)),tail(problem.getNmachines()+1,std::vector< int >(problem.getNjobs()+1,0)),pmatrix(problem.getProcessingTimesMatrix()),ptv(problem.getTimesView()) { }
     virtual emili::Solution* perturb(Solution *solution);
 };
 

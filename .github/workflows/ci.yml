@@ -5,8 +5,13 @@ name: ci
 on: [push, pull_request]
 jobs:
   linux-gate:
-    runs-on: ubuntu-latest
+    name: linux-gate (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: release + sanitizer builds, goldens, negative tests
+      - name: scalar + SIMD release and sanitizer builds, parity, goldens, negative tests
         run: bash testing/ci_linux.sh
