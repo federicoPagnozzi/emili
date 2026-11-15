@@ -111,6 +111,39 @@ $ cmake ../
 
 $ make
 
+#### SIMD build ####
+
+The completion-time kernels of the permutation flowshop problems (the ones behind
+the Taillard accelerations and the makespan evaluation) have a SIMD fast path:
+
+$ cmake ../ -DUSE_SIMD=ON
+
+* ```USE_SIMD``` is OFF by default. ```USE_SSE``` is a deprecated alias of it.
+* The instruction set is chosen at compile time: SSE on x86, NEON on AArch64.
+  There is no runtime dispatch, and ARM needs no extra compiler flags.
+* Results are bit-identical to the scalar build: same objective values and same
+  trajectories for the same seed. The golden tests and the ```simd_parity```
+  program check this.
+* A SIMD binary prints ```SIMD run path enabled: SSE``` (or ```NEON```) when it loads
+  a PFSP problem; a scalar binary prints no such line.
+* Limits: the NEON kernels use int32 completion times (each must stay below 2^31).
+  The SSE kernels use float lanes, exact only while completion times stay below
+  2^24, and assume at least 4 machines.
+* Speed: on an Apple M1 Pro with Apple clang, NEON is 1.1 to 2.8 times faster than
+  the scalar build on the benchmark rows (up to 2.8 times for the insert
+  neighborhood on 500 jobs x 20 machines). Numbers vary with compiler and CPU;
+  GCC, Graviton and Ampere were not measured.
+
+#### Testing ####
+
+* ```testing/golden_tests.sh check <binary>``` compares seeded runs with recorded goldens.
+* ```<build>/simd_parity testing/DD_Ta055.txt``` compares every SIMD kernel with the scalar
+  reference.
+* ```testing/ci_docker.sh``` runs the Linux CI gate in a container
+  (```PLATFORM=linux/amd64 testing/ci_docker.sh``` forces x86-64).
+* ```testing/bench_simd.sh label=binary ...``` times binaries against each other
+  and prints a Markdown table.
+
 ### How to start contributing ###
 
 1) Create a subdir for your problem.

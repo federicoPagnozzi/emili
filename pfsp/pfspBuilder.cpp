@@ -13,6 +13,8 @@
 #include <algorithm>
 #include "pfspinstance.h"
 
+#include "pfsp_simd.h"
+
 /* Algos */
 #define CH6_LS "ch6"
 #define RIS_LS "ris"
@@ -1389,53 +1391,53 @@ emili::pfsp::PermutationFlowShop* loadProblem(char* t, PfspInstance i)
     emili::pfsp::PermutationFlowShop* prob;
     if(strcmp(t,PROBLEM_PFS_WT)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Weighted Tardiness");
         prob = new emili::pfsp::PFSP_WT(i);
     }else if(strcmp(t,PROBLEM_PFS_E)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Earliness");
         prob = new emili::pfsp::PFSP_E(i);
     }else if(strcmp(t,PROBLEM_PFS_WE)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Weighted Earliness");
         prob = new emili::pfsp::PFSP_WE(i);
     }else if(strcmp(t,PROBLEM_PFS_T)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
 
         prs::printTab("Permutation Flow Shop Tardiness");
         prob = new emili::pfsp::PFSP_T(i);
     }else if(strcmp(t,PROBLEM_PFS_MS)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop Make Span");
         prob = new emili::pfsp::PFSP_MS(i);
     }
     else if(strcmp(t,PROBLEM_PFS_TCT)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
         prs::printTab("Permutation Flow Shop TCT");
         prob = new emili::pfsp::PFSP_TCT(i);
     }
     else if(strcmp(t,PROBLEM_PFS_WCT)==0)
     {
-#ifdef ENABLE_SSE
-        prs::printTab("SSE run path enabled");
+#ifdef ENABLE_SIMD
+        prs::printTab("SIMD run path enabled: " PFSP_SIMD_NAME);
 #endif
 
         prs::printTab("Permutation Flow Shop WCT");

@@ -33,6 +33,7 @@ normalize() {
     sed -E -e 's/^time : .*/time : <NORMALIZED>/' \
            -e 's/^CPU time: .*/CPU time: <NORMALIZED>/' \
            -e 's/^commit : .*/commit : <NORMALIZED>/' \
+           -e '/SIMD run path enabled/d' \
            -e "s#${SCRIPT_DIR}#<TESTING_DIR>#g"
 }
 

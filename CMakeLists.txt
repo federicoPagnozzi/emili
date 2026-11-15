@@ -18,7 +18,8 @@ aux_source_directory(. SRC_LIST)
 aux_source_directory(./pfsp SRC_LIST)
 #aux_source_directory(./template SRC_LIST)
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
-option(USE_SSE "Use SSE compile path if available" OFF)
+option(USE_SIMD "Use the SIMD (SSE on x86, NEON on AArch64) compile path" OFF)
+option(USE_SSE "Deprecated alias of USE_SIMD" OFF)
 option(USE_NEW_MAIN "Use new loading paradigm" ON)
 option(WITH_STATS "Print solution informations" OFF)
 option(IRACE_OPTIMISED_FLAGS "compiles EMILI using the optimization setting tuned by irace" OFF)
@@ -65,14 +66,27 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_compile_options(-Wno-reorder -Wno-vla -Wno-overloaded-virtual -Wno-unused-parameter -Wno-sign-compare -Wno-maybe-uninitialized)
 endif()
 
-#SSE
+#SIMD (SSE on x86, NEON on AArch64; the ISA is chosen in pfsp/pfsp_simd.h)
 if(USE_SSE)
-	message(STATUS "Using sse compile path") 
-	add_definitions(-DENABLE_SSE)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
-else()
-        message(STATUS "sse compile path disabled")
+    message(STATUS "USE_SSE is deprecated, use USE_SIMD instead; enabling USE_SIMD")
+    set(USE_SIMD ON)
 endif(USE_SSE)
+# USE_SSE is a cached option: once set ON it keeps enabling USE_SIMD, so
+# -DUSE_SIMD=OFF has no effect until -DUSE_SSE=OFF is passed too.
+if(USE_SIMD)
+    message(STATUS "Using SIMD compile path")
+    if(USE_SSE)
+        message(STATUS "USE_SSE is cached ON: pass -DUSE_SSE=OFF as well to turn SIMD off")
+    endif()
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64|i[3-6]86")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
+    elseif(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+        message(FATAL_ERROR "USE_SIMD: unsupported processor '${CMAKE_SYSTEM_PROCESSOR}'; SIMD supports x86 (SSE) and AArch64 (NEON)")
+    endif()
+    add_definitions(-DENABLE_SIMD)
+else()
+    message(STATUS "SIMD compile path disabled")
+endif(USE_SIMD)
 
 #Solution stats
 if(WITH_STATS)
@@ -108,8 +122,25 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+# Every source except main.cpp is compiled once into an OBJECT library shared
+# by emili and simd_parity (consumed through $<TARGET_OBJECTS:...>, which works
+# with cmake 3.8; target_link_libraries on OBJECT libraries needs 3.12).
+# generalParser.cpp includes the generated git_version.h, so emili_core
+# depends on the git_version target.
+set(EMILI_CORE_SRC ${SRC_LIST})
+list(FILTER EMILI_CORE_SRC EXCLUDE REGEX "(^|/)main\\.cpp$")
+add_library(emili_core OBJECT ${EMILI_CORE_SRC})
+add_dependencies(emili_core git_version)
+
+add_executable(${PROJECT_NAME} main.cpp $<TARGET_OBJECTS:emili_core>)
 add_dependencies(${PROJECT_NAME} git_version)
+
+# SIMD parity test harness: the shared objects plus its own main
+option(BUILD_SIMD_PARITY "Build the simd_parity test program" ON)
+if(BUILD_SIMD_PARITY)
+    add_executable(simd_parity testing/simd_parity/simd_parity.cpp $<TARGET_OBJECTS:emili_core>)
+    add_dependencies(simd_parity git_version)
+endif()
 
 # Testing support
 enable_testing()
